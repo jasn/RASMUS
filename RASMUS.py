@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
 import sys
-import Lexer
+import lexer
+import parser
 
 def main():
     if len(sys.argv) != 2:
@@ -11,12 +12,8 @@ def main():
     
     with open(f) as myFile:
         code = myFile.read()
-        lexer = Lexer.Lexer(code)
-        while True:
-            TK_TYPE, start, length = lexer.getNext()
-            if TK_TYPE == Lexer.TK_EOF:
-                break
-            print TK_TYPE
+        p = parser.Parser(code)
+        p.parse()
 
 if __name__ == "__main__":
     main()
