@@ -1,33 +1,82 @@
 from lexer import *
 
 class ParserException(Exception):
-
     def __init__(self, hat, TK):
         self.TK = TK
         Exception.__init__(self, hat)
 
-class Parser:
+class RecoverException(Exception):
+    pass
 
+class RecoverEOF(RecoverException):
+    TK=TK_EOF
+
+class RecoverBLOCKEND(RecoverException):
+    TK=TK_BLOCKEND
+
+class RecoverIN(RecoverException):
+    TK=TK_IN
+
+class RecoverVAL(RecoverException):
+    TK=TK_VAL
+
+class RecoverRPAREN(RecoverException):
+    TK=TK_RPAREN
+
+class RecoverSEMICOLON(RecoverException):
+    TK=TK_SEMICOLON
+
+class Parser:
     def __init__(self, code):
         self.code = code
         self.lexer = Lexer(code)
         self.currentToken = self.lexer.getNext()
-
+        self.recoverStack = []
+        
     def nextToken(self):
         self.currentToken = self.lexer.getNext()
 
+    def pushRecover(self, rec):
+        self.recoverStack.append(rec)
+
+    def popRecover(self):
+        self.recoverStack.pop()
+
+    def recover(self):
+        """Recover errors at the first token in list of tokens specified on the recovery stack"""
+        r = dict( (l.TK, l) for l in self.recoverStack)
+        while not self.currentToken[0] in r:
+            if self.currentToken[0] == TK_ERR:
+                self.parseError("Invalid token")
+            self.nextToken()
+        raise r[self.currentToken[0]]()
+        
+    def parseError(self, error):
+        TK=self.currentToken
+        startOfLine = self.code.rfind("\n", 0, TK[1])
+        startOfLine += 1
+        endOfLine = self.code.find("\n", startOfLine+1)
+        if endOfLine == -1:
+            endOfLine = len(self.code)
+
+        print "Parse error: %s" %error
+        print self.code[startOfLine:endOfLine]
+        print "%s^%s"%(" "*(TK[1]-startOfLine), "~"*(TK[2]-1))
+        
     def parseType(self):
         cToken = self.currentToken[0]
         if cToken in [TK_TYPE_BOOL,TK_TYPE_INT,TK_TYPE_TEXT,TK_TYPE_ATOM,TK_TYPE_TUP,TK_TYPE_REL,TK_TYPE_FUNC,TK_TYPE_ANY]:
             self.nextToken()
             return
-        raise ParserException("Expected Type", self.currentToken)
+        self.parseError("Expected Type");
+        self.recover()
 
     def parseAssignment(self):       
         self.nextToken()
         if self.currentToken[0] == TK_ASSIGN:
             self.nextToken()
             self.parseExp()
+
 
     def parseBottomExp(self):
         cToken = self.currentToken[0]
@@ -40,42 +89,68 @@ class Parser:
             self.parseAssignment()
         elif cToken == TK_FUNC:
             self.nextToken()
-            self.assertToken(TK_LPAREN)
-            if self.currentToken[0] != TK_RPAREN:
-                self.assertToken(TK_NAME)
-                self.assertToken(TK_COLON)
+            self.assertTokenConsume(TK_LPAREN)
+            self.pushRecover(RecoverRPAREN);
+            try:
+                if self.currentToken[0] != TK_RPAREN:
+                    self.assertTokenConsume(TK_NAME)
+                self.assertTokenConsume(TK_COLON)
                 self.parseType()
                 while self.currentToken[0] == TK_COMMA:
                     self.nextToken()
-                    self.assertToken(TK_NAME)
-                    self.assertToken(TK_COLON)
+                    self.assertTokenConsume(TK_NAME)
+                    self.assertTokenConsume(TK_COLON)
                     self.parseType()
-            self.assertToken(TK_RPAREN)
-            self.assertToken(TK_RIGHTARROW)
-            self.assertToken(TK_LPAREN)
+                self.assertToken(TK_RPAREN)
+            except RecoverRPAREN:
+                pass
+            finally:
+                self.popRecover()
+            self.nextToken()
+            self.assertTokenConsume(TK_RIGHTARROW)
+            self.assertTokenConsume(TK_LPAREN)
             self.parseType()
-            self.assertToken(TK_RPAREN)
-            self.parseExp()
-            self.assertToken(TK_END)
+            self.assertTokenConsume(TK_RPAREN)
+            self.pushRecover(RecoverEnd)
+            try:
+                self.parseExp()
+            except RecoverEND:
+                pass
+            finally:
+                self.popRecover()
+            self.assertTokenConsume(TK_END)
         elif cToken == TK_REL:
             self.nextToken()
-            self.assertToken(TK_LPAREN)
-            self.parseExp()
-            self.assertToken(TK_RPAREN)
+            self.assertTokenConsume(TK_LPAREN)
+            self.pushRecover(RecoverRPAREN)
+            try:
+                self.parseExp()
+                self.assertToken(TK_RPAREN)
+            except RecoverRPAREN:
+                pass
+            finally:
+                self.popRecover()
+            self.nextToken()
         elif cToken == TK_TUP:
             self.nextToken()
-            self.assertToken(TK_LPAREN)
-            if self.currentToken[0] != TK_RPAREN:
-                self.assertToken(TK_NAME)
-                self.assertToken(TK_COLON)
-                self.parseExp()
-                while self.currentToken[0] == TK_COMMA:
-                    self.nextToken()
-                    self.assertToken(TK_NAME)
-                    self.assertToken(TK_COLON)
+            self.assertTokenConsume(TK_LPAREN)
+            self.pushRecover(RecoverRPAREN)
+            try:
+                if self.currentToken[0] != TK_RPAREN:
+                    self.assertTokenConsume(TK_NAME)
+                    self.assertTokenConsume(TK_COLON)
                     self.parseExp()
-                    
-            self.assertToken(TK_RPAREN)
+                    while self.currentToken[0] == TK_COMMA:
+                        self.nextToken()
+                        self.assertTokenConsume(TK_NAME)
+                        self.assertTokenConsume(TK_COLON)
+                        self.parseExp()
+                    self.assertToken(TK_RPAREN)
+            except RecoverRPAREN:
+                pass
+            finally:
+                self.popRecover()
+            self.nextToken()
         elif cToken in [TK_ZERO, TK_ONE, TK_STDBOOL, TK_STDINT, TK_STDTEXT, TK_SHARP]:
             self.nextToken()
         elif cToken == TK_TEXT:
@@ -84,26 +159,54 @@ class Parser:
             self.nextToken()
         elif cToken == TK_BLOCKSTART:
             self.nextToken()
-            while self.currentToken[0] == TK_VAL:
+            self.pushRecover(RecoverBLOCKEND)
+            try: 
+                self.pushRecover(RecoverIN)                
+                try:
+                    while self.currentToken[0] == TK_VAL:
+                        self.nextToken()
+                        self.pushRecover(RecoverVAL)
+                        try:
+                            self.assertTokenConsume(TK_NAME)
+                            self.assertTokenConsume(TK_EQUAL)
+                            self.parseExp()
+                        except RecoverVAL:
+                            pass
+                        finally:
+                            self.popRecover()
+                    self.assertToken(TK_IN)
+                except RecoverIN:
+                    pass
+                finally:
+                    self.popRecover()
                 self.nextToken()
-                self.assertToken(TK_NAME)
-                self.assertToken(TK_EQUAL)
                 self.parseExp()
-            self.assertToken(TK_IN)
-            self.parseExp()
-            self.assertToken(TK_BLOCKEND)
+                self.assertToken(TK_BLOCKEND)
+            except RecoverBLOCKEND:
+                pass
+            finally:
+                self.popRecover()
+            self.nextToken()
         elif cToken == TK_AT:
             self.nextToken()
-            self.assertToken(TK_LPAREN)
-            self.parseExp()
-            self.assertToken(TK_RPAREN)
+            self.assertTokenConsume(TK_LPAREN)
+            self.pushRecover(RecoverRPAREN)
+            try:
+                self.parseExp()
+                self.assertToken(TK_RPAREN)
+            except RecoverRPAREN:
+                pass
+            finally:
+                self.popRecover()
+            self.nextToken()
         elif cToken == TK_NOT:
             self.nextToken()
             self.parseExp()
         elif cToken in [TK_TRUE,TK_FALSE]:
             self.nextToken()
         else:
-            raise ParserException("Unexpected token", self.currentToken)
+            self.parseError("Unexpected token")
+            self.recover()
 
     def parseConcatExp(self):
         self.parseBottomExp()
@@ -115,7 +218,13 @@ class Parser:
         self.parseOrExp()
         while self.currentToken[0] == TK_SEMICOLON:
             self.nextToken()
-            self.parseOrExp()
+            self.pushRecover(RecoverSEMICOLON)
+            try:
+                self.parseOrExp()
+            except RecoverSEMICOLON:
+                pass
+            finally:
+                self.popRecover()
 
     def parseAndExp(self):
         self.parsePlusMinusExp()
@@ -135,7 +244,6 @@ class Parser:
             self.nextToken()
             self.parseConcatExp()
 
-
     def parsePlusMinusExp(self):
         self.parseMulDivExp()
         while self.currentToken[0] in [TK_PLUS, TK_MINUS]:
@@ -143,25 +251,25 @@ class Parser:
             self.parseMulDivExp()
 
     def parse(self) :
-        try: 
+        self.pushRecover(RecoverEOF)
+        try:
             self.parseExp()
-            self.assertToken(TK_EOF)
-        except ParserException as e:
-            startOfLine = self.code.rfind("\n", 0, e.TK[1])
-            startOfLine += 1
-            endOfLine = self.code.find("\n", startOfLine+1)
-            if endOfLine == -1:
-                endOfLine = len(self.code)
-
-            print "Parse error: %s " %e
-            print self.code[startOfLine:endOfLine]
-            print "%s^%s"%(" "*(e.TK[1]-startOfLine), "~"*(e.TK[2]-1))
+            self.assertTokenConsume(TK_EOF)
+        except RecoverEOF:
+            pass
+        finally:
+            self.popRecover()
+            
 
     def parseExp(self):
         self.parseSequenceExp()     
         
     def assertToken(self, TK):
         if TK != self.currentToken[0]:
-            # raise an error
-            raise ParserException("Expected %s at "%mapToken[TK], self.currentToken)
+            self.parseError("Expected %s at "%mapToken[TK]);
+            self.recover()
+
+    def assertTokenConsume(self, TK):
+        self.assertToken(TK)
         self.nextToken()
+
