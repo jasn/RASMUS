@@ -266,7 +266,7 @@ class Parser:
         
     def assertToken(self, TK):
         if TK != self.currentToken[0]:
-            self.parseError("Expected %s at "%mapToken[TK]);
+            self.parseError("Expected %s at "%tokenNames[TK]);
             self.recover()
 
     def assertTokenConsume(self, TK):
