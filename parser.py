@@ -1,5 +1,8 @@
 from lexer import *
 
+thingsThatMayComeAfterParseExp = [TK_RIGHTARROW, TK_RPAREN, TK_COMMA, TK_FI,
+                                  TK_PIPE, TK_COLON, TK_END, TK_IN, TK_CHOICE,
+                                  TK_VAL, TK_TWO_DOTS, TK_EOF, TK_SEMICOLON]
 
 class ParserException(Exception):
     def __init__(self, hat, TK):
@@ -420,6 +423,9 @@ class Parser:
         self.pushRecover(RecoverSEMICOLON)
         try:
             self.parseCompareExp()
+            if not self.currentToken[0] in thingsThatMayComeAfterParseExp:
+                self.parseError("Unexpected token")
+                self.recover()
         except RecoverSEMICOLON:
             pass
         finally:
@@ -429,6 +435,10 @@ class Parser:
             self.pushRecover(RecoverSEMICOLON)
             try:
                 self.parseCompareExp()
+                if not self.currentToken[0] in thingsThatMayComeAfterParseExp:
+                    self.parseError("Unexpected token")
+                    self.recover()
+
             except RecoverSEMICOLON:
                 pass
             finally:
