@@ -27,6 +27,15 @@ class RecoverRPAREN(RecoverException):
 class RecoverSEMICOLON(RecoverException):
     TK=TK_SEMICOLON
 
+class RecoverRBRACKET(RecoverException):
+    TK=TK_RBRACKET
+
+class RecoverCHOICE(RecoverException):
+    TK=TK_CHOICE
+
+class RecoverFI(RecoverException):
+    TK=TK_FI
+
 class Parser:
     def __init__(self, error, code):
         self.error = error
@@ -39,18 +48,24 @@ class Parser:
         self.currentToken = self.lexer.getNext()
 
     def pushRecover(self, rec):
+        #print "push ", tokenNames[rec.TK]
         self.recoverStack.append(rec)
 
-    def popRecover(self):
+    def popRecover(self, rec):
+        if rec != self.recoverStack[-1]:
+            print "found the error!"
+        #print "pop ", tokenNames[rec.TK]
         self.recoverStack.pop()
 
     def recover(self):
         """Recover errors at the first token in list of tokens specified on the recovery stack"""
         r = dict( (l.TK, l) for l in self.recoverStack)
+        #print "recovering " , self.recoverStack
         while not self.currentToken[0] in r:
             if self.currentToken[0] == TK_ERR:
                 self.parseError("Invalid token")
             self.nextToken()
+        #print "Recover to ",r[self.currentToken[0]]
         raise r[self.currentToken[0]]()
         
     def parseError(self, error):
@@ -60,7 +75,11 @@ class Parser:
                 
     def parseType(self):
         cToken = self.currentToken[0]
-        if cToken in [TK_TYPE_BOOL,TK_TYPE_INT,TK_TYPE_TEXT,TK_TYPE_ATOM,TK_TYPE_TUP,TK_TYPE_REL,TK_TYPE_FUNC,TK_TYPE_ANY]:
+        if cToken in [TK_TYPE_BOOL,TK_TYPE_INT,
+                      TK_TYPE_TEXT,TK_TYPE_ATOM,
+                      TK_TYPE_TUP,TK_TYPE_REL,
+                      TK_TYPE_FUNC,TK_TYPE_ANY]:
+
             self.nextToken()
             return
         self.parseError("Expected Type");
@@ -76,6 +95,100 @@ class Parser:
         cToken = self.currentToken[0]
         if False:
             pass
+        elif cToken == TK_IF:
+            self.nextToken()
+            self.pushRecover(RecoverFI)
+            try:
+                self.pushRecover(RecoverCHOICE)
+                try:
+                    self.parseExp()
+                    self.assertTokenConsume(TK_RIGHTARROW)
+                    self.parseExp()
+                except RecoverCHOICE:
+                    pass
+                finally:
+                    self.popRecover(RecoverCHOICE)
+                while self.currentToken[0] == TK_CHOICE:
+                    self.nextToken()
+                    self.pushRecover(RecoverCHOICE)
+                    try:
+                        self.parseExp()
+                        self.assertTokenConsume(TK_RIGHTARROW)
+                        self.parseExp()
+                    except RecoverCHOICE:
+                        pass
+                    finally:
+                        self.popRecover(RecoverCHOICE)
+                self.assertToken(TK_FI)
+            except RecoverFI:
+                pass
+            finally:
+                self.popRecover(RecoverFI)
+            self.assertTokenConsume(TK_FI)
+        elif cToken == TK_LPAREN:
+            self.nextToken()
+            self.pushRecover(RecoverRPAREN)
+            try:
+                self.parseExp()
+                self.assertToken(TK_RPAREN)
+            except RecoverRPAREN:
+                pass
+            finally:
+                self.popRecover(RecoverRPAREN)
+            self.assertTokenConsume(TK_RPAREN)
+
+        elif cToken in [TK_TODAY, TK_CLOSE]:
+            self.nextToken()
+        elif cToken in [TK_BANG, TK_BANGLT, TK_BANGGT]:
+            self.nextToken()
+            self.assertTokenConsume(TK_LPAREN)
+            self.pushRecover(RecoverRPAREN)
+            
+            try:
+                self.parseExp()
+                while self.currentToken[0] == TK_COMMA:
+                    self.nextToken()
+                    self.parseExp()
+                self.assertToken(TK_RPAREN)
+            except RecoverRPAREN:
+                pass
+            finally:
+                self.popRecover(RecoverRPAREN)
+            self.assertTokenConsume(TK_RPAREN)
+
+            if self.currentToken[0] == TK_PIPE:
+                self.nextToken()
+                self.assertTokenConsume(TK_NAME)
+                while self.currentToken[0] == TK_COMMA:
+                    self.nextToken()
+                    self.assertTokenConsume(TK_NAME)
+
+            self.assertTokenConsume(TK_COLON)
+            self.parseExp()
+
+        elif cToken in [TK_ISATOM, TK_ISTUP, TK_ISREL, 
+                        TK_ISFUNC, TK_ISANY, TK_SYSTEM, 
+                        TK_WRITE, TK_OPEN, TK_HAS, TK_MAX,
+                        TK_MIN, TK_COUNT, TK_ADD, TK_MULT,
+                        TK_DAYS, TK_BEFORE, TK_AFTER, TK_DATE,
+                        TK_ISBOOL, TK_ISINT, TK_ISTEXT]:
+
+            self.nextToken()
+            self.assertTokenConsume(TK_LPAREN)
+            self.pushRecover(RecoverRPAREN)
+            
+            try:
+                self.parseExp()
+                while self.currentToken[0] == TK_COMMA:
+                    self.nextToken()
+                    self.parseExp()
+                self.assertToken(TK_RPAREN)
+            except RecoverRPAREN:
+                pass
+            finally:
+                self.popRecover(RecoverRPAREN)
+            self.assertTokenConsume(TK_RPAREN)
+
         elif cToken == TK_PIPE:
             self.nextToken()
             self.parseExp()
@@ -103,7 +216,7 @@ class Parser:
             except RecoverRPAREN:
                 pass
             finally:
-                self.popRecover()
+                self.popRecover(RecoverRPAREN)
             self.nextToken()
             self.assertTokenConsume(TK_RIGHTARROW)
             self.assertTokenConsume(TK_LPAREN)
@@ -115,7 +228,7 @@ class Parser:
             except RecoverEND:
                 pass
             finally:
-                self.popRecover()
+                self.popRecover(RecoverEnd)
             self.assertTokenConsume(TK_END)
         elif cToken == TK_REL:
             self.nextToken()
@@ -127,7 +240,7 @@ class Parser:
             except RecoverRPAREN:
                 pass
             finally:
-                self.popRecover()
+                self.popRecover(RecoverRPAREN)
             self.nextToken()
         elif cToken == TK_TUP:
             self.nextToken()
@@ -147,7 +260,7 @@ class Parser:
             except RecoverRPAREN:
                 pass
             finally:
-                self.popRecover()
+                self.popRecover(RecoverRPAREN)
             self.nextToken()
         elif cToken in [TK_ZERO, TK_ONE, TK_STDBOOL, TK_STDINT, TK_STDTEXT, TK_SHARP]:
             self.nextToken()
@@ -171,19 +284,19 @@ class Parser:
                         except RecoverVAL:
                             pass
                         finally:
-                            self.popRecover()
+                            self.popRecover(RecoverVAL)
                     self.assertToken(TK_IN)
                 except RecoverIN:
                     pass
                 finally:
-                    self.popRecover()
+                    self.popRecover(RecoverIN)
                 self.nextToken()
                 self.parseExp()
                 self.assertToken(TK_BLOCKEND)
             except RecoverBLOCKEND:
                 pass
             finally:
-                self.popRecover()
+                self.popRecover(RecoverBLOCKEND)
             self.nextToken()
         elif cToken == TK_AT:
             self.nextToken()
@@ -195,7 +308,7 @@ class Parser:
             except RecoverRPAREN:
                 pass
             finally:
-                self.popRecover()
+                self.popRecover(RecoverRPAREN)
             self.nextToken()
         elif cToken == TK_NOT:
             self.nextToken()
@@ -206,73 +319,125 @@ class Parser:
             self.parseError("Unexpected token")
             self.recover()
 
-
-    def parseCompareExp(self):
-        self.parsePlusMinusExp()
-        if self.currentToken[0] in [TK_EQUAL, TK_DIFFERENT, 
-                                    TK_LESS, TK_GREATER, 
-                                    TK_LESSEQUAL, TK_GREATEREQUAL]:
-            self.nextToken()
-            self.parsePlusMinusExp()
-
-    def parseOpExtendAndOverwriteExp(self):
-        self.parseBottomExp()
-        while self.currentToken[0] == TK_OPEXTEND:
-            self.nextToken()
-            self.parseBottomExp()
-
-    def parseSubstringExp(self):
+    def parseSubstringOrFuncInvocationExp(self):
         self.parseBottomExp()
         if self.currentToken[0] == TK_LPAREN:
+            self.pushRecover(RecoverRPAREN)
             self.nextToken()
-            self.parseExp()
-            self.assertTokenConsume(TK_TWO_DOTS)
-            self.parseExp()
+            try:
+                self.parseExp()
+                if self.currentToken[0] == TK_TWO_DOTS:
+                    self.nextToken()
+                    self.parseExp()
+                else:
+                    while self.currentToken[0] == TK_COMMA:
+                        self.nextToken()
+                        self.parseExp()
+                
+                self.assertToken(TK_RPAREN)
+
+            except RecoverRPAREN:
+                pass
+            finally:
+                self.popRecover(RecoverRPAREN)
             self.assertTokenConsume(TK_RPAREN)
-            
+
+    def parseRenameExp(self):
+        self.parseSubstringOrFuncInvocationExp()
+        while self.currentToken[0] == TK_LBRACKET:
+            self.pushRecover(RecoverRBRACKET)
+            self.nextToken()
+            try:
+                self.assertTokenConsume(TK_NAME)
+                self.assertTokenConsume(TK_LEFT_ARROW)
+                self.assertTokenConsume(TK_NAME)
+                while self.currentToken[0] == TK_COMMA:
+                    self.nextToken()
+                    self.assertTokenConsume(TK_NAME)
+                    self.assertTokenConsume(TK_LEFT_ARROW)
+                    self.assertTokenConsume(TK_NAME)
+                self.assertToken(TK_RBRACKET)
+            except RecoverRBRACKET:
+                pass
+            finally:
+                self.popRecover(RecoverRBRACKET)
+            self.assertTokenConsume(TK_RBRACKET)
+
+    def parseDotExp(self):
+        self.parseRenameExp()
+        if self.currentToken[0] == TK_ONE_DOT:
+            self.nextToken()
+            self.assertTokenConsume(TK_NAME)     
+
+    def parseOpExtendAndOverwriteExp(self):
+        self.parseDotExp()
+        while self.currentToken[0] == TK_OPEXTEND:
+            self.nextToken()
+            self.parseDotExp()
+
     def parseConcatExp(self):
         self.parseOpExtendAndOverwriteExp()
         while self.currentToken[0] == TK_CONCAT:
             self.nextToken()
             self.parseOpExtendAndOverwriteExp()
 
+    def parseProjectionExp(self):
+        self.parseConcatExp()
+        while self.currentToken[0] in [TK_PROJECT_PLUS, TK_PROJECT_MINUS]:           
+            self.nextToken()
+            self.assertTokenConsume(TK_NAME)
+            while self.currentToken[0] == TK_COMMA:
+                self.nextToken()
+                self.assertTokenConsume(TK_NAME)
+
+    def parseMulDivModAndExp(self):
+        self.parseConcatExp()
+        while self.currentToken[0] in [TK_DIV, TK_MUL, TK_MOD, TK_AND]:
+            self.nextToken()
+            self.parseConcatExp()
+
+    def parsePlusMinusOrExp(self):
+        self.parseMulDivModAndExp()
+        while self.currentToken[0] in [TK_PLUS, TK_MINUS, TK_OR, TK_SET_MINUS]:
+            self.nextToken()
+            self.parseMulDivModAndExp()
+
+    def parseSelectExp(self):
+        self.parsePlusMinusOrExp()
+        while self.currentToken[0] == TK_QUESTION:
+            self.nextToken()
+            self.parsePlusMinusOrExp()
+
+    def parseCompareExp(self):
+        self.parseSelectExp()
+        if self.currentToken[0] in [TK_EQUAL, TK_DIFFERENT, 
+                                    TK_LESS, TK_GREATER, 
+                                    TK_LESSEQUAL, TK_GREATEREQUAL, TK_TILDE]:
+            self.nextToken()
+            self.parseSelectExp()
+
     def parseSequenceExp(self):
-        self.parseOrExp()
+        self.pushRecover(RecoverSEMICOLON)
+        try:
+            self.parseCompareExp()
+        except RecoverSEMICOLON:
+            pass
+        finally:
+            self.popRecover(RecoverSEMICOLON)
         while self.currentToken[0] == TK_SEMICOLON:
             self.nextToken()
             self.pushRecover(RecoverSEMICOLON)
             try:
-                self.parseOrExp()
+                self.parseCompareExp()
             except RecoverSEMICOLON:
                 pass
             finally:
-                self.popRecover()
+                self.popRecover(RecoverSEMICOLON)
 
-    def parseAndExp(self):
-        self.parseCompareExp()
-        while self.currentToken[0] == TK_AND:
-            self.nextToken()
-            self.parseCompareExp()
-
-    def parseOrExp(self):
-        self.parseAndExp()
-        while self.currentToken[0] == TK_OR:
-            self.nextToken()
-            self.parseAndExp()
-        
-    def parseMulDivExp(self):
-        self.parseConcatExp()
-        while self.currentToken[0] in [TK_DIV, TK_MUL, TK_MOD]:
-            self.nextToken()
-            self.parseConcatExp()
-
-    def parsePlusMinusExp(self):
-        self.parseMulDivExp()
-        while self.currentToken[0] in [TK_PLUS, TK_MINUS]:
-            self.nextToken()
-            self.parseMulDivExp()
-
-    def parse(self) :
+    def parseExp(self):
+        self.parseSequenceExp()     
+            
+    def parse(self):
         self.pushRecover(RecoverEOF)
         try:
             self.parseExp()
@@ -280,12 +445,8 @@ class Parser:
         except RecoverEOF:
             pass
         finally:
-            self.popRecover()
-            
-
-    def parseExp(self):
-        self.parseSequenceExp()     
-        
+            self.popRecover(RecoverEOF)
+                 
     def assertToken(self, TK):
         if TK != self.currentToken[0]:
             self.parseError("Expected %s at "%tokenNames[TK]);

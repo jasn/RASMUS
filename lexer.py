@@ -55,6 +55,44 @@ TK_DIFFERENT = 52
 TK_LESSEQUAL = 53
 TK_GREATEREQUAL = 54
 TK_TWO_DOTS = 55
+TK_ONE_DOT = 56
+TK_QUESTION = 57
+TK_SET_MINUS = 58
+TK_PROJECT_PLUS = 59
+TK_PROJECT_MINUS = 60
+TK_LEFT_ARROW = 61
+TK_LBRACKET = 62
+TK_RBRACKET = 63
+TK_MAX = 64
+TK_MIN = 65
+TK_COUNT = 66
+TK_ADD = 67
+TK_MULT = 68
+TK_DAYS = 69
+TK_BEFORE = 70
+TK_AFTER = 71
+TK_TODAY = 72
+TK_DATE = 73
+TK_OPEN = 74
+TK_CLOSE = 75
+TK_WRITE = 76
+TK_SYSTEM = 77
+TK_IF = 78
+TK_FI = 79
+TK_CHOICE = 81
+TK_ISBOOL = 82
+TK_ISINT = 83
+TK_ISTEXT = 84
+TK_ISATOM = 85
+TK_ISTUP = 86
+TK_ISREL = 87
+TK_ISFUNC = 88
+TK_ISANY = 89
+TK_BANG = 90
+TK_BANGLT = 80
+TK_BANGGT = 91
+TK_HAS = 92
+TK_TILDE = 93
 
 operators = [
     (TK_AT, "@"),
@@ -85,6 +123,27 @@ operators = [
     (TK_LESSEQUAL, "<="),
     (TK_GREATEREQUAL, ">="),
     (TK_TWO_DOTS, ".."),
+    (TK_ONE_DOT, "."),
+    (TK_QUESTION, "?"),
+    (TK_SET_MINUS, "\\"),
+    (TK_PROJECT_PLUS, "|+"),
+    (TK_PROJECT_MINUS, "|-"),
+    (TK_LEFT_ARROW, "<-"),
+    (TK_LBRACKET, "["),
+    (TK_RBRACKET, "]"),
+    (TK_CHOICE, "&"),
+    (TK_ISBOOL, "is-Bool"),
+    (TK_ISINT, "is-Int"),
+    (TK_ISTEXT, "is-Text"),
+    (TK_ISATOM, "is-Atom"),
+    (TK_ISTUP, "is-Tup"),
+    (TK_ISREL, "is-Rel"),
+    (TK_ISFUNC, "is-Func"),
+    (TK_ISANY, "is-Any"),
+    (TK_BANG, "!"),
+    (TK_BANGLT, "!<"),
+    (TK_BANGGT, "!>"),
+    (TK_TILDE, "~"),
     ]
 
 keywords = [(TK_TUP, "tup"), 
@@ -109,6 +168,23 @@ keywords = [(TK_TUP, "tup"),
             (TK_TYPE_FUNC, "Func"),
             (TK_TYPE_ANY, "Any"),
             (TK_MOD, "mod"),
+            (TK_MAX, "max"),
+            (TK_MIN, "min"),
+            (TK_COUNT, "count"),
+            (TK_ADD, "add"),
+            (TK_MULT, "mult"),
+            (TK_DAYS, "days"),
+            (TK_BEFORE, "before"),
+            (TK_AFTER, "after"),
+            (TK_TODAY, "today"),
+            (TK_DATE, "date"),
+            (TK_OPEN, "open"),
+            (TK_CLOSE, "close"),
+            (TK_WRITE, "write"),
+            (TK_SYSTEM, "system"),
+            (TK_IF, "if"),
+            (TK_FI, "fi"),
+            (TK_HAS, "has"),
             ]
 
 tokenNames = {}
@@ -122,7 +198,9 @@ tokenNames[TK_NAME] = "Name"
 tokenNames[TK_INT] = "Int"
 tokenNames[TK_TEXT] = "Text"
 
-operators_map = [{} for _ in range(7)]
+maxLength = max([len(value) for _,value in operators])
+
+operators_map = [{} for _ in range(maxLength+1)]
 
 for key, value in operators:
     operators_map[len(value)][value] = key
@@ -189,4 +267,3 @@ class Lexer:
             j = j + 1
         self.index += j
         return (TK_ERR, i, j)
-
