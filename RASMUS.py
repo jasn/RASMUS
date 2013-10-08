@@ -1,8 +1,8 @@
 #!/usr/bin/python
-
 import sys
 import lexer
 import parser
+import error
 
 def main():
     if len(sys.argv) != 2:
@@ -12,7 +12,8 @@ def main():
     
     with open(f) as myFile:
         code = myFile.read()
-        p = parser.Parser(code)
+        e = error.Error(code, f)
+        p = parser.Parser(e, code)
         p.parse()
 
 if __name__ == "__main__":

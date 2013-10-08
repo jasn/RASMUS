@@ -1,5 +1,6 @@
 from lexer import *
 
+
 class ParserException(Exception):
     def __init__(self, hat, TK):
         self.TK = TK
@@ -27,7 +28,8 @@ class RecoverSEMICOLON(RecoverException):
     TK=TK_SEMICOLON
 
 class Parser:
-    def __init__(self, code):
+    def __init__(self, error, code):
+        self.error = error
         self.code = code
         self.lexer = Lexer(code)
         self.currentToken = self.lexer.getNext()
@@ -53,16 +55,9 @@ class Parser:
         
     def parseError(self, error):
         TK=self.currentToken
-        startOfLine = self.code.rfind("\n", 0, TK[1])
-        startOfLine += 1
-        endOfLine = self.code.find("\n", startOfLine+1)
-        if endOfLine == -1:
-            endOfLine = len(self.code)
-
-        print "Parse error: %s" %error
-        print self.code[startOfLine:endOfLine]
-        print "%s^%s"%(" "*(TK[1]-startOfLine), "~"*(TK[2]-1))
-        
+        self.error.reportError("Parse error: %s" %error,
+                               self.currentToken)
+                
     def parseType(self):
         cToken = self.currentToken[0]
         if cToken in [TK_TYPE_BOOL,TK_TYPE_INT,TK_TYPE_TEXT,TK_TYPE_ATOM,TK_TYPE_TUP,TK_TYPE_REL,TK_TYPE_FUNC,TK_TYPE_ANY]:
