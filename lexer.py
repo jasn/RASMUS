@@ -47,29 +47,45 @@ TK_DIV = 44
 TK_MOD = 45
 TK_SEMICOLON = 46
 TK_CONCAT = 47
+TK_PIPE = 48
+TK_OPEXTEND = 49
+TK_LESS = 50
+TK_GREATER = 51
+TK_DIFFERENT = 52
+TK_LESSEQUAL = 53
+TK_GREATEREQUAL = 54
+TK_TWO_DOTS = 55
 
 operators = [
-        (TK_AT, "@"),
-        (TK_SHARP, "#"),
-        (TK_LPAREN, "("), 
-        (TK_RPAREN, ")"), 
-        (TK_MINUS, "-"),
-        (TK_BLOCKSTART, "(+"),
-        (TK_BLOCKEND, "+)"), 
-        (TK_COLON, ":"),
-        (TK_STDBOOL, "?-Bool"),
-        (TK_STDINT, "?-Int"),
-        (TK_STDTEXT, "?-Text"),
-        (TK_COMMA, ","),
-        (TK_RIGHTARROW, "->"),
-        (TK_EQUAL, "="),
-        (TK_ASSIGN, ":="),
-        (TK_PLUS, "+"),
-        (TK_MUL, "*"),
-        (TK_DIV, "/"),
-        (TK_SEMICOLON, ";"),
-        (TK_CONCAT, "++"),
-        ]
+    (TK_AT, "@"),
+    (TK_SHARP, "#"),
+    (TK_LPAREN, "("), 
+    (TK_RPAREN, ")"), 
+    (TK_MINUS, "-"),
+    (TK_BLOCKSTART, "(+"),
+    (TK_BLOCKEND, "+)"), 
+    (TK_COLON, ":"),
+    (TK_STDBOOL, "?-Bool"),
+    (TK_STDINT, "?-Int"),
+    (TK_STDTEXT, "?-Text"),
+    (TK_COMMA, ","),
+    (TK_RIGHTARROW, "->"),
+    (TK_EQUAL, "="),
+    (TK_ASSIGN, ":="),
+    (TK_PLUS, "+"),
+    (TK_MUL, "*"),
+    (TK_DIV, "/"),
+    (TK_SEMICOLON, ";"),
+    (TK_CONCAT, "++"),
+    (TK_PIPE, "|"),
+    (TK_OPEXTEND, "<<"),
+    (TK_LESS, "<"),
+    (TK_GREATER, ">"),
+    (TK_DIFFERENT, "<>"),
+    (TK_LESSEQUAL, "<="),
+    (TK_GREATEREQUAL, ">="),
+    (TK_TWO_DOTS, ".."),
+    ]
 
 keywords = [(TK_TUP, "tup"), 
             (TK_REL, "rel"),

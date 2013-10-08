@@ -77,11 +77,14 @@ class Parser:
             self.nextToken()
             self.parseExp()
 
-
     def parseBottomExp(self):
         cToken = self.currentToken[0]
         if False:
             pass
+        elif cToken == TK_PIPE:
+            self.nextToken()
+            self.parseExp()
+            self.assertTokenConsume(TK_PIPE)
         elif cToken == TK_MINUS:
             self.nextToken()
             self.parseExp()
@@ -208,11 +211,35 @@ class Parser:
             self.parseError("Unexpected token")
             self.recover()
 
-    def parseConcatExp(self):
+
+    def parseCompareExp(self):
+        self.parsePlusMinusExp()
+        if self.currentToken[0] in [TK_EQUAL, TK_DIFFERENT, 
+                                    TK_LESS, TK_GREATER, 
+                                    TK_LESSEQUAL, TK_GREATEREQUAL]:
+            self.nextToken()
+            self.parsePlusMinusExp()
+
+    def parseOpExtendAndOverwriteExp(self):
         self.parseBottomExp()
-        while self.currentToken[0] == TK_CONCAT:
+        while self.currentToken[0] == TK_OPEXTEND:
             self.nextToken()
             self.parseBottomExp()
+
+    def parseSubstringExp(self):
+        self.parseBottomExp()
+        if self.currentToken[0] == TK_LPAREN:
+            self.nextToken()
+            self.parseExp()
+            self.assertTokenConsume(TK_TWO_DOTS)
+            self.parseExp()
+            self.assertTokenConsume(TK_RPAREN)
+            
+    def parseConcatExp(self):
+        self.parseOpExtendAndOverwriteExp()
+        while self.currentToken[0] == TK_CONCAT:
+            self.nextToken()
+            self.parseOpExtendAndOverwriteExp()
 
     def parseSequenceExp(self):
         self.parseOrExp()
@@ -227,10 +254,10 @@ class Parser:
                 self.popRecover()
 
     def parseAndExp(self):
-        self.parsePlusMinusExp()
+        self.parseCompareExp()
         while self.currentToken[0] == TK_AND:
             self.nextToken()
-            self.parsePlusMinusExp()
+            self.parseCompareExp()
 
     def parseOrExp(self):
         self.parseAndExp()
