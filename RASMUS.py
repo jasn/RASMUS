@@ -1,8 +1,8 @@
 #!/usr/bin/python
 import sys
-import lexer
-import parser
-import error
+import rasmus.lexer
+import rasmus.parser
+import rasmus.error
 
 def main():
     if len(sys.argv) != 2:
