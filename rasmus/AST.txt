@@ -1,0 +1,7 @@
+VariableExp|token
+AssignmentExp|nameToken,assignToken,valueExp
+SequenceExp||sequence=[]
+Choice|condition,arrowToken,value
+IfExp|ifToken|choices=[]|fiToken=None
+ForallExp|typeToken,lparenToken|listExprs=[]|rparenToken=None|pipeToken=None|colonToken=None|doExpr=None|names=[]
+BuiltInExp|nameToken,lparenToken|args=[]|rparenToken=None
