@@ -12,8 +12,8 @@ def main():
     
     with open(f) as myFile:
         code = myFile.read()
-        e = error.Error(code, f)
-        p = parser.Parser(e, code)
+        e = rasmus.error.Error(code, f)
+        p = rasmus.parser.Parser(e, code)
         p.parse()
 
 if __name__ == "__main__":
