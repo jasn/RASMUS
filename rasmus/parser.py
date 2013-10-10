@@ -337,7 +337,7 @@ class Parser:
     def parseMulDivModAndExp(self):
         n = self.parseProjectionExp()
         while self.currentToken.id in [TK_DIV, TK_MUL, TK_MOD, TK_AND]:
-            n = BinaryOpExp(self.consumeToken(), n, self.parseProjectExp())
+            n = BinaryOpExp(self.consumeToken(), n, self.parseProjectionExp())
         return n
 
     def parsePlusMinusOrExp(self):
