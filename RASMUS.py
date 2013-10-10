@@ -3,7 +3,8 @@ import sys
 import rasmus.lexer
 import rasmus.parser
 import rasmus.error
-import rasmus.xmlPrinter
+import rasmus.jsonPrinter
+import rasmus.charRanges
 
 def main():
     if len(sys.argv) != 2:
@@ -16,8 +17,9 @@ def main():
         e = rasmus.error.Error(code, f)
         p = rasmus.parser.Parser(e, code)
         AST = p.parse()
-        xmlPrinter = rasmus.xmlPrinter.XmlPrinter(code)
-        xmlPrinter.visit(AST)
+        rasmus.charRanges.CharRanges().visit(AST)
+        rasmus.jsonPrinter.JSONPrinter(code, sys.stdout).visit(AST)
+        sys.stdout.write("\n")
 
 if __name__ == "__main__":
     main()
