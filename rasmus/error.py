@@ -27,12 +27,12 @@ class Error:
                     mainToken,
                     startToken=None,
                     endToken=None):
-        line = bisect.bisect_left(self.lineStarts,mainToken[1]) 
+        line = bisect.bisect_left(self.lineStarts,mainToken.start) 
         print "%s:%d %serror%s %s"%(self.name, line, boldRed(), reset(), message)
         startOfLine = self.lineStarts[line-1]+1
         endOfLine = self.lineStarts[line]
         print "%s%s%s"%(green(),self.code[startOfLine:endOfLine],reset())
-        print "%s%s^%s%s"%(" "*(mainToken[1]-startOfLine), blue(), "~"*(mainToken[2]-1), reset())
+        print "%s%s^%s%s"%(" "*(mainToken.start-startOfLine), blue(), "~"*(mainToken.length-1), reset())
 
                     
         

@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 __nn = iter(xrange(20000)).next
 
 TK_ADD = __nn()
@@ -210,6 +212,8 @@ keywords_map = {}
 for key, value in keywords:
     keywords_map[value] = key
 
+Token = namedtuple('Token', ['id', 'start', 'length'])
+
 class Lexer:
     def __init__(self, code):
         self.code = code
@@ -224,13 +228,13 @@ class Lexer:
         self.index = i
 
         if i == len(c):
-            return (TK_EOF, i, 0)
+            return Token(TK_EOF, i, 0)
 
         # check if is operator
         for l in reversed(range(len(operators_map))):
             if c[i:i+l] in operators_map[l]:
                 self.index += l
-                return (operators_map[l][c[i:i+l]], i, l)
+                return Token(operators_map[l][c[i:i+l]], i, l)
 
         # check if is Name or keyword
         if c[i].isalpha():
@@ -241,7 +245,7 @@ class Lexer:
             # check if is keyword
             if c[i:i+j] in keywords_map: 
                 return (keywords_map[c[i:i+j]], i, j)
-            return (TK_NAME, i, j)
+            return Token(TK_NAME, i, j)
         
         # check if it is an int
         if c[i].isdigit():
@@ -249,7 +253,7 @@ class Lexer:
             while i+j < len(c) and c[i+j].isdigit():
                 j+=1
             self.index += j
-            return (TK_INT, i, j)    
+            return Token(TK_INT, i, j)    
 
         # check if it is a text
         if c[i] == '"':
@@ -258,13 +262,13 @@ class Lexer:
                 j+=1
             if i+j == len(c):
                 self.index += j
-                return (TK_ERR, i, j)
+                return Token(TK_ERR, i, j)
             self.index += j+1
-            return (TK_TEXT, i, j+1)
+            return Token(TK_TEXT, i, j+1)
         
         # skip invalid token
         j = 0
         while i+j < len(c) and c[i+j] not in " \t\r\n":
             j = j + 1
         self.index += j
-        return (TK_ERR, i, j)
+        return Token(TK_ERR, i, j)

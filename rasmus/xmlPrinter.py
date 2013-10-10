@@ -10,7 +10,7 @@ class XmlPrinter:
     def startAny(self, s, keys):
         stdout.write("%s<%s"%("\t"*self.indent,s))
         for k,v in keys.iteritems():
-            stdout.write(" %s=%s"%(escape(k),quoteattr(self.code[v[1]:v[1]+v[2]])))
+            stdout.write(" %s=%s"%(escape(k),quoteattr(self.code[v.start:v.start+v.length])))
 
     def start(self,s, **keys):
         self.startAny(s, keys)
