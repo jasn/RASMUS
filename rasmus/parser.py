@@ -484,8 +484,7 @@ class Parser:
             self.consumeToken()
             self.pushRecover(RecoverSEMICOLON)
             try:
-                n2 = self.parseCompareExp()
-                n.sequence.append(n2)
+                n.sequence.append(self.parseCompareExp())
                 if not self.currentToken[0] in thingsThatMayComeAfterParseExp:
                     self.parseError("Unexpected token")
                     self.recover()
