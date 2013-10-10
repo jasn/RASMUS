@@ -13,7 +13,8 @@ for line in file('AST.txt'):
         o.write("\t\tself.%s=%s\n"%(arg,arg))
     for var in rem:
         o.write("\t\tself.%s\n"%var)
-    o.write("\t\tpass\n")
+    o.write("\t\tself.tainted = False\n")
+    o.write("\t\tself.charRange = None\n")
     o.write("\tdef visit(self, visitor):\n")
     o.write("\t\treturn visitor.visit%s(self)\n"%className.split("(")[0])
     o.write("\n")
