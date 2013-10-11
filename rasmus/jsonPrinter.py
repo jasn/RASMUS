@@ -105,8 +105,10 @@ class JSONPrinter(visitor.Visitor):
 
     def value(self, s):
         if self.inList[-1]:
-            seslf.putComma()
-            self.f.write("\n%s"%("\t"*self.p.indent))
+            if self.firstStack[-1]:
+                self.firstStack[-1] = False
+            else:
+                self.f.write(",\n%s"%("\t"*self.indent))
         self.f.write(self.valueInner(s))
     
     def tokenAttribute(self, name, token):
@@ -151,7 +153,15 @@ class JSONPrinter(visitor.Visitor):
                 self.visit(node.expr)
 
     def visitFuncExp(self, node):
-        pass
+        with self.node(node, "func"):
+            with self.list("args"):
+                for arg in node.args:
+                    with self.dict():
+                        self.tokenAttribute("name", arg.nameToken)
+                        self.tokenAttribute("type", arg.typeToken)
+            self.tokenAttribute("rtype", node.returnTypeToken)
+            with self.attribute("body"):
+                self.visit(node.body)
 
     def visitTupExp(self, node):
         with self.node(node, "tup"):
@@ -216,13 +226,29 @@ class JSONPrinter(visitor.Visitor):
                 self.visit(node.toExp)
 
     def visitRenameExp(self, node):
-        pass
+        with self.node(node, "rename"):
+            with self.attribute("lhs"):
+                self.visit(node.lhs)
+            with self.list("items"):
+                for item in node.renames:
+                    with self.dict():
+                        self.tokenAttribute("from", item.fromName)
+                        self.tokenAttribute("to", item.toName)
         
     def visitDotExp(self, node):
-        pass
+        with self.node(node, "dot"):
+            with self.attribute("lhs"):
+                self.visit(node.lhs)
+            self.tokenAttribute("name", node.nameToken)
 
     def visitProjectExp(self, node):
-        pass
+        with self.node(node, "project"):
+            self.tokenAttribute("op", node.projectionToken)
+            with self.attribute("lhs"):
+                self.visit(node.lhs)
+            with self.list("names"):
+                for name in node.names:
+                    self.token(name)
 
     def visitBinaryOpExp(self, node):
         with self.node(node, "binary"):

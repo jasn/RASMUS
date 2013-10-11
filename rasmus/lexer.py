@@ -244,7 +244,7 @@ class Lexer:
             self.index += j
             # check if is keyword
             if c[i:i+j] in keywords_map: 
-                return (keywords_map[c[i:i+j]], i, j)
+                return Token(keywords_map[c[i:i+j]], i, j)
             return Token(TK_NAME, i, j)
         
         # check if it is an int

@@ -4,7 +4,7 @@ Choice|condition,arrowToken,value
 IfExp|ifToken|choices=[]|fiToken=None
 ForallExp|typeToken,lparenToken|listExps=[]|rparenToken=None|pipeToken=None|colonToken=None|expr=None|names=[]
 FuncArg|nameToken,colonToken,typeToken
-FuncExp|funcToken,lparenToken|args=[]|rparenToken=None|arrowToken=None|lparenToken2=None|rparenToken2=None|returnTypeToken=None|body=None|endToken
+FuncExp|funcToken,lparenToken|args=[]|rparenToken=None|arrowToken=None|lparenToken2=None|rparenToken2=None|returnTypeToken=None|body=None|endToken=None
 TupItem|nameToken,colonToken,exp
 TupExp|tupToken,lparenToken|rparenToken=None|items=[]
 Val|valToken,nameToken,equalToken,exp

@@ -327,7 +327,7 @@ class Parser:
     def parseProjectionExp(self):
         n = self.parseConcatExp()
         while self.currentToken.id in [TK_PROJECT_PLUS, TK_PROJECT_MINUS]:
-            n = ProjectionExp(n, self.consumeToken())
+            n = ProjectExp(n, self.consumeToken())
             n.names.append(self.assertTokenConsume(TK_NAME))
             while self.currentToken.id == TK_COMMA:
                 self.consumeToken()
