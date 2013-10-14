@@ -1,6 +1,6 @@
 class Visitor:
     def visit(self, node):
-        node.visit(self)
+        return node.visit(self)
 
     def visitAll(self, nodes):
         for node in nodes:
