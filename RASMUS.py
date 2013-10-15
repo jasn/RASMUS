@@ -6,6 +6,7 @@ import rasmus.error
 import rasmus.jsonPrinter
 import rasmus.llvmCodeGen
 import rasmus.charRanges
+import rasmus.firstParse
 
 def main():
     if len(sys.argv) != 2:
@@ -19,8 +20,9 @@ def main():
         p = rasmus.parser.Parser(e, code)
         AST = p.parse()
         rasmus.charRanges.CharRanges().visit(AST)
-        rasmus.llvmCodeGen.LLVMCodeGen(code, sys.stdout).generate(AST)
-        #rasmus.jsonPrinter.JSONPrinter(code, sys.stdout).visit(AST)
+        rasmus.firstParse.FirstParse(e, code).visit(AST)
+        #rasmus.llvmCodeGen.LLVMCodeGen(code, sys.stdout).generate(AST)
+        rasmus.jsonPrinter.JSONPrinter(code, sys.stdout).visit(AST)
         sys.stdout.write("\n")
 
 if __name__ == "__main__":

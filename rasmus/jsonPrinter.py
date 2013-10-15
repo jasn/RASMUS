@@ -27,7 +27,12 @@ class Node(Dict):
         if self.node.charRange:
             with self.p.attribute("charRange"): 
                 self.p.value(self.node.charRange)
-            
+        if self.node.cvalue:
+            with self.p.attribute("cvalue"): 
+                self.p.value(self.node.cvalue)
+        if self.node.type:
+            with self.p.attribute("type"): 
+                self.p.value(self.node.type)
 
 class Attribute:
     def __init__(self, printer, name, l=False):

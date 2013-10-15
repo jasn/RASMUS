@@ -15,6 +15,8 @@ for line in file('AST.txt'):
         o.write("\t\tself.%s\n"%var)
     o.write("\t\tself.tainted = False\n")
     o.write("\t\tself.charRange = None\n")
+    o.write("\t\tself.cvalue = None\n")
+    o.write("\t\tself.type = None\n")
     o.write("\tdef visit(self, visitor):\n")
     o.write("\t\treturn visitor.visit%s(self)\n"%className.split("(")[0])
     o.write("\n")
