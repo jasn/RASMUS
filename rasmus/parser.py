@@ -137,7 +137,7 @@ class Parser:
         n = FuncExp(self.consumeToken(),self.assertTokenConsume(TK_LPAREN))
         with Recover(self, TK_RPAREN):
             if self.currentToken.id != TK_RPAREN:
-                n.args.append(FuncArg(
+                n.args.appeond(FuncArg(
                         self.assertTokenConsume(TK_NAME),
                         self.assertTokenConsume(TK_COLON),
                         self.parseType()))
@@ -196,7 +196,7 @@ class Parser:
         return n
 
     def parseParenthesisExp(self):
-        n = None
+        n = InvalidExp()
         self.consumeToken()
         with Recover(self, TK_RPAREN):
             n = self.parseExp()
@@ -361,7 +361,7 @@ class Parser:
         return n
 
     def parseSequenceExp(self):
-        n=None
+        n=InvalidExp()
         with Recover(self, TK_SEMICOLON):
             n=self.parseCompareExp()
             if not self.currentToken.id in thingsThatMayComeAfterParseExp:
