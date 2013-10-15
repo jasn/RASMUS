@@ -18,6 +18,9 @@ class CharRanges(visitor.Visitor):
         node.charRange = u(r(node.nameToken), node.valueExp.charRange)
 
     def visitIfExp(self, node):
+        for choice in node.choices:
+            self.visit(choice.condition)
+            self.visit(choice.value)
         node.charRange = u(r(node.ifToken), r(node.fiToken))
 
     def visitForallExp(self, node):

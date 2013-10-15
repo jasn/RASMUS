@@ -38,7 +38,10 @@ class Error:
             i = [" "]*(endOfLine - startOfLine)
             for x in range(max(startOfLine, r1.lo), min(endOfLine, r1.hi)):
                 i[x-startOfLine] = "~";
-            i[mainToken.start + mainToken.length / 2] = '^';
+            if r2 != None:
+                for x in range(max(startOfLine, r2.lo), min(endOfLine, r2.hi)):
+                    i[x-startOfLine] = "~";
+            i[max(0, min(mainToken.start + (mainToken.length-1) / 2 - startOfLine, endOfLine-startOfLine-1))] = '^';
             print "%s%s%s"%(blue(), "".join(i), reset())
                     
         

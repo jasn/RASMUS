@@ -82,15 +82,15 @@ class Parser:
 
     def parseIfExp(self):
         n = IfExp(self.assertTokenConsume(TK_IF))
-        with Recover(self, RecoverFI):
-            with Recover(self, RecoverChoice):
+        with Recover(self, TK_FI):
+            with Recover(self, TK_CHOICE):
                 n.choices.append(Choice(
                         self.parseExp(),
                         self.assertTokenConsume(TK_RIGHTARROW),
                         self.parseExp()))
             while self.currentToken.id == TK_CHOICE:
                 self.consumeToken()
-                while Recover(self, RecoverCHOICE):
+                with Recover(self, TK_CHOICE):
                     n.choices.append(Choice(
                             self.parseExp(),
                             self.assertTokenConsume(TK_RIGHTARROW),
