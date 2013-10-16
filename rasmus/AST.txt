@@ -24,3 +24,4 @@ ProjectExp|lhs,projectionToken|names=[]
 BinaryOpExp|token,lhs,rhs
 SequenceExp||sequence=[]
 InvalidExp|
+Exp|exp

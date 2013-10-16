@@ -24,25 +24,30 @@ class Error:
 
     def reportError(self, 
                     message,
-                    mainToken,
-                    r1=None,
-                    r2=None): 
-        line = bisect.bisect_left(self.lineStarts,mainToken.start) 
+                    mainToken=None,
+                    *ranges):
+        lo = Ellipsis
+        hi = 0
+        if mainToken != None:
+            lo = min(lo, mainToken.start)
+            hi = max(hi, mainToken.length + mainToken.start)
+        for r in ranges:
+            lo = min(lo, r.lo)
+            hi = max(hi, r.hi)
+
+        line = bisect.bisect_left(self.lineStarts,lo) 
         print "%s:%d %serror%s %s"%(self.name, line, boldRed(), reset(), message)
         startOfLine = self.lineStarts[line-1]+1
         endOfLine = self.lineStarts[line]
         print "%s%s%s"%(green(),self.code[startOfLine:endOfLine],reset())
-        if r1 == None:
+        if len(ranges) == 0 and mainToken != None:
             print "%s%s^%s%s"%(" "*(mainToken.start-startOfLine), blue(), "~"*(mainToken.length-1), reset())
         else:
             i = [" "]*(endOfLine - startOfLine)
-            for x in range(max(startOfLine, r1.lo), min(endOfLine, r1.hi)):
-                i[x-startOfLine] = "~";
-            if r2 != None:
-                for x in range(max(startOfLine, r2.lo), min(endOfLine, r2.hi)):
+            for r in ranges:
+                for x in range(max(startOfLine, r.lo), min(endOfLine, r.hi)):
                     i[x-startOfLine] = "~";
-            i[max(0, min(mainToken.start + (mainToken.length-1) / 2 - startOfLine, endOfLine-startOfLine-1))] = '^';
+            if mainToken != None:
+                i[max(0, min(mainToken.start + (mainToken.length-1) / 2 - startOfLine, endOfLine-startOfLine-1))] = '^';
             print "%s%s%s"%(blue(), "".join(i), reset())
-                    
-        
     

@@ -34,7 +34,7 @@ class CharRanges(visitor.Visitor):
 
     def visitTupExp(self, node):
         for item in node.items: self.visit(item.exp)
-        node.charRange = u(r(node.tupToken), r(node.rparen))
+        node.charRange = u(r(node.tupToken), r(node.rparenToken))
 
     def visitBlockExp(self, node):
         for val in node.vals: self.visit(val.exp)
@@ -91,3 +91,9 @@ class CharRanges(visitor.Visitor):
         if node.sequence:
             node.charRange = u(node.sequence[0].charRange, node.sequence[-1].charRange)
 
+    def visitInvalidExp(self, node):
+        pass
+
+    def visitExp(self, node):
+        self.visit(node.exp)
+        node.charRange = node.exp.charRange

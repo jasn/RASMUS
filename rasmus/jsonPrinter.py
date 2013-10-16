@@ -24,9 +24,9 @@ class Node(Dict):
         Dict.__enter__(self)
         with self.p.attribute("class"): 
             self.p.value(self.name)
-        if self.node.charRange:
-            with self.p.attribute("charRange"): 
-                self.p.value(self.node.charRange)
+        # if self.node.charRange:
+        #     with self.p.attribute("charRange"): 
+        #         self.p.value(self.node.charRange)
         if self.node.cvalue:
             with self.p.attribute("cvalue"): 
                 self.p.value(self.node.cvalue)
@@ -106,7 +106,7 @@ class JSONPrinter(visitor.Visitor):
         elif (hasattr(s, '__iter__') or hasattr(s, '__getitem__')) and not isinstance(s, str):
             return "[%s]"%(",".join([self.valueInner(i) for i in s]))
         else:
-            return("\"%s\""%str(s))
+            return("\"%s\""%str(s).replace("\\", "\\\\").replace("\"", "\\\""))
 
     def value(self, s):
         if self.inList[-1]:
@@ -268,3 +268,12 @@ class JSONPrinter(visitor.Visitor):
             with self.list("items"):
                 self.visitAll(node.sequence)
 
+    def visitInvalidExp(self, node):
+        with self.node(node, "invalid"):
+            pass
+
+    def visitExp(self, node):
+        with self.node(node, "scope"):
+            with self.attribute("value"):
+                self.visit(node.exp)
+        pass

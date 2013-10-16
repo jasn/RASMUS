@@ -3,7 +3,7 @@ from AST import *
 
 thingsThatMayComeAfterParseExp = [TK_RIGHTARROW, TK_RPAREN, TK_COMMA, TK_FI,
                                   TK_PIPE, TK_COLON, TK_END, TK_IN, TK_CHOICE,
-                                  TK_VAL, TK_TWO_DOTS, TK_EOF, TK_SEMICOLON]
+                                  TK_VAL, TK_TWO_DOTS, TK_EOF, TK_SEMICOLON, TK_BLOCKEND]
 
 class ParserException(Exception):
     def __init__(self, hat, TK):
@@ -76,7 +76,7 @@ class Parser:
             return AssignmentExp(
                 nameToken,
                 self.consumeToken(),
-                self.parseExp())
+                self.parseCompareExp())
         else:
             return VariableExp(nameToken)
 
@@ -137,7 +137,7 @@ class Parser:
         n = FuncExp(self.consumeToken(),self.assertTokenConsume(TK_LPAREN))
         with Recover(self, TK_RPAREN):
             if self.currentToken.id != TK_RPAREN:
-                n.args.appeond(FuncArg(
+                n.args.append(FuncArg(
                         self.assertTokenConsume(TK_NAME),
                         self.assertTokenConsume(TK_COLON),
                         self.parseType()))
@@ -248,7 +248,7 @@ class Parser:
         elif cToken == TK_FUNC:
             return self.parseFuncExp()
         elif cToken == TK_REL:
-            return self.parseRel()
+            return self.parseRelExp()
         elif cToken == TK_TUP:
             return self.parseTupExp()
         elif cToken in [TK_ZERO, TK_ONE, TK_STDBOOL, TK_STDINT, TK_STDTEXT,
@@ -381,7 +381,7 @@ class Parser:
         return n
 
     def parseExp(self):
-        return self.parseSequenceExp()     
+        return Exp(self.parseSequenceExp())
             
     def parse(self):
         n = SequenceExp()

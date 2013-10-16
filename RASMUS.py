@@ -22,7 +22,7 @@ def main():
         rasmus.charRanges.CharRanges().visit(AST)
         rasmus.firstParse.FirstParse(e, code).visit(AST)
         #rasmus.llvmCodeGen.LLVMCodeGen(code, sys.stdout).generate(AST)
-        rasmus.jsonPrinter.JSONPrinter(code, sys.stdout).visit(AST)
+        rasmus.jsonPrinter.JSONPrinter(code, open("ast.json","w")).visit(AST)
         sys.stdout.write("\n")
 
 if __name__ == "__main__":
