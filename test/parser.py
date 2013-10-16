@@ -139,16 +139,22 @@ class AstDumper(rasmus.visitor.Visitor):
         self.w(")")
 
     def visitInvalidExp(self, node):
-        self.w("invalid");
+        self.w("invalid")
 
     def visitExp(self, node):
         self.visit(node.exp)
+
+    def visitAtExp(self, node):
+        self.w("(@ ")
+        self.visit(node.exp)
+        self.w(")")
 
 class Error:
     def __init__(self):
         self.count = 0
 
-    def reportError(self, *_):
+    def reportError(self, msg, *_):
+        print msg
         self.count += 1
 
 class Testparser(unittest.TestCase):
@@ -194,7 +200,7 @@ class Testparser(unittest.TestCase):
     def test_block1(self): self.do("(+ in 42 +)", "(block 42)")
     def test_block2(self): self.do("(+ val a = 1 val b = 2 in 42 +)", "(block a 1 b 2 42)")
     def test_rel(self): self.do("rel(x)", "(rel x)")
-    def test_at(self): self.do("@4", "(@ 4)")
+    def test_at(self): self.do("@(4)", "(@ 4)")
     def test_len(self): self.do("|\"hat\"|", "(len \"hat\")")
     def test_minus(self): self.do("-4", "(- 4)")
     def test_zero(self): self.do("zero", "zero")
@@ -210,10 +216,10 @@ class Testparser(unittest.TestCase):
     def test_not(self): self.do("not false", "(not false)")
     def test_substr(self): self.do("\"hat\"(1..4)", "(.. \"hat\" 1 4)")
     def test_call1(self): self.do("hat(1, 4)", "(call hat 1 4)")
-    def test_call2(self): self.do("hat()", "(call hat 1 4)")
+    def test_call2(self): self.do("hat()", "(call hat)")
     def test_call3(self): self.do("hat(1)", "(call hat 1)")
-    def test_rename1(self): self.do("a[x->y, a->b]", "([ a x y a b)")
-    def test_rename2(self): self.do("a[x->y]", "([ a x y)")
+    def test_rename1(self): self.do("a[x<-y, a<-b]", "([ a x y a b)")
+    def test_rename2(self): self.do("a[x<-y]", "([ a x y)")
     def test_dot(self): self.do("a.b", "(. a b)")
     #def test_extend(self):
     def test_concat(self): self.do("a++b", "(++ a b)")
