@@ -16,16 +16,23 @@ def blue():
     return '\033[34m'
 
 class Error:
+
     def __init__(self, code, name):
+        self.numberOfErrors = 0
         self.name = os.path.basename(name)
         self.code = code
         self.lineStarts = [-1] + [ i for i in range(len(code)) if code[i] == '\n'] + [len(code)]
 
+    def setCode(self, code):
+        self.code = code
+        self.lineStarts = [-1] + [ i for i in range(len(code)) if code[i] == '\n'] + [len(code)]
 
     def reportError(self, 
                     message,
                     mainToken=None,
                     *ranges):
+
+        self.numberOfErrors += 1
         lo = Ellipsis
         hi = 0
         if mainToken != None:
@@ -35,7 +42,7 @@ class Error:
             lo = min(lo, r.lo)
             hi = max(hi, r.hi)
 
-        line = bisect.bisect_left(self.lineStarts,lo) 
+        line = bisect.bisect_left(self.lineStarts,lo)
         print "%s:%d %serror%s %s"%(self.name, line, boldRed(), reset(), message)
         startOfLine = self.lineStarts[line-1]+1
         endOfLine = self.lineStarts[line]

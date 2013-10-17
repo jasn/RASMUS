@@ -1,4 +1,5 @@
 import visitor
+from copy import copy
 from AST import *
 from lexer import *
 
@@ -25,6 +26,15 @@ class FirstParse(visitor.Visitor):
         self.err = err
         self.code = code
         self.lus = []
+
+    def setCode(self, code):
+        self.code = code
+
+    def setLus(self, lus):
+        self.lus = map(copy,lus)
+
+    def getLus(self):
+        return self.lus
 
     def tokenToIdentifier(self, token):
         _, i, j = token
@@ -87,15 +97,14 @@ class FirstParse(visitor.Visitor):
             node.type = TInvalid
             self.err.reportError("Name not found in scope", node.token)
         else:
-            if isinstance(lookedUp, Type):
-                node.type = lookedUp
-            else: 
-                node.type = lookedUp.type  
-    
+            node.type = lookedUp.type  
+        node.store = lookedUp
+
     def visitAssignmentExp(self, node):
         self.visit(node.valueExp)
         # Possibly check that the type was not changes since the last binding of the same name
-        self.lus[-1][self.tokenToIdentifier(node.nameToken)] = node.valueExp
+        self.lus[-1][self.tokenToIdentifier(node.nameToken)] = node
+        node.type = node.valueExp.type
 
     def visitIfExp(self, node):
         for choice in node.choices:
@@ -124,7 +133,8 @@ class FirstParse(visitor.Visitor):
         self.lus.append({})
         node.type = TFunc
         for a in node.args:
-            self.lus[-1][self.tokenToIdentifier(a.nameToken)] = self.tokenToType(a.typeToken)
+            self.lus[-1][self.tokenToIdentifier(a.nameToken)] = a
+            a.type = self.tokenToType(a.typeToken)
         self.visit(node.body)
         self.typeCheck(node.funcToken, node.body, self.tokenToType(node.returnTypeToken))
         self.lus.pop()
@@ -255,7 +265,7 @@ class FirstParse(visitor.Visitor):
 
     def visitLenExp(self, node):
         self.visit(node.exp)
-        self.typeCheck(node.leftPipeToken, node.exp, [TString, TRel])
+        self.typeCheck(node.leftPipeToken, node.exp, [TText, TRel])
         node.type = TInt
 
     def visitFuncInvocationExp(self, node):
@@ -270,8 +280,8 @@ class FirstParse(visitor.Visitor):
         self.visit(node.toExp)
         self.typeCheck(node.lparenToken, node.fromExp, TInt)
         self.typeCheck(node.lparenToken, node.toExp, TInt)
-        self.typeCheck(node.lparenToken. node.stringExp, TString)
-        node.type = TString
+        self.typeCheck(node.lparenToken. node.stringExp, TText)
+        node.type = TText
 
     def visitRenameExp(self, node):
         self.visit(node.lhs)
@@ -315,16 +325,16 @@ class FirstParse(visitor.Visitor):
             self.typeCheck(node.token, node.rhs, TBool)
             node.type = TBool
         elif node.token.id == TK_CONCAT:
-            self.typeCheck(node.token, node.lhs, TString)
-            self.typeCheck(node.token, node.rhs, TString)
-            node.type = TString
+            self.typeCheck(node.token, node.lhs, TText)
+            self.typeCheck(node.token, node.rhs, TText)
+            node.type = TText
         else:
             self.internalError(node.token, "Invalid operator (%s)"%(tokenNames[node.token.id]))
             node.type = TInvalid
 
     def visitSequenceExp(self, node):
         self.visitAll(node.sequence)
-        if len(node.sequence):
+        if len(node.sequence) == 0:
             node.type = TInvalid
         else:
             node.type = node.sequence[-1].type

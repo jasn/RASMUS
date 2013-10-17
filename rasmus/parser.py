@@ -30,11 +30,15 @@ class Recover:
         return (type == RecoverException and value.token == self.token)
         
 
+class IncompleteInputException(Exception):
+    pass
+
 class Parser:
-    def __init__(self, error, code):
+    def __init__(self, error, code, interactiveMode = False, start=0):
+        self.interactiveMode = interactiveMode
         self.error = error
         self.code = code
-        self.lexer = Lexer(code)
+        self.lexer = Lexer(code, start)
         self.currentToken = self.lexer.getNext()
         self.recoverStack = []
         
@@ -52,6 +56,8 @@ class Parser:
         while not self.currentToken.id in r:
             if self.currentToken.id == TK_ERR:
                 self.parseError("Invalid token")
+            if self.currentToken.id == TK_EOF:
+                raise RecoverException(self.currenToken.id)
             self.consumeToken()
         raise RecoverException(self.currentToken.id)
         
@@ -263,8 +269,7 @@ class Parser:
         elif cToken == TK_NOT:
             return UnaryOpExp(self.consumeToken(), self.parseExp())
         else:
-            self.parseError("Unexpected token")
-            self.recover()
+            self.unexpectedToken()
 
     def parseSubstringOrFuncInvocationExp(self):
         n = self.parseBottomExp()
@@ -365,8 +370,7 @@ class Parser:
         with Recover(self, TK_SEMICOLON):
             n=self.parseCompareExp()
             if not self.currentToken.id in thingsThatMayComeAfterParseExp:
-                self.parseError("Unexpected token")
-                self.recover()
+                self.unexpectedToken()
         if self.currentToken.id == TK_SEMICOLON:
             n2 = n
             n = SequenceExp()
@@ -376,21 +380,32 @@ class Parser:
             with Recover(self, TK_SEMICOLON):
                 n.sequence.append(self.parseCompareExp())
                 if not self.currentToken.id in thingsThatMayComeAfterParseExp:
-                    self.parseError("Unexpected token")
-                    self.recover()
+                    self.unexpectedToken()
         return n
 
     def parseExp(self):
         return Exp(self.parseSequenceExp())
             
-    def parse(self):
-        n = SequenceExp()
+    def parse(self, doNotRecover = False):
+        n = InvalidExp()
         with Recover(self, TK_EOF):
             n = self.parseExp()
             self.assertTokenConsume(TK_EOF)
         return n
 
+    def unexpectedToken(self):
+        if self.interactiveMode and self.currentToken.id == TK_EOF:
+            raise IncompleteInputException()
+
+        self.parseError("Unexpected token")
+        self.recover()        
+
     def assertToken(self, TK):
+        if (self.interactiveMode and
+            self.currentToken.id == TK_EOF and 
+            TK != TK_EOF):
+            raise IncompleteInputException()
+        
         if TK != self.currentToken.id:
             self.parseError("Expected %s at "%tokenNames[TK]);
             self.recover()

@@ -240,3 +240,5 @@ class Testparser(unittest.TestCase):
     def test_ass2(self): self.do("a*b+c*d", "(+ (* a b) (* c d))")
     def test_ass3(self): self.do("a+b*c+d", "(+ (+ a (* b c)) d)")
     def test_paren(self): self.do("(a)", "a")
+
+    def test_only_block_start(self): self.do("(+", "invalid", 1)

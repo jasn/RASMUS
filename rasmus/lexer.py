@@ -215,9 +215,9 @@ for key, value in keywords:
 Token = namedtuple('Token', ['id', 'start', 'length'])
 
 class Lexer:
-    def __init__(self, code):
+    def __init__(self, code, start=0):
         self.code = code
-        self.index = 0
+        self.index = start
 
     def getNext(self):
         c, i = self.code, self.index
