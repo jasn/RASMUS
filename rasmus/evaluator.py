@@ -1,21 +1,27 @@
 import visitor
 from lexer import *
 
+
 class Evaluator(visitor.Visitor):
-    
     def __init__(self):
         pass
       
     def visitVariableExp(self, node):
         return node.store.val
+
     def visitAssignmentExp(self, node):
         node.val = self.visit(node.valueExp)
         return node.val
 
     def visitChoice(self, node):
         pass
+
     def visitIfExp(self, node):
-        pass
+        for choice in node.choices:
+            if self.visit(choice.condition):
+                return self.visit(choice.value)
+        return None
+
     def visitForallExp(self, node):
         pass
     def visitFuncArg(self, node):
@@ -27,10 +33,15 @@ class Evaluator(visitor.Visitor):
         pass
     def visitTupExp(self, node):
         pass
+
     def visitVal(self, node):
-        pass
+        node.val = self.visit(node.exp)
+
     def visitBlockExp(self, node):
-        pass
+        for val in node.vals:
+            self.visit(val)
+        return self.visit(node.inExp)
+
     def visitBuiltInExp(self, node):
         pass
     def visitAtExp(self, node):
