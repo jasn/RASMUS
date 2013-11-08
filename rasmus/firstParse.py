@@ -328,6 +328,10 @@ class FirstParse(visitor.Visitor):
             self.typeCheck(node.token, node.lhs, TText)
             self.typeCheck(node.token, node.rhs, TText)
             node.type = TText
+        elif node.token.id in [TK_LESSEQUAL, TK_LESS, TK_GREATER, TK_GREATEREQUAL]:
+            self.typeCheck(node.token, node.lhs, TInt)
+            self.typeCheck(node.token, node.rhs, TInt)
+            node.type = TBool
         else:
             self.internalError(node.token, "Invalid operator (%s)"%(tokenNames[node.token.id]))
             node.type = TInvalid

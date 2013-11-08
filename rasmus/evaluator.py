@@ -90,6 +90,8 @@ class Evaluator(visitor.Visitor):
             return self.visit(node.lhs) * self.visit(node.rhs)
         if node.token.id == TK_DIV:
             return self.visit(node.lhs) / self.visit(node.rhs)
+        if node.token.id == TK_LESSEQUAL:
+            return self.visit(node.lhs) <= self.visit(node.rhs)
 
     def visitSequenceExp(self, node):
         self.visitAll(node.sequence[0:-1])
