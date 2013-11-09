@@ -5,30 +5,26 @@ thingsThatMayComeAfterParseExp = [TK_RIGHTARROW, TK_RPAREN, TK_COMMA, TK_FI,
                                   TK_PIPE, TK_COLON, TK_END, TK_IN, TK_CHOICE,
                                   TK_VAL, TK_TWO_DOTS, TK_EOF, TK_SEMICOLON, TK_BLOCKEND]
 
-class ParserException(Exception):
-    def __init__(self, hat, TK):
-        self.TK = TK
-        Exception.__init__(self, hat)
-
 class RecoverException(Exception):
     def __init__(self, token): 
         self.token = token
 
 class Recover:
-    def __init__(self, parser, token):
-        self.parser = parser
-        self.token = token
+     def __init__(self, parser, token):
+         self.parser = parser
+         self.token = token
     
-    def __enter__(self):
-        self.parser.recoverStack.append(self.token)
+     def __enter__(self):
+         self.parser.recoverStack.append(self.token)
 
-    def __exit__(self):
-        self.parser.recoverStack.pop()
+     def __exit__(self):
+         self.parser.recoverStack.pop()
 
-    def __exit__(self, type, value, trace):
-        self.parser.recoverStack.pop()
-        return (type == RecoverException and value.token == self.token)
-        
+     def __exit__(self, type, value, trace):
+         self.parser.recoverStack.pop()
+         if isinstance(value, RecoverException):
+             return value.token == self.token
+         return False
 
 class IncompleteInputException(Exception):
     pass
@@ -49,15 +45,17 @@ class Parser:
 
     def recover(self):
         """Recover errors at the first token in list of tokens specified on the recovery stack"""
-        r = frozenset(self.recoverStack)
+        r = {}
+        for x in self.recoverStack:
+            r[x] = True
         if self.currentToken.id in r:
             raise RecoverException(self.currentToken.id)
         self.consumeToken()
         while not self.currentToken.id in r:
-            if self.currentToken.id == TK_ERR:
-                self.parseError("Invalid token")
             if self.currentToken.id == TK_EOF:
-                raise RecoverException(self.currenToken.id)
+                raise RecoverException(TK_EOF)
+            elif self.currentToken.id == TK_ERR:
+                self.parseError("Invalid token")
             self.consumeToken()
         raise RecoverException(self.currentToken.id)
         
@@ -390,7 +388,7 @@ class Parser:
         n = InvalidExp()
         with Recover(self, TK_EOF):
             n = self.parseExp()
-            self.assertTokenConsume(TK_EOF)
+        self.assertTokenConsume(TK_EOF)
         return n
 
     def unexpectedToken(self):
@@ -407,7 +405,7 @@ class Parser:
             raise IncompleteInputException()
         
         if TK != self.currentToken.id:
-            self.parseError("Expected %s at "%tokenNames[TK]);
+            self.parseError("Expected %s at "%tokenNames[TK])
             self.recover()
 
     def assertTokenConsume(self, TK):
@@ -415,4 +413,5 @@ class Parser:
         self.assertToken(TK)
         self.consumeToken()
         return token
+
 
