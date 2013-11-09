@@ -1,5 +1,3 @@
-from collections import namedtuple
-
 __nn = iter(xrange(20000)).next
 
 TK_ADD = __nn()
@@ -212,8 +210,13 @@ keywords_map = {}
 for key, value in keywords:
     keywords_map[value] = key
 
-Token = namedtuple('Token', ['id', 'start', 'length'])
+class Token:
+    def __init__(self, id, start, length):
+        self.id = id
+        self.start = start
+        self.length = length
 
+whitespace = " \t\r\n"
 class Lexer:
     def __init__(self, code, start=0):
         self.code = code
@@ -221,17 +224,16 @@ class Lexer:
 
     def getNext(self):
         c, i = self.code, self.index
-        whitespace = " \t\r\n"
         while i < len(c) and c[i] in whitespace:
             i+=1
 
         self.index = i
 
         if i == len(c):
-            return Token(TK_EOF, i, 0)
+           return Token(TK_EOF, i, 0)
 
         # check if is operator
-        for l in reversed(range(len(operators_map))):
+        for l in range(len(operators_map)-1, -1, -1):
             if c[i:i+l] in operators_map[l]:
                 self.index += l
                 return Token(operators_map[l][c[i:i+l]], i, l)
