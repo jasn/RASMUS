@@ -1,7 +1,9 @@
 import visitor
-from collections import namedtuple
 
-CharRange=namedtuple("CharRange", ['lo','hi'])
+class CharRange:
+    def __init__(self, lo, hi):
+        self.lo = lo
+        self.hi = hi
 
 def r(token):
     return CharRange(token.start, token.start+token.length)
