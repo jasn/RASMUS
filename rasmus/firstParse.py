@@ -19,6 +19,7 @@ TTup = Type("tuple")
 TFunc = Type("function")
 TAny = Type("any")
 TAtom = Type("atom")
+TNAMEQ = Type("name?")
 
 class FirstParse(visitor.Visitor):
     """ Do name lookup, type checking and constant propagation """
@@ -37,24 +38,24 @@ class FirstParse(visitor.Visitor):
         return self.lus
 
     def tokenToIdentifier(self, token):
-        _, i, j = token
-        return self.code[i:i+j]
+        return self.code[token.start:token.start+token.length]
 
     def internalError(self, token, message):
         self.err.reportError("Internal error: %s"%message, token)
 
         
     def typeCheck(self, token, expr, t):
-        if expr.type == TInvalid or expr.type == t or (isinstance(t, list) and expr.type in t) or expr.type == TAny or t == TAny:
+        if expr.type in [TInvalid, TAny] or (expr.type in t) or (TAny in t):
             return True
-        if isinstance(t, list):
-            self.err.reportError("Expected one of %s but found %s"%(", ".join(map(str,t)), expr.type), token, expr.charRange)
+        if len(t) > 1:
+            msg="Expected one of %s but found %s"%(", ".join([str(x) for x in t]), str(expr.type))
         else:
-            self.err.reportError("Expected type %s but found %s"%(str(t), expr.type), token, expr.charRange)
+            msg="Expected type %s but found %s"%(str(t[0]), str(expr.type))
+        msg="hello"
+        self.err.reportError(msg, token, [expr.charRange])
         return False
     
-    def typeMatch(self, token, e1, e2, possibleTypes = TAny):
-        
+    def typeMatch(self, token, e1, e2, possibleTypes = [TAny]):
         leftOk = self.typeCheck(token, e1, possibleTypes)
         rightOk = self.typeCheck(token, e2, possibleTypes)
 
@@ -63,7 +64,7 @@ class FirstParse(visitor.Visitor):
                 return True
             self.err.reportError("Expected identical types but found %s and %s"%(e1.type, e2.type), 
                                  token, 
-                                 e1.charRange, e2.charRange)
+                                 [e1.charRange, e2.charRange])
             return False
 
         return False
@@ -93,7 +94,7 @@ class FirstParse(visitor.Visitor):
             if name in lu:
                 lookedUp = lu[name]
                 break
-        if lookedUp == None:
+        if not lookedUp:
             node.type = TInvalid
             self.err.reportError("Name not found in scope", node.token)
         else:
@@ -112,8 +113,8 @@ class FirstParse(visitor.Visitor):
             self.visit(choice.value)
         texp=None
         for choice in node.choices:
-            self.typeCheck(choice.arrowToken, choice.condition, TBool)
-            if texp == None and choice.value.type != TInvalid:
+            self.typeCheck(choice.arrowToken, choice.condition, [TBool])
+            if not texp and choice.value.type != TInvalid:
                 texp = choice.value
         node.type = TInvalid
         if texp:
@@ -136,7 +137,7 @@ class FirstParse(visitor.Visitor):
             self.lus[-1][self.tokenToIdentifier(a.nameToken)] = a
             a.type = self.tokenToType(a.typeToken)
         self.visit(node.body)
-        self.typeCheck(node.funcToken, node.body, self.tokenToType(node.returnTypeToken))
+        self.typeCheck(node.funcToken, node.body, [self.tokenToType(node.returnTypeToken)])
         self.lus.pop()
 
     def visitTupExp(self, node):
@@ -162,10 +163,10 @@ class FirstParse(visitor.Visitor):
             argumentTypes.append(TAny)
         elif tkn in  [TK_ISBOOL, TK_ISINT, TK_ISTEXT]:
             returnType = TBool
-            if len(nodes.args) < 2:
+            if len(node.args) < 2:
                 argumentTypes = [TAny]
             else:
-                argumentTypes = [TAny, "NAME?"]
+                argumentTypes = [TAny, TNAMEQ]
         elif tkn == TK_SYSTEM:
             returnType = TInt
             argumentTypes = [TText]
@@ -176,10 +177,10 @@ class FirstParse(visitor.Visitor):
             returnType = TBool
         elif tkn == TK_HAS:
             returnType = TBool
-            argumentTypes = [TRel,  "NAME?"]
+            argumentTypes = [TRel, TNAMEQ]
         elif tkn in [TK_MAX, TK_MIN, TK_COUNT, TK_ADD, TK_MULT]:
             returnType = TInt
-            argumentTypes = [TRel,  "NAME?"]
+            argumentTypes = [TRel, TNAMEQ]
         elif tkn == TK_DAYS:
             returnType = TInt
             argumentTypes = [TText, TText]
@@ -199,41 +200,44 @@ class FirstParse(visitor.Visitor):
             self.err.reportError("Too many arguments to builtin function, received %d but expected %d"%(len(node.args), len(argumentTypes)), node.nameToken)
         
         for i in xrange(len(node.args)):
-            if i >= len(argumentTypes) or argumentTypes[i] != "NAME?":
+            if i >= len(argumentTypes) or argumentTypes[i] != TNAMEQ:
                 self.visit(node.args[i])
-            if i < len(argumentTypes) and argumentTypes[i] != "NAME?":
-                self.typeCheck(node.nameToken, node.args[i], argumentTypes[i])
-            if i < len(argumentTypes) and argumentTypes[i] == "NAME?":
+            if i < len(argumentTypes) and argumentTypes[i] != TNAMEQ:
+                self.typeCheck(node.nameToken, node.args[i], [argumentTypes[i]])
+            if i < len(argumentTypes) and argumentTypes[i] == TNAMEQ:
                 if (not isinstance(node.args[i], VariableExp) 
                     and not(isinstance(node.args[i], Exp) 
                             and isinstance(node.args[i].exp, VariableExp))):
-                    self.err.reportError("Expected identifier", None, node.args[i].charRange)
+                    self.err.reportError("Expected identifier", None, [node.args[i].charRange])
 
     def visitConstantExp(self, node):
         if node.token.id == TK_FALSE:
-            node.cvalue = False
+            node.bool_value = False
             node.type = TBool
         elif node.token.id == TK_TRUE:
-            node.cvalue = True
+            node.bool_value = True
             node.type = TBool
         elif node.token.id == TK_INT:
-            node.cvalue = int(self.code[node.token.start: node.token.length + node.token.start])
+            node.int_value = int(self.code[node.token.start: node.token.length + node.token.start])
             node.type = TInt
         elif node.token.id == TK_TEXT:
-            node.cvalue = str(self.code[node.token.start+1: node.token.length + node.token.start - 1])
+            a = node.token.start+1
+            b = node.token.length + node.token.start - 1
+            if a < b:  #This in only here to make python happy
+                node.txt_value = str(self.code[a:b])
+            else:
+                node.txt_value = ""
             node.type = TText
         elif node.token.id == TK_ZERO:
             node.type = TRel
             # dunno what to do here.
             # it needs to be the 'empty relation'
-            node.cvalue = None
             pass
         elif node.token.id == TK_ONE:
             node.type = TRel
             # dunno what to do here.
             # it needs to be 
             # 'the relation with the empty Schema that has exactly one tuple which is empty'
-            node.cvalue = None            
             pass
         elif node.token.id == TK_STDBOOL:
             node.type = TBool
@@ -248,11 +252,11 @@ class FirstParse(visitor.Visitor):
 
     def visitUnaryOpExp(self, node):
         self.visit(node.exp)
-        if node.token == TK_NOT:
-            self.typeCheck(node.token, node.exp, TBool)
+        if node.token.id == TK_NOT:
+            self.typeCheck(node.token, node.exp, [TBool])
             node.type = TBool
-        elif node.token == TK_MINUS:
-            self.typeCheck(node.token, node.exp, TInt)
+        elif node.token.id == TK_MINUS:
+            self.typeCheck(node.token, node.exp, [TInt])
             node.type = TInt
         else:
             self.internalError(node.token, "Bad unary operator")
@@ -261,7 +265,7 @@ class FirstParse(visitor.Visitor):
     def visitRelExp(self, node):
         node.type = TRel
         self.visit(node.exp)
-        self.typeCheck(node.relToken, node.exp, TTup)
+        self.typeCheck(node.relToken, node.exp, [TTup])
 
     def visitLenExp(self, node):
         self.visit(node.exp)
@@ -272,30 +276,31 @@ class FirstParse(visitor.Visitor):
         self.visit(node.funcExp)
         self.visitAll(node.args)
         node.type = TAny
-        self.typeCheck(node.lparenToken, node.funcExp, TFunc)
+        self.typeCheck(node.lparenToken, node.funcExp, [TFunc])
 
     def visitSubstringExp(self, node):
         self.visit(node.stringExp)
         self.visit(node.fromExp)
         self.visit(node.toExp)
-        self.typeCheck(node.lparenToken, node.fromExp, TInt)
-        self.typeCheck(node.lparenToken, node.toExp, TInt)
-        self.typeCheck(node.lparenToken. node.stringExp, TText)
+        #TODO rpython seems to give this the "wrong" type
+        #self.typeCheck(node.lparenToken. node.stringExp, [TText])
+        self.typeCheck(node.lparenToken, node.fromExp, [TInt])
+        self.typeCheck(node.lparenToken, node.toExp, [TInt])
         node.type = TText
 
     def visitRenameExp(self, node):
         self.visit(node.lhs)
-        self.typeCheck(node.lbracketToken, node.lhs, TRel)
+        self.typeCheck(node.lbracketToken, node.lhs, [TRel])
         node.type = TRel
 
     def visitDotExp(self, node):
         self.visit(node.lhs)
-        self.typeCheck(node.token, node.lhs, TTup)
+        self.typeCheck(node.token, node.lhs, [TTup])
         node.type = TAny
 
     def visitProjectExp(self, node):
         self.visit(node.lhs)
-        self.typeCheck(node.lhs.projectionToken, node.lhs, TRel)
+        self.typeCheck(node.lhs.projectionToken, node.lhs, [TRel])
         node.type = TRel
 
     def visitInvalidExp(self, node):
@@ -317,20 +322,20 @@ class FirstParse(visitor.Visitor):
             elif node.lhs.type == TAny and node.rhs.type == TAny:
                 node.type = TAny
         elif node.token.id in [TK_DIV, TK_MOD]:
-            self.typeCheck(node.token, node.lhs, TInt)
-            self.typeCheck(node.token, node.rhs, TInt)
+            self.typeCheck(node.token, node.lhs, [TInt])
+            self.typeCheck(node.token, node.rhs, [TInt])
             node.type = TInt
         elif node.token.id in [TK_AND, TK_OR]:
-            self.typeCheck(node.token, node.lhs, TBool)
-            self.typeCheck(node.token, node.rhs, TBool)
+            self.typeCheck(node.token, node.lhs, [TBool])
+            self.typeCheck(node.token, node.rhs, [TBool])
             node.type = TBool
         elif node.token.id == TK_CONCAT:
-            self.typeCheck(node.token, node.lhs, TText)
-            self.typeCheck(node.token, node.rhs, TText)
+            self.typeCheck(node.token, node.lhs, [TText])
+            self.typeCheck(node.token, node.rhs, [TText])
             node.type = TText
         elif node.token.id in [TK_LESSEQUAL, TK_LESS, TK_GREATER, TK_GREATEREQUAL]:
-            self.typeCheck(node.token, node.lhs, TInt)
-            self.typeCheck(node.token, node.rhs, TInt)
+            self.typeCheck(node.token, node.lhs, [TInt])
+            self.typeCheck(node.token, node.rhs, [TInt])
             node.type = TBool
         else:
             self.internalError(node.token, "Invalid operator (%s)"%(tokenNames[node.token.id]))
