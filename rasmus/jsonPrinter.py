@@ -24,15 +24,16 @@ class Node(Dict):
         Dict.__enter__(self)
         with self.p.attribute("class"): 
             self.p.value(self.name)
-        # if self.node.charRange:
-        #     with self.p.attribute("charRange"): 
-        #         self.p.value(self.node.charRange)
-        if self.node.cvalue:
-            with self.p.attribute("cvalue"): 
-                self.p.value(self.node.cvalue)
+            if self.node.charRange:
+                with self.p.attribute("charRange"): 
+                    self.p.value("%s:%s"%(self.node.charRange.lo,self.node.charRange.hi))
+        #if self.node.cvalue:
+        #with self.p.attribute("cvalue"): 
+        #self.p.value(self.node.cvalue)
         if self.node.type:
             with self.p.attribute("type"): 
-                self.p.value(self.node.type)
+                self.p.value(str(self.node.type))
+                pass
 
 class Attribute:
     def __init__(self, printer, name, l=False):
@@ -95,18 +96,15 @@ class JSONPrinter(visitor.Visitor):
         return Attribute(self, name)
 
     def valueInner(self, s):
-        if s is None:
-            return "null"
-        elif s is True or s == "true":
-            return "true"
-        elif s is False or s == "false":
-            return "false"
-        elif isinstance(s, ( int, long )) or str(s).isdigit():
-            return str(s)
-        elif (hasattr(s, '__iter__') or hasattr(s, '__getitem__')) and not isinstance(s, str):
-            return "[%s]"%(",".join([self.valueInner(i) for i in s]))
-        else:
-            return("\"%s\""%str(s).replace("\\", "\\\\").replace("\"", "\\\""))
+         if s is None:
+             return "null"
+         elif s in ["true", "True"]:
+             return "true"
+         elif s in ["false", "False"]:
+             return "false"
+         #elif s.isdiget():
+         #    return s
+         return "\"%s\""%str(s)
 
     def value(self, s):
         if self.inList[-1]:
@@ -122,6 +120,7 @@ class JSONPrinter(visitor.Visitor):
 
     def token(self, token):
         self.value(self.code[token.start: token.start+token.length])
+        pass
 
     def dict(self):
         return Dict(self)
@@ -222,13 +221,17 @@ class JSONPrinter(visitor.Visitor):
                 self.visitAll(node.args)
 
     def visitSubstringExp(self, node):
-        with self.node(node, "substr"):
-            with self.attribute("str"):
-                self.visit(node.stringExp)
-            with self.attribute("from"):
-                self.visit(node.fromeXP)
-            with self.attribute("to"):
-                self.visit(node.toExp)
+        # with self.node(node, "substr"):
+        #     with self.attribute("str"):
+        #         self.visit(node.stringExp)
+        #     with self.attribute("from"):
+        #         self.visit(node.fromeXP)
+        #     with self.attribute("to"):
+        #         self.visit(node.toExp)
+        pass
+
+    def visitAtExp(self, node):
+        pass
 
     def visitRenameExp(self, node):
         with self.node(node, "rename"):
