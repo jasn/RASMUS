@@ -223,7 +223,7 @@ class Lexer:
         self.index = start
 
     def getNext(self):
-        c, i = self.code, self.index
+        c, i = self.code.code, self.index
         while i < len(c) and c[i] in whitespace:
             i+=1
 

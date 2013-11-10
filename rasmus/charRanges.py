@@ -96,6 +96,10 @@ class CharRanges(visitor.Visitor):
     def visitInvalidExp(self, node):
         pass
 
+    def visitAtExp(self, node):
+        self.visit(node.exp)
+        node.charRange = u(r(node.atToken), r(node.rparenToken))
+
     def visitExp(self, node):
         self.visit(node.exp)
         node.charRange = node.exp.charRange

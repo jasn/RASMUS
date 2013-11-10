@@ -33,7 +33,6 @@ class Parser:
     def __init__(self, error, code, interactiveMode = False, start=0):
         self.interactiveMode = interactiveMode
         self.error = error
-        self.code = code
         self.lexer = Lexer(code, start)
         self.currentToken = self.lexer.getNext()
         self.recoverStack = []

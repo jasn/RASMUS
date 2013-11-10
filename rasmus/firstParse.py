@@ -28,17 +28,19 @@ class FirstParse(visitor.Visitor):
         self.code = code
         self.lus = []
 
-    def setCode(self, code):
-        self.code = code
-
     def setLus(self, lus):
-        self.lus = map(copy,lus)
+        self.lus = []
+        for l in lus:
+            x = {}
+            for a in l:
+                x[a] = l[a]
+            self.lus.append(x)
 
     def getLus(self):
         return self.lus
 
     def tokenToIdentifier(self, token):
-        return self.code[token.start:token.start+token.length]
+        return self.code.code[token.start:token.start+token.length]
 
     def internalError(self, token, message):
         self.err.reportError("Internal error: %s"%message, token)
@@ -48,9 +50,9 @@ class FirstParse(visitor.Visitor):
         if expr.type in [TInvalid, TAny] or (expr.type in t) or (TAny in t):
             return True
         if len(t) > 1:
-            msg="Expected one of %s but found %s"%(", ".join([str(x) for x in t]), str(expr.type))
+            msg="Expected one of %s but found %s"%(", ".join([x.name for x in t]), expr.type.name)
         else:
-            msg="Expected type %s but found %s"%(str(t[0]), str(expr.type))
+            msg="Expected type %s but found %s"%(t[0].name, expr.type.name)
         msg="hello"
         self.err.reportError(msg, token, [expr.charRange])
         return False
@@ -62,7 +64,7 @@ class FirstParse(visitor.Visitor):
         if leftOk and rightOk:
             if e1.type == e2.type or e1.type == TAny or e2.type == TAny:
                 return True
-            self.err.reportError("Expected identical types but found %s and %s"%(e1.type, e2.type), 
+            self.err.reportError("Expected identical types but found %s and %s"%(e1.type.name, e2.type.name), 
                                  token, 
                                  [e1.charRange, e2.charRange])
             return False
@@ -218,13 +220,13 @@ class FirstParse(visitor.Visitor):
             node.bool_value = True
             node.type = TBool
         elif node.token.id == TK_INT:
-            node.int_value = int(self.code[node.token.start: node.token.length + node.token.start])
+            node.int_value = int(self.code.code[node.token.start: node.token.length + node.token.start])
             node.type = TInt
         elif node.token.id == TK_TEXT:
             a = node.token.start+1
             b = node.token.length + node.token.start - 1
             if a < b:  #This in only here to make python happy
-                node.txt_value = str(self.code[a:b])
+                node.txt_value = str(self.code.code[a:b])
             else:
                 node.txt_value = ""
             node.type = TText

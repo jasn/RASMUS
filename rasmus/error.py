@@ -22,17 +22,10 @@ def bisect_left(a, x):
         else: hi = mid
     return lo
 
-
 class Error:
-    def __init__(self, code, name):
+    def __init__(self, code):
         self.numberOfErrors = 0
-        self.name = "ABE" #os.path.basename(name)
         self.code = code
-        self.lineStarts = [-1] + [ i for i in range(len(code)) if code[i] == '\n'] + [len(code)]
-
-    def setCode(self, code):
-        self.code = code
-        self.lineStarts = [-1] + [ i for i in range(len(code)) if code[i] == '\n'] + [len(code)]
 
     def reportError(self, 
                     message,
@@ -49,14 +42,14 @@ class Error:
              lo = min(lo, r.lo)
              hi = max(hi, r.hi)
              
-        line = bisect_left(self.lineStarts,lo)
-        print "%s:%d %serror%s %s"%(self.name, line, boldRed(), reset(), message)
-        startOfLine = self.lineStarts[line-1]+1
-        endOfLine = self.lineStarts[line]
+        line = bisect_left(self.code.lineStarts,lo)
+        print "%s:%d %serror%s %s"%(self.code.name, line, boldRed(), reset(), message)
+        startOfLine = self.code.lineStarts[line-1]+1
+        endOfLine = self.code.lineStarts[line]
         if startOfLine < 0 or endOfLine < startOfLine:
             print "%s%s%s"%(red(),"I am just making rpython happy",reset())
             return
-        print "%s%s%s"%(green(),self.code[startOfLine:endOfLine],reset())
+        print "%s%s%s"%(green(),self.code.code[startOfLine:endOfLine],reset())
         if len(ranges) == 0 and mainToken:
             print "%s%s^%s%s"%(" "*(mainToken.start-startOfLine), blue(), "~"*(mainToken.length-1), reset())
         else:
