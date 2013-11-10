@@ -3,7 +3,7 @@ import rasmus.lexer
 import rasmus.parser
 import rasmus.error
 import rasmus.jsonPrinter
-#import rasmus.llvmCodeGen
+import rasmus.codegen
 import rasmus.charRanges
 import rasmus.firstParse
 import rasmus.code
@@ -30,6 +30,7 @@ def run_terminal():
     outerLus = [{}]
     theCode = ""
     incomplete = ""
+    codegen = rasmus.codegen.Codegen()
     sequenceExpNode = rasmus.AST.SequenceExp()    
     while True:       
         if incomplete:
@@ -54,8 +55,12 @@ def run_terminal():
                 if errorsNow == errorsPrior:
                     outerLus = typeChecker.getLus()
                     theCode = newCode + ";\n"
-                    #bytecode = codegen.visit(AST)
-                    #interperter.run(bytecode)
+                    ol = len(codegen.methods[0])
+                    codegen.visit(AST)
+                    s = ""
+                    for c in codegen.methods[0][ol:]:
+                        s += "%d "%ord(c)
+                    print s
                 else:
                     sequenceExpNode.sequence.pop()
                 incomplete = ""
