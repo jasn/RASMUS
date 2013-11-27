@@ -4,12 +4,27 @@ from lexer import *
 from firstParse import TBool,TInt,TInvalid,TText,TRel,TTup,TFunc,TAny,TAtom
 
 class Codegen(visitor.Visitor):
-    def __init__(self):
-        self.methods = [""]
+    def __init__(self, codeStore):
+        self.store = codeStore
         self.method = 0
 
-    def emit(self, val):
-        self.methods[self.method] += chr(val)
+    def emitUInt8(self, byte):
+        self.store.methods[self.method] += chr(byte);
+
+    def emitInt32(self, word):
+        self.store.methods[self.method] += chr(word & 0xFF);
+        word >>= 8
+        self.store.methods[self.method] += chr(word & 0xFF);
+        word >>= 8
+        self.store.methods[self.method] += chr(word & 0xFF);
+        word >>= 8
+        self.store.methods[self.method] += chr(word & 0xFF);
+
+    def emitPrint(self):
+        self.emitUInt8(OP_PRINT)
+
+    def emitHalt(self):
+        self.emitUInt8(OP_HALT)
 
     def visitVariableExp(self, node):
         pass
@@ -52,16 +67,8 @@ class Codegen(visitor.Visitor):
 
     def visitConstantExp(self, node):
         if node.type == TInt:
-            self.emit(OP_INT_CONST)
-            v = node.int_value
-            self.emit(v & 0xFF)
-            v >>= 8
-            self.emit(v & 0xFF)
-            v >>= 8
-            self.emit(v & 0xFF)
-            v >>= 8
-            self.emit(v & 0xFF)
-            v >>= 8
+            self.emitUInt8(OP_INT_CONST)
+            self.emitInt32(node.int_value)
 
     def visitUnaryOpExp(self, node):
         pass
@@ -91,7 +98,19 @@ class Codegen(visitor.Visitor):
         pass
 
     def visitBinaryOpExp(self, node):
-        pass
+        #TODO add type checking
+        self.visit(node.lhs)
+        self.visit(node.rhs)
+        if node.token.id == TK_PLUS:
+            self.emitUInt8(OP_ADD)
+        elif node.token.id == TK_MINUS:
+            self.emitUInt8(OP_MINUS)
+        elif node.token.id == TK_MUL:
+            self.emitUInt8(OP_MUL)
+        elif node.token.id == TK_DIV:
+            self.emitUInt8(OP_DIV)
+        else:
+            print "ICE"
 
     def visitSequenceExp(self, node):
         pass

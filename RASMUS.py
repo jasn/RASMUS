@@ -8,6 +8,8 @@ import rasmus.charRanges
 import rasmus.firstParse
 import rasmus.code
 import rasmus.AST
+import rasmus.interperter
+import rasmus.opcodes
 import os
 
 def run_file(path):
@@ -30,14 +32,16 @@ def run_terminal():
     outerLus = [{}]
     theCode = ""
     incomplete = ""
-    codegen = rasmus.codegen.Codegen()
+    codeStore = rasmus.opcodes.CodeStore()
+    codegen = rasmus.codegen.Codegen(codeStore)
+    interperter = rasmus.interperter.Interperter(codeStore)
     sequenceExpNode = rasmus.AST.SequenceExp()    
     while True:       
         if incomplete:
-            os.write(0, ".... ")
+            os.write(1, ".... ")
         else:
-            os.write(0, ">>>> ")
-        line = os.read(2, 1024*10)
+            os.write(1, ">>>> ")
+        line = os.read(0, 1024*10)
         if len(line) == 0: break
         newCode = theCode + incomplete + line
         code.setCode(newCode)
@@ -55,12 +59,10 @@ def run_terminal():
                 if errorsNow == errorsPrior:
                     outerLus = typeChecker.getLus()
                     theCode = newCode + ";\n"
-                    ol = len(codegen.methods[0])
                     codegen.visit(AST)
-                    s = ""
-                    for c in codegen.methods[0][ol:]:
-                        s += "%d "%ord(c)
-                    print s
+                    codegen.emitPrint()
+                    codegen.emitHalt()
+                    interperter.run()
                 else:
                     sequenceExpNode.sequence.pop()
                 incomplete = ""

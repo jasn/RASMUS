@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import sys
 import rasmus.lexer
 import rasmus.parser
@@ -8,7 +7,8 @@ import rasmus.AST
 import rasmus.jsonPrinter
 import rasmus.charRanges
 import rasmus.firstParse
-import rasmus.evaluator
+import rasmus.codegen
+import rasmus.interperter
 import readline
 
 def main():
@@ -20,7 +20,10 @@ def main():
     typeChecker = rasmus.firstParse.FirstParse(e, code)
     outerLus = [{}]
     incomplete = ""
-
+    
+    codegen = rasmus.codegen.Codegen()
+    interperter = rasmus.interperter.Interperter()
+    
     while True:       
         if incomplete:
             line = raw_input(">>   ")
@@ -44,10 +47,10 @@ def main():
                 if errorsNow == errorsPrior:
                     outerLus = typeChecker.getLus()
                     code = newCode + ";\n"
-                    print rasmus.evaluator.Evaluator().visit(AST)
+                    bytecode = codegen.visit(AST)
+                    interperter.run(bytecode)
                 else:
                     sequenceExpNode.sequence.pop()
-                
             incomplete = ""
 
             # eval + print
