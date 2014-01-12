@@ -3,7 +3,7 @@ import rasmus.lexer
 import rasmus.parser
 import rasmus.error
 import rasmus.jsonPrinter
-import rasmus.codegen
+import rasmus.llvmCodeGen
 import rasmus.charRanges
 import rasmus.firstParse
 import rasmus.code
@@ -11,6 +11,9 @@ import rasmus.AST
 import rasmus.interperter
 import rasmus.opcodes
 import os
+import readline
+from llvm.ee import ExecutionEngine, TargetData
+from llvm.core import Type
 
 def run_file(path):
     myFile = open(path)
@@ -32,17 +35,19 @@ def run_terminal():
     outerLus = [{}]
     theCode = ""
     incomplete = ""
-    codeStore = rasmus.opcodes.CodeStore()
-    codegen = rasmus.codegen.Codegen(codeStore)
-    interperter = rasmus.interperter.Interperter(codeStore)
+    codegen = rasmus.llvmCodeGen.LLVMCodeGen(code)
+    llvm_executor = ExecutionEngine.new(codegen.module)
+
     sequenceExpNode = rasmus.AST.SequenceExp()    
-    while True:       
-        if incomplete:
-            os.write(1, ".... ")
-        else:
-            os.write(1, ">>>> ")
-        line = os.read(0, 1024*10)
-        if len(line) == 0: break
+    while True:      
+        try:
+            if incomplete:
+                line = raw_input(".... ")
+            else:
+                line = raw_input(">>>> ")
+        except EOFError:
+            print
+            break
         newCode = theCode + incomplete + line
         code.setCode(newCode)
         p = rasmus.parser.Parser(e, code, True, len(theCode))
@@ -55,14 +60,19 @@ def run_terminal():
                 sequenceExpNode.sequence.append(AST)
                 typeChecker.setLus(outerLus)
                 typeChecker.visit(AST)
+                #rasmus.jsonPrinter.JSONPrinter(code, sys.stdout).visit(AST)
                 errorsNow = e.numberOfErrors
                 if errorsNow == errorsPrior:
                     outerLus = typeChecker.getLus()
                     theCode = newCode + ";\n"
-                    codegen.visit(AST)
-                    codegen.emitPrint()
-                    codegen.emitHalt()
-                    interperter.run()
+                    codegen.visitOuter(AST)
+                    #print codegen.function
+                    result = llvm_executor.run_function(codegen.function, [])
+                    print result.as_int_signed()
+                    
+                    #codegen.emitPrint()
+                    #codegen.emitHalt()
+                    #interperter.run()
                 else:
                     sequenceExpNode.sequence.pop()
                 incomplete = ""

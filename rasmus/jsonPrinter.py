@@ -119,7 +119,7 @@ class JSONPrinter(visitor.Visitor):
             self.token(token)
 
     def token(self, token):
-        self.value(self.code[token.start: token.start+token.length])
+        self.value(self.code.code[token.start: token.start+token.length])
         pass
 
     def dict(self):

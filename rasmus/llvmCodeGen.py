@@ -1,19 +1,27 @@
 import visitor
 from lexer import *
-
+from llvm.core import *
+from llvm.passes import *
 #RUN LIKE
 #python RASMUS.py foo.rm | llvm-as | opt -O3 | llc | gcc -x assembler - && ./a.out; echo $?
 
 class LLVMCodeGen(visitor.Visitor):
-    def __init__(self, code, f):
+    def __init__(self, code):
         self.code = code
-        self.cnt = 0
-        self.f = f
-
-    def n(self):
-        x = self.cnt
-        self.cnt += 1
-        return x
+        self.module = Module.new("Monkey")
+        
+        
+        self.passMgr = FunctionPassManager.new(self.module)
+        # Do simple "peephole" optimizations and bit-twiddling optzns.
+        self.passMgr.add(PASS_INSTRUCTION_COMBINING)
+        # Reassociate expressions.
+        self.passMgr.add(PASS_REASSOCIATE)
+        # Eliminate Common SubExpressions.
+        self.passMgr.add(PASS_GVN)
+        # Simplify the control flow graph (deleting unreachable blocks, etc).
+        self.passMgr.add(PASS_CFG_SIMPLIFICATION)
+        
+        self.passMgr.initialize()
 
     def visitVariableExp(self, node):
         pass
@@ -41,11 +49,10 @@ class LLVMCodeGen(visitor.Visitor):
 
     def visitConstantExp(self, node):
         if node.token.id == TK_INT:
-            a=self.n()
-            self.f.write("  %%%d = add i32 %d, 0\n"%(a, int(self.code[
-                        node.token.start: node.token.length + node.token.start])))
-            return a
-
+            return Constant.int(Type.int(64), int(self.code.code[
+                        node.token.start: node.token.length + node.token.start]))
+        pass
+    
     def visitUnaryOpExp(self, node):
         pass
 
@@ -70,38 +77,27 @@ class LLVMCodeGen(visitor.Visitor):
     def visitProjectExp(self, node):
         pass
 
+    def visitExp(self, node):
+        return self.visit(node.exp)
+
     def visitBinaryOpExp(self, node):
         a = self.visit(node.lhs)
-        b = self.visit(node.rhs) 
-        c = self.n()
-        self.f.write("  %%%d = add i32 %%%d, %%%d\n"%(c, a, b))
-        return c
-
+        b = self.visit(node.rhs)
+        if node.token.id == TK_PLUS:
+            return self.builder.add(a, b)
+        elif node.token.id == TK_MUL:
+            return self.builder.mul(a,b)
+    
     def visitSequenceExp(self, node):
         pass
 
     def generate(self, node):
-        self.f.write("define i32 @main() ssp {\n");
-        self.f.write("entry:\n");
-        a = self.visit(node)
-        self.f.write("  ret i32 %%%d\n"%a)
-        self.f.write("}\n")
+        pass
 
-# @.str = private constant [13 x i8] c"Hello World!\00", align 1 ;
-
-# define i32 @main() ssp {
-# entry:
-#   %retval = alloca i32
-#   %0 = alloca i32
-#   %"alloca point" = bitcast i32 0 to i32
-#   %1 = call i32 @puts(i8* getelementptr inbounds ([13 x i8]* @.str, i64 0, i64 0))
-#   store i32 0, i32* %0, align 4
-#   %2 = load i32* %0, align 4
-#   store i32 %2, i32* %retval, align 4
-#   br label %return
-# return:
-#   %retval1 = load i32* %retval
-#   ret i32 %retval1
-# }
-
-# declare i32 @puts(i8*)
+    def visitOuter(self, AST):
+        funct_type = Type.function(Type.int(64), [], False)
+        self.function = Function.new(self.module, funct_type, "BAR")
+        self.block = self.function.append_basic_block('entry')
+        self.builder = Builder.new(self.block)
+        self.builder.ret(self.visit(AST))
+        self.passMgr.run(self.function)
