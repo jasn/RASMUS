@@ -13,6 +13,12 @@ def green():
 def blue():
     return '\033[34m'
 
+def yellow():
+    return '\033[33m'
+
+def boldYellow():
+    return '\033[33;1m'
+
 def bisect_left(a, x):
     lo=0
     hi=len(a)
@@ -27,11 +33,19 @@ class Error:
         self.numberOfErrors = 0
         self.code = code
 
+    def reportWarning(self, 
+                    message,
+                    mainToken=None,
+                    ranges=[]):
+        self.report("%swarning%s"%(boldYellow(), reset()), message, mainToken, ranges)
+
     def reportError(self, 
                     message,
                     mainToken=None,
                     ranges=[]):
+        self.report("%serror%s"%(boldRed(), reset()), message, mainToken, ranges)
 
+    def report(self, type, message, mainToken=None, ranges=[]):
         self.numberOfErrors += 1
         lo = 2147483648
         hi = 0
@@ -43,7 +57,7 @@ class Error:
              hi = max(hi, r.hi)
              
         line = bisect_left(self.code.lineStarts,lo)
-        print "%s:%d %serror%s %s"%(self.code.name, line, boldRed(), reset(), message)
+        print "%s:%d %s %s"%(self.code.name, line, type, message)
         startOfLine = self.code.lineStarts[line-1]+1
         endOfLine = self.code.lineStarts[line]
         if startOfLine < 0 or endOfLine < startOfLine:

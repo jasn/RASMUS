@@ -35,7 +35,7 @@ def run_terminal():
     outerLus = [{}]
     theCode = ""
     incomplete = ""
-    codegen = rasmus.llvmCodeGen.LLVMCodeGen(code)
+    codegen = rasmus.llvmCodeGen.LLVMCodeGen(e, code)
     llvm_executor = ExecutionEngine.new(codegen.module)
 
     sequenceExpNode = rasmus.AST.SequenceExp()    
@@ -66,7 +66,7 @@ def run_terminal():
                     outerLus = typeChecker.getLus()
                     theCode = newCode + ";\n"
                     codegen.visitOuter(AST)
-                    #print codegen.function
+                    print "HERE", codegen.function
                     result = llvm_executor.run_function(codegen.function, [])
                     print result.as_int_signed()
                     

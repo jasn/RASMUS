@@ -2,12 +2,14 @@ import visitor
 from lexer import *
 from llvm.core import *
 from llvm.passes import *
+from firstParse import TBool, TInt
 #RUN LIKE
 #python RASMUS.py foo.rm | llvm-as | opt -O3 | llc | gcc -x assembler - && ./a.out; echo $?
 
 class LLVMCodeGen(visitor.Visitor):
-    def __init__(self, code):
+    def __init__(self, err, code):
         self.code = code
+        self.err = err
         self.module = Module.new("Monkey")
         
         
@@ -30,7 +32,36 @@ class LLVMCodeGen(visitor.Visitor):
         pass
 
     def visitIfExp(self, node):
-        pass
+        done=False
+        
+        for choice in node.choices:
+            choice.then_block = self.function.append_basic_block('then')
+            choice.else_block = self.function.append_basic_block('else')
+
+        b = self.builder.basic_block
+        merge_block = self.function.append_basic_block('merge')
+        self.builder.position_at_end(merge_block)
+        phi = self.builder.phi(Type.int(64))
+
+        self.builder.position_at_end(b)
+
+        for choice in node.choices:
+            cond = self.visit(choice.condition)
+            if cond == Constant.int(Type.int(8), 0) or done:
+                self.err.reportWarning("Branch never taken", choice.arrowToken)
+            
+            if cond == Constant.int(Type.int(8), 1):
+                done = True
+
+            self.builder.cbranch(cond, choice.then_block, choice.else_block)
+            self.builder.position_at_end(choice.then_block)
+            phi.add_incoming(self.visit(choice.value), choice.then_block)
+            self.builder.branch(merge_block)
+            self.builder.position_at_end(choice.else_block)
+        
+        self.builder.branch(merge_block)
+        self.builder.position_at_end(merge_block)
+        return phi
 
     def visitForallExp(self, node):
         pass
@@ -48,9 +79,10 @@ class LLVMCodeGen(visitor.Visitor):
         pass
 
     def visitConstantExp(self, node):
-        if node.token.id == TK_INT:
-            return Constant.int(Type.int(64), int(self.code.code[
-                        node.token.start: node.token.length + node.token.start]))
+        if node.type == TInt:
+            return Constant.int(Type.int(64), node.int_value)
+        elif node.type == TBool:
+            return Constant.int(Type.int(8), 1 if node.bool_value else 0)
         pass
     
     def visitUnaryOpExp(self, node):
@@ -95,7 +127,11 @@ class LLVMCodeGen(visitor.Visitor):
         pass
 
     def visitOuter(self, AST):
-        funct_type = Type.function(Type.int(64), [], False)
+        if AST.type == TBool:
+            funct_type = Type.function(Type.int(8), [], False)
+        else:
+            funct_type = Type.function(Type.int(64), [], False)
+
         self.function = Function.new(self.module, funct_type, "BAR")
         self.block = self.function.append_basic_block('entry')
         self.builder = Builder.new(self.block)
