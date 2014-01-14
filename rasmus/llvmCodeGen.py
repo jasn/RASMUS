@@ -15,21 +15,22 @@ class LLVMCodeGen(visitor.Visitor):
         
         self.passMgr = FunctionPassManager.new(self.module)
         # Do simple "peephole" optimizations and bit-twiddling optzns.
-        self.passMgr.add(PASS_INSTRUCTION_COMBINING)
+        #self.passMgr.add(PASS_INSTRUCTION_COMBINING)
         # Reassociate expressions.
-        self.passMgr.add(PASS_REASSOCIATE)
+        #self.passMgr.add(PASS_REASSOCIATE)
         # Eliminate Common SubExpressions.
-        self.passMgr.add(PASS_GVN)
+        #self.passMgr.add(PASS_GVN)
         # Simplify the control flow graph (deleting unreachable blocks, etc).
-        self.passMgr.add(PASS_CFG_SIMPLIFICATION)
+        #self.passMgr.add(PASS_CFG_SIMPLIFICATION)
         
         self.passMgr.initialize()
 
     def visitVariableExp(self, node):
-        pass
+        return node.store.value
 
     def visitAssignmentExp(self, node):
-        pass
+        node.value = self.visit(node.valueExp)
+        return node.value
 
     def visitIfExp(self, node):
         done=False
@@ -121,7 +122,9 @@ class LLVMCodeGen(visitor.Visitor):
             return self.builder.mul(a,b)
     
     def visitSequenceExp(self, node):
-        pass
+        for n in node.sequence:
+            x = self.visit(n)
+        return x
 
     def generate(self, node):
         pass
