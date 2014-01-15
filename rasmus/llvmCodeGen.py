@@ -6,14 +6,27 @@ from firstParse import TBool, TInt
 #RUN LIKE
 #python RASMUS.py foo.rm | llvm-as | opt -O3 | llc | gcc -x assembler - && ./a.out; echo $?
 
+def llvmType(t):
+    if t == TBool:
+        return Type.int(8)
+    elif t == TInt:
+        return Type.int(64)
+
+def typeRepr(t):
+    if t == TBool: return Constant.int(Type.int(8), 0)
+    if t == TInt: return Constant.int(Type.int(8), 0)
+
+def intp(v):
+    return Constant.int(Type.int(32), v)
+
 class LLVMCodeGen(visitor.Visitor):
     def __init__(self, err, code):
         self.code = code
         self.err = err
         self.module = Module.new("Monkey")
-        
-        
+        self.fid = 0
         self.passMgr = FunctionPassManager.new(self.module)
+
         # Do simple "peephole" optimizations and bit-twiddling optzns.
         #self.passMgr.add(PASS_INSTRUCTION_COMBINING)
         # Reassociate expressions.
@@ -22,7 +35,6 @@ class LLVMCodeGen(visitor.Visitor):
         #self.passMgr.add(PASS_GVN)
         # Simplify the control flow graph (deleting unreachable blocks, etc).
         #self.passMgr.add(PASS_CFG_SIMPLIFICATION)
-        
         self.passMgr.initialize()
 
     def visitVariableExp(self, node):
@@ -67,8 +79,63 @@ class LLVMCodeGen(visitor.Visitor):
     def visitForallExp(self, node):
         pass
 
+
     def visitFuncExp(self, node):
-        pass
+        # Create function type
+        funct_type = Type.function(llvmType(node.rtype), 
+                                   map(llvmType, [arg.type for arg in node.args]), False)
+        
+
+        # Cache current state
+        f = self.function
+        b = self.block
+        bb = self.builder.basic_block
+        
+        # Name new function and block
+        name = "f%d"%self.fid
+        self.fid += 1
+        self.function = Function.new(self.module, funct_type, name)
+        self.block = self.function.append_basic_block('entry')
+        self.builder.position_at_end(self.block)
+
+        func = self.function
+
+        # Setup args
+        for farg, arg in zip(self.function.args, node.args):
+            arg.value = farg
+            farg.name = arg.name
+
+        # Build function code
+        self.builder.ret(self.visit(node.body))
+
+        # Revert state
+        self.function = f
+        self.block = b
+        self.builder.position_at_end(bb)
+
+        # Create function object type
+        t = Type.struct( [
+                Type.pointer(funct_type), #Function ptr
+                Type.int(16), # Number of arguments
+                ] + [Type.int(8)] * (len(node.args) + 1))
+        # Todo add closure arguments
+
+        # Allocate function object
+        p = self.builder.malloc(t)
+        self.builder.store(func, 
+                           self.builder.gep(p, [intp(0), intp(0)]))
+        self.builder.store(Constant.int(Type.int(16), len(node.args)), 
+                           self.builder.gep(p, [intp(0), intp(1)]))
+        self.builder.store(typeRepr(node.rtype), 
+                           self.builder.gep(p, [intp(0), intp(2)]))
+        i=3
+        for arg in node.args:
+            self.builder.store(typeRepr(arg.type), 
+                               self.builder.gep(p, [intp(0), intp(i)]))
+            i += 1
+
+        # TODO store closure arguments
+        return p
 
     def visitTupExp(self, node):
         pass
@@ -130,6 +197,7 @@ class LLVMCodeGen(visitor.Visitor):
         pass
 
     def visitOuter(self, AST):
+
         if AST.type == TBool:
             funct_type = Type.function(Type.int(8), [], False)
         else:

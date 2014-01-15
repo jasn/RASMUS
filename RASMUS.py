@@ -66,7 +66,7 @@ def run_terminal():
                     outerLus = typeChecker.getLus()
                     theCode = newCode + ";\n"
                     codegen.visitOuter(AST)
-                    print "HERE", codegen.function
+                    print "HERE", codegen.module
                     result = llvm_executor.run_function(codegen.function, [])
                     print result.as_int_signed()
                     

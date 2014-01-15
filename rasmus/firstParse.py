@@ -136,10 +136,13 @@ class FirstParse(visitor.Visitor):
         self.lus.append({})
         node.type = TFunc
         for a in node.args:
-            self.lus[-1][self.tokenToIdentifier(a.nameToken)] = a
+            a.name = self.tokenToIdentifier(a.nameToken)
+            self.lus[-1][a.name] = a
             a.type = self.tokenToType(a.typeToken)
+            
+        node.rtype = self.tokenToType(node.returnTypeToken)
         self.visit(node.body)
-        self.typeCheck(node.funcToken, node.body, [self.tokenToType(node.returnTypeToken)])
+        self.typeCheck(node.funcToken, node.body, [node.rtype])
         self.lus.pop()
 
     def visitTupExp(self, node):
