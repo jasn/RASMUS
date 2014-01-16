@@ -2,9 +2,10 @@ import visitor
 from lexer import *
 from llvm.core import *
 from llvm.passes import *
-from firstParse import TBool, TInt
-#RUN LIKE
-#python RASMUS.py foo.rm | llvm-as | opt -O3 | llc | gcc -x assembler - && ./a.out; echo $?
+from firstParse import TBool, TInt, TAny, TText, TFunc
+
+anyType = Type.struct([Type.int(8), Type.int(64)])
+funcBase = Type.struct([Type.pointer(Type.void()), Type.int(16)])
 
 def llvmType(t):
     if t == TBool:
@@ -14,19 +15,36 @@ def llvmType(t):
 
 def typeRepr(t):
     if t == TBool: return Constant.int(Type.int(8), 0)
-    if t == TInt: return Constant.int(Type.int(8), 0)
-
+    if t == TInt: return Constant.int(Type.int(8), 1)
+    if t == TAny: return Constant.int(Type.int(8), 2)
+        
 def intp(v):
     return Constant.int(Type.int(32), v)
 
+def funcType(argc):
+    return Type.function(anyType, [Type.pointer(funcBase)] +
+                         [Type.int(8), Type.int(64)] * argc, False)
+
+
 class LLVMCodeGen(visitor.Visitor):
+    def cast(self, value, tfrom, tto):
+        if tfrom == tto: 
+            return value
+        if tto == TAny:
+            a = self.builder.alloca(anyType)
+            self.builder.store(typeRepr(tto), self.builder.gep(a, [intp(0), intp(0)]))
+            self.builder.store(value, self.builder.gep(a, [intp(0), intp(1)]))
+            return a
+        if tfrom == TAny:
+            #TODO throw error
+            return self.builder.bitcast(self.builder.extract_value(value, 1), llvmType(tto))
+
     def __init__(self, err, code):
         self.code = code
         self.err = err
         self.module = Module.new("Monkey")
         self.fid = 0
         self.passMgr = FunctionPassManager.new(self.module)
-
         # Do simple "peephole" optimizations and bit-twiddling optzns.
         #self.passMgr.add(PASS_INSTRUCTION_COMBINING)
         # Reassociate expressions.
@@ -46,46 +64,36 @@ class LLVMCodeGen(visitor.Visitor):
 
     def visitIfExp(self, node):
         done=False
-        
+        hats = []
         for choice in node.choices:
-            choice.then_block = self.function.append_basic_block('then')
-            choice.else_block = self.function.append_basic_block('else')
-
-        b = self.builder.basic_block
-        merge_block = self.function.append_basic_block('merge')
-        self.builder.position_at_end(merge_block)
-        phi = self.builder.phi(Type.int(64))
-
-        self.builder.position_at_end(b)
-
-        for choice in node.choices:
-            cond = self.visit(choice.condition)
+            cond = self.cast(self.visit(choice.condition), choice.condition.type, TBool)
             if cond == Constant.int(Type.int(8), 0) or done:
                 self.err.reportWarning("Branch never taken", choice.arrowToken)
+                continue
             
             if cond == Constant.int(Type.int(8), 1):
                 done = True
 
-            self.builder.cbranch(cond, choice.then_block, choice.else_block)
-            self.builder.position_at_end(choice.then_block)
-            phi.add_incoming(self.visit(choice.value), choice.then_block)
-            self.builder.branch(merge_block)
-            self.builder.position_at_end(choice.else_block)
-        
-        self.builder.branch(merge_block)
-        self.builder.position_at_end(merge_block)
-        return phi
+            value = self.cast(self.visit(choice.value), choice.value.type, node.type)
+            hats.append((cond, value))
+            
+        if not done:
+            val = Constant.int(Type.int(64), 0) #TODO get undefined value for type
+        else:
+            _, val = hats.pop()
+            
+        while hats:
+            cond, v = hats.pop()
+            val = self.builder.select(cond, v , val)
+        print val
 
     def visitForallExp(self, node):
         pass
 
-
     def visitFuncExp(self, node):
         # Create function type
-        funct_type = Type.function(llvmType(node.rtype), 
-                                   map(llvmType, [arg.type for arg in node.args]), False)
+        funct_type = funcType(len(node.args))
         
-
         # Cache current state
         f = self.function
         b = self.block
@@ -100,13 +108,25 @@ class LLVMCodeGen(visitor.Visitor):
 
         func = self.function
 
+        i = 0
         # Setup args
-        for farg, arg in zip(self.function.args, node.args):
-            arg.value = farg
-            farg.name = arg.name
+        self.function.args[0].name = "self"
+        for i in range(len(node.args)):
+            arg = node.args[i]
+            #Todo check types
+            if arg.type == TInt:
+                arg.value = self.builder.bitcast(
+                    self.function.args[i*2+2], Type.int(64))
+            elif arg.type == TBool:
+                arg.value = self.builder.bitcast(
+                    self.function.args[i*2+2], Type.int(8))
+            self.function.args[i*2+1].name = "t_"+arg.name
+            self.function.args[i*2+2].name = "v_"+arg.name
 
         # Build function code
-        self.builder.ret(self.visit(node.body))
+        self.builder.ret(
+            self.cast(
+                self.visit(node.body), node.type, TAny) )
 
         # Revert state
         self.function = f
@@ -117,8 +137,9 @@ class LLVMCodeGen(visitor.Visitor):
         t = Type.struct( [
                 Type.pointer(funct_type), #Function ptr
                 Type.int(16), # Number of arguments
-                ] + [Type.int(8)] * (len(node.args) + 1))
+                ])
         # Todo add closure arguments
+        
 
         # Allocate function object
         p = self.builder.malloc(t)
@@ -126,14 +147,7 @@ class LLVMCodeGen(visitor.Visitor):
                            self.builder.gep(p, [intp(0), intp(0)]))
         self.builder.store(Constant.int(Type.int(16), len(node.args)), 
                            self.builder.gep(p, [intp(0), intp(1)]))
-        self.builder.store(typeRepr(node.rtype), 
-                           self.builder.gep(p, [intp(0), intp(2)]))
         i=3
-        for arg in node.args:
-            self.builder.store(typeRepr(arg.type), 
-                               self.builder.gep(p, [intp(0), intp(i)]))
-            i += 1
-
         # TODO store closure arguments
         return p
 
@@ -163,7 +177,24 @@ class LLVMCodeGen(visitor.Visitor):
         pass
 
     def visitFuncInvocationExp(self, node):
-        pass
+        ft = funcType(len(node.args))
+        
+        capture=self.builder.bitcast(self.cast(self.visit(node.funcExp), node.funcExp.type, TFunc), 
+                                      Type.pointer(funcBase))
+        #TODO check argument count
+        args = [capture]
+        for arg in node.args:
+            argv = self.visit(arg)
+            if arg.type == TAny:
+                args.append(self.builder.extract_value(argv, 0))
+                args.append(self.builder.extract_value(argv, 1))
+            else:
+                args.append(typeRepr(arg.type))
+                args.append(self.builder.bitcast(self.visit(arg), Type.int(64)))
+
+        voidfp = self.builder.load(self.builder.gep(capture, [intp(0), intp(0)]))
+        fp = self.builder.bitcast(voidfp, Type.pointer(ft))
+        return self.builder.call(fp, args)
 
     def visitSubstringExp(self, node):
         pass
@@ -181,8 +212,8 @@ class LLVMCodeGen(visitor.Visitor):
         return self.visit(node.exp)
 
     def visitBinaryOpExp(self, node):
-        a = self.visit(node.lhs)
-        b = self.visit(node.rhs)
+        a = self.cast(self.visit(node.lhs), node.lhs.type, TInt)
+        b = self.cast(self.visit(node.rhs), node.rhs.type, TInt)
         if node.token.id == TK_PLUS:
             return self.builder.add(a, b)
         elif node.token.id == TK_MUL:
@@ -197,14 +228,16 @@ class LLVMCodeGen(visitor.Visitor):
         pass
 
     def visitOuter(self, AST):
-
         if AST.type == TBool:
             funct_type = Type.function(Type.int(8), [], False)
-        else:
+        elif AST.type == TInt:
             funct_type = Type.function(Type.int(64), [], False)
+        else:
+            funct_type = Type.function(anyType, [], False)
 
         self.function = Function.new(self.module, funct_type, "BAR")
         self.block = self.function.append_basic_block('entry')
         self.builder = Builder.new(self.block)
         self.builder.ret(self.visit(AST))
+
         self.passMgr.run(self.function)
