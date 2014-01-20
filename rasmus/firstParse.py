@@ -21,23 +21,28 @@ TAny = Type("any")
 TAtom = Type("atom")
 TNAMEQ = Type("name?")
 
+class Scope:
+    def __init__(self, node, bind={}):
+        self.node = node
+        self.bind = bind
+
 class FirstParse(visitor.Visitor):
     """ Do name lookup, type checking and constant propagation """
     def __init__(self, err, code):
         self.err = err
         self.code = code
-        self.lus = []
+        self.scopes = [ Scope(None,{}) ]
 
-    def setLus(self, lus):
-        self.lus = []
-        for l in lus:
-            x = {}
-            for a in l:
-                x[a] = l[a]
-            self.lus.append(x)
+    # def setLus(self, lus):
+    #     self.lus = []
+    #     for l in lus:
+    #         x = {}
+    #         for a in l:
+    #             x[a] = l[a]
+    #         self.lus.append(x)
 
-    def getLus(self):
-        return self.lus
+    # def getLus(self):
+    #     return self.lus
 
     def tokenToIdentifier(self, token):
         return self.code.code[token.start:token.start+token.length]
@@ -91,22 +96,37 @@ class FirstParse(visitor.Visitor):
 
     def visitVariableExp(self, node):
         lookedUp = None
-        for lu in reversed(self.lus):
-            name = self.tokenToIdentifier(node.token)
-            if name in lu:
-                lookedUp = lu[name]
+        name = self.tokenToIdentifier(node.token)
+        funcs = []
+        for lu in reversed(self.scopes):
+            if name in lu.bind:
+                lookedUp = lu.bind[name]
                 break
+            if isinstance(lu.node, FuncExp):
+                funcs.append(lu)
+
         if not lookedUp:
+            node.store = None
             node.type = TInvalid
             self.err.reportError("Name not found in scope", node.token)
-        else:
-            node.type = lookedUp.type  
+            return
+
+        for lu in reversed(funcs):
+            cap = FuncCaptureValue(lookedUp.nameToken)
+            cap.name = name
+            cap.type = lookedUp.type
+            cap.store = lookedUp
+            lu.bind[name] = cap
+            lu.node.captures.append(cap)
+            lookedUp = cap
+
+        node.type = lookedUp.type  
         node.store = lookedUp
 
     def visitAssignmentExp(self, node):
         self.visit(node.valueExp)
         # Possibly check that the type was not changes since the last binding of the same name
-        self.lus[-1][self.tokenToIdentifier(node.nameToken)] = node
+        self.scopes[-1].bind[self.tokenToIdentifier(node.nameToken)] = node
         node.type = node.valueExp.type
 
     def visitIfExp(self, node):
@@ -133,17 +153,17 @@ class FirstParse(visitor.Visitor):
         self.visit(node.expr)
 
     def visitFuncExp(self, node):
-        self.lus.append({})
+        self.scopes.append(Scope(node, {}))
         node.type = TFunc
         for a in node.args:
             a.name = self.tokenToIdentifier(a.nameToken)
-            self.lus[-1][a.name] = a
+            self.scopes[-1].bind[a.name] = a
             a.type = self.tokenToType(a.typeToken)
             
         node.rtype = self.tokenToType(node.returnTypeToken)
         self.visit(node.body)
         self.typeCheck(node.funcToken, node.body, [node.rtype])
-        self.lus.pop()
+        self.scopes.pop()
 
     def visitTupExp(self, node):
         for item in node.items:
@@ -151,13 +171,13 @@ class FirstParse(visitor.Visitor):
         node.type = TTup
 
     def visitBlockExp(self, node):
-        self.lus.append({})
+        self.scopes.append(Scope(node,{}))
         for val in node.vals: 
             self.visit(val.exp)
-            self.lus[-1][self.tokenToIdentifier(val.nameToken)] = val.exp
+            self.scopes[-1].bind[self.tokenToIdentifier(val.nameToken)] = val.exp
         self.visit(node.inExp)
         node.type = node.inExp.type
-        self.lus.pop()
+        self.scopes.pop()
 
     def visitBuiltInExp(self, node):
         returnType, argumentTypes = None, []
@@ -354,8 +374,8 @@ class FirstParse(visitor.Visitor):
             node.type = node.sequence[-1].type
     
     def visitExp(self, node):
-        self.lus.append({})
+        self.scopes.append(Scope(node, {}))
         self.visit(node.exp)
-        self.lus.pop()
+        self.scopes.pop()
         node.type = node.exp.type
         

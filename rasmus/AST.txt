@@ -3,8 +3,9 @@ AssignmentExp|nameToken,assignToken,valueExp
 Choice|condition,arrowToken,value
 IfExp|ifToken|choices=[]|fiToken=None
 ForallExp|typeToken,lparenToken|listExps=[]|rparenToken=None|pipeToken=None|colonToken=None|expr=InvalidExp()|names=[]
+FuncCaptureValue|nameToken
 FuncArg|nameToken,colonToken,typeToken
-FuncExp|funcToken,lparenToken|args=[]|rparenToken=None|arrowToken=None|lparenToken2=None|rparenToken2=None|returnTypeToken=None|body=InvalidExp()|endToken=None
+FuncExp|funcToken,lparenToken|args=[]|rparenToken=None|arrowToken=None|lparenToken2=None|rparenToken2=None|returnTypeToken=None|body=InvalidExp()|endToken=None|captures=[]
 TupItem|nameToken,colonToken,exp
 TupExp|tupToken,lparenToken|rparenToken=None|items=[]
 Val|valToken,nameToken,equalToken,exp

@@ -32,7 +32,7 @@ def run_terminal():
     code = rasmus.code.Code("", "Interpreted")
     e = rasmus.error.Error(code)
     typeChecker = rasmus.firstParse.FirstParse(e, code)
-    outerLus = [{}]
+    #outerLus = [{}]
     theCode = ""
     incomplete = ""
     codegen = rasmus.llvmCodeGen.LLVMCodeGen(e, code)
@@ -58,12 +58,12 @@ def run_terminal():
                 AST=AST.exp
                 rasmus.charRanges.CharRanges().visit(AST)
                 sequenceExpNode.sequence.append(AST)
-                typeChecker.setLus(outerLus)
+                #typeChecker.setLus(outerLus)
                 typeChecker.visit(AST)
                 #rasmus.jsonPrinter.JSONPrinter(code, sys.stdout).visit(AST)
                 errorsNow = e.numberOfErrors
                 if errorsNow == errorsPrior:
-                    outerLus = typeChecker.getLus()
+                    #outerLus = typeChecker.getLus()
                     theCode = newCode + ";\n"
                     codegen.visitOuter(AST)
                     print "HERE", codegen.module

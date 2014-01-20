@@ -163,6 +163,10 @@ class JSONPrinter(visitor.Visitor):
                     with self.dict():
                         self.tokenAttribute("name", arg.nameToken)
                         self.tokenAttribute("type", arg.typeToken)
+            with self.list("captures"):
+                for arg in node.captures:
+                    with self.dict():
+                        self.tokenAttribute("name", arg.nameToken)
             self.tokenAttribute("rtype", node.returnTypeToken)
             with self.attribute("body"):
                 self.visit(node.body)

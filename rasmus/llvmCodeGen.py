@@ -12,6 +12,8 @@ def llvmType(t):
         return Type.int(8)
     elif t == TInt:
         return Type.int(64)
+    elif t == TAny:
+        return anyType
 
 def typeRepr(t):
     if t == TBool: return Constant.int(Type.int(8), 0)
@@ -46,11 +48,11 @@ class LLVMCodeGen(visitor.Visitor):
         self.fid = 0
         self.passMgr = FunctionPassManager.new(self.module)
         # Do simple "peephole" optimizations and bit-twiddling optzns.
-        #self.passMgr.add(PASS_INSTRUCTION_COMBINING)
+        self.passMgr.add(PASS_INSTCOMBINE)
         # Reassociate expressions.
-        #self.passMgr.add(PASS_REASSOCIATE)
+        self.passMgr.add(PASS_REASSOCIATE)
         # Eliminate Common SubExpressions.
-        #self.passMgr.add(PASS_GVN)
+        self.passMgr.add(PASS_GVN)
         # Simplify the control flow graph (deleting unreachable blocks, etc).
         #self.passMgr.add(PASS_CFG_SIMPLIFICATION)
         self.passMgr.initialize()
@@ -93,7 +95,13 @@ class LLVMCodeGen(visitor.Visitor):
     def visitFuncExp(self, node):
         # Create function type
         funct_type = funcType(len(node.args))
-        
+
+        # Create function object type
+        t = Type.struct( [
+                Type.pointer(funct_type), #Function ptr
+                Type.int(16), # Number of arguments
+                ] + [llvmType(cap.type) for cap in node.captures])
+
         # Cache current state
         f = self.function
         b = self.block
@@ -108,9 +116,10 @@ class LLVMCodeGen(visitor.Visitor):
 
         func = self.function
 
-        i = 0
         # Setup args
         self.function.args[0].name = "self"
+        selfv = self.builder.bitcast(self.function.args[0], Type.pointer(t))
+        
         for i in range(len(node.args)):
             arg = node.args[i]
             #Todo check types
@@ -123,6 +132,10 @@ class LLVMCodeGen(visitor.Visitor):
             self.function.args[i*2+1].name = "t_"+arg.name
             self.function.args[i*2+2].name = "v_"+arg.name
 
+        for i in range(len(node.captures)):
+            cap = node.captures[i]
+            cap.value = self.builder.load(self.builder.gep(selfv, [intp(0), intp(2+i)]))
+                    
         # Build function code
         self.builder.ret(
             self.cast(
@@ -132,23 +145,19 @@ class LLVMCodeGen(visitor.Visitor):
         self.function = f
         self.block = b
         self.builder.position_at_end(bb)
-
-        # Create function object type
-        t = Type.struct( [
-                Type.pointer(funct_type), #Function ptr
-                Type.int(16), # Number of arguments
-                ])
-        # Todo add closure arguments
         
-
         # Allocate function object
         p = self.builder.malloc(t)
+        # Store function ptr
         self.builder.store(func, 
                            self.builder.gep(p, [intp(0), intp(0)]))
+        # Store number of arguments
         self.builder.store(Constant.int(Type.int(16), len(node.args)), 
                            self.builder.gep(p, [intp(0), intp(1)]))
-        i=3
-        # TODO store closure arguments
+        # Store captures
+        for i in range(len(node.captures)):
+            cap = node.captures[i]
+            self.builder.store(cap.store.value, self.builder.gep(p, [intp(0), intp(2+i)]))
         return p
 
     def visitTupExp(self, node):
