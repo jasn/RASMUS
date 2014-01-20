@@ -31,6 +31,8 @@ class CharRanges(visitor.Visitor):
         node.charRange = u(r(node.typeToken), node.expr.charRange)
 
     def visitFuncExp(self, node):
+        for arg in node.args:
+            arg.charRange = u(u(r(arg.nameToken),r(arg.colonToken)), r(arg.typeToken))
         self.visit(node.body)
         node.charRange = u(r(node.funcToken), r(node.endToken))
 

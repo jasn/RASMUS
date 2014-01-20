@@ -4,22 +4,28 @@ from llvm.core import *
 from llvm.passes import *
 from firstParse import TBool, TInt, TAny, TText, TFunc
 
+class ICEException(Exception):
+    def __init__(self, message): 
+        self.message = message
+
+
 anyType = Type.struct([Type.int(8), Type.int(64)])
 funcBase = Type.struct([Type.pointer(Type.void()), Type.int(16)])
 
 def llvmType(t):
-    if t == TBool:
-        return Type.int(8)
-    elif t == TInt:
-        return Type.int(64)
-    elif t == TAny:
-        return anyType
+    if t == TBool: return Type.int(8)
+    elif t == TInt: return Type.int(64)
+    elif t == TAny: return anyType
+    elif t == TFunc: return Type.pointer(funcBase)
+    raise ICEException("Unhandled type %s"%str(t))
 
 def typeRepr(t):
     if t == TBool: return Constant.int(Type.int(8), 0)
-    if t == TInt: return Constant.int(Type.int(8), 1)
-    if t == TAny: return Constant.int(Type.int(8), 2)
-        
+    elif t == TInt: return Constant.int(Type.int(8), 1)
+    elif t == TAny: return Constant.int(Type.int(8), 2)
+    elif t == TFUNC: return Constant.int(Type.int(8), 3)
+    raise ICEException("Unhandled type %s"%str(t))
+
 def intp(v):
     return Constant.int(Type.int(32), v)
 
@@ -27,9 +33,8 @@ def funcType(argc):
     return Type.function(anyType, [Type.pointer(funcBase)] +
                          [Type.int(8), Type.int(64)] * argc, False)
 
-
 class LLVMCodeGen(visitor.Visitor):
-    def cast(self, value, tfrom, tto):
+    def cast(self, value, tfrom, tto, node):
         if tfrom == tto: 
             return value
         if tto == TAny:
@@ -38,15 +43,38 @@ class LLVMCodeGen(visitor.Visitor):
             self.builder.store(value, self.builder.gep(a, [intp(0), intp(1)]))
             return a
         if tfrom == TAny:
-            #TODO throw error
+            fblock = self.function.append_basic_block("b%d"%self.uid)
+            nblock = self.function.append_basic_block("b%d"%(self.uid+1))
+            self.uid += 2
+            t = self.builder.extract_value(value, 0)
+            self.builder.cbranch(self.builder.icmp(ICMP_EQ, t, typeRepr(tto)), nblock, fblock)
+            self.builder.position_at_end(fblock)
+            self.builder.call(self.typeErr, 
+                              [Constant.int(Type.int(32), node.charRange.lo),
+                               Constant.int(Type.int(32), node.charRange.hi),
+                               t,
+                               typeRepr(tto)])
+            self.builder.unreachable()
+            self.block = nblock
+            self.builder.position_at_end(self.block)
             return self.builder.bitcast(self.builder.extract_value(value, 1), llvmType(tto))
 
     def __init__(self, err, code):
         self.code = code
         self.err = err
         self.module = Module.new("Monkey")
-        self.fid = 0
+        #self.module.link_in("stdlib")
+        self.uid = 0
         self.passMgr = FunctionPassManager.new(self.module)
+        
+        typeErrType = Type.function(Type.void(),
+                                    [Type.int(32), Type.int(32), Type.int(8), Type.int(8)])
+        argCntErrType = Type.function(Type.void(), 
+                                        [Type.int(32), Type.int(32), Type.int(16), Type.int(16)])
+
+        self.typeErr = Function.new(self.module, typeErrType, "emit_type_error")
+        self.agcCntErr = Function.new(self.module, argCntErrType, "emit_arg_cnt_error")
+        
         # Do simple "peephole" optimizations and bit-twiddling optzns.
         self.passMgr.add(PASS_INSTCOMBINE)
         # Reassociate expressions.
@@ -68,7 +96,8 @@ class LLVMCodeGen(visitor.Visitor):
         done=False
         hats = []
         for choice in node.choices:
-            cond = self.cast(self.visit(choice.condition), choice.condition.type, TBool)
+            cond = self.cast(self.visit(choice.condition), choice.condition.type, TBool, 
+                             choice.condition)
             if cond == Constant.int(Type.int(8), 0) or done:
                 self.err.reportWarning("Branch never taken", choice.arrowToken)
                 continue
@@ -76,7 +105,8 @@ class LLVMCodeGen(visitor.Visitor):
             if cond == Constant.int(Type.int(8), 1):
                 done = True
 
-            value = self.cast(self.visit(choice.value), choice.value.type, node.type)
+            value = self.cast(self.visit(choice.value), choice.value.type, node.type, 
+                              choice.value)
             hats.append((cond, value))
             
         if not done:
@@ -108,8 +138,8 @@ class LLVMCodeGen(visitor.Visitor):
         bb = self.builder.basic_block
         
         # Name new function and block
-        name = "f%d"%self.fid
-        self.fid += 1
+        name = "f%d"%self.uid
+        self.uid += 1
         self.function = Function.new(self.module, funct_type, name)
         self.block = self.function.append_basic_block('entry')
         self.builder.position_at_end(self.block)
@@ -119,16 +149,34 @@ class LLVMCodeGen(visitor.Visitor):
         # Setup args
         self.function.args[0].name = "self"
         selfv = self.builder.bitcast(self.function.args[0], Type.pointer(t))
-        
+                
         for i in range(len(node.args)):
             arg = node.args[i]
-            #Todo check types
+            
+            fblock = self.function.append_basic_block('check_fail_%d'%i)
+
+            nblock = self.function.append_basic_block('check_succ_%d'%i)
+            self.builder.cbranch(self.builder.icmp(ICMP_EQ, self.function.args[i*2+1], typeRepr(arg.type)),
+                                 nblock, fblock)
+            
+            self.builder.position_at_end(fblock)
+            self.builder.call(self.typeErr,
+                              [Constant.int(Type.int(32), arg.charRange.lo),
+                               Constant.int(Type.int(32), arg.charRange.hi),
+                               self.function.args[i*2+1],
+                               typeRepr(arg.type)])
+            self.builder.unreachable()
+            self.block = nblock
+            self.builder.position_at_end(self.block)
+
             if arg.type == TInt:
                 arg.value = self.builder.bitcast(
                     self.function.args[i*2+2], Type.int(64))
             elif arg.type == TBool:
                 arg.value = self.builder.bitcast(
                     self.function.args[i*2+2], Type.int(8))
+            else:
+                raise ICEException("Unhandled type %s"%str(arg.type))
             self.function.args[i*2+1].name = "t_"+arg.name
             self.function.args[i*2+2].name = "v_"+arg.name
 
@@ -139,7 +187,7 @@ class LLVMCodeGen(visitor.Visitor):
         # Build function code
         self.builder.ret(
             self.cast(
-                self.visit(node.body), node.type, TAny) )
+                self.visit(node.body), node.type, TAny, node.body))
 
         # Revert state
         self.function = f
@@ -188,7 +236,8 @@ class LLVMCodeGen(visitor.Visitor):
     def visitFuncInvocationExp(self, node):
         ft = funcType(len(node.args))
         
-        capture=self.builder.bitcast(self.cast(self.visit(node.funcExp), node.funcExp.type, TFunc), 
+        capture=self.builder.bitcast(self.cast(self.visit(node.funcExp), node.funcExp.type, 
+                                               TFunc, node.funcExp), 
                                       Type.pointer(funcBase))
         #TODO check argument count
         args = [capture]
@@ -221,8 +270,8 @@ class LLVMCodeGen(visitor.Visitor):
         return self.visit(node.exp)
 
     def visitBinaryOpExp(self, node):
-        a = self.cast(self.visit(node.lhs), node.lhs.type, TInt)
-        b = self.cast(self.visit(node.rhs), node.rhs.type, TInt)
+        a = self.cast(self.visit(node.lhs), node.lhs.type, TInt, node.lhs)
+        b = self.cast(self.visit(node.rhs), node.rhs.type, TInt, node.rhs)
         if node.token.id == TK_PLUS:
             return self.builder.add(a, b)
         elif node.token.id == TK_MUL:
