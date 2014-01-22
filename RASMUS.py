@@ -8,13 +8,13 @@ import rasmus.charRanges
 import rasmus.firstParse
 import rasmus.code
 import rasmus.AST
-import rasmus.interperter
-import rasmus.opcodes
 import os
-import readline
+#import readline
 from llvm.ee import ExecutionEngine, TargetData
 from llvm.core import Type
 import ctypes
+
+
 
 def run_file(path):
     myFile = open(path)
@@ -39,12 +39,14 @@ def run_terminal():
     codegen = rasmus.llvmCodeGen.LLVMCodeGen(e, code)
     llvm_executor = ExecutionEngine.new(codegen.module)
 
-    dll = ctypes.cdll.LoadLibrary("/home/jakobt/dev/pyRASMUS/stdlib.so")
+    dll = ctypes.cdll.LoadLibrary( os.getcwd()+"/stdlib.so")
     
     INTP = ctypes.POINTER(ctypes.c_size_t)
     ptr = ctypes.cast(ctypes.addressof(dll.emit_type_error), INTP)[0]
     llvm_executor.add_global_mapping(codegen.typeErr, ptr)
-    # llvm_executor.add_global_mapping(codegen.argCntErr, dll.emit_arg_cnt_error)
+    ptr = ctypes.cast(ctypes.addressof(dll.emit_arg_cnt_error), INTP)[0]
+    llvm_executor.add_global_mapping(codegen.argCntErr, ptr)
+    
     sequenceExpNode = rasmus.AST.SequenceExp()    
     while True:      
         try:

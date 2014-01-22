@@ -9,7 +9,7 @@ class ICEException(Exception):
         self.message = message
 
 
-anyType = Type.struct([Type.int(8), Type.int(64)])
+anyRetType = Type.struct([Type.int(8), Type.int(64)])
 funcBase = Type.struct([Type.pointer(Type.void()), Type.int(16)])
 
 def llvmType(t):
@@ -22,31 +22,37 @@ def llvmType(t):
 def typeRepr(t):
     if t == TBool: return Constant.int(Type.int(8), 0)
     elif t == TInt: return Constant.int(Type.int(8), 1)
-    elif t == TAny: return Constant.int(Type.int(8), 2)
-    elif t == TFUNC: return Constant.int(Type.int(8), 3)
+    elif t == TAny: raise ICEException("Any does not have a repr")
+    elif t == TFunc: return Constant.int(Type.int(8), 2)
+    raise ICEException("Unhandled type %s"%str(t))
+
+def genUndef(self, t):
+    if t == TBool: return Constant.int(Type.int(8), 255)
+    elif t == TInt: return Constant.int(Type.int(64), 2**63-1)
+    elif t == TAny: return Constant.int(Type.int(64), 2**63-1)
+    elif t == TFunc: return Constant.null(Type.pointer(funcBase))
     raise ICEException("Unhandled type %s"%str(t))
 
 def intp(v):
     return Constant.int(Type.int(32), v)
 
 def funcType(argc):
-    return Type.function(anyType, [Type.pointer(funcBase)] +
+    return Type.function(Type.void(), 
+                         [Type.pointer(funcBase), Type.pointer(anyRetType)] +
                          [Type.int(8), Type.int(64)] * argc, False)
 
 class LLVMCodeGen(visitor.Visitor):
     def cast(self, value, tfrom, tto, node):
-        if tfrom == tto: 
+        print "CAST", tfrom, tto, value
+        if tfrom == tto:
             return value
         if tto == TAny:
-            a = self.builder.alloca(anyType)
-            self.builder.store(typeRepr(tto), self.builder.gep(a, [intp(0), intp(0)]))
-            self.builder.store(value, self.builder.gep(a, [intp(0), intp(1)]))
-            return a
+            return (typeRepr(tfrom), self.builder.bitcast(value, Type.int(64)))
         if tfrom == TAny:
+            t, v = value
             fblock = self.function.append_basic_block("b%d"%self.uid)
             nblock = self.function.append_basic_block("b%d"%(self.uid+1))
             self.uid += 2
-            t = self.builder.extract_value(value, 0)
             self.builder.cbranch(self.builder.icmp(ICMP_EQ, t, typeRepr(tto)), nblock, fblock)
             self.builder.position_at_end(fblock)
             self.builder.call(self.typeErr, 
@@ -57,8 +63,10 @@ class LLVMCodeGen(visitor.Visitor):
             self.builder.unreachable()
             self.block = nblock
             self.builder.position_at_end(self.block)
-            return self.builder.bitcast(self.builder.extract_value(value, 1), llvmType(tto))
+            return self.builder.bitcast(v, llvmType(tto))
 
+            
+            
     def __init__(self, err, code):
         self.code = code
         self.err = err
@@ -73,7 +81,7 @@ class LLVMCodeGen(visitor.Visitor):
                                         [Type.int(32), Type.int(32), Type.int(16), Type.int(16)])
 
         self.typeErr = Function.new(self.module, typeErrType, "emit_type_error")
-        self.agcCntErr = Function.new(self.module, argCntErrType, "emit_arg_cnt_error")
+        self.argCntErr = Function.new(self.module, argCntErrType, "emit_arg_cnt_error")
         
         # Do simple "peephole" optimizations and bit-twiddling optzns.
         self.passMgr.add(PASS_INSTCOMBINE)
@@ -81,6 +89,8 @@ class LLVMCodeGen(visitor.Visitor):
         self.passMgr.add(PASS_REASSOCIATE)
         # Eliminate Common SubExpressions.
         self.passMgr.add(PASS_GVN)
+
+        self.passMgr.add(PASS_DCE)
         # Simplify the control flow graph (deleting unreachable blocks, etc).
         #self.passMgr.add(PASS_CFG_SIMPLIFICATION)
         self.passMgr.initialize()
@@ -93,10 +103,15 @@ class LLVMCodeGen(visitor.Visitor):
         return node.value
 
     def visitIfExp(self, node):
+        #TODO I DO NOT WORK FOR ANY TYPE do to value beeing a pair
+        
         done=False
         hats = []
         for choice in node.choices:
-            cond = self.cast(self.visit(choice.condition), choice.condition.type, TBool, 
+            # Evaluate condition and cast value to bool
+            cond = self.cast(self.visit(choice.condition), 
+                             choice.condition.type, 
+                             TBool, 
                              choice.condition)
             if cond == Constant.int(Type.int(8), 0) or done:
                 self.err.reportWarning("Branch never taken", choice.arrowToken)
@@ -105,12 +120,13 @@ class LLVMCodeGen(visitor.Visitor):
             if cond == Constant.int(Type.int(8), 1):
                 done = True
 
+            # Evaluate value and cast to result type
             value = self.cast(self.visit(choice.value), choice.value.type, node.type, 
                               choice.value)
             hats.append((cond, value))
             
         if not done:
-            val = Constant.int(Type.int(64), 0) #TODO get undefined value for type
+            val = getUndef(node.type)
         else:
             _, val = hats.pop()
             
@@ -127,10 +143,10 @@ class LLVMCodeGen(visitor.Visitor):
         funct_type = funcType(len(node.args))
 
         # Create function object type
-        t = Type.struct( [
-                Type.pointer(funct_type), #Function ptr
-                Type.int(16), # Number of arguments
-                ] + [llvmType(cap.type) for cap in node.captures])
+        captureType = Type.struct( [
+            Type.pointer(funct_type), #Function ptr
+            Type.int(16), # Number of arguments
+        ] + [llvmType(cap.type) for cap in node.captures])
 
         # Cache current state
         f = self.function
@@ -148,46 +164,50 @@ class LLVMCodeGen(visitor.Visitor):
 
         # Setup args
         self.function.args[0].name = "self"
-        selfv = self.builder.bitcast(self.function.args[0], Type.pointer(t))
-                
+        self.function.args[1].name = "ret"
+        selfv = self.builder.bitcast(self.function.args[0], Type.pointer(captureType))
+        ret = self.function.args[1]
         for i in range(len(node.args)):
             arg = node.args[i]
-            
+            t = self.function.args[i*2+2]
+            v = self.function.args[i*2+3]
             fblock = self.function.append_basic_block('check_fail_%d'%i)
-
             nblock = self.function.append_basic_block('check_succ_%d'%i)
-            self.builder.cbranch(self.builder.icmp(ICMP_EQ, self.function.args[i*2+1], typeRepr(arg.type)),
+            self.builder.cbranch(self.builder.icmp(ICMP_EQ, t, typeRepr(arg.type)),
                                  nblock, fblock)
             
             self.builder.position_at_end(fblock)
             self.builder.call(self.typeErr,
                               [Constant.int(Type.int(32), arg.charRange.lo),
                                Constant.int(Type.int(32), arg.charRange.hi),
-                               self.function.args[i*2+1],
+                               t,
                                typeRepr(arg.type)])
             self.builder.unreachable()
             self.block = nblock
             self.builder.position_at_end(self.block)
 
             if arg.type == TInt:
-                arg.value = self.builder.bitcast(
-                    self.function.args[i*2+2], Type.int(64))
+                val = self.builder.bitcast(v, Type.int(64))
             elif arg.type == TBool:
-                arg.value = self.builder.bitcast(
-                    self.function.args[i*2+2], Type.int(8))
+                val = self.builder.bitcast(v, Type.int(8))
             else:
                 raise ICEException("Unhandled type %s"%str(arg.type))
-            self.function.args[i*2+1].name = "t_"+arg.name
-            self.function.args[i*2+2].name = "v_"+arg.name
+            arg.value = (t, val)    
+            self.function.args[i*2+2].name = "t_"+arg.name
+            self.function.args[i*2+3].name = "v_"+arg.name
 
         for i in range(len(node.captures)):
             cap = node.captures[i]
             cap.value = self.builder.load(self.builder.gep(selfv, [intp(0), intp(2+i)]))
                     
         # Build function code
-        self.builder.ret(
-            self.cast(
-                self.visit(node.body), node.type, TAny, node.body))
+        t, v = self.cast(self.visit(node.body), node.body.type, TAny, node.body)
+        self.builder.store(t, self.builder.gep(ret, [intp(0), intp(0)]))
+        self.builder.store(self.builder.bitcast(v, Type.int(64)), 
+                           self.builder.gep(ret, [intp(0), intp(1)]))
+        self.builder.ret_void()
+
+        self.passMgr.run(self.function)
 
         # Revert state
         self.function = f
@@ -195,7 +215,8 @@ class LLVMCodeGen(visitor.Visitor):
         self.builder.position_at_end(bb)
         
         # Allocate function object
-        p = self.builder.malloc(t)
+        p = self.builder.malloc(captureType)
+
         # Store function ptr
         self.builder.store(func, 
                            self.builder.gep(p, [intp(0), intp(0)]))
@@ -238,21 +259,44 @@ class LLVMCodeGen(visitor.Visitor):
         
         capture=self.builder.bitcast(self.cast(self.visit(node.funcExp), node.funcExp.type, 
                                                TFunc, node.funcExp), 
-                                      Type.pointer(funcBase))
-        #TODO check argument count
-        args = [capture]
+                                     Type.pointer(funcBase))
+        rv = self.builder.alloca(anyRetType)
+
+        fblock = self.function.append_basic_block('check_fail_%d'%self.uid)
+        nblock = self.function.append_basic_block('check_succ_%d'%(self.uid+1))
+        self.uid += 2
+        argc = self.builder.load(self.builder.gep(capture, [intp(0), intp(1)]))
+        margc = Constant.int(Type.int(16), len(node.args))
+        self.builder.cbranch(self.builder.icmp(ICMP_EQ, argc, margc),
+                             nblock, fblock)
+        
+        self.builder.position_at_end(fblock)
+        self.builder.call(self.argCntErr,
+                          [Constant.int(Type.int(32), node.charRange.lo),
+                           Constant.int(Type.int(32), node.charRange.hi),
+                           argc,
+                           margc])
+        self.builder.unreachable()
+        self.block = nblock
+        self.builder.position_at_end(self.block)
+
+        args = [capture, rv]
+
         for arg in node.args:
             argv = self.visit(arg)
             if arg.type == TAny:
-                args.append(self.builder.extract_value(argv, 0))
-                args.append(self.builder.extract_value(argv, 1))
+                args.append(argv[0])
+                args.append(argv[1])
             else:
                 args.append(typeRepr(arg.type))
-                args.append(self.builder.bitcast(self.visit(arg), Type.int(64)))
-
+                args.append(self.builder.bitcast(argv, Type.int(64)))
         voidfp = self.builder.load(self.builder.gep(capture, [intp(0), intp(0)]))
         fp = self.builder.bitcast(voidfp, Type.pointer(ft))
-        return self.builder.call(fp, args)
+        self.builder.call(fp, args)
+        
+        return (self.builder.load(self.builder.gep(rv, [intp(0), intp(0)])),
+                self.builder.load(self.builder.gep(rv, [intp(0), intp(1)])))
+                            
 
     def visitSubstringExp(self, node):
         pass
@@ -273,7 +317,7 @@ class LLVMCodeGen(visitor.Visitor):
         a = self.cast(self.visit(node.lhs), node.lhs.type, TInt, node.lhs)
         b = self.cast(self.visit(node.rhs), node.rhs.type, TInt, node.rhs)
         if node.token.id == TK_PLUS:
-            return self.builder.add(a, b)
+            return self.cast(self.builder.add(a, b), TInt, node.type, node)
         elif node.token.id == TK_MUL:
             return self.builder.mul(a,b)
     
@@ -292,10 +336,8 @@ class LLVMCodeGen(visitor.Visitor):
             funct_type = Type.function(Type.int(64), [], False)
         else:
             funct_type = Type.function(anyType, [], False)
-
         self.function = Function.new(self.module, funct_type, "BAR")
         self.block = self.function.append_basic_block('entry')
         self.builder = Builder.new(self.block)
         self.builder.ret(self.visit(AST))
-
         self.passMgr.run(self.function)
