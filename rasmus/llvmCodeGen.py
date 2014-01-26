@@ -232,29 +232,30 @@ class LLVMCodeGen(visitor.Visitor):
         return p
 
     def visitTupExp(self, node):
-        pass
+        raise ICEException("Tub not implemented")
 
     def visitBlockExp(self, node):
-        pass
+        raise ICEException("Block not implemented")
 
     def visitBuiltInExp(self, node):
-        pass
+        raise ICEException("BuildIn not implemented")
 
     def visitConstantExp(self, node):
         if node.type == TInt:
             return Constant.int(Type.int(64), node.int_value)
         elif node.type == TBool:
             return Constant.int(Type.int(8), 1 if node.bool_value else 0)
-        pass
+        else:
+            raise ICEException("Const")
     
     def visitUnaryOpExp(self, node):
-        pass
+        raise ICEException("Unary")
 
     def visitRelExp(self, node):
-        pass
+        raise ICEException("Rel")
 
     def visitLenExp(self, node):
-        pass
+        raise ICEException("Len")
 
     def visitFuncInvocationExp(self, node):
         ft = funcType(len(node.args))
@@ -301,16 +302,16 @@ class LLVMCodeGen(visitor.Visitor):
                             
 
     def visitSubstringExp(self, node):
-        pass
+        raise ICEException("Substr")
 
     def visitRenameExp(self, node):
-        pass
+        raise ICEException("Rename")
         
     def visitDotExp(self, node):
-        pass
+        raise ICEException("DotExp")
 
     def visitProjectExp(self, node):
-        pass
+        raise ICEException("Project")
 
     def visitExp(self, node):
         return self.visit(node.exp)
@@ -323,6 +324,8 @@ class LLVMCodeGen(visitor.Visitor):
             return self.cast(self.builder.add(a, b), TInt, node.type, node)
         elif node.token.id == TK_MUL:
             return self.builder.mul(a,b)
+        else:
+            raise ICEException("Binop not implemented")
     
     def visitSequenceExp(self, node):
         for n in node.sequence:
