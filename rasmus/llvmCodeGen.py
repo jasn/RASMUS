@@ -43,11 +43,15 @@ def funcType(argc):
 
 class LLVMCodeGen(visitor.Visitor):
     def cast(self, value, tfrom, tto, node):
-        print "CAST", tfrom, tto, value
         if tfrom == tto:
             return value
         if tto == TAny:
-            return (typeRepr(tfrom), self.builder.bitcast(value, Type.int(64)))
+            if tfrom == TInt:
+                return (typeRepr(tfrom), value)
+            elif tfrom == TBool:
+                return (typeRepr(tfrom), self.builder.zext(value, Type.int(64)))
+            else:
+                raise ICEException("Unhandled type1")
         if tfrom == TAny:
             t, v = value
             fblock = self.function.append_basic_block("b%d"%self.uid)
@@ -63,9 +67,13 @@ class LLVMCodeGen(visitor.Visitor):
             self.builder.unreachable()
             self.block = nblock
             self.builder.position_at_end(self.block)
-            return self.builder.bitcast(v, llvmType(tto))
-
-            
+            if tto == TInt:
+                return v
+            elif tto == TBool:
+                return self.builder.trunc(v)
+            else:
+                raise ICEException("Unhandled type2")
+        raise ICEException("Unhandled type 3")
             
     def __init__(self, err, code):
         self.code = code
@@ -84,8 +92,14 @@ class LLVMCodeGen(visitor.Visitor):
         self.argCntErr = Function.new(self.module, argCntErrType, "emit_arg_cnt_error")
         printType = Type.function(Type.void(), [Type.int(8), Type.int(64)])
         self.doPrint = Function.new(self.module, printType, "print")
- 
-       # Do simple "peephole" optimizations and bit-twiddling optzns.
+
+        
+        self.innerType = Type.function(Type.void(), [])
+        interactiveWrapperType = Type.function(Type.int(8), 
+                                               [Type.pointer(Type.int(8)), Type.pointer(self.innerType)])
+        self.interactiveWrapper = Function.new(self.module, interactiveWrapperType, "interactiveWrapper")
+         
+        # Do simple "peephole" optimizations and bit-twiddling optzns.
         self.passMgr.add(PASS_INSTCOMBINE)
         # Reassociate expressions.
         self.passMgr.add(PASS_REASSOCIATE)
@@ -135,7 +149,6 @@ class LLVMCodeGen(visitor.Visitor):
         while hats:
             cond, v = hats.pop()
             val = self.builder.select(cond, v , val)
-        print val
 
     def visitForallExp(self, node):
         pass
@@ -171,32 +184,9 @@ class LLVMCodeGen(visitor.Visitor):
         ret = self.function.args[1]
         for i in range(len(node.args)):
             arg = node.args[i]
-            t = self.function.args[i*2+2]
-            v = self.function.args[i*2+3]
-            fblock = self.function.append_basic_block('check_fail_%d'%i)
-            nblock = self.function.append_basic_block('check_succ_%d'%i)
-            self.builder.cbranch(self.builder.icmp(ICMP_EQ, t, typeRepr(arg.type)),
-                                 nblock, fblock)
-            
-            self.builder.position_at_end(fblock)
-            self.builder.call(self.typeErr,
-                              [Constant.int(Type.int(32), arg.charRange.lo),
-                               Constant.int(Type.int(32), arg.charRange.hi),
-                               t,
-                               typeRepr(arg.type)])
-            self.builder.unreachable()
-            self.block = nblock
-            self.builder.position_at_end(self.block)
-
-            if arg.type == TInt:
-                val = self.builder.bitcast(v, Type.int(64))
-            elif arg.type == TBool:
-                val = self.builder.bitcast(v, Type.int(8))
-            elif arg.type == TAny:
-                val = (t, v)
-            else:
-                raise ICEException("Unhandled type %s"%str(arg.type))
-            arg.value = val
+            arg.value = self.cast(
+                (self.function.args[i*2+2], self.function.args[i*2+3]),
+                TAny, arg.type, arg)
             self.function.args[i*2+2].name = "t_"+arg.name
             self.function.args[i*2+3].name = "v_"+arg.name
 
@@ -205,12 +195,14 @@ class LLVMCodeGen(visitor.Visitor):
             cap.value = self.builder.load(self.builder.gep(selfv, [intp(0), intp(2+i)]))
                     
         # Build function code
-        t, v = self.cast(self.visit(node.body), node.body.type, TAny, node.body)
+        x = self.visit(node.body)
+        t, v = self.cast(x, node.body.type, TAny, node.body)
+        print node.body.type ,x, t,v
         self.builder.store(t, self.builder.gep(ret, [intp(0), intp(0)]))
-        self.builder.store(self.builder.bitcast(v, Type.int(64)), 
-                           self.builder.gep(ret, [intp(0), intp(1)]))
+        self.builder.store(v, self.builder.gep(ret, [intp(0), intp(1)]))
         self.builder.ret_void()
-
+        print self.function
+        self.function.verify()
         self.passMgr.run(self.function)
 
         # Revert state
@@ -328,7 +320,6 @@ class LLVMCodeGen(visitor.Visitor):
         a = self.cast(self.visit(node.lhs), node.lhs.type, TInt, node.lhs)
         b = self.cast(self.visit(node.rhs), node.rhs.type, TInt, node.rhs)
         if node.token.id == TK_PLUS:
-            print "ADD", "a", a, "b", b
             return self.cast(self.builder.add(a, b), TInt, node.type, node)
         elif node.token.id == TK_MUL:
             return self.builder.mul(a,b)
@@ -344,10 +335,25 @@ class LLVMCodeGen(visitor.Visitor):
         pass
 
     def visitOuter(self, AST):
+        
+        id = self.uid
+        self.uid += 1
+
         funct_type = Type.function(Type.void(), [], False)
-        self.function = Function.new(self.module, funct_type, "BAR")
+        self.function = Function.new(self.module, funct_type, "INNER_%d"%id)
         self.block = self.function.append_basic_block('entry')
         self.builder = Builder.new(self.block)
         self.visit(AST)
         self.builder.ret_void()
+        self.function.verify()
+        self.passMgr.run(self.function)
+        print self.function
+        inner = self.function
+
+        outer_type = Type.function(Type.int(8), [Type.pointer(Type.int(8))], False)
+        self.function = Function.new(self.module, outer_type, "OUTER_%d"%id)
+        self.block = self.function.append_basic_block('entry')
+        self.builder = Builder.new(self.block)
+        self.builder.ret( self.builder.call(self.interactiveWrapper, [self.function.args[0], inner]) )
+        self.function.verify()
         self.passMgr.run(self.function)

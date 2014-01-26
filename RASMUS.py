@@ -10,7 +10,7 @@ import rasmus.code
 import rasmus.AST
 import os
 #import readline
-from llvm.ee import ExecutionEngine, TargetData
+from llvm.ee import ExecutionEngine, TargetData, GenericValue
 from llvm.core import Type
 import ctypes
 
@@ -46,8 +46,12 @@ def run_terminal():
     llvm_executor.add_global_mapping(codegen.typeErr, ptr)
     ptr = ctypes.cast(ctypes.addressof(dll.emit_arg_cnt_error), INTP)[0]
     llvm_executor.add_global_mapping(codegen.argCntErr, ptr)
+
     ptr = ctypes.cast(ctypes.addressof(dll.doPrint), INTP)[0]
     llvm_executor.add_global_mapping(codegen.doPrint, ptr)
+
+    ptr = ctypes.cast(ctypes.addressof(dll.interactiveWrapper), INTP)[0]
+    llvm_executor.add_global_mapping(codegen.interactiveWrapper, ptr)
     
     sequenceExpNode = rasmus.AST.SequenceExp()    
     while True:      
@@ -83,11 +87,10 @@ def run_terminal():
                     #outerLus = typeChecker.getLus()
                     theCode = newCode + ";\n"
                     codegen.visitOuter(AST)
-                    print codegen.module
-                    llvm_executor.run_function(codegen.function, [])
-                    #codegen.emitPrint()
-                    #codegen.emitHalt()
-                    #interperter.run()
+
+                    codeStr = ctypes.c_char_p(newCode)
+                    ptr = ctypes.cast(ctypes.addressof(codeStr), INTP)[0]
+                    llvm_executor.run_function(codegen.function, [GenericValue.pointer(ptr)])
                 else:
                     sequenceExpNode.sequence.pop()
                 incomplete = ""

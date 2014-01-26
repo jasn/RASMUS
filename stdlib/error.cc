@@ -2,6 +2,8 @@
 #include <iostream>
 #include <stdexcept>
 
+static char * text;
+
 struct TypeError: public std::runtime_error {
   int32_t start;
   int32_t end;
@@ -29,16 +31,63 @@ struct ArgCntError: public std::runtime_error {
 };
 
 
+void errorRange(size_t start, size_t end) {
+  size_t ls=0;
+  size_t line=1;
+  size_t cur=0;
+  size_t le=0;
+  for(;cur < start && text[cur]; ++cur) {
+	if (text[cur] != '\n') continue;
+	ls=cur+1;
+	line++;
+  }
+  for (le=ls; text[le] && le < end; ++le); //Skip until text end
+  for (; text[le] && text[le] != '\n'; ++le); //Skip undil line end
+  std::cout << std::string(text+ls,le-ls) << std::endl; //Print the line
+  std::cout << std::string(start-ls, ' ') 
+			<< "\033[34m" //Blue
+			<< std::string(end-start, '~') 
+			<< "\x1b[0m"  //Reset 
+			<< std::endl;
+}
 
 extern "C" {
 
   void emit_type_error(uint32_t start, uint32_t end, uint8_t got, uint8_t expect) {
-    std::cout << "EMIT TYPE ERROR " << start << " " << end << " " << (int)got << " " << (int)expect << std::endl;
+	std::cout << "Interpreted: \033[31;1merror\x1b[0m excepted type ";
+	switch (expect) {
+	case 0: std::cout << "bool"; break;
+	case 1: std::cout << "int"; break;
+	default: std::cout << "other"; break;
+	}
+	std::cout << " but got ";
+	switch (got) {
+	case 0: std::cout << "bool"; break;
+	case 1: std::cout << "int"; break;
+	default: std::cout << "other"; break;
+	}
+	std::cout << std::endl;
+	errorRange(start, end);
     throw TypeError(start, end, got, expect);
   }
   
   void emit_arg_cnt_error(int32_t start, int32_t end, int16_t got, int16_t expect) {
-    std::cout << "EMIT ARGCNT ERROR " << start << " " << end << " " << (int)got << " " << (int)expect << std::endl;
-	throw ArgCntError(start, end, got, expect);
+	std::cout << "Interpreted: \033[31;1merror\x1b[0m excepted " 
+			  << expect
+			  << " arguments but got " << got << std::endl;
+	errorRange(start, end);
+    throw ArgCntError(start, end, got, expect);
+  }
+
+  int8_t interactiveWrapper(char * txt, void (* fct)() ) {
+    try {
+      text = txt;
+      fct();
+    } catch(TypeError) {
+      return 1;
+    } catch(ArgCntError) {
+      return 1;
+    }
+    return 0;
   }
 }
