@@ -7,5 +7,5 @@ clean:
 rasmus/AST.py: rasmus/AST.txt rasmus/ASTGen.py
 	(cd rasmus && python ASTGen.py)
 
-stdlib.so: stdlib/error.cc
-	g++ -shared -fPIC stdlib/error.cc -o stdlib.so
+stdlib.so: stdlib/error.cc stdlib/print.cc
+	g++ -shared -fPIC $^ -o $@

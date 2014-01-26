@@ -46,6 +46,8 @@ def run_terminal():
     llvm_executor.add_global_mapping(codegen.typeErr, ptr)
     ptr = ctypes.cast(ctypes.addressof(dll.emit_arg_cnt_error), INTP)[0]
     llvm_executor.add_global_mapping(codegen.argCntErr, ptr)
+    ptr = ctypes.cast(ctypes.addressof(dll.doPrint), INTP)[0]
+    llvm_executor.add_global_mapping(codegen.doPrint, ptr)
     
     sequenceExpNode = rasmus.AST.SequenceExp()    
     while True:      
@@ -65,6 +67,12 @@ def run_terminal():
             AST = p.parse()
             if not isinstance(AST, rasmus.AST.InvalidExp):
                 AST=AST.exp
+                
+                nameToken = rasmus.lexer.Token(rasmus.lexer.TK_PRINT, 0, 0)
+                printStmt = rasmus.AST.BuiltInExp(nameToken, None)
+                printStmt.args.append(AST)
+
+                AST = printStmt
                 rasmus.charRanges.CharRanges().visit(AST)
                 sequenceExpNode.sequence.append(AST)
                 #typeChecker.setLus(outerLus)
@@ -76,9 +84,7 @@ def run_terminal():
                     theCode = newCode + ";\n"
                     codegen.visitOuter(AST)
                     print codegen.module
-                    result = llvm_executor.run_function(codegen.function, [])
-                    print result.as_int_signed()
-                    
+                    llvm_executor.run_function(codegen.function, [])
                     #codegen.emitPrint()
                     #codegen.emitHalt()
                     #interperter.run()

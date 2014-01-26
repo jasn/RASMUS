@@ -41,5 +41,4 @@ extern "C" {
     std::cout << "EMIT ARGCNT ERROR " << start << " " << end << " " << (int)got << " " << (int)expect << std::endl;
 	throw ArgCntError(start, end, got, expect);
   }
-
 }

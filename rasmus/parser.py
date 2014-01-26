@@ -240,7 +240,7 @@ class Parser:
                         TK_WRITE, TK_OPEN, TK_HAS, TK_MAX,
                         TK_MIN, TK_COUNT, TK_ADD, TK_MULT,
                         TK_DAYS, TK_BEFORE, TK_AFTER, TK_DATE,
-                        TK_ISBOOL, TK_ISINT, TK_ISTEXT]:
+                        TK_ISBOOL, TK_ISINT, TK_ISTEXT, TK_PRINT]:
             return self.parseBuiltIn()
         elif cToken == TK_PIPE:
             return LenExp(self.consumeToken(), self.parseExp(), self.assertTokenConsume(TK_PIPE))

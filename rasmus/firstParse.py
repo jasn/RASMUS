@@ -58,7 +58,6 @@ class FirstParse(visitor.Visitor):
             msg="Expected one of %s but found %s"%(", ".join([x.name for x in t]), expr.type.name)
         else:
             msg="Expected type %s but found %s"%(t[0].name, expr.type.name)
-        msg="hello"
         self.err.reportError(msg, token, [expr.charRange])
         return False
     
@@ -217,7 +216,13 @@ class FirstParse(visitor.Visitor):
             argumentTypes = [TText, TInt]
         elif tkn == TK_TODAY:
             returnType = TText
+        elif tkn == TK_PRINT:
+            returnType = TAny
+            argumentTypes = [TBool]
+        else:
+            self.err.reportError("Unknown buildin", None, [node.charRange])            
 
+        node.type=returnType
         if len(node.args) < len(argumentTypes):
             # too few args
             self.err.reportError("Too few arguments to builtin function, received %d but expected %d"%(len(node.args), len(argumentTypes)), node.nameToken)

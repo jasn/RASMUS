@@ -82,8 +82,10 @@ class LLVMCodeGen(visitor.Visitor):
 
         self.typeErr = Function.new(self.module, typeErrType, "emit_type_error")
         self.argCntErr = Function.new(self.module, argCntErrType, "emit_arg_cnt_error")
-        
-        # Do simple "peephole" optimizations and bit-twiddling optzns.
+        printType = Type.function(Type.void(), [Type.int(8), Type.int(64)])
+        self.doPrint = Function.new(self.module, printType, "print")
+ 
+       # Do simple "peephole" optimizations and bit-twiddling optzns.
         self.passMgr.add(PASS_INSTCOMBINE)
         # Reassociate expressions.
         self.passMgr.add(PASS_REASSOCIATE)
@@ -238,7 +240,13 @@ class LLVMCodeGen(visitor.Visitor):
         raise ICEException("Block not implemented")
 
     def visitBuiltInExp(self, node):
-        raise ICEException("BuildIn not implemented")
+        tkn = node.nameToken.id
+        if tkn == TK_PRINT:
+            t, v = self.cast(self.visit(node.args[0]), node.args[0].type, TAny, node.args[0])
+            self.builder.call(self.doPrint, [t, v])
+            return Constant.int(Type.int(8), 1)
+        else:
+            raise ICEException("BuildIn not implemented")
 
     def visitConstantExp(self, node):
         if node.type == TInt:
@@ -336,14 +344,10 @@ class LLVMCodeGen(visitor.Visitor):
         pass
 
     def visitOuter(self, AST):
-        if AST.type == TBool:
-            funct_type = Type.function(Type.int(8), [], False)
-        elif AST.type == TInt:
-            funct_type = Type.function(Type.int(64), [], False)
-        else:
-            funct_type = Type.function(anyType, [], False)
+        funct_type = Type.function(Type.void(), [], False)
         self.function = Function.new(self.module, funct_type, "BAR")
         self.block = self.function.append_basic_block('entry')
         self.builder = Builder.new(self.block)
-        self.builder.ret(self.visit(AST))
+        self.visit(AST)
+        self.builder.ret_void()
         self.passMgr.run(self.function)

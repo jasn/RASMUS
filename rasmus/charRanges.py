@@ -6,6 +6,8 @@ class CharRange:
         self.hi = hi
 
 def r(token):
+    if not token:
+        return CharRange(Ellipsis, None)
     return CharRange(token.start, token.start+token.length)
 
 def u(r1, r2):

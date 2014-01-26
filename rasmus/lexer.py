@@ -61,6 +61,7 @@ TK_OPEN = __nn()
 TK_OPEXTEND = __nn()
 TK_OR = __nn()
 TK_PIPE = __nn()
+TK_PRINT = __nn()
 TK_PLUS = __nn()
 TK_PROJECT_MINUS = __nn()
 TK_PROJECT_PLUS = __nn()
@@ -186,6 +187,7 @@ keywords = [
     (TK_VAL, "val"),
     (TK_WRITE, "write"),
     (TK_ZERO, "zero"),
+    (TK_PRINT, "print"),
     ]
 
 tokenNames = {}
