@@ -217,8 +217,8 @@ class FirstParse(visitor.Visitor):
         elif tkn == TK_TODAY:
             returnType = TText
         elif tkn == TK_PRINT:
-            returnType = TAny
-            argumentTypes = [TBool]
+            returnType = TBool
+            argumentTypes = [TAny]
         else:
             self.err.reportError("Unknown buildin", None, [node.charRange])            
 
