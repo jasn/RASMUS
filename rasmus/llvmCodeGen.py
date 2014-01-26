@@ -190,9 +190,11 @@ class LLVMCodeGen(visitor.Visitor):
                 val = self.builder.bitcast(v, Type.int(64))
             elif arg.type == TBool:
                 val = self.builder.bitcast(v, Type.int(8))
+            elif arg.type == TAny:
+                val = (t, v)
             else:
                 raise ICEException("Unhandled type %s"%str(arg.type))
-            arg.value = (t, val)    
+            arg.value = val
             self.function.args[i*2+2].name = "t_"+arg.name
             self.function.args[i*2+3].name = "v_"+arg.name
 
@@ -317,6 +319,7 @@ class LLVMCodeGen(visitor.Visitor):
         a = self.cast(self.visit(node.lhs), node.lhs.type, TInt, node.lhs)
         b = self.cast(self.visit(node.rhs), node.rhs.type, TInt, node.rhs)
         if node.token.id == TK_PLUS:
+            print "ADD", "a", a, "b", b
             return self.cast(self.builder.add(a, b), TInt, node.type, node)
         elif node.token.id == TK_MUL:
             return self.builder.mul(a,b)
