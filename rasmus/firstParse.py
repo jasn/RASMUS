@@ -10,16 +10,16 @@ class Type:
     def __str__(self):
         return self.name
 
-TBool = Type("bool")
-TInt = Type("int")
-TInvalid = Type("invalid")
-TText = Type("text")
-TRel = Type("relation")
-TTup = Type("tuple")
-TFunc = Type("function")
-TAny = Type("any")
-TAtom = Type("atom")
-TNAMEQ = Type("name?")
+TBool = Type("Bool")
+TInt = Type("Int")
+TInvalid = Type("Invalid")
+TText = Type("Text")
+TRel = Type("Rel")
+TTup = Type("Tup")
+TFunc = Type("Func")
+TAny = Type("Any")
+TAtom = Type("Atom")
+TNAMEQ = Type("Name?")
 
 class Scope:
     def __init__(self, node, bind={}):
@@ -366,6 +366,14 @@ class FirstParse(visitor.Visitor):
         elif node.token.id in [TK_LESSEQUAL, TK_LESS, TK_GREATER, TK_GREATEREQUAL]:
             self.typeCheck(node.token, node.lhs, [TInt])
             self.typeCheck(node.token, node.rhs, [TInt])
+            node.type = TBool
+        elif node.token.id in [TK_EQUAL, TK_DIFFERENT]:
+            # informal semantics page 17-18: 
+            # Values of the same type can be compared and the result of a comparison
+            # is a boolean.
+            # 
+            # Any two values can be compared using = or <>.
+            self.typeMatch(node.token, node.lhs, node.rhs, [TAny])
             node.type = TBool
         else:
             self.internalError(node.token, "Invalid operator (%s)"%(tokenNames[node.token.id]))

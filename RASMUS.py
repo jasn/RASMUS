@@ -39,19 +39,21 @@ def run_terminal():
     codegen = rasmus.llvmCodeGen.LLVMCodeGen(e, code)
     llvm_executor = ExecutionEngine.new(codegen.module)
 
-    dll = ctypes.cdll.LoadLibrary( os.getcwd()+"/stdlib.so")
-    
+
+
+    dll = ctypes.cdll.LoadLibrary( os.getcwd()+"/stdlib.so") 
     INTP = ctypes.POINTER(ctypes.c_size_t)
-    ptr = ctypes.cast(ctypes.addressof(dll.emit_type_error), INTP)[0]
-    llvm_executor.add_global_mapping(codegen.typeErr, ptr)
-    ptr = ctypes.cast(ctypes.addressof(dll.emit_arg_cnt_error), INTP)[0]
-    llvm_executor.add_global_mapping(codegen.argCntErr, ptr)
+    for f in codegen.stdlib:
+        ptr = ctypes.cast(ctypes.addressof(dll[f]), INTP)[0]
+        llvm_executor.add_global_mapping(codegen.stdlib[f], ptr)
 
-    ptr = ctypes.cast(ctypes.addressof(dll.doPrint), INTP)[0]
-    llvm_executor.add_global_mapping(codegen.doPrint, ptr)
-
-    ptr = ctypes.cast(ctypes.addressof(dll.interactiveWrapper), INTP)[0]
-    llvm_executor.add_global_mapping(codegen.interactiveWrapper, ptr)
+  #  llvm_executor.add_global_mapping(codegen.typeErr, ptr)
+  #  ptr = ctypes.cast(ctypes.addressof(dll.emit_arg_cnt_error), INTP)[0]
+  #  llvm_executor.add_global_mapping(codegen.argCntErr, ptr)
+  #  ptr = ctypes.cast(ctypes.addressof(dll.doPrint), INTP)[0]
+  #  llvm_executor.add_global_mapping(codegen.doPrint, ptr)
+  #  ptr = ctypes.cast(ctypes.addressof(dll.interactiveWrapper), INTP)[0]
+  #  llvm_executor.add_global_mapping(codegen.interactiveWrapper, ptr)
     
     sequenceExpNode = rasmus.AST.SequenceExp()    
     while True:      

@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <stdexcept>
+#include "lib.h"
 
 static char * text;
 
@@ -53,7 +54,7 @@ void errorRange(size_t start, size_t end) {
 
 extern "C" {
 
-  void emit_type_error(uint32_t start, uint32_t end, uint8_t got, uint8_t expect) {
+  void rm_emitTypeError(uint32_t start, uint32_t end, uint8_t got, uint8_t expect) {
 	std::cout << "Interpreted: \033[31;1merror\x1b[0m excepted type ";
 	switch (expect) {
 	case 0: std::cout << "bool"; break;
@@ -71,7 +72,7 @@ extern "C" {
     throw TypeError(start, end, got, expect);
   }
   
-  void emit_arg_cnt_error(int32_t start, int32_t end, int16_t got, int16_t expect) {
+  void rm_emitArgCntError(int32_t start, int32_t end, int16_t got, int16_t expect) {
 	std::cout << "Interpreted: \033[31;1merror\x1b[0m excepted " 
 			  << expect
 			  << " arguments but got " << got << std::endl;
@@ -79,7 +80,7 @@ extern "C" {
     throw ArgCntError(start, end, got, expect);
   }
 
-  int8_t interactiveWrapper(char * txt, void (* fct)() ) {
+  int8_t rm_interactiveWrapper(char * txt, void (* fct)() ) {
     try {
       text = txt;
       fct();

@@ -1,8 +1,9 @@
 #include <iostream>
 #include <stdint.h>
+#include "lib.h"
 
 extern "C" {
-  void doPrint(uint8_t t, int64_t v) {
+  void rm_print(uint8_t t, int64_t v) {
     switch (t) {
     case 0: //It is a bool
       switch (v) {
@@ -18,6 +19,9 @@ extern "C" {
       }
     case 1: //Its an int
       std::cout << v << std::endl;
+      break;
+    case 3:
+      rm_printText((void*)v);
       break;
     default:
       std::cout << "Unknown type" << std::endl;
