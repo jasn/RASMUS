@@ -62,7 +62,7 @@ class LLVMCodeGen(visitor.Visitor):
             self.uid += 2
             self.builder.cbranch(self.builder.icmp(ICMP_EQ, t, typeRepr(tto)), nblock, fblock)
             self.builder.position_at_end(fblock)
-            self.builder.call(self.typeErr, 
+            self.builder.call(self.stdlib['rm_emitTypeError'], 
                               [Constant.int(Type.int(32), node.charRange.lo),
                                Constant.int(Type.int(32), node.charRange.hi),
                                t,
@@ -74,9 +74,14 @@ class LLVMCodeGen(visitor.Visitor):
                 return v
             elif tto == TBool:
                 return self.builder.trunc(v)
+            elif tto == TText:
+                return self.builder.inttoptr(v, Type.pointer(Type.void()))
             else:
-                raise ICEException("Unhandled type2")
-        raise ICEException("Unhandled type 3")
+                raise ICEException("Unhandled type 2")
+        if tfrom == TText:
+            raise ICEException("Unhandled type 3")
+
+        raise ICEException("Unhandled type 4")
             
     def __init__(self, err, code):
         self.code = code
@@ -86,6 +91,10 @@ class LLVMCodeGen(visitor.Visitor):
         self.uid = 0
         self.passMgr = FunctionPassManager.new(self.module)
         
+        concatTextType = Type.function(Type.pointer(Type.void()), [Type.pointer(Type.void()), Type.pointer(Type.void())])
+
+        substringSearchType = Type.function(Type.int(8), [Type.pointer(Type.void()), Type.pointer(Type.void())])
+
         typeErrType = Type.function(Type.void(),
                                     [Type.int(32), Type.int(32), Type.int(8), Type.int(8)])
         argCntErrType = Type.function(Type.void(), 
@@ -99,6 +108,8 @@ class LLVMCodeGen(visitor.Visitor):
         getConstTextType = Type.function(Type.pointer(Type.void()), [Type.pointer(Type.int(8))])
 
         fs = [
+            ('rm_substringSearch', substringSearchType),
+            ('rm_concatText', concatTextType),
             ('rm_getConstText', getConstTextType),
             ('rm_print',printType), 
             ('rm_emitTypeError', typeErrType), 
@@ -259,15 +270,13 @@ class LLVMCodeGen(visitor.Visitor):
         elif node.type == TBool:
             return Constant.int(Type.int(8), 1 if node.bool_value else 0)
         elif node.type == TText:
-            
-#            print #self.builder.call(
-#            print self.stdlib['rm_getConstText']
-#            print self.builder.gep(Constant.stringz(node.txt_value), [intp(0), intp(0)])
 
             x = Constant.stringz(node.txt_value)
 
-            gv = self.module.add_global_variable(x.type, "gv1")
+            gv = self.module.add_global_variable(x.type, "gv%s"%self.uid)
             gv.initializer = x
+            self.uid = self.uid+1
+
 
             return self.builder.call(
                 self.stdlib['rm_getConstText'],
@@ -302,7 +311,7 @@ class LLVMCodeGen(visitor.Visitor):
                              nblock, fblock)
         
         self.builder.position_at_end(fblock)
-        self.builder.call(self.argCntErr,
+        self.builder.call(self.stdlib['rm_emitArgCntError'],
                           [Constant.int(Type.int(32), node.charRange.lo),
                            Constant.int(Type.int(32), node.charRange.hi),
                            margc,
@@ -330,7 +339,24 @@ class LLVMCodeGen(visitor.Visitor):
                             
 
     def visitSubstringExp(self, node):
-        raise ICEException("Substr")
+        a = self.cast(self.visit(node.lhs), node.lhs.type, TText, node.lhs)
+        b = self.cast(self.visit(node.rhs), node.rhs.type, TText, node.rhs)
+
+        return self.cast(self.builder.call(self.stdlib['rm_substringSearch'], [a, b]),
+                         TBool,
+                         node.type,
+                         node)
+
+    def visitConcatExp(self, node):
+        a = self.cast(self.visit(node.lhs), node.lhs.type, TText, node.lhs)
+        b = self.cast(self.visit(node.rhs), node.rhs.type, TText, node.rhs)
+        
+        return self.cast(self.builder.call(self.stdlib['rm_concatText'], [a, b]),
+                         TText,
+                         node.type,
+                         node)
+
+        #raise ICEException("Concat")
 
     def visitRenameExp(self, node):
         raise ICEException("Rename")
@@ -345,8 +371,17 @@ class LLVMCodeGen(visitor.Visitor):
         return self.visit(node.exp)
 
     def visitBinaryOpExp(self, node):
+        #a = self.visit(node.lhs)
+        #rhsv = self.visit(node.rhs)
+
+        if node.token.id == TK_CONCAT:
+            return self.visitConcatExp(node)
+        elif node.token.id == TK_TILDE:
+            return self.visitSubstringExp(node)
+
         a = self.cast(self.visit(node.lhs), node.lhs.type, TInt, node.lhs)
         b = self.cast(self.visit(node.rhs), node.rhs.type, TInt, node.rhs)
+
         if node.token.id == TK_PLUS:
             return self.cast(self.builder.add(a, b), TInt, node.type, node)
         elif node.token.id == TK_MUL:
@@ -357,38 +392,51 @@ class LLVMCodeGen(visitor.Visitor):
             return self.cast(self.builder.sdiv(a, b), TInt, node.type, node)
         elif node.token.id == TK_MOD:
             return self.cast(self.builder.srem(a, b), TInt, node.type, node)
-        elif node.token.id == TK_GREATER:
-            if node.lhs.type == TInt and node.rhs.type == TInt:
-                return self.builder.icmp(ICMP_SGT, a, b)
-            else:
-                raise ICEException("Only Integer comparison implemented")
         elif node.token.id == TK_LESS:
             if node.lhs.type == TInt and node.rhs.type == TInt:
                 return self.builder.icmp(ICMP_SLT, a, b)
-            else:
-                raise ICEException("Only Integer comparison implemented")
-        elif node.token.id == TK_GREATEREQUAL:
-            if node.lhs.type == TInt and node.rhs.type == TInt:
-                return self.builder.icmp(ICMP_UGE, a, b)
+            elif node.lhs.type == TBool and node.rhs.type == TBool:
+                return self.builder.icmp(ICMP_SLT, a, b)
             else:
                 raise ICEException("Only Integer comparison implemented")
         elif node.token.id == TK_LESSEQUAL:
             if node.lhs.type == TInt and node.rhs.type == TInt:
                 return self.builder.icmp(ICMP_ULE, a, b)
+            elif node.lhs.type == TBool and node.rhs.type == TBool:
+                return self.builder.icmp(ICMP_ULE, a, b)
+            else:
+                raise ICEException("Only Integer comparison implemented")
+        elif node.token.id == TK_GREATER:
+            if node.lhs.type == TInt and node.rhs.type == TInt:
+                return self.builder.icmp(ICMP_SGT, a, b)
+            elif node.lhs.type == TBool and node.rhs.type == TBool:
+                return self.builder.icmp(ICMP_SGT, a, b)
+            else:
+                raise ICEException("Only Integer comparison implemented")
+        elif node.token.id == TK_GREATEREQUAL:
+            if node.lhs.type == TInt and node.rhs.type == TInt:
+                return self.builder.icmp(ICMP_UGE, a, b)
+            elif node.lhs.type == TBool and node.rhs.type == TBool:
+                return self.builder.icmp(ICMP_UGE, a, b)
             else:
                 raise ICEException("Only Integer comparison implemented")
         elif node.token.id == TK_DIFFERENT:
             if node.lhs.type == TInt and node.rhs.type == TInt:
+                return self.builder.icmp(ICMP_NE, a, b)
+            elif node.lhs.type == TBool and node.rhs.type == TBool:
                 return self.builder.icmp(ICMP_NE, a, b)
             else:
                 raise ICEException("Only Integer comparison implemented")
         elif node.token.id == TK_EQUAL:
             if node.lhs.type == TInt and node.rhs.type == TInt:
                 return self.builder.icmp(ICMP_EQ, a, b)
+            elif node.lhs.type == TBool and node.rhs.type == TBool:
+                return self.builder.icmp(ICMP_EQ, a, b)
             else:
                 raise ICEException("Only Integer comparison implemented")
         elif node.token.id == TK_TILDE:
             # text comparison: true if a is a substring of b
+            
             raise ICEExpcetion("Substring test not implemented")
         elif node.token.id == TK_AND:
             return self.cast(self.builder.and_(a, b), TBool, node.type, node)
@@ -418,7 +466,7 @@ class LLVMCodeGen(visitor.Visitor):
         self.builder = Builder.new(self.block)
         self.visit(AST)
         self.builder.ret_void()
-        self.function.verify()
+        #self.function.verify()
         self.passMgr.run(self.function)
         print self.function
         inner = self.function

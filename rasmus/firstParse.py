@@ -375,6 +375,12 @@ class FirstParse(visitor.Visitor):
             # Any two values can be compared using = or <>.
             self.typeMatch(node.token, node.lhs, node.rhs, [TAny])
             node.type = TBool
+        elif node.token.id in [TK_CONCAT, TK_TILDE]:
+            if node.token.id == TK_CONCAT:
+                node.type = TText
+            elif node.token.id == TK_TILDE:
+                node.type = TBool
+            self.typeMatch(node.token, node.lhs, node.rhs, [TText])
         else:
             self.internalError(node.token, "Invalid operator (%s)"%(tokenNames[node.token.id]))
             node.type = TInvalid
