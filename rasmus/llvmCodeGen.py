@@ -12,6 +12,12 @@ class ICEException(Exception):
 anyRetType = Type.struct([Type.int(8), Type.int(64)])
 funcBase = Type.struct([Type.pointer(Type.void()), Type.int(16)])
 
+def llvmConstant(t, v):
+    if t == TBool: return Constant.int(llvmType(t), int(v))
+    elif t == TInt: return Constant.int(llvmType(t), v)
+    elif t == TText: return Constant.stringz(v)
+    raise ICEException("Unhandled type %s"%str(t))
+
 def llvmType(t):
     if t == TBool: return Type.int(8)
     elif t == TInt: return Type.int(64)
@@ -151,11 +157,11 @@ class LLVMCodeGen(visitor.Visitor):
                              choice.condition.type, 
                              TBool, 
                              choice.condition)
-            if cond == Constant.int(Type.int(8), 0) or done:
+            if cond == llvmConstant(TBool, False) or done:
                 self.err.reportWarning("Branch never taken", choice.arrowToken)
                 continue
             
-            if cond == Constant.int(Type.int(8), 1):
+            if cond == llvmConstant(TBool, True):
                 done = True
 
             # Evaluate value and cast to result type
@@ -253,30 +259,32 @@ class LLVMCodeGen(visitor.Visitor):
         raise ICEException("Tub not implemented")
 
     def visitBlockExp(self, node):
-        raise ICEException("Block not implemented")
+        for v in node.vals:
+            v.exp.value = self.visit(v.exp)
+        return self.visit(node.inExp)
+        #raise ICEException("Block not implemented")
 
     def visitBuiltInExp(self, node):
         tkn = node.nameToken.id
         if tkn == TK_PRINT:
             t, v = self.cast(self.visit(node.args[0]), node.args[0].type, TAny, node.args[0])
             self.builder.call(self.stdlib['rm_print'], [t, v])
-            return Constant.int(Type.int(8), 1)
+            return llvmConstant(TBool, True)
         else:
             raise ICEException("BuildIn not implemented")
 
     def visitConstantExp(self, node):
         if node.type == TInt:
-            return Constant.int(Type.int(64), node.int_value)
+            return llvmConstant(TInt, node.int_value)
         elif node.type == TBool:
-            return Constant.int(Type.int(8), 1 if node.bool_value else 0)
+            return llvmConstant(TBool, True if node.bool_value else False)
         elif node.type == TText:
 
-            x = Constant.stringz(node.txt_value)
+            x = llvmConstant(TText, node.txt_value)
 
             gv = self.module.add_global_variable(x.type, "gv%s"%self.uid)
             gv.initializer = x
             self.uid = self.uid+1
-
 
             return self.builder.call(
                 self.stdlib['rm_getConstText'],
@@ -286,6 +294,15 @@ class LLVMCodeGen(visitor.Visitor):
             raise ICEException("Const")
     
     def visitUnaryOpExp(self, node):
+        if node.token.id == TK_NOT:
+           
+            v = self.visit(node.exp)
+            v2 = llvmConstant(TBool, True)
+            v3 = self.builder.xor(v, v2)
+            return self.cast(v3, node.type, TBool, node)
+
+        elif node.token.id == TK_MINUS:
+            return self.cast(self.builder.neg(self.visit(node.exp)), node.type, TInt, node)
         raise ICEException("Unary")
 
     def visitRelExp(self, node):
@@ -332,7 +349,7 @@ class LLVMCodeGen(visitor.Visitor):
                 args.append(self.builder.bitcast(argv, Type.int(64)))
         voidfp = self.builder.load(self.builder.gep(capture, [intp(0), intp(0)]))
         fp = self.builder.bitcast(voidfp, Type.pointer(ft))
-        self.builder.call(fp, args)
+        rv = self.builder.call(fp, args)
         
         return (self.builder.load(self.builder.gep(rv, [intp(0), intp(0)])),
                 self.builder.load(self.builder.gep(rv, [intp(0), intp(1)])))

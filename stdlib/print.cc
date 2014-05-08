@@ -17,6 +17,7 @@ extern "C" {
 	std::cout << "undefined" << std::endl;
 	break;
       }
+      break;
     case 1: //Its an Int
       std::cout << v << std::endl;
       break;
