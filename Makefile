@@ -8,4 +8,4 @@ rasmus/AST.py: rasmus/AST.txt rasmus/ASTGen.py
 	(cd rasmus && python2 ASTGen.py)
 
 stdlib.so: stdlib/error.cc stdlib/print.cc stdlib/text.cc
-	g++ -shared -fPIC $^ -o $@
+	g++ -shared -fPIC $^ -o $@ -std=c++11

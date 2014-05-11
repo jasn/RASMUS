@@ -22,7 +22,7 @@ extern "C" {
       std::cout << v << std::endl;
       break;
     case 3: //It's a Text
-      rm_printText((void*)v);
+      rm_printText((rm_object*)v);
       break;
     default:
       std::cout << "Unknown type" << std::endl;
