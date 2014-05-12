@@ -30,11 +30,11 @@ extern "C" {
 /**
  * Baseclass of all objecs used by rasmus
  */
-struct rm_object {
-	uint32_t ref_cnt;
-	uint16_t type;
-	uint16_t subtype;
-};
+struct rm_object;
+// struct rm_object {
+// 	uint32_t ref_cnt;
+// ...
+// };
 
 /////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////  text.cc  //////////////////////////////////////////

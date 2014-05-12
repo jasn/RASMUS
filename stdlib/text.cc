@@ -21,51 +21,150 @@
 #include <cstring>
 #include <iostream>
 
+const size_t smallLength = 20;
+
+namespace {
+template <typename T>
+void buildText(rm_object * o, T & out) {
+	switch (o->type) {
+	case Type::canonicalText:
+		out(static_cast<CanonicalText*>(o)->data, static_cast<CanonicalText*>(o)->length);
+		break;
+	case Type::smallText:
+		out(static_cast<SmallText*>(o)->data, static_cast<SmallText*>(o)->length);
+		break;
+	case Type::concatText:
+		buildText(static_cast<ConcatText*>(o)->left.get(), out);
+		buildText(static_cast<ConcatText*>(o)->right.get(), out);
+		break;
+		//TODO substr
+	}
+}
+
+struct MemcpyBuilder {
+	void operator()(char * part, size_t length) {
+		memcpy(data, part, length);
+		data += length;
+	}
+	MemcpyBuilder(char * data): data(data) {}
+	char * data;
+};
+
+struct OStreamBuilder {
+	OStreamBuilder(std::ostream & o): o(o) {}
+	void operator()(char * part, size_t length) const {o.write(part, length);}
+	std::ostream & o;
+};
+
+/**
+ * Turn a text object into a canonical text
+ */
+const char * canonizeText(rm_object * o) {
+	switch (o->type) {
+	case Type::canonicalText:
+		return static_cast<CanonicalText*>(o)->data;
+	case Type::smallText:
+		return static_cast<SmallText*>(o)->data;
+	case Type::concatText:
+	{
+		size_t length=static_cast<TextBase*>(o)->length;
+		char * data=new char[length];
+		MemcpyBuilder builder(data);
+		buildText(o, builder);
+		uint32_t rc=o->ref_cnt;
+		static_cast<ConcatText*>(o)->~ConcatText();
+		new(o) CanonicalText(length, data);
+		o->ref_cnt=rc;
+		return data;
+	}
+	case Type::substrText:
+	{
+		size_t length=static_cast<TextBase*>(o)->length;
+		char * data=new char[length];
+		MemcpyBuilder builder(data);
+		buildText(o, builder);
+		uint32_t rc=o->ref_cnt;
+		static_cast<ConcatText*>(o)->~ConcatText();
+		new(o) CanonicalText(length, data);
+		o->ref_cnt=rc;
+		return data;
+	}
+	}
+}
+
+
+template <typename T, typename ...TS>
+T * makeText(TS &&... ts) {
+	T * o=reinterpret_cast<T *>(operator new(std::max(sizeof(ConcatText), std::max(sizeof(SubstrText), sizeof(CanonicalText)))));
+	new(o) T(std::forward<TS>(ts)...);
+}
+
+SmallText * makeSmallText(size_t len) {
+	SmallText * o = reinterpret_cast<SmallText*>(operator new(sizeof(sizeof(SmallText)+ len)));
+	new(o) SmallText(len);	
+	return o;
+}
+
+size_t length(rm_object * o) {
+	return static_cast<TextBase*>(o)->length;
+}
+
+
+} //unnamed namespace
+
 extern "C" {
 
-  // struct rm_Text {
-  //   rm_Text(const char *cptr) : str(cptr) { }
-  //   static rm_Text* concat(const rm_Text *lhs, const rm_Text *rhs) {
-  //     return new rm_Text(((*lhs).str + (*rhs).str).c_str());
-  //   }
-  //   bool find(const rm_Text *needle) const {
-  //     return str.find(needle->str) != std::string::npos;
-  //   }
-  //   std::string str;
-  // };
-  //   return new rm_Text(cptr);    
-  // }
+void rm_free(rm_object * o) {
+	switch (o->type) {
+	case Type::canonicalText:
+		static_cast<CanonicalText*>(o)->~CanonicalText();
+		operator delete(reinterpret_cast<void *>(o));
+		break;
+	case Type::concatText:
+		static_cast<ConcatText*>(o)->~ConcatText();
+		operator delete(reinterpret_cast<void *>(o));
+		break;
+	case Type::substrText:
+		static_cast<SubstrText*>(o)->~SubstrText();
+		operator delete(reinterpret_cast<void *>(o));
+	case Type::smallText:
+		static_cast<SmallText*>(o)->~SmallText();
+		operator delete(reinterpret_cast<void *>(o));
+		break;
+	}
+}
 
 rm_object * rm_getConstText(const char *cptr) {
 	size_t len = strlen(cptr);
-	rm_TextLeaf * o = reinterpret_cast<rm_TextLeaf*>(malloc(sizeof(rm_TextLeaf)+ len));
-	new(o) rm_TextLeaf;
-	o->type = (uint16_t)types::text;
-	o->subtype = (uint16_t)texts::leaf;
-	o->length = len;
+	SmallText * o = makeSmallText(len);
 	memcpy(o->data, cptr, len);
 	return o;
 }
 
 rm_object * rm_concatText(rm_object *lhs, rm_object *rhs) {
-	//TODO if the objects are small or have about the same size then we could just do the concat
-	rm_TextConcat * cc=new rm_TextConcat();
-	cc->type = (uint16_t)types::text;
-	cc->subtype = (uint16_t)texts::concat;
-	cc->left = ref_ptr<>(lhs);
-	cc->right = ref_ptr<>(rhs);
-	return cc;
+	size_t len=length(lhs) + length(rhs);
+	if (len <= smallLength) {
+		SmallText * o = makeSmallText(len);
+		MemcpyBuilder builder(o->data);
+		buildText(lhs, builder);
+		buildText(rhs, builder);
+		return o;
+	}
+	return makeText<ConcatText>(RefPtr(lhs), RefPtr(rhs));
 }
 
-// int8_t rm_substringSearch(const void *lhs, const void *rhs) {
-//     const rm_Text *lhst = reinterpret_cast<const rm_Text*>(lhs);
-//     const rm_Text *rhst = reinterpret_cast<const rm_Text*>(rhs);
-// 	return rhst->find(lhst);
-// }
+int8_t rm_substringSearch(rm_object *lhs, rm_object *rhs) {
+	// TODO This could be much faster
+	const char * lhst = canonizeText(lhs);
+	const char * rhst = canonizeText(rhs);
+	std::string dummy(rhst, length(rhs));
+	return dummy.find(lhst, length(lhs)) != std::string::npos;
+}	
 
 void rm_printText(rm_object * ptr) {
-	
-    /*std::cout << reinterpret_cast<rm_Text*>(ptr)->str << std::endl;*/
+	OStreamBuilder b(std::cout);
+	buildText(ptr, b);
+	std::cout << std::endl;
 }
 
 }

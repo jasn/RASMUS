@@ -18,93 +18,101 @@
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __INNER_HH__
 #define __INNER_HH__
-
 #include "lib.h"
 
-enum class types: uint16_t {
-	text
+enum class Type: uint16_t {
+	smallText, concatText, substrText, canonicalText
 };
 
-enum class texts: uint16_t {
-	leaf, concat
-};
+struct rm_object {
+	uint32_t ref_cnt;
+	const Type type;
+	rm_object(Type type): ref_cnt(0), type(type) {}
 
-inline void incref(rm_object * o) {
-	o->ref_cnt++;
-}
-
-inline void decref(rm_object * o) {
-	o->ref_cnt--;
-	if (o->ref_cnt == 0) {
-		rm_free(o);
-	}
-}
-
-
-template <typename T=rm_object>
-struct ref_ptr {
-	typedef T element_type;
+	void incref()  {ref_cnt++;}
 	
-	explicit inline ref_ptr(T * p=0): ptr(0) {
-		reset(p);
+	void decref() {
+		ref_cnt--;
+		if (ref_cnt == 0) rm_free(this);
 	}
+};
 
-	inline ref_ptr(const ref_ptr & p): ptr(0) {
-		reset(p.get());
-	}
 
-	template <typename Y>
-	inline ref_ptr(const ref_ptr<Y> & p): ptr(0) {
-		reset(p.get());
-	}
-
-	inline ref_ptr & operator=(const ref_ptr & p) {
-		reset(p.get());
+class RefPtr {
+public:
+	explicit RefPtr(rm_object * p=0): ptr(0) {reset(p);}
+	RefPtr(const RefPtr & p): ptr(0) {reset(p.get());}
+	RefPtr(RefPtr && p): ptr(p.ptr) {p.ptr=nullptr;}
+	~RefPtr() {reset(0);}
+	RefPtr & operator=(const RefPtr & p)  {reset(p.get());	return *this; }
+	RefPtr & operator=(RefPtr && p)  {
+		if (ptr) ptr->decref();
+		ptr = p.ptr;
+		p.ptr = nullptr;
 		return *this;
 	}
+	rm_object & operator*() const {return *ptr;}
+	rm_object * operator->() const {return ptr;}
+	rm_object * get() const  {return ptr;}
 
-	template <typename Y>
-	inline ref_ptr & operator=(const ref_ptr<Y> & p) {
-		reset(p.get());
-		return *this;
-	}
-
-	inline ~ref_ptr() {reset(0);}
-
-	inline T & operator*() const {return *ptr;}
-
-	inline T * operator->() const {return ptr;}
-
-	inline T * get() const {return ptr;}
-
-	inline void reset(T * p=0) {
-		if (p) incref(p);
-		if (ptr) decref(p);
+	bool operator <(const RefPtr & o) const {return ptr < o.ptr;}
+	bool operator >(const RefPtr & o) const {return ptr > o.ptr;}
+	bool operator <=(const RefPtr & o) const {return ptr <= o.ptr;}
+	bool operator >=(const RefPtr & o) const {return ptr >= o.ptr;}
+	bool operator ==(const RefPtr & o) const {return ptr == o.ptr;}
+	bool operator !=(const RefPtr & o) const {return ptr == o.ptr;}
+	bool operator!() const {return !ptr;}
+	
+	void reset(rm_object * p=0) {
+		if (p) p->incref();
+		if (ptr) ptr->decref();
 		ptr = p;
 	}
-
-	bool operator <(const ref_ptr<T> & o) const {
-		return ptr < o.ptr;
-	}
-
-	bool operator ==(const ref_ptr<T> & o) const {
-		return ptr == o.ptr;
-	}
-
-	bool operator!() const {return !ptr;}
-
-	T * ptr;
+private:
+	rm_object * ptr;
 };
 
-struct rm_TextLeaf: public rm_object {
-	size_t length;
+struct TextBase: public rm_object {
+	const size_t length;
+	TextBase(Type type, size_t length):
+		rm_object(type), length(length) {}
+};
+
+struct SmallText: public TextBase {
+	SmallText(size_t length): TextBase(Type::smallText, length) {}
 	char data[0];
 };
 
-struct rm_TextConcat: public rm_object {
-	/*size_t length;*/
-	ref_ptr<> left;
-	ref_ptr<> right;
+struct ConcatText: public TextBase {
+	ConcatText(RefPtr left, RefPtr right): 
+		TextBase(Type::concatText, 
+				 static_cast<TextBase*>(left.get())->length +
+				 static_cast<TextBase*>(right.get())->length),
+		left(left), right(right) {}
+	const RefPtr left;
+	const RefPtr right;
+};
+
+struct SubstrText: public TextBase {
+	SubstrText(RefPtr content, size_t start, size_t end):
+		TextBase(Type::substrText, end-start),
+		content(content),
+		start(start) {}
+	
+	const RefPtr content;
+	const size_t start;
+};
+
+struct CanonicalText: public TextBase {
+	CanonicalText(size_t length): TextBase(Type::canonicalText, length), data(nullptr) {
+		data=new char[length];
+	}
+	CanonicalText(size_t length, char * data): TextBase(Type::canonicalText, length), data(data) {}
+	
+	~CanonicalText() {
+		delete[] data;
+	}
+	char * data;
 };
 
 #endif //__INNER_H__
