@@ -1,28 +1,28 @@
-VariableExp|token
+VariableExp|nameToken
 AssignmentExp|nameToken,assignToken,valueExp
 Choice|condition,arrowToken,value
-IfExp|ifToken|choices=[]|fiToken=None
-ForallExp|typeToken,lparenToken|listExps=[]|rparenToken=None|pipeToken=None|colonToken=None|expr=InvalidExp()|names=[]
+IfExp|ifToken|std::vector<std::shared_ptr<Choice>> choices|Token fiToken
+ForallExp|typeToken,lparenToken|NodeList listExps|rparenToken|pipeToken|colonToken|exp|TokenList names
 FuncCaptureValue|nameToken
 FuncArg|nameToken,colonToken,typeToken
-FuncExp|funcToken,lparenToken|args=[]|rparenToken=None|arrowToken=None|lparenToken2=None|rparenToken2=None|returnTypeToken=None|body=InvalidExp()|endToken=None|captures=[]
+FuncExp|funcToken,lparenToken|std::vector<std::shared_ptr<FuncArg> > args|rparenToken|arrowToken|lparen2Token|rparen2Token|returnTypeToken|body|endToken
 TupItem|nameToken,colonToken,exp
-TupExp|tupToken,lparenToken|rparenToken=None|items=[]
+TupExp|tupToken,lparenToken|rparenToken|std::vector<std::shared_ptr<TupItem> > items
 Val|valToken,nameToken,equalToken,exp
-BlockExp|blockstartToken|vals=[]|inToken=None|inExp=InvalidExp()|blockendToken=None
-BuiltInExp|nameToken,lparenToken|args=[]|rparenToken=None
-AtExp|atToken,lparenToken|exp=InvalidExp()|rparenToken=None
-ConstantExp|token
-UnaryOpExp|token,exp
-RelExp|relToken,lparenToken|exp=InvalidExp()|rparenToken=None
+BlockExp|blockstartToken|std::vector<std::shared_ptr<Val> > vals|inToken|inExp|blockendToken
+BuiltInExp|nameToken,lparenToken|NodeList args|rparenToken
+AtExp|atToken,lparenToken|exp|rparenToken
+ConstantExp|valueToken
+UnaryOpExp|opToken,exp
+RelExp|relToken,lparenToken|exp|rparenToken
 LenExp|leftPipeToken,exp,rightPipeToken
-FuncInvocationExp|funcExp,lparenToken|args=[]|rparenToken=None
-SubstringExp|stringExp,lparenToken,fromExp,dotdotToken,toExp|rparenToken=None
-RenameItem|fromName,arrowToken,toName
-RenameExp|lhs,lbracketToken|renames=[]|rbracketToken=None
-DotExp|lhs,token,nameToken
-ProjectExp|lhs,projectionToken|names=[]
-BinaryOpExp|token,lhs,rhs
-SequenceExp||sequence=[]
+FuncInvocationExp|funcExp,lparenToken|NodeList args|rparenToken
+SubstringExp|stringExp,lparenToken,fromExp,dotdotToken,toExp,rparenToken
+RenameItem|fromNameToken,arrowToken,toNameToken
+RenameExp|lhs,lbracketToken|std::vector<std::shared_ptr<RenameItem> > renames|rbracketToken
+DotExp|lhs,dotToken,nameToken
+ProjectExp|lhs,projectionToken|TokenList names
+BinaryOpExp|opToken,lhs,rhs
+SequenceExp||NodeList sequence
 InvalidExp|
 Exp|exp
