@@ -1,18 +1,18 @@
-VariableExp|nameToken
+VariableExp|nameToken|std::weak_ptr<Node> store
 AssignmentExp|nameToken,assignToken,valueExp
 Choice|condition,arrowToken,value
 IfExp|ifToken|std::vector<std::shared_ptr<Choice>> choices|Token fiToken
 ForallExp|typeToken,lparenToken|NodeList listExps|rparenToken|pipeToken|colonToken|exp|TokenList names
-FuncCaptureValue|nameToken
+FuncCaptureValue|nameToken|std::weak_ptr<Node> store
 FuncArg|nameToken,colonToken,typeToken
-FuncExp|funcToken,lparenToken|std::vector<std::shared_ptr<FuncArg> > args|rparenToken|arrowToken|lparen2Token|rparen2Token|returnTypeToken|body|endToken
+FuncExp|funcToken,lparenToken|std::vector<std::shared_ptr<FuncArg> > args|rparenToken|arrowToken|lparen2Token|rparen2Token|returnTypeToken|body|endToken|Type rtype
 TupItem|nameToken,colonToken,exp
 TupExp|tupToken,lparenToken|rparenToken|std::vector<std::shared_ptr<TupItem> > items
 Val|valToken,nameToken,equalToken,exp
 BlockExp|blockstartToken|std::vector<std::shared_ptr<Val> > vals|inToken|inExp|blockendToken
 BuiltInExp|nameToken,lparenToken|NodeList args|rparenToken
 AtExp|atToken,lparenToken|exp|rparenToken
-ConstantExp|valueToken
+ConstantExp|valueToken|bool bool_value|int int_value|std::string txt_value
 UnaryOpExp|opToken,exp
 RelExp|relToken,lparenToken|exp|rparenToken
 LenExp|leftPipeToken,exp,rightPipeToken

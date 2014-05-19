@@ -55,7 +55,7 @@ def run_terminal():
   #  ptr = ctypes.cast(ctypes.addressof(dll.interactiveWrapper), INTP)[0]
   #  llvm_executor.add_global_mapping(codegen.interactiveWrapper, ptr)
     
-    sequenceExpNode = rasmus.AST.SequenceExp()    
+     sequenceExpNode = rasmus.AST.SequenceExp()    
     while True:      
         try:
             if incomplete:

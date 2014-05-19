@@ -3,11 +3,11 @@ CXXFLAGS=-std=c++11 -ggdb
 
 all: rasmus/AST.hh stdlib.so rm
 
-rm: rasmus/parser.o rasmus/lexer.o rasmus/error.o rasmus/main.o rasmus/charRanges.o
+rm: rasmus/parser.o rasmus/lexer.o rasmus/error.o rasmus/main.o rasmus/charRanges.o rasmus/firstParse.o
 	$(CXX) $^ -o $@
 
 clean:
-	$(RM) rasmus/AST.py RASMUS stdlib.so rasmus/parser.o rasmus/lexer.o rasmus/error.o rasmus/main.o rm
+	$(RM) rasmus/AST.py RASMUS stdlib.so rasmus/parser.o rasmus/lexer.o rasmus/error.o rasmus/main.o rm  rasmus/charRanges.o rasmus/firstParse.o
 
 rasmus/AST.hh: rasmus/AST.txt rasmus/ASTGen.py
 	(cd rasmus && python2 ASTGen.py)

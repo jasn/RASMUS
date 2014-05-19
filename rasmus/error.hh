@@ -19,6 +19,7 @@
 #ifndef __error_hh__
 #define __error_hh__
 
+#include "ASTBase.hh"
 #include "code.hh"
 #include "lexer.hh"
 
@@ -28,11 +29,11 @@ public:
 	
 	virtual void reportWarning(std::string message,
 							   Token mainToken=Token(),
-							   std::vector<std::pair<uint32_t, uint32_t> > ranges=std::vector<std::pair<uint32_t, uint32_t> >()) = 0;
+							   std::initializer_list<CharRange> ranges={}) = 0;
 	
 	virtual void reportError(std::string message,
 							 Token mainToken=Token(),
-							 std::vector<std::pair<uint32_t, uint32_t> > ranges=std::vector<std::pair<uint32_t, uint32_t> >()) = 0;
+							 std::initializer_list<CharRange> ranges={}) = 0;
 };
 
 std::shared_ptr<Error> terminalError(std::shared_ptr<Code> code);

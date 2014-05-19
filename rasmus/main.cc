@@ -24,12 +24,15 @@
 
 std::shared_ptr<Visitor> charRanges(); //Declared in charRanges.cc
 
+std::shared_ptr<Visitor> firstParse(std::shared_ptr<Error> error, std::shared_ptr<Code> code); 
+
 int main(int argc, char ** argv) {
 	std::shared_ptr<Code> c = std::make_shared<Code>("", "Interpreted");
 	std::shared_ptr<Error> e = terminalError(c);
 	std::shared_ptr<Lexer> l = std::make_shared<Lexer>(c);
 	std::shared_ptr<Parser> p = parser(l, e, true);
 	std::shared_ptr<Visitor> cr = charRanges();
+	std::shared_ptr<Visitor> fp = firstParse(e, c);
 
 	NodePtr ast = std::make_shared<SequenceExp>();
 	std::string incomplete;
@@ -48,6 +51,7 @@ int main(int argc, char ** argv) {
 			theCode = c->code+"\n";
 			incomplete = "";
 			cr->visit(r);
+			fp->visit(r);
 		} catch (IncompleteInputException) {
 			incomplete = line + "\n";
 		}

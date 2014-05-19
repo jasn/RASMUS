@@ -19,6 +19,8 @@
 #include "lexer.hh"
 #include "AST.hh"
 
+namespace {
+
 CharRange r(Token t) {
 	if (!t) return CharRange();
 	return CharRange(t.start, t.start+t.length);
@@ -154,6 +156,7 @@ public:
 	void visit(std::shared_ptr<RenameItem> node) override {}
 };
 
+} //nameless namespace
 
 std::shared_ptr<Visitor> charRanges() {
 	return std::make_shared<CharRanges>();
