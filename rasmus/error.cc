@@ -56,6 +56,10 @@ public:
 	void report(const char * type, std::string message,
 				Token mainToken,
 				std::initializer_list<CharRange> ranges);
+
+	virtual size_t count() const override {
+		return numberOfErrors;
+	}
 };
 
 void TerminalError::report(const char * type, std::string message,

@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <sstream>
 #include <iostream>
+#include "visitor.hh"
 
 namespace {
 
@@ -50,7 +51,7 @@ struct Scope {
 	Scope(NodePtr node): node(node) {}
 };
 
-class FirstParse: public Visitor {
+class FirstParse: public Visitor<void>, public VisitorCRTP<FirstParse, void> {
 public:
 	//Do name lookup, type checking and constant propagation
 	std::shared_ptr<Error> error;
@@ -127,7 +128,7 @@ public:
 		}
 	}
 
-    void visit(std::shared_ptr<VariableExp> node) override {
+    void visit(std::shared_ptr<VariableExp> node) {
         NodePtr lookedUp;
 		std::string name = tokenToIdentifier(node->nameToken);
 		std::vector<std::shared_ptr<FuncExp> > funcs;
@@ -137,8 +138,8 @@ public:
 				lookedUp = it->second;
 				break;
 			}
-			std::shared_ptr<FuncExp> f=std::dynamic_pointer_cast<FuncExp>(lu.node);
-			if (f) funcs.push_back(f);
+			if (lu.node->nodeType == NodeType::FuncExp)
+				funcs.push_back(std::static_pointer_cast<FuncExp>(lu.node));
 		}
 
 		if (!lookedUp) {
@@ -163,17 +164,17 @@ public:
 		node->store = lookedUp;
 	}
 
-    void visit(std::shared_ptr<AssignmentExp> node) override {
-        Visitor::visit(node->valueExp);
+    void visit(std::shared_ptr<AssignmentExp> node) {
+        visitNode(node->valueExp);
 		// Possibly check that the type was not changes since the last binding of the same name
 		scopes.back().bind[tokenToIdentifier(node->nameToken)] = node;
         node->type = node->valueExp->type;
 	}
 
-    void visit(std::shared_ptr<IfExp> node) override {
+    void visit(std::shared_ptr<IfExp> node) {
         for (auto choice: node->choices) {
-            Visitor::visit(choice->condition);
-			Visitor::visit(choice->value);
+            visitNode(choice->condition);
+			visitNode(choice->value);
 		}
 				
         NodePtr texp;
@@ -192,13 +193,13 @@ public:
 		}
 	}
 	
-    void visit(std::shared_ptr<ForallExp> node) override {
+    void visit(std::shared_ptr<ForallExp> node) {
 		//TODO
-		Visitor::visitAll(node->listExps);
-		Visitor::visit(node->exp);
+		visitAll(node->listExps);
+		visitNode(node->exp);
 	}
 
-    void visit(std::shared_ptr<FuncExp> node) override {
+    void visit(std::shared_ptr<FuncExp> node) {
         scopes.push_back(Scope(node));
         node->type = TFunc;
         for (auto a: node->args) {
@@ -208,28 +209,28 @@ public:
 			a->type = tokenToType(a->typeToken);
 		}
         node->rtype = tokenToType(node->returnTypeToken);
-        Visitor::visit(node->body);
+        visitNode(node->body);
         typeCheck(node->funcToken, node->body, {node->rtype});
 		scopes.pop_back();
 	}
 
-    void visit(std::shared_ptr<TupExp> node) override {
-        for (auto item: node->items) Visitor::visit(item->exp);
+    void visit(std::shared_ptr<TupExp> node) {
+        for (auto item: node->items) visitNode(item->exp);
         node->type = TTup;
 	}
 
-    void visit(std::shared_ptr<BlockExp> node) override {
+    void visit(std::shared_ptr<BlockExp> node) {
         scopes.push_back(Scope(node));
         for (auto val: node->vals) {
-            Visitor::visit(val->exp);
+            visitNode(val->exp);
             scopes.back().bind[tokenToIdentifier(val->nameToken)] = val->exp;
 		}
-        Visitor::visit(node->inExp);
+        visitNode(node->inExp);
         node->type = node->inExp->type;
 		scopes.pop_back();
 	}
 
-    void visit(std::shared_ptr<BuiltInExp> node) override {
+    void visit(std::shared_ptr<BuiltInExp> node) {
 		Type returnType;
 		std::vector<Type> argumentTypes;
         TokenId tkn = node->nameToken.id;
@@ -316,7 +317,7 @@ public:
 		
 		for (size_t i=0; i < node->args.size(); ++i) {
             if (i >= argumentTypes.size() || argumentTypes[i] != TNAMEQ)
-                Visitor::visit(node->args[i]);
+                visitNode(node->args[i]);
             if (i < argumentTypes.size() && argumentTypes[i] != TNAMEQ)
                 typeCheck(node->nameToken, node->args[i], {argumentTypes[i]});
             if (i < argumentTypes.size() && argumentTypes[i] == TNAMEQ) {
@@ -330,7 +331,7 @@ public:
 		}
 	}
 
-    void visit(std::shared_ptr<ConstantExp> node) override {
+    void visit(std::shared_ptr<ConstantExp> node) {
 		switch (node->valueToken.id) {
 		case TK_FALSE:
             node->bool_value = false;
@@ -378,8 +379,8 @@ public:
 		}
 	}   
 
-    void visit(std::shared_ptr<UnaryOpExp> node) override {
-        Visitor::visit(node->exp);
+    void visit(std::shared_ptr<UnaryOpExp> node) {
+        visitNode(node->exp);
 		switch (node->opToken.id) {
 		case TK_NOT:
 			typeCheck(node->opToken, node->exp, {TBool});
@@ -394,60 +395,60 @@ public:
 		}
 	}
 
-    void visit(std::shared_ptr<RelExp> node) override {
+    void visit(std::shared_ptr<RelExp> node) {
         node->type = TRel;
-        Visitor::visit(node->exp);
+        visitNode(node->exp);
         typeCheck(node->relToken, node->exp, {TTup});
 	}
 	
-    void visit(std::shared_ptr<LenExp> node) override {
-        Visitor::visit(node->exp);
+    void visit(std::shared_ptr<LenExp> node) {
+        visitNode(node->exp);
 		typeCheck(node->leftPipeToken, node->exp, {TText, TRel});
         node->type = TInt;
 	}
 
-    void visit(std::shared_ptr<FuncInvocationExp> node) override {
-        Visitor::visit(node->funcExp);
-        Visitor::visitAll(node->args);
+    void visit(std::shared_ptr<FuncInvocationExp> node) {
+        visitNode(node->funcExp);
+        visitAll(node->args);
         node->type = TAny;
         typeCheck(node->lparenToken, node->funcExp, {TFunc});
 	}
 
-    void visit(std::shared_ptr<SubstringExp> node) override {
-        Visitor::visit(node->stringExp);
-        Visitor::visit(node->fromExp);
-        Visitor::visit(node->toExp);
+    void visit(std::shared_ptr<SubstringExp> node) {
+        visitNode(node->stringExp);
+        visitNode(node->fromExp);
+        visitNode(node->toExp);
 		typeCheck(node->lparenToken, node->stringExp, {TText});
 		typeCheck(node->lparenToken, node->fromExp, {TInt});
 		typeCheck(node->lparenToken, node->toExp, {TInt});
         node->type = TText;
 	}
 
-    void visit(std::shared_ptr<RenameExp> node) override {
-        Visitor::visit(node->lhs);
+    void visit(std::shared_ptr<RenameExp> node) {
+        visitNode(node->lhs);
         typeCheck(node->lbracketToken, node->lhs, {TRel});
         node->type = TRel;
 	}
 
-    void visit(std::shared_ptr<DotExp> node) override {
-        Visitor::visit(node->lhs);
+    void visit(std::shared_ptr<DotExp> node) {
+        visitNode(node->lhs);
         typeCheck(node->dotToken, node->lhs, {TTup});
         node->type = TAny;
 	}
 
-    void visit(std::shared_ptr<ProjectExp> node) override {
-        Visitor::visit(node->lhs);
+    void visit(std::shared_ptr<ProjectExp> node) {
+        visitNode(node->lhs);
         typeCheck(node->projectionToken, node->lhs, {TRel});
         node->type = TRel;
 	}
 
-    void visit(std::shared_ptr<InvalidExp> node) override {
+    void visit(std::shared_ptr<InvalidExp> node) {
         node->type = TInvalid;
 	}
 	
-    void visit(std::shared_ptr<BinaryOpExp> node) override {
-        Visitor::visit(node->lhs);
-        Visitor::visit(node->rhs);
+    void visit(std::shared_ptr<BinaryOpExp> node) {
+        visitNode(node->lhs);
+        visitNode(node->rhs);
 		switch(node->opToken.id) {
 		case TK_PLUS:
 		case TK_MUL:
@@ -510,34 +511,36 @@ public:
 		}
 	}
 
-    void visit(std::shared_ptr<SequenceExp> node) override {
-        Visitor::visitAll(node->sequence);
+    void visit(std::shared_ptr<SequenceExp> node) {
+        visitAll(node->sequence);
         if (node->sequence.empty())
 			node->type = TInvalid;
         else
             node->type = node->sequence.back()->type;
 	}
     
-    void visit(std::shared_ptr<Exp> node) override {
+    void visit(std::shared_ptr<Exp> node) {
         scopes.push_back(Scope(node));
-        Visitor::visit(node->exp);
+        visitNode(node->exp);
         scopes.pop_back();
         node->type = node->exp->type;
 	}
 
-	void visit(std::shared_ptr<Choice> node) override {}
-	void visit(std::shared_ptr<FuncCaptureValue> node) override {}
-	void visit(std::shared_ptr<FuncArg> node) override {}
-	void visit(std::shared_ptr<TupItem> node) override {}
-	void visit(std::shared_ptr<Val> node) override {}
-	void visit(std::shared_ptr<RenameItem> node) override {}
+	void visit(std::shared_ptr<Choice> node) {}
+	void visit(std::shared_ptr<FuncCaptureValue> node) {}
+	void visit(std::shared_ptr<FuncArg> node) {}
+	void visit(std::shared_ptr<TupItem> node) {}
+	void visit(std::shared_ptr<Val> node) {}
+	void visit(std::shared_ptr<RenameItem> node) {}
 
-	void visit(std::shared_ptr<AtExp> node) override {//TODO
-	}
+	void visit(std::shared_ptr<AtExp> node) {/*TODO*/	}
+
+	virtual void run(NodePtr node) override {visitNode(node);}
+
 };
 
 } //nameless namespace
         
-std::shared_ptr<Visitor> firstParse(std::shared_ptr<Error> error, std::shared_ptr<Code> code) {
+std::shared_ptr<Visitor<void> > firstParse(std::shared_ptr<Error> error, std::shared_ptr<Code> code) {
 	return std::make_shared<FirstParse>(error, code);
 }

@@ -16,28 +16,30 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#ifndef __error_hh__
-#define __error_hh__
+#ifndef __llvmcodegen_hh__
+#define __llvmcodegen_hh__
 
-#include "ASTBase.hh"
-#include "code.hh"
 #include "lexer.hh"
+#include "AST.hh"
+#include "error.hh"
+#include "code.hh"
 
-class Error {
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Module.h>
+#include <unordered_map>
+
+class LLVMCodeGen {
 public:
-	virtual ~Error() {}
-	
-	virtual void reportWarning(std::string message,
-							   Token mainToken=Token(),
-							   std::initializer_list<CharRange> ranges={}) = 0;
-	
-	virtual void reportError(std::string message,
-							 Token mainToken=Token(),
-							 std::initializer_list<CharRange> ranges={}) = 0;
+	virtual ~LLVMCodeGen() {};
 
-	virtual size_t count() const = 0;
+	std::unordered_map<std::string, llvm::Function *> stdlib;
+
+	virtual llvm::Function * translate(NodePtr node) = 0;
 };
 
-std::shared_ptr<Error> terminalError(std::shared_ptr<Code> code);
+std::shared_ptr<LLVMCodeGen> llvmCodeGen(
+	std::shared_ptr<Error> error, 
+	std::shared_ptr<Code> code, 
+	llvm::Module * module); 
 
-#endif //__error_hh__
+#endif //__llvmcodegen_hh__

@@ -24,8 +24,7 @@
 #include <vector>
 #include <limits>
 #include <ostream>
-
-class Visitor;
+#include "nodetype.hh"
 
 class CharRange {
 public:
@@ -66,14 +65,27 @@ inline std::ostream & operator<<(std::ostream & o, Type t) {
 	return o << typeName(t);
 }
 
+namespace llvm {
+struct Value;
+};
+
+struct LLVMVal {
+	llvm::Value * value;
+	llvm::Value * type; //Only valid if val is of any type
+	LLVMVal(): value(nullptr), type(nullptr) {}
+	LLVMVal(llvm::Value * value): value(value), type(nullptr) {}
+	LLVMVal(llvm::Value * value, llvm::Value * type): value(value), type(type) {}
+};
 
 class Node {
 public:
+	const NodeType nodeType;
 	bool tainted;
 	CharRange charRange;
 	Type type;
-	Node(): tainted(false), type(TInvalid) {}
-	virtual void visit(Visitor * v, std::shared_ptr<Node> self) = 0;
+	LLVMVal llvmVal;
+	Node(NodeType t): nodeType(t), tainted(false), type(TInvalid) {}
+	virtual ~Node() {}
 };
 typedef std::shared_ptr<Node> NodePtr;
 

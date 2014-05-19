@@ -125,7 +125,7 @@ class Token {
 public:
 	Token(TokenId id, uint32_t start, uint32_t length): id(id), start(start), length(length) {}
 	Token(): id(TK_INVALID), start(0), length(0) {}
-	
+		
 	operator bool() {return id != TK_INVALID;}
 	
 	
