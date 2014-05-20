@@ -63,7 +63,7 @@ public:
 	bool operator !=(const RefPtr & o) const {return ptr == o.ptr;}
 	bool operator!() const {return !ptr;}
 	
-	void reset(rm_object * p=0) {
+	void reset(rm_object * p=nullptr) {
 		if (p) p->incref();
 		if (ptr) ptr->decref();
 		ptr = p;

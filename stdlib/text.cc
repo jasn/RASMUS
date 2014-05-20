@@ -24,6 +24,7 @@
 const size_t smallLength = 20;
 
 namespace {
+
 template <typename T>
 void buildText(rm_object * o, T & out) {
 	switch (o->type) {

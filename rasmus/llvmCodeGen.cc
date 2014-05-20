@@ -506,13 +506,6 @@ public:
 		//				 node)
 	}
 
-	LLVMVal visitConcatExp(std::shared_ptr<BinaryOpExp> node) {
-		LLVMVal a = castVisit(node->lhs, TText);
-		LLVMVal b = castVisit(node->rhs, TText);
-		return cast(builder.CreateCall2(stdlib["rm_concatText"], a.value, b.value),
-						 TText, node->type, node);
-	}
-
 	LLVMVal visit(std::shared_ptr<RenameExp> node) {
 		throw ICEException("Rename");
 	}
@@ -541,83 +534,169 @@ public:
 	LLVMVal visit(std::shared_ptr<Val> node) {throw ICEException("Val");}
 	LLVMVal visit(std::shared_ptr<RenameItem> node) {throw ICEException("RenameItem");}
 
-
-	LLVMVal visit(std::shared_ptr<BinaryOpExp> node) {
-		if (node->opToken.id == TK_CONCAT)
-			return visitConcatExp(node);
-		
-//         elif node.token.id == TK_TILDE:
-//             return self.visitSubstringExp(node)
-		LLVMVal a = castVisit(node->lhs, TInt);
-		LLVMVal b = castVisit(node->rhs, TInt);
-		switch (node->opToken.id) {
-		case TK_PLUS:
-			return cast(builder.CreateAdd(a.value, b.value), TInt, node->type, node);
+	struct BinopHelp {
+		::Type lhsType;
+		::Type rhsType;
+		::Type resType;
+		std::function<LLVMVal(CodeGen&, LLVMVal, LLVMVal) > func;
+	};
+	
+	LLVMVal binopImpl(std::shared_ptr<BinaryOpExp> node, std::initializer_list<BinopHelp> types) {
+		std::vector<BinopHelp> matches;
+		for(auto h: types) {
+			if (h.lhsType != node->lhs->type && node->lhs->type != TAny) continue;
+			if (h.rhsType != node->rhs->type && node->rhs->type != TAny) continue;
+			matches.push_back(h);
 		}
-//         if node.token.id == TK_PLUS:
-//             return self.cast(self.builder.add(a, b), TInt, node.type, node)
-//         elif node.token.id == TK_MUL:
-//             return self.builder.mul(a,b)
-//         elif node.token.id == TK_MINUS:
-//             return self.cast(self.builder.sub(a, b), TInt, node.type, node)
-//         elif node.token.id == TK_DIV:
-//             return self.cast(self.builder.sdiv(a, b), TInt, node.type, node)
-//         elif node.token.id == TK_MOD:
-//             return self.cast(self.builder.srem(a, b), TInt, node.type, node)
-//         elif node.token.id == TK_LESS:
-//             if node.lhs.type == TInt and node.rhs.type == TInt:
-//                 return self.builder.icmp(ICMP_SLT, a, b)
-//             elif node.lhs.type == TBool and node.rhs.type == TBool:
-//                 return self.builder.icmp(ICMP_SLT, a, b)
-//             else:
-//                 raise ICEException("Only Integer comparison implemented")
-//         elif node.token.id == TK_LESSEQUAL:
-//             if node.lhs.type == TInt and node.rhs.type == TInt:
-//                 return self.builder.icmp(ICMP_ULE, a, b)
-//             elif node.lhs.type == TBool and node.rhs.type == TBool:
-//                 return self.builder.icmp(ICMP_ULE, a, b)
-//             else:
-//                 raise ICEException("Only Integer comparison implemented")
-//         elif node.token.id == TK_GREATER:
-//             if node.lhs.type == TInt and node.rhs.type == TInt:
-//                 return self.builder.icmp(ICMP_SGT, a, b)
-//             elif node.lhs.type == TBool and node.rhs.type == TBool:
-//                 return self.builder.icmp(ICMP_SGT, a, b)
-//             else:
-//                 raise ICEException("Only Integer comparison implemented")
-//         elif node.token.id == TK_GREATEREQUAL:
-//             if node.lhs.type == TInt and node.rhs.type == TInt:
-//                 return self.builder.icmp(ICMP_UGE, a, b)
-//             elif node.lhs.type == TBool and node.rhs.type == TBool:
-//                 return self.builder.icmp(ICMP_UGE, a, b)
-//             else:
-//                 raise ICEException("Only Integer comparison implemented")
-//         elif node.token.id == TK_DIFFERENT:
-//             if node.lhs.type == TInt and node.rhs.type == TInt:
-//                 return self.builder.icmp(ICMP_NE, a, b)
-//             elif node.lhs.type == TBool and node.rhs.type == TBool:
-//                 return self.builder.icmp(ICMP_NE, a, b)
-//             else:
-//                 raise ICEException("Only Integer comparison implemented")
-//         elif node.token.id == TK_EQUAL:
-//             if node.lhs.type == TInt and node.rhs.type == TInt:
-//                 return self.builder.icmp(ICMP_EQ, a, b)
-//             elif node.lhs.type == TBool and node.rhs.type == TBool:
-//                 return self.builder.icmp(ICMP_EQ, a, b)
-//             else:
-//                 raise ICEException("Only Integer comparison implemented")
-//         elif node.token.id == TK_TILDE:
-//             # text comparison: true if a is a substring of b
-            
-//             raise ICEExpcetion("Substring test not implemented")
-//         elif node.token.id == TK_AND:
-//             return self.cast(self.builder.and_(a, b), TBool, node.type, node)
-//         elif node.token.id == TK_OR:
-//             return self.cast(self.builder.or_(a, b), TBool, node.type, node)
-//         elif node.token.id == TK_CONCAT:
-//             raise ICEException("Binary operation: Concatenation not implemented")
-//         else:
-//             raise ICEException("Binop not implemented")
+		if (matches.size() == 0)
+			throw ICEException("Infeasible types in binopImpl, there is a bug in the typechecker!!");
+
+		if (matches.size() == 1) {
+			// Even though there might be any arguments
+			// we have determined that this is the only possible alloweable call
+			BinopHelp h = matches[0];
+			LLVMVal a = castVisit(node->lhs, h.lhsType);
+			LLVMVal b = castVisit(node->rhs, h.rhsType);
+			LLVMVal v = h.func(*this, a, b);
+			return cast(v, h.resType, node->type, node);
+		} 
+
+		// There was more then one possible operator we want to call
+		// So we have to determine on runtime which is the right
+		throw ICEException("Dynamic binops are not implemented");
+	}
+
+	LLVMVal binopAddInt(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateAdd(lhs.value, rhs.value);
+	}
+
+	LLVMVal binopMinusInt(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateSub(lhs.value, rhs.value);
+	}
+
+	LLVMVal binopMulInt(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateMul(lhs.value, rhs.value);
+	}
+
+	LLVMVal binopDivInt(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateSDiv(lhs.value, rhs.value);
+	}
+
+	LLVMVal binopModInt(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateSRem(lhs.value, rhs.value);
+	}
+
+	LLVMVal binopConcat(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateCall2(stdlib["rm_concatText"], lhs.value, rhs.value);
+	}
+
+	LLVMVal binopLessInt(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateICmpSLT(lhs.value, rhs.value);
+	}
+
+	LLVMVal binopLessBool(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateICmpULT(lhs.value, rhs.value);
+	}
+
+	LLVMVal binopLessEqualInt(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateICmpSLE(lhs.value, rhs.value);
+	}
+
+	LLVMVal binopLessEqualBool(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateICmpULE(lhs.value, rhs.value);
+	}
+
+	LLVMVal binopGreaterInt(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateICmpSGT(lhs.value, rhs.value);
+	}
+
+	LLVMVal binopGreaterBool(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateICmpUGT(lhs.value, rhs.value);
+	}
+
+	LLVMVal binopGreaterEqualInt(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateICmpSGE(lhs.value, rhs.value);
+	}
+
+	LLVMVal binopGreaterEqualBool(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateICmpUGE(lhs.value, rhs.value);
+	}
+
+	LLVMVal binopEqualInt(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateICmpEQ(lhs.value, rhs.value);
+	}
+
+	LLVMVal binopEqualBool(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateICmpEQ(lhs.value, rhs.value);
+	}
+
+	LLVMVal binopDifferentInt(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateICmpNE(lhs.value, rhs.value);
+	}
+
+	LLVMVal binopDifferentBool(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateICmpNE(lhs.value, rhs.value);
+	}
+
+	LLVMVal binopAndBool(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateAnd(lhs.value, rhs.value);
+	}
+
+	LLVMVal binopOrBool(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateOr(lhs.value, rhs.value);
+	}
+	
+	LLVMVal visit(std::shared_ptr<BinaryOpExp> node) {
+		switch (node->opToken.id) {
+		case TK_CONCAT:
+			return binopImpl(node, { {TText, TText, TText, &CodeGen::binopConcat} });
+		case TK_PLUS:
+			return binopImpl(node, { {TInt, TInt, TInt, &CodeGen::binopAddInt} });
+		case TK_MUL:
+			return binopImpl(node, { {TInt, TInt, TInt, &CodeGen::binopMulInt} });
+		case TK_MINUS:
+			return binopImpl(node, { {TInt, TInt, TInt, &CodeGen::binopMinusInt} });
+		case TK_DIV:
+			return binopImpl(node, { {TInt, TInt, TInt, &CodeGen::binopDivInt} });
+		case TK_MOD:
+			return binopImpl(node, { {TInt, TInt, TInt, &CodeGen::binopModInt} });
+		case TK_LESS:
+			return binopImpl(node, { 
+					{TInt, TInt, TBool, &CodeGen::binopLessInt} ,
+					{TBool, TBool, TBool, &CodeGen::binopLessBool} ,
+						});
+		case TK_LESSEQUAL:
+			return binopImpl(node, { 
+					{TInt, TInt, TBool, &CodeGen::binopLessEqualInt} ,
+					{TBool, TBool, TBool, &CodeGen::binopLessEqualBool} ,
+						});
+		case TK_GREATER:
+			return binopImpl(node, { 
+					{TInt, TInt, TBool, &CodeGen::binopGreaterInt} ,
+					{TBool, TBool, TBool, &CodeGen::binopGreaterBool} ,
+						});
+		case TK_GREATEREQUAL:
+			return binopImpl(node, { 
+					{TInt, TInt, TBool, &CodeGen::binopGreaterEqualInt} ,
+					{TBool, TBool, TBool, &CodeGen::binopGreaterEqualBool} ,
+						});
+		case TK_EQUAL:
+			return binopImpl(node, { 
+					{TInt, TInt, TBool, &CodeGen::binopEqualInt} ,
+					{TBool, TBool, TBool, &CodeGen::binopEqualBool} ,
+						});
+		case TK_DIFFERENT:
+			return binopImpl(node, { 
+					{TInt, TInt, TBool, &CodeGen::binopDifferentInt} ,
+					{TBool, TBool, TBool, &CodeGen::binopDifferentBool} ,
+						});
+		case TK_AND:
+			return binopImpl(node, { {TBool, TBool, TBool, &CodeGen::binopAndBool} });
+		case TK_OR:
+			return binopImpl(node, { {TBool, TBool, TBool, &CodeGen::binopOrBool} });
+		default: 
+			throw ICEException("Binop not implemented");
+		}
 	}
 
 	LLVMVal visit(std::shared_ptr<SequenceExp> node) {

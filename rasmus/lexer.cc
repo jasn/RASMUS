@@ -120,10 +120,10 @@ const std::vector<std::pair<TokenId, std::string> > keywords = {
 
 std::unordered_map<TokenId, std::string> tokenNames {
     {TK_EOF, "End of file"},
-      {TK_ERR, "Bad token"},
+	{TK_ERR, "Bad token"},
 	{TK_NAME, "Name"},
 	{TK_INT,  "Int"},
-	  {TK_TEXT, "Text"}};
+	{TK_TEXT, "Text"}};
 
 std::vector<std::unordered_map<std::string, TokenId> > operatorMap;
 std::unordered_map<std::string, TokenId> keywordMap;
