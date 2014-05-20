@@ -1,4 +1,4 @@
-.PHONY: clean all fast a s
+.PHONY: clean all fast run
 LDFLAGS=$(shell llvm-config --ldflags --libs core jit native engine interpreter)
 CXXFLAGS=-std=c++11 -ggdb -I /usr/include/llvm-3.4/ -I /usr/include/llvm-c-3.4
 
@@ -9,9 +9,11 @@ all: rasmus/AST.hh stdlib.so rm
 
 rasmus/error.o: rasmus/error.cc rasmus/error.hh rasmus/code.hh rasmus/lexer.hh rasmus/ASTBase.hh rasmus/nodetype.hh
 
-
-rm: ${OBJECTS} stdlib.so ${GEN}
+rm: ${GEN} ${OBJECTS}
 	$(CXX) ${OBJECTS} ${LDFLAGS} ${LDFLAGS} -o $@
+
+run: rm stdlib.so
+	./rm
 
 clean:
 	$(RM) ${GEN} rm stdlib.so ${OBJECTS}

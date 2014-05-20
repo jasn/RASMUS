@@ -37,7 +37,7 @@
 #include <llvm/IR/DataLayout.h>
 #include <llvm/PassManager.h>
 #include <llvm/Assembly/PrintModulePass.h>
-
+#include <llvm/IR/Instructions.h>
 namespace {
 using namespace llvm;
 
@@ -64,16 +64,8 @@ llvm::FunctionType * functionType(llvm::Type * ret, std::initializer_list<llvm::
 	return FunctionType::get(ret, ArrayRef<llvm::Type * >(args.begin(), args.end()), false);
 }
 
-
-llvm::Type * anyRetType = structType("AnyRet", {int8Type, int64Type});
+llvm::Type * anyRetType = structType("AnyRet", {int64Type, int8Type});
 llvm::Type * funcBase = structType("FuncBase", {pointerType(voidType), int16Type});
-
-
-// def llvmConstant(t, v):
-//     if t == TBool: return Constant.int(llvmType(t), int(v))
-//     elif t == TInt: return Constant.int(llvmType(t), v)
-//     elif t == TText: return Constant.stringz(v)
-//     raise ICEException("Unhandled type %s"%str(t))
 
 llvm::Type * llvmType(::Type t) {
 	switch (t) {
@@ -116,13 +108,13 @@ llvm::Value * intp(uint32_t value) {
 	return llvm::ConstantInt::get(int32Type, value);
 }
 
-llvm::Type * funcTyp(uint16_t argc) {
+llvm::FunctionType * funcType(uint16_t argc) {
 	std::vector<llvm::Type *> t;
 	t.push_back(pointerType(funcBase));
 	t.push_back(pointerType(anyRetType));
 	for (size_t i=0; i < argc; ++i) {
-		t.push_back(int8Type);
 		t.push_back(int64Type);
+		t.push_back(int8Type);
 	}
 	return llvm::FunctionType::get(voidType, t, false);
 }
@@ -214,7 +206,10 @@ public:
 		{
 			{"rm_print", functionType(voidType, {int8Type, int64Type})},
 			{"rm_concatText", functionType(voidPtrType, {voidPtrType, voidPtrType})},
-			{"rm_getConstText", functionType(voidPtrType, {pointerType(int8Type)})}
+			{"rm_getConstText", functionType(voidPtrType, {pointerType(int8Type)})},
+			{"rm_emitTypeError", functionType(voidType, {int32Type, int32Type, int8Type, int8Type})},
+			{"rm_emitArgCntError", functionType(voidType, {int32Type, int32Type, int16Type, int16Type})},
+			//{"malloc", functionType(int8Type, {int64Type})},
 		};
 
 		for(auto p: fs) {
@@ -235,10 +230,6 @@ public:
 
 //         substringSearchType = Type.function(Type.int(8), [Type.pointer(Type.void()), Type.pointer(Type.void())])
 
-//         typeErrType = Type.function(Type.void(),
-//                                     [Type.int(32), Type.int(32), Type.int(8), Type.int(8)])
-//         argCntErrType = Type.function(Type.void(), 
-//                                         [Type.int(32), Type.int(32), Type.int(16), Type.int(16)])
 
 //         self.innerType = Type.function(Type.void(), [])
 //         interactiveWrapperType = Type.function(Type.int(8), 
@@ -246,10 +237,6 @@ public:
 
 //         fs = [
 //             ('rm_substringSearch', substringSearchType),
-//             ('rm_print',printType), 
-//             ('rm_emitTypeError', typeErrType), 
-//             ('rm_emitArgCntError', argCntErrType),
-//             ('rm_interactiveWrapper', interactiveWrapperType)
 //         ]
              
 //         # Do simple "peephole" optimizations and bit-twiddling optzns.
@@ -311,76 +298,85 @@ public:
 	}
 
 	LLVMVal visit(std::shared_ptr<FuncExp> node) {
-//         # Create function type
-//         funct_type = funcType(len(node.args))
+		// Create function type
+		FunctionType * ft = funcType(node->args.size());
 
-//         # Create function object type
-//         captureType = Type.struct( [
-//             Type.pointer(funct_type), #Function ptr
-//             Type.int(16), # Number of arguments
-//         ] + [llvmType(cap.type) for cap in node.captures])
+		std::vector<llvm::Type *> captureContent = {
+			pointerType(ft), //Function ptr
+			int16Type, //Number Of arguments
+		};
+		// for (auto cap: node->capture)
+		// 	captureContent.push_back(llvmType(cap->type));
+		StructType * captureType = StructType::create(getGlobalContext(), captureContent);
+		
+		//Cache currentFunction
+		auto old_ip = builder.saveIP();
+		Function * old_function = function;
+		
+		std::stringstream ss;
+		ss << "f" << uid++;
 
-//         # Cache current state
-//         f = self.function
-//         b = self.block
-//         bb = self.builder.basic_block
-        
-//         # Name new function and block
-//         name = "f%d"%self.uid
-//         self.uid += 1
-//         self.function = Function.new(self.module, funct_type, name)
-//         self.block = self.function.append_basic_block('entry')
-//         self.builder.position_at_end(self.block)
+		function = Function::Create(ft, Function::InternalLinkage, ss.str(), module);
+		BasicBlock * block = BasicBlock::Create(getGlobalContext(), "entry", function);
+		builder.SetInsertPoint(block);
+		// Setup args		
+		auto & al = function->getArgumentList();   
+		auto arg = al.begin();
+		auto self = &(*arg);
+		++arg;
+		auto ret = &(*arg);
+		++arg;
 
-//         func = self.function
+		self->setName("self");
+		ret->setName("ret");
+		Value * selfv = builder.CreateBitCast(self, pointerType(captureType));
+		for (auto a: node->args) {
+			Value * v = &(*arg);
+			++arg;
+			Value * t = &(*arg);
+			++arg;
+			t->setName("abe");
+			v->setName("kat");
+			// t->setName(std::string("t_")+a->name
+			// v->setName(std::string("v_")+a->name
+			a->llvmVal = cast(LLVMVal(v, t), TAny, a->type, a);
+		}
 
-//         # Setup args
-//         self.function.args[0].name = "self"
-//         self.function.args[1].name = "ret"
-//         selfv = self.builder.bitcast(self.function.args[0], Type.pointer(captureType))
-//         ret = self.function.args[1]
-//         for i in range(len(node.args)):
-//             arg = node.args[i]
-//             arg.value = self.cast(
-//                 (self.function.args[i*2+2], self.function.args[i*2+3]),
-//                 TAny, arg.type, arg)
-//             self.function.args[i*2+2].name = "t_"+arg.name
-//             self.function.args[i*2+3].name = "v_"+arg.name
-
+		std::cout << "C" << std::endl;
+		
 //         for i in range(len(node.captures)):
 //             cap = node.captures[i]
 //             cap.value = self.builder.load(self.builder.gep(selfv, [intp(0), intp(2+i)]))
-                    
-//         # Build function code
-//         x = self.visit(node.body)
-//         t, v = self.cast(x, node.body.type, TAny, node.body)
-//         print node.body.type ,x, t,v
-//         self.builder.store(t, self.builder.gep(ret, [intp(0), intp(0)]))
-//         self.builder.store(v, self.builder.gep(ret, [intp(0), intp(1)]))
-//         self.builder.ret_void()
-//         print self.function
-//         self.function.verify()
-//         self.passMgr.run(self.function)
-
-//         # Revert state
-//         self.function = f
-//         self.block = b
-//         self.builder.position_at_end(bb)
         
-//         # Allocate function object
-//         p = self.builder.malloc(captureType)
+		// Build function code
+		LLVMVal x = cast(visitNode(node->body), node->body->type, TAny, node->body);
+		builder.CreateStore(x.value, builder.CreateConstGEP2_32(ret, 0, 0));
+		builder.CreateStore(x.type, builder.CreateConstGEP2_32(ret, 0, 1));
+		builder.CreateRetVoid();
+		
+		llvm::verifyFunction(*function);
+		function->dump();
+		fpm.run(*function);
 
-//         # Store function ptr
-//         self.builder.store(func, 
-//                            self.builder.gep(p, [intp(0), intp(0)]))
-//         # Store number of arguments
-//         self.builder.store(Constant.int(Type.int(16), len(node.args)), 
-//                            self.builder.gep(p, [intp(0), intp(1)]))
+		// Revert state
+		builder.restoreIP(old_ip);
+		std::swap(function, old_function);
+
+		// auto p = CallInst::CreateMalloc(builder.GetInsertBlock(), int32Type,
+		//  								   captureType, nullptr);
+		
+		// builder.GetInsertBlock()->getInstList().push_back(p);
+		
+		// builder.CreateStore(old_function, builder.CreateConstGEP2_32(p, 0, 0));
+		// builder.CreateStore(ConstantInt::get(int16Type, node->args.size()),
+		// 					builder.CreateConstGEP2_32(p, 0, 1));
+		
 //         # Store captures
 //         for i in range(len(node.captures)):
 //             cap = node.captures[i]
 //             self.builder.store(cap.store.value, self.builder.gep(p, [intp(0), intp(2+i)]))
-//         return p
+		return nullptr;
+		//return LLVMVal(p);
 	}
 	
 	LLVMVal visit(std::shared_ptr<TupExp> node) {
@@ -407,7 +403,7 @@ public:
 		}
 	}
 
-     LLVMVal visit(std::shared_ptr<ConstantExp> node) {
+	LLVMVal visit(std::shared_ptr<ConstantExp> node) {
 		 switch (node->type) {
 		 case TInt:
 			 return LLVMVal(ConstantInt::get(int64Type, node->int_value));
@@ -415,7 +411,6 @@ public:
 			 return LLVMVal(ConstantInt::get(int8Type, node->bool_value?1:0));
 		 case TText:
 		 {
-			 std::cout << "I WAS HERE" << std::endl;
 			 Constant * c = ConstantDataArray::getString(getGlobalContext(), node->txt_value);
 			 GlobalVariable * gv = new GlobalVariable(*module,
 													  c->getType(),
@@ -429,19 +424,17 @@ public:
 		 default:
 			 throw ICEException("Const");
 		 }
-	 }
+	}
 	
 	LLVMVal visit(std::shared_ptr<UnaryOpExp> node) {
-//         if node.token.id == TK_NOT:
-           
-//             v = self.visit(node.exp)
-//             v2 = llvmConstant(TBool, True)
-		//             v3 = self.builder.xor(v, v2)
-//             return self.cast(v3, node.type, TBool, node)
-
-//         elif node.token.id == TK_MINUS:
-//             return self.cast(self.builder.neg(self.visit(node.exp)), node.type, TInt, node)
-//         raise ICEException("Unary")
+		switch (node->opToken.id) {
+		case TK_NOT:
+			return cast(builder.CreateNot(castVisit(node->exp, TBool).value), TBool, node->type, node);
+		case TK_MINUS:
+			return cast(builder.CreateNeg(castVisit(node->exp, TInt).value), TInt, node->type, node);
+		default:
+			throw ICEException("Unhandled unary operator");
+		}
 	}
 
 	LLVMVal visit(std::shared_ptr<RelExp> node) {
@@ -453,6 +446,8 @@ public:
 	}
 
     LLVMVal visit(std::shared_ptr<FuncInvocationExp> node) {
+		return LLVMVal(ConstantInt::get(int64Type, 32));
+		
 //         ft = funcType(len(node.args))
         
 //         capture=self.builder.bitcast(self.cast(self.visit(node.funcExp), node.funcExp.type, 
@@ -686,6 +681,7 @@ public:
 					{TBool, TBool, TBool, &CodeGen::binopEqualBool} ,
 						});
 		case TK_DIFFERENT:
+
 			return binopImpl(node, { 
 					{TInt, TInt, TBool, &CodeGen::binopDifferentInt} ,
 					{TBool, TBool, TBool, &CodeGen::binopDifferentBool} ,
