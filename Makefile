@@ -1,19 +1,25 @@
-.PHONY: clean all fast a s
-all: rasmus/AST.py
+.PHONY: clean all fast run
+LDFLAGS=$(shell llvm-config --ldflags --libs core jit native engine interpreter)
+CXXFLAGS=-std=c++11 -ggdb -I /usr/include/llvm-3.4/ -I /usr/include/llvm-c-3.4
+
+OBJECTS=rasmus/parser.o rasmus/lexer.o rasmus/error.o rasmus/main.o rasmus/charRanges.o rasmus/firstParse.o rasmus/llvmCodeGen.o
+GEN=rasmus/AST.hh rasmus/visitor.hh rasmus/nodetype.hh
+
+all: rasmus/AST.hh stdlib.so rm
+
+rasmus/error.o: rasmus/error.cc rasmus/error.hh rasmus/code.hh rasmus/lexer.hh rasmus/ASTBase.hh rasmus/nodetype.hh
+
+rm: ${GEN} ${OBJECTS}
+	$(CXX) ${OBJECTS} ${LDFLAGS} ${LDFLAGS} -o $@
+
+run: rm stdlib.so
+	./rm
 
 clean:
-	$(RM) rasmus/AST.py RASMUS
+	$(RM) ${GEN} rm stdlib.so ${OBJECTS}
 
-rasmus/AST.py: rasmus/AST.txt rasmus/ASTGen.py
-	(cd rasmus && python ASTGen.py)
+${GEN}: rasmus/AST.txt rasmus/ASTGen.py
+	(cd rasmus && python2 ASTGen.py)
 
-fast: rasmus/AST.py
-	pypy ../pypy/rpython/bin/rpython --no-pdb --no-profile -O 0 --output RASMUS RASMUS.py
-
-a: rasmus/AST.py
-	pypy ../pypy/rpython/bin/rpython --view -a -t --no-profile -O 0 -s RASMUS.py
-
-
-s: rasmus/AST.py
-	pypy ../pypy/rpython/bin/rpython --no-pdb --no-profile -O 0 -s RASMUS.py
-
+stdlib.so: stdlib/error.cc stdlib/print.cc stdlib/text.cc
+	g++ -shared -fPIC $^ -o $@ -std=c++11
