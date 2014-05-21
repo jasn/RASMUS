@@ -150,6 +150,7 @@ public:
 			case TBool:
 				return LLVMVal(builder.CreateZExt(value.value, int64Type), typeRepr(tfrom));
 			case TText:
+			case TFunc:
 				return LLVMVal(builder.CreatePtrToInt(value.value, int64Type), typeRepr(tfrom));
             default:
                 throw ICEException("Unhandled type1");
@@ -173,6 +174,7 @@ public:
 			case TBool:
 				return builder.CreateTruncOrBitCast(value.value, llvmType(tto));
 			case TText:
+			case TFunc:
 				return builder.CreateIntToPtr(value.value, voidPtrType);
 			default:
 				throw ICEException("Unhandled type 2");
@@ -336,21 +338,23 @@ public:
 		builder.restoreIP(old_ip);
 		std::swap(function, old_function);
 
-		// auto p = CallInst::CreateMalloc(builder.GetInsertBlock(), int32Type,
-		//  								   captureType, nullptr);
+
+		/*Type * ty = llvm::Type::getInt32Ty(getGlobalContext());*/
+		Constant* AllocSize = ConstantExpr::getSizeOf(captureType);
+		AllocSize = ConstantExpr::getTruncOrBitCast(AllocSize, int32Type);
+		Instruction * m = CallInst::CreateMalloc(builder.GetInsertBlock(), int32Type, captureType, AllocSize);
+		auto p = builder.Insert(m);
 		
-		// builder.GetInsertBlock()->getInstList().push_back(p);
+		builder.CreateStore(old_function, builder.CreateConstGEP2_32(p, 0, 0));
+		builder.CreateStore(ConstantInt::get(int16Type, node->args.size()),
+							builder.CreateConstGEP2_32(p, 0, 1));
 		
-		// builder.CreateStore(old_function, builder.CreateConstGEP2_32(p, 0, 0));
-		// builder.CreateStore(ConstantInt::get(int16Type, node->args.size()),
-		// 					builder.CreateConstGEP2_32(p, 0, 1));
 		
 //         # Store captures
 //         for i in range(len(node.captures)):
 //             cap = node.captures[i]
 //             self.builder.store(cap.store.value, self.builder.gep(p, [intp(0), intp(2+i)]))
-		return nullptr;
-		throw ICEException("Function expressions not yet implemented");
+		return p;
 	}
 	
 	LLVMVal visit(std::shared_ptr<TupExp> node) {
