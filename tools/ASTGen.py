@@ -1,4 +1,6 @@
 import StringIO
+import sys
+
 nt=file("nodetype.hh","w")
 nt.write("#ifndef __nodetype_HH__\n")
 nt.write("#define __nodetype_HH__\n")
@@ -28,7 +30,7 @@ v.write("\n")
 v.write("\tRT visitNode(NodePtr node) {\n")
 v.write("\t\tswitch(node->nodeType) {\n")
 
-for line in file('AST.txt'):
+for line in open(sys.argv[1], 'r'):
     line = line.strip().split("|")
     className = line[0]
     args = []

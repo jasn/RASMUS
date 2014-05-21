@@ -59,7 +59,7 @@ int main(int argc, char ** argv) {
 		std::cerr << "Could not create engine: " << ErrStr << std::endl;
 	}
 	
-	void * dll = dlopen((std::string(get_current_dir_name())+"/stdlib.so").c_str(), RTLD_NOW | RTLD_LOCAL);
+	void * dll = dlopen((std::string(get_current_dir_name())+"/libstdlib.so").c_str(), RTLD_NOW | RTLD_LOCAL);
 	for (auto & p: cg->stdlib) {
 		void * func = dlsym(dll, p.first.c_str());
 		if (!func) 
