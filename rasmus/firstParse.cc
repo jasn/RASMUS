@@ -519,12 +519,12 @@ public:
             node->type = node->sequence.back()->type;
 	}
     
-    void visit(std::shared_ptr<Exp> node) {
-        scopes.push_back(Scope(node));
-        visitNode(node->exp);
-        scopes.pop_back();
-        node->type = node->exp->type;
-	}
+    // void visit(std::shared_ptr<Exp> node) {
+    //     scopes.push_back(Scope(node));
+    //     visitNode(node->exp);
+    //     scopes.pop_back();
+    //     node->type = node->exp->type;
+	// }
 
 	void visit(std::shared_ptr<Choice> node) {}
 	void visit(std::shared_ptr<FuncCaptureValue> node) {}

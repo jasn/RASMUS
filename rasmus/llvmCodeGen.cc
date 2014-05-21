@@ -208,6 +208,7 @@ public:
 		//fpm.add(createGVNPass());
 		// Simplify the control flow graph (deleting unreachable blocks, etc).
 		//fpm.add(createCFGSimplificationPass());
+		fpm.doInitialization();
 
 		std::vector< std::pair<std::string, FunctionType *> > fs =
 		{
@@ -219,44 +220,9 @@ public:
 			//{"malloc", functionType(int8Type, {int64Type})},
 		};
 
-		for(auto p: fs) {
+		for(auto p: fs)
 			stdlib[p.first] = Function::Create(p.second, Function::ExternalLinkage, p.first, module);
-		}
-
-		fpm.doInitialization();
 	}
-            
-//     def __init__(self, err, code):
-//         self.code = code
-//         self.err = err
-//         self.module = Module.new("Monkey")
-//         #self.module.link_in("stdlib")
-//         self.uid = 0
-//         self.passMgr = FunctionPassManager.new(self.module)
-        
-
-//         substringSearchType = Type.function(Type.int(8), [Type.pointer(Type.void()), Type.pointer(Type.void())])
-
-
-//         self.innerType = Type.function(Type.void(), [])
-//         interactiveWrapperType = Type.function(Type.int(8), 
-//                                                [Type.pointer(Type.int(8)), Type.pointer(self.innerType)])
-
-//         fs = [
-//             ('rm_substringSearch', substringSearchType),
-//         ]
-             
-//         # Do simple "peephole" optimizations and bit-twiddling optzns.
-//         self.passMgr.add(PASS_INSTCOMBINE)
-//         # Reassociate expressions.
-//         self.passMgr.add(PASS_REASSOCIATE)
-//         # Eliminate Common SubExpressions.
-//         self.passMgr.add(PASS_GVN)
-
-//         self.passMgr.add(PASS_DCE)
-//         # Simplify the control flow graph (deleting unreachable blocks, etc).
-//         #self.passMgr.add(PASS_CFG_SIMPLIFICATION)
-//         self.passMgr.initialize()
 
 	LLVMVal visit(std::shared_ptr<VariableExp> node) {
 		NodePtr store(node->store);
@@ -268,7 +234,8 @@ public:
 	}
 
 	LLVMVal visit(std::shared_ptr<IfExp> node) {
-		// TODO I DO NOT WORK FOR ANY TYPE do to value beeing a pair
+		if (node->type == TAny) 
+			throw ICEException("If not implemented for anytype");
 		bool done=false;
 		std::vector<std::pair<LLVMVal, LLVMVal> > hats;
 		LLVMVal val;
@@ -384,7 +351,7 @@ public:
 //             cap = node.captures[i]
 //             self.builder.store(cap.store.value, self.builder.gep(p, [intp(0), intp(2+i)]))
 		return nullptr;
-		//return LLVMVal(p);
+		throw ICEException("Function expressions not yet implemented");
 	}
 	
 	LLVMVal visit(std::shared_ptr<TupExp> node) {
@@ -454,9 +421,8 @@ public:
 	}
 
     LLVMVal visit(std::shared_ptr<FuncInvocationExp> node) {
-		return LLVMVal(ConstantInt::get(int64Type, 32));
-		
-//         ft = funcType(len(node.args))
+		throw ICEException("Func invokation not implemented");
+//        ft = funcType(len(node.args))
         
 //         capture=self.builder.bitcast(self.cast(self.visit(node.funcExp), node.funcExp.type, 
 //                                                TFunc, node.funcExp), 
@@ -507,6 +473,7 @@ public:
 		//				 TBool,
 		//				 node.type,
 		//				 node)
+		throw ICEException("SubstringExp not implemented");
 	}
 
 	LLVMVal visit(std::shared_ptr<RenameExp> node) {
@@ -525,9 +492,9 @@ public:
 		throw ICEException("Project");
 	}
 
-	LLVMVal visit(std::shared_ptr<Exp> node) {
-		return visitNode(node->exp);
-	}
+	// LLVMVal visit(std::shared_ptr<Exp> node) {
+	// 	return visitNode(node->exp);
+	// }
 
 	LLVMVal visit(std::shared_ptr<Choice> node) {throw ICEException("Choice");}
 	LLVMVal visit(std::shared_ptr<FuncCaptureValue> node) {throw ICEException("FuncCaptureValue");}
@@ -709,8 +676,6 @@ public:
 			x=visitNode(n);
 		return x;
 	}
-
-	/*BasicBlock * bb;*/
 	
 	llvm::Function * translate(NodePtr ast) override {
 		size_t id=uid++;
@@ -730,10 +695,7 @@ public:
 	}
 };
 
-
-
 } //nameless namespace
-
 
 std::shared_ptr<LLVMCodeGen> llvmCodeGen(
 	std::shared_ptr<Error> error, std::shared_ptr<Code> code, llvm::Module * module) {

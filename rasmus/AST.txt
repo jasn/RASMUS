@@ -1,3 +1,4 @@
+InvalidExp|
 VariableExp|nameToken|std::weak_ptr<Node> store
 AssignmentExp|nameToken,assignToken,valueExp
 Choice|condition,arrowToken,value
@@ -24,5 +25,3 @@ DotExp|lhs,dotToken,nameToken
 ProjectExp|lhs,projectionToken|TokenList names
 BinaryOpExp|opToken,lhs,rhs
 SequenceExp||NodeList sequence
-InvalidExp|
-Exp|exp

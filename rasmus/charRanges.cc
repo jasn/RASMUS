@@ -141,11 +141,6 @@ public:
 		visitNode(node->exp);
 		node->charRange = u(r(node->atToken), r(node->rparenToken));
 	}
-	
-    void visit(std::shared_ptr<Exp> node) {
-		visitNode(node->exp);
-		node->charRange = node->exp->charRange;
-	}
 
 	void visit(std::shared_ptr<Choice> node) {}
 	void visit(std::shared_ptr<FuncCaptureValue> node) {}
