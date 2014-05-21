@@ -22,6 +22,8 @@
 #include "lexer.hh"
 #include "visitor.hh"
 #include "llvmCodeGen.hh"
+#include <readline/history.h>
+#include <readline/readline.h>
 #include <iostream>
 
 #include <dlfcn.h>
@@ -67,14 +69,17 @@ int main(int argc, char ** argv) {
 		engine->addGlobalMapping(p.second, func);
 	}
 
-	while (std::cin) {
+	while (true) {
 		std::string line;
-		if (!incomplete.empty())
-			std::cout << ".... " << std::flush;
-		else
-			std::cout << ">>>> " << std::flush;
-		std::getline(std::cin, line);
-		if (line.empty()) continue;
+		char * rl = readline(incomplete.empty()?">>>> ":".... ");
+		if (!rl) break;
+		if (!rl[0]) {
+			free(rl); 
+			continue;
+		}
+		add_history(rl);
+		line = rl;
+		free(rl); 
 		
 		l->index = theCode.size();
 

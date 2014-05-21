@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 2.8)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules/")
 
 find_package(LLVM REQUIRED)
+find_package(Readline REQUIRED)
 
 add_custom_command(
   OUTPUT AST.hh visitor.hh nodetype.hh
@@ -13,7 +14,7 @@ add_custom_command(
 
 SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++11" )
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src ${LLVM_INCLUDE_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src ${LLVM_INCLUDE_DIR} ${Readline_INCLUDE_DIR})
 
 add_executable(
   rm
@@ -35,7 +36,7 @@ add_executable(
   src/parser.hh)
 
 link_directories(${LLVM_LIBRARY_DIR})
-target_link_libraries(rm ${LLVM_LFLAGS} ${LLVM_MODULE_LIBS})
+target_link_libraries(rm ${LLVM_LFLAGS} ${LLVM_MODULE_LIBS} ${Readline_LIBRARY})
 
 add_library(stdlib SHARED stdlib/error.cc stdlib/inner.hh stdlib/lib.h stdlib/print.cc stdlib/text.cc)
 
