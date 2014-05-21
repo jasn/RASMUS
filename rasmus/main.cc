@@ -75,6 +75,9 @@ int main(int argc, char ** argv) {
 			std::cout << ">>>> " << std::flush;
 		std::getline(std::cin, line);
 		if (line.empty()) continue;
+		
+		l->index = theCode.size();
+
 		c->set(theCode + incomplete + line);
 		try {
 			size_t errorsPrior = e->count();
@@ -83,7 +86,6 @@ int main(int argc, char ** argv) {
 			
 			Token t1(TK_PRINT, 0, 0);
 			std::shared_ptr<BuiltInExp> t = std::make_shared<BuiltInExp>(t1, Token(TK_RPAREN, 0, 0)); 
-
 			t->args.push_back(r);
 			cr->run(t);
 			fp->run(t);
@@ -92,7 +94,7 @@ int main(int argc, char ** argv) {
 
 			theCode = c->code+"\n";
 			incomplete = "";
-			
+
 			llvm::Function * f = cg->translate(t);
 			f->dump();
 			void * fp = engine->getPointerToFunction(f);

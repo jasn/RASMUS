@@ -93,6 +93,14 @@ llvm::Value * typeRepr(::Type t) {
 }
 	
 llvm::Value * getUndef(::Type t) {
+	switch(t) {
+	case TInt:
+		return llvm::ConstantInt::get(int64Type, std::numeric_limits<int64_t>::max() ); 
+	case TBool:
+		return llvm::ConstantInt::get(int8Type, 2 ); 
+	default:
+		throw ICEException("Unhandled undef");
+	}
 // def genUndef(t):
 //     if t == TBool: return Constant.int(Type.int(8), 255)
 //     elif t == TInt: return Constant.int(Type.int(64), 2**63-1)
@@ -100,7 +108,6 @@ llvm::Value * getUndef(::Type t) {
 //     elif t == TFunc: return Constant.null(Type.pointer(funcBase))
 //     raise ICEException("Unhandled type %s"%str(t))
 	//TODO
-	return NULL;
 }
 
 
@@ -268,6 +275,7 @@ public:
 		for (auto choice: node->choices) {
 			// Evaluate condition and cast value to bool
 			LLVMVal cond = castVisit(choice->condition, TBool);
+
 			//if cond == llvmConstant(TBool, False) or done:
 			//self.err.reportWarning("Branch never taken", choice.arrowToken)
 			//			   continue

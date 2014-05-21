@@ -334,6 +334,7 @@ class LLVMCodeGen(visitor.Visitor):
                            margc,
                            argc])
         self.builder.unreachable()
+        #self.builder.ret(False)
         self.block = nblock
         self.builder.position_at_end(self.block)
 
@@ -351,6 +352,8 @@ class LLVMCodeGen(visitor.Visitor):
         fp = self.builder.bitcast(voidfp, Type.pointer(ft))
         rv = self.builder.call(fp, args)
         
+        # create block that returns 
+
         return (self.builder.load(self.builder.gep(rv, [intp(0), intp(0)])),
                 self.builder.load(self.builder.gep(rv, [intp(0), intp(1)])))
                             
