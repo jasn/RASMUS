@@ -36,7 +36,7 @@ add_executable(
   src/parser.hh)
 
 link_directories(${LLVM_LIBRARY_DIR})
-target_link_libraries(rm ${LLVM_LFLAGS} ${LLVM_MODULE_LIBS} ${Readline_LIBRARY})
+target_link_libraries(rm ${LLVM_LFLAGS} ${LLVM_MODULE_LIBS} ${Readline_LIBRARY} -lncurses -pthread)
 
 add_library(stdlib SHARED stdlib/error.cc stdlib/inner.hh stdlib/lib.h stdlib/print.cc stdlib/text.cc)
 
