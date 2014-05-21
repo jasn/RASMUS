@@ -21,6 +21,9 @@ extern "C" {
     case 1: //Its an Int
       std::cout << v << std::endl;
       break;
+    case 2: //Ints a function:
+      std::cout << "Function(" << v << ")" << std::endl;
+      break;
     case 3: //It's a Text
       rm_printText((rm_object*)v);
       break;
