@@ -109,5 +109,5 @@ int main(int argc, char ** argv) {
 			incomplete = line + "\n";
 		}
 	}
-	std::cout << std::endl;
+	printf("\n");
 }
