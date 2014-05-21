@@ -77,16 +77,17 @@ llvm::Type * llvmType(::Type t) {
 	}
 }
 
+llvm::Value * int8(uint8_t value) {	return llvm::ConstantInt::get(int8Type, value);}
+llvm::Value * int16(uint16_t value) {return llvm::ConstantInt::get(int16Type, value);}
+llvm::Value * int32(uint32_t value) {return llvm::ConstantInt::get(int32Type, value);}
+llvm::Value * int64(uint8_t value) {return llvm::ConstantInt::get(int64Type, value);}
+
 llvm::Value * typeRepr(::Type t) {
 	switch (t) {
-	case TBool:
-		return llvm::ConstantInt::get(int8Type, 0);
-	case TInt:
-		return llvm::ConstantInt::get(int8Type, 1);
-	case TFunc:
-		return llvm::ConstantInt::get(int8Type, 2);
-	case TText:
-		return llvm::ConstantInt::get(int8Type, 3);
+	case TBool: return int8(0);
+	case TInt: return int8(1);
+	case TFunc: return int8(2);
+	case TText: return int8(3);
 	default:
 		throw ICEException(std::string("typeRepr - Unhandled type ") + typeName(t));
 	}
@@ -95,11 +96,11 @@ llvm::Value * typeRepr(::Type t) {
 LLVMVal getUndef(::Type t) {
 	switch(t) {
 	case TInt:
-		return llvm::ConstantInt::get(int64Type, std::numeric_limits<int64_t>::max() ); 
+		return int64(std::numeric_limits<int64_t>::max() ); 
 	case TBool:
-		return llvm::ConstantInt::get(int8Type, 2 ); 
+		return int8(2);
 	case TAny:
-		return LLVMVal(llvm::ConstantInt::get(int64Type, std::numeric_limits<int64_t>::max(), typeRepr(TInt) ) );
+		return LLVMVal(int64(std::numeric_limits<int64_t>::max() ), typeRepr(TInt) ) ;
 	case TFunc:
 		return llvm::Constant::getNullValue(pointerType(funcBase));
 	default:
@@ -108,9 +109,6 @@ LLVMVal getUndef(::Type t) {
 }
 
 
-llvm::Value * intp(uint32_t value) {
-	return llvm::ConstantInt::get(int32Type, value);
-}
 
 llvm::FunctionType * funcType(uint16_t argc) {
 	std::vector<llvm::Type *> t;
@@ -123,21 +121,22 @@ llvm::FunctionType * funcType(uint16_t argc) {
 	return llvm::FunctionType::get(voidType, t, false);
 }
 
-
 class CodeGen: public LLVMCodeGen, public VisitorCRTP<CodeGen, LLVMVal> {
 public:
 	IRBuilder<> builder;
 	size_t uid;
 	Module * module;
-	Function * function;
 	std::shared_ptr<Error> error;
 	std::shared_ptr<Code> code;
 
+	Function * getFunction() {
+		return builder.GetInsertBlock()->getParent();
+	}
 
 	BasicBlock * newBlock() {
 		std::stringstream ss;
 		ss << "b" << uid++;
-		return BasicBlock::Create(getGlobalContext(), ss.str(), function);
+		return BasicBlock::Create(getGlobalContext(), ss.str(), getFunction());
 	}
 	
 	LLVMVal cast(LLVMVal value, ::Type tfrom, ::Type tto, NodePtr node) {
@@ -163,7 +162,7 @@ public:
 			builder.CreateCondBr(builder.CreateICmpEQ(value.type, typeRepr(tto)), nblock, fblock);
 			builder.SetInsertPoint(fblock);
 			builder.CreateCall4(stdlib["rm_emitTypeError"],
-								intp(node->charRange.lo), intp(node->charRange.hi),
+								int32(node->charRange.lo), int32(node->charRange.hi),
 								value.type,
 								typeRepr(tto));
 			builder.CreateUnreachable();
@@ -287,12 +286,11 @@ public:
 		
 		//Cache currentFunction
 		auto old_ip = builder.saveIP();
-		Function * old_function = function;
 		
 		std::stringstream ss;
 		ss << "f" << uid++;
 
-		function = Function::Create(ft, Function::InternalLinkage, ss.str(), module);
+		Function * function = Function::Create(ft, Function::InternalLinkage, ss.str(), module);
 		BasicBlock * block = BasicBlock::Create(getGlobalContext(), "entry", function);
 		builder.SetInsertPoint(block);
 		// Setup args		
@@ -318,8 +316,6 @@ public:
 			a->llvmVal = cast(LLVMVal(v, t), TAny, a->type, a);
 		}
 
-		std::cout << "C" << std::endl;
-		
 //         for i in range(len(node.captures)):
 //             cap = node.captures[i]
 //             cap.value = self.builder.load(self.builder.gep(selfv, [intp(0), intp(2+i)]))
@@ -336,8 +332,6 @@ public:
 
 		// Revert state
 		builder.restoreIP(old_ip);
-		std::swap(function, old_function);
-
 
 		/*Type * ty = llvm::Type::getInt32Ty(getGlobalContext());*/
 		Constant* AllocSize = ConstantExpr::getSizeOf(captureType);
@@ -345,11 +339,9 @@ public:
 		Instruction * m = CallInst::CreateMalloc(builder.GetInsertBlock(), int32Type, captureType, AllocSize);
 		auto p = builder.Insert(m);
 		
-		builder.CreateStore(old_function, builder.CreateConstGEP2_32(p, 0, 0));
-		builder.CreateStore(ConstantInt::get(int16Type, node->args.size()),
-							builder.CreateConstGEP2_32(p, 0, 1));
-		
-		
+		builder.CreateStore(function, builder.CreateConstGEP2_32(p, 0, 0));
+		builder.CreateStore(int16(node->args.size()), builder.CreateConstGEP2_32(p, 0, 1));
+
 //         # Store captures
 //         for i in range(len(node.captures)):
 //             cap = node.captures[i]
@@ -373,7 +365,7 @@ public:
 		{
 			LLVMVal v=castVisit(node->args[0], TAny);
 			builder.CreateCall2(stdlib["rm_print"], v.type, v.value);
-			return ConstantInt::get(int8Type, 1);
+			return int8(1);
 		}
 		break;
 		default:
@@ -384,9 +376,9 @@ public:
 	LLVMVal visit(std::shared_ptr<ConstantExp> node) {
 		 switch (node->type) {
 		 case TInt:
-			 return LLVMVal(ConstantInt::get(int64Type, node->int_value));
+			 return LLVMVal(int64(node->int_value));
 		 case TBool:
-			 return LLVMVal(ConstantInt::get(int8Type, node->bool_value?1:0));
+			 return LLVMVal(int8(node->bool_value?1:0));
 		 case TText:
 		 {
 			 Constant * c = ConstantDataArray::getString(getGlobalContext(), node->txt_value);
@@ -424,48 +416,48 @@ public:
 	}
 
     LLVMVal visit(std::shared_ptr<FuncInvocationExp> node) {
-		throw ICEException("Func invokation not implemented");
-//        ft = funcType(len(node.args))
-        
-//         capture=self.builder.bitcast(self.cast(self.visit(node.funcExp), node.funcExp.type, 
-//                                                TFunc, node.funcExp), 
-//                                      Type.pointer(funcBase))
-//         rv = self.builder.alloca(anyRetType)
+        FunctionType * ft = funcType(node->args.size());
+		
+		Value * capture = builder.CreateBitCast(castVisit(node->funcExp, TFunc).value, pointerType(funcBase));
+		Value * rv = builder.CreateAlloca(anyRetType);
+		
+		std::stringstream ss1;
+		ss1 << "check_fail_" << uid++;
+		BasicBlock * fblock = BasicBlock::Create(getGlobalContext(), ss1.str(), getFunction());
+		
+		std::stringstream ss2;
+		ss2 << "check_succ_" << uid++;
+		BasicBlock * nblock = BasicBlock::Create(getGlobalContext(), ss2.str(), getFunction());
+		
+		Value * argc = builder.CreateLoad(builder.CreateConstGEP2_32(capture, 0, 1));
+		Value * margc = int16(node->args.size());
+		builder.CreateCondBr(builder.CreateICmpEQ(argc, margc), nblock, fblock);
+		
+		builder.SetInsertPoint(fblock);
 
-//         fblock = self.function.append_basic_block('check_fail_%d'%self.uid)
-//         nblock = self.function.append_basic_block('check_succ_%d'%(self.uid+1))
-//         self.uid += 2
-//         argc = self.builder.load(self.builder.gep(capture, [intp(0), intp(1)]))
-//         margc = Constant.int(Type.int(16), len(node.args))
-//         self.builder.cbranch(self.builder.icmp(ICMP_EQ, argc, margc),
-//                              nblock, fblock)
-        
-//         self.builder.position_at_end(fblock)
-//         self.builder.call(self.stdlib['rm_emitArgCntError'],
-//                           [Constant.int(Type.int(32), node.charRange.lo),
-//                            Constant.int(Type.int(32), node.charRange.hi),
-//                            margc,
-//                            argc])
-//         self.builder.unreachable()
-//         self.block = nblock
-//         self.builder.position_at_end(self.block)
+		builder.CreateCall4(stdlib["rm_emitArgCntError"], 
+							int32(node->charRange.lo), 
+							int32(node->charRange.hi),
+							margc, 
+							argc);
+		builder.CreateUnreachable();
 
-//         args = [capture, rv]
+		builder.SetInsertPoint(nblock);
 
-//         for arg in node.args:
-//             argv = self.visit(arg)
-//             if arg.type == TAny:
-//                 args.append(argv[0])
-//                 args.append(argv[1])
-//             else:
-//                 args.append(typeRepr(arg.type))
-//                 args.append(self.builder.bitcast(argv, Type.int(64)))
-//         voidfp = self.builder.load(self.builder.gep(capture, [intp(0), intp(0)]))
-//         fp = self.builder.bitcast(voidfp, Type.pointer(ft))
-//         rv = self.builder.call(fp, args)
-        
-//         return (self.builder.load(self.builder.gep(rv, [intp(0), intp(0)])),
-//                 self.builder.load(self.builder.gep(rv, [intp(0), intp(1)])))
+		std::vector<Value *> args={capture, rv};
+		for (auto arg: node->args) {
+			LLVMVal v=castVisit(arg, TAny);
+			args.push_back(v.value);
+			args.push_back(v.type);
+		}
+
+		Value * voidfp = builder.CreateLoad(builder.CreateConstGEP2_32(capture, 0, 0));
+		Value * fp = builder.CreateBitCast(voidfp, pointerType(ft));
+		builder.CreateCall(fp, args);
+		
+		return LLVMVal(
+			builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)),
+			builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1)));
 	}
 
 	LLVMVal visit(std::shared_ptr<SubstringExp> node) {
@@ -687,9 +679,8 @@ public:
 		builder.SetInsertPoint(block);
 		visitNode(ast);
 		builder.CreateRetVoid();
-		
-		llvm::verifyFunction(*function);
 		function->dump();
+		llvm::verifyFunction(*function);
 		fpm.run(*function);
 		return function;
 	}
