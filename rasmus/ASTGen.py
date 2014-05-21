@@ -14,13 +14,6 @@ v.write("#ifndef __VISITOR_HH__\n")
 v.write("#define __VISITOR_HH__\n")
 v.write("#include \"AST.hh\"\n")
 v.write("\n")
-v.write("template <typename RT>\n")
-v.write("class Visitor {\n")
-v.write("public:\n")
-v.write("  virtual ~Visitor() {};\n")
-v.write("  virtual RT run(NodePtr node) = 0;\n")
-v.write("};\n")
-
 v.write("template <typename child_t, typename RT>\n")
 v.write("class VisitorCRTP {\n")
 v.write("public:\n")
@@ -68,7 +61,7 @@ for line in file('AST.txt'):
         if not t:
             if r.endswith("Token"): t="Token"
             else: t="NodePtr"
-        #if t == "NodePtr" and d==None: //TODO invalidExp
+        if t == "NodePtr" and d == None: d="std::make_shared<InvalidExp>()"
         trem.append((t,r,d))
 
     for t,n in targs:

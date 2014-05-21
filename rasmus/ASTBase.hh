@@ -89,6 +89,12 @@ public:
 };
 typedef std::shared_ptr<Node> NodePtr;
 
+template <typename RT>
+class Visitor {
+public:
+  virtual ~Visitor() {};
+  virtual RT run(NodePtr node) = 0;
+};
 
 #endif //__ast_base_hh__
 
