@@ -92,22 +92,19 @@ llvm::Value * typeRepr(::Type t) {
 	}
 }
 	
-llvm::Value * getUndef(::Type t) {
+LLVMVal getUndef(::Type t) {
 	switch(t) {
 	case TInt:
 		return llvm::ConstantInt::get(int64Type, std::numeric_limits<int64_t>::max() ); 
 	case TBool:
 		return llvm::ConstantInt::get(int8Type, 2 ); 
+	case TAny:
+		return LLVMVal(llvm::ConstantInt::get(int64Type, std::numeric_limits<int64_t>::max(), typeRepr(TInt) ) );
+	case TFunc:
+		return llvm::Constant::getNullValue(pointerType(funcBase));
 	default:
 		throw ICEException("Unhandled undef");
 	}
-// def genUndef(t):
-//     if t == TBool: return Constant.int(Type.int(8), 255)
-//     elif t == TInt: return Constant.int(Type.int(64), 2**63-1)
-//     elif t == TAny: return Constant.int(Type.int(64), 2**63-1)
-//     elif t == TFunc: return Constant.null(Type.pointer(funcBase))
-//     raise ICEException("Unhandled type %s"%str(t))
-	//TODO
 }
 
 
@@ -243,12 +240,14 @@ public:
 			// Evaluate condition and cast value to bool
 			LLVMVal cond = castVisit(choice->condition, TBool);
 
-			//if cond == llvmConstant(TBool, False) or done:
-			//self.err.reportWarning("Branch never taken", choice.arrowToken)
-			//			   continue
-            
-			// if cond == llvmConstant(TBool, True):
-// done = True
+			llvm::ConstantInt * ci = dyn_cast<llvm::ConstantInt>(cond.value);
+			if (done || (ci && ci->isZeroValue())) {
+				error->reportWarning("Branch never taken", choice->arrowToken);
+				continue;
+			}
+			
+			if (ci && !ci->isZeroValue()) 
+				done = true;
 
 			// Evaluate value and cast to result type
 			LLVMVal value = castVisit(choice->value, node->type);
@@ -492,9 +491,6 @@ public:
 		throw ICEException("Project");
 	}
 
-	// LLVMVal visit(std::shared_ptr<Exp> node) {
-	// 	return visitNode(node->exp);
-	// }
 
 	LLVMVal visit(std::shared_ptr<Choice> node) {throw ICEException("Choice");}
 	LLVMVal visit(std::shared_ptr<FuncCaptureValue> node) {throw ICEException("FuncCaptureValue");}
