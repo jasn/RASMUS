@@ -26,9 +26,15 @@ void rm_printRel(rm_object * ptr) {
 		std::cout << "undefined" << std::endl;
 }
 
-void rm_saveRel(rm_object * o, const char * name) {}
+void rm_saveRel(rm_object * o, const char * name) {
+	std::cout << "Save rel " << name << std::endl;
+}
+
 rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs) {return nullptr;}
 rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {return nullptr;}
-rm_object * rm_loadRel(const char * name) {return nullptr;}
+rm_object * rm_loadRel(const char * name) {
+	std::cout << "Load rel " << name << std::endl;
+	return nullptr;
+}
 
 }

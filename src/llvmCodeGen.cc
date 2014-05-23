@@ -263,6 +263,30 @@ public:
 		node->llvmGlobal = gv;
 		builder.CreateStore(v.value,  builder.CreateConstGEP2_32(gv, 0, 0));
 		builder.CreateStore(v.type,  builder.CreateConstGEP2_32(gv, 0, 1));
+
+		
+		std::stringstream ss1;
+		ss1 << "store_rel_" << uid++;
+		BasicBlock * sblock = BasicBlock::Create(getGlobalContext(), ss1.str(), getFunction());
+
+		std::stringstream ss2;
+		ss2 << "continue_" << uid++;
+		BasicBlock * cblock = BasicBlock::Create(getGlobalContext(), ss2.str(), getFunction());
+
+
+		builder.CreateCondBr(builder.CreateICmpEQ(v.type, typeRepr(TRel)), sblock, cblock);
+		builder.SetInsertPoint(sblock);
+		Constant * c = ConstantDataArray::getString(getGlobalContext(), tokenToIdentifier(node->nameToken) );
+		GlobalVariable * ng = new GlobalVariable(*module,
+												 c->getType(),
+												 true,
+												 llvm::GlobalValue::PrivateLinkage,
+												 c);
+		builder.CreateCall2(stdlib["rm_saveRel"], 
+							builder.CreateIntToPtr(v.value, voidPtrType),
+							builder.CreateConstGEP2_32(ng, 0, 0));
+		builder.CreateBr(cblock);
+		builder.SetInsertPoint(cblock);
 		return val;
 	}
 
