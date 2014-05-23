@@ -77,5 +77,11 @@ void rm_emitArgCntError(int32_t start, int32_t end, int16_t got, int16_t expect)
 
 int8_t rm_interactiveWrapper(char * txt, void (* fct)() );
   
+void rm_printRel(rm_object * ptr);
+void rm_saveRel(rm_object * o, const char * name);
+rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs);
+rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs);
+rm_object * rm_loadRel(const char * name);
+
 } //extern C
 #endif //__LIB_H__

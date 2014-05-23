@@ -1,11 +1,12 @@
 #include <iostream>
 #include <stdint.h>
 #include "lib.h"
+#include "type.hh"
 
 extern "C" {
   void rm_print(uint8_t t, int64_t v) {
-    switch (t) {
-    case 0: //It is a Bool
+    switch (Type(t)) {
+    case TBool:
       switch (v) {
       case 0:
 	std::cout << "false" << std::endl;
@@ -18,17 +19,17 @@ extern "C" {
 	break;
       }
       break;
-    case 1: //Its an Int
+    case TInt:
       std::cout << v << std::endl;
       break;
-    case 2: //Ints a function:
-      std::cout << "Function(" << v << ")" << std::endl;
-      break;
-    case 3: //It's a Text
+    case TText: //It's a Text
       rm_printText((rm_object*)v);
       break;
+    case TRel:
+      rm_printRel((rm_object*)v);
+      break;
     default:
-      std::cout << "Unknown type" << std::endl;
+      std::cout << Type(t) << "(" << v << ")" << std::endl;
       break;
     }
   }

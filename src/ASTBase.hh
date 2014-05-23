@@ -25,6 +25,7 @@
 #include <limits>
 #include <ostream>
 #include "nodetype.hh"
+#include "type.hh"
 
 class CharRange {
 public:
@@ -33,40 +34,10 @@ public:
 	CharRange(size_t lo, size_t hi): lo(lo), hi(hi) {}
 };
 
-enum Type {
-	TBool,
-	TInt,
-	TInvalid,
-	TText,
-	TRel,
-	TTup,
-	TFunc,
-	TAny,
-	TAtom,
-	TNAMEQ
-};
-
-inline const char * typeName(Type t) {
-	switch(t) {
-	case TBool: return "TBool";
-	case TInt: return "TInt";
-	case TInvalid: return "TInvalid";
-	case TText: return "TText";
-	case TRel: return "TRel";
-	case TTup: return "TTup";
-	case TFunc: return "TFunc";
-	case TAny: return "TAny";
-	case TAtom: return "TAtom";
-	case TNAMEQ: return "TNAMEQ";
-	}
-}
-
-inline std::ostream & operator<<(std::ostream & o, Type t) {
-	return o << typeName(t);
-}
 
 namespace llvm {
 struct Value;
+struct GlobalVariable;
 };
 
 struct LLVMVal {

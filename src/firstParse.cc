@@ -138,14 +138,14 @@ public:
 				lookedUp = it->second;
 				break;
 			}
-			if (lu.node->nodeType == NodeType::FuncExp)
+			if (lu.node && lu.node->nodeType == NodeType::FuncExp)
 				funcs.push_back(std::static_pointer_cast<FuncExp>(lu.node));
 		}
 
+		// If we cannot find the variable, then it must be an external relation
 		if (!lookedUp) {
-            node->type = TInvalid;
-            error->reportError("Name not found in scope", node->nameToken);
-            return;
+			node->type = TRel;
+			return;
 		}
 
 		// TODO Fixme
@@ -167,6 +167,7 @@ public:
     void visit(std::shared_ptr<AssignmentExp> node) {
         visitNode(node->valueExp);
 		// Possibly check that the type was not changes since the last binding of the same name
+		node->global = !bool(scopes.back().node);
 		scopes.back().bind[tokenToIdentifier(node->nameToken)] = node;
         node->type = node->valueExp->type;
 	}
@@ -535,7 +536,9 @@ public:
 
 	void visit(std::shared_ptr<AtExp> node) {/*TODO*/	}
 
-	virtual void run(NodePtr node) override {visitNode(node);}
+	virtual void run(NodePtr node) override {
+		visitNode(node);
+	}
 
 };
 

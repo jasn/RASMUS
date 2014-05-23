@@ -55,7 +55,7 @@ llvm::Type * int64Type = llvm::Type::getInt64Ty(getGlobalContext());
 llvm::Type * pointerType(llvm::Type * t) {return PointerType::getUnqual(t);}
 llvm::Type * voidPtrType = pointerType(voidType);
 
-llvm::Type * structType(std::string name, 
+llvm::StructType * structType(std::string name, 
 						std::initializer_list<llvm::Type *> types) {
 	return StructType::create(getGlobalContext(), ArrayRef<llvm::Type * >(types.begin(), types.end()), name);
 }
@@ -64,8 +64,8 @@ llvm::FunctionType * functionType(llvm::Type * ret, std::initializer_list<llvm::
 	return FunctionType::get(ret, ArrayRef<llvm::Type * >(args.begin(), args.end()), false);
 }
 
-llvm::Type * anyRetType = structType("AnyRet", {int64Type, int8Type});
-llvm::Type * funcBase = structType("FuncBase", {pointerType(voidType), int16Type});
+llvm::StructType * anyRetType = structType("AnyRet", {int64Type, int8Type});
+llvm::StructType * funcBase = structType("FuncBase", {pointerType(voidType), int16Type});
 
 llvm::Type * llvmType(::Type t) {
 	switch (t) {
@@ -83,14 +83,7 @@ llvm::Value * int32(uint32_t value) {return llvm::ConstantInt::get(int32Type, va
 llvm::Value * int64(uint8_t value) {return llvm::ConstantInt::get(int64Type, value);}
 
 llvm::Value * typeRepr(::Type t) {
-	switch (t) {
-	case TBool: return int8(0);
-	case TInt: return int8(1);
-	case TFunc: return int8(2);
-	case TText: return int8(3);
-	default:
-		throw ICEException(std::string("typeRepr - Unhandled type ") + typeName(t));
-	}
+	return int8(t);
 }
 	
 LLVMVal getUndef(::Type t) {
@@ -107,8 +100,6 @@ LLVMVal getUndef(::Type t) {
 		throw ICEException("Unhandled undef");
 	}
 }
-
-
 
 llvm::FunctionType * funcType(uint16_t argc) {
 	std::vector<llvm::Type *> t;
@@ -142,7 +133,6 @@ public:
 	LLVMVal cast(LLVMVal value, ::Type tfrom, ::Type tto, NodePtr node) {
 		if (tfrom == tto) return value;
 		if (tto == TAny) {
-			std::cout << "I WAS HERE" << std::endl;
 			switch(tfrom) {
 			case TInt:
 				return LLVMVal(value.value, typeRepr(tfrom));
@@ -150,6 +140,7 @@ public:
 				return LLVMVal(builder.CreateZExt(value.value, int64Type), typeRepr(tfrom));
 			case TText:
 			case TFunc:
+			case TRel:
 				return LLVMVal(builder.CreatePtrToInt(value.value, int64Type), typeRepr(tfrom));
             default:
                 throw ICEException("Unhandled type1");
@@ -174,6 +165,7 @@ public:
 				return builder.CreateTruncOrBitCast(value.value, llvmType(tto));
 			case TText:
 			case TFunc:
+			case TRel:
 				return builder.CreateIntToPtr(value.value, voidPtrType);
 			default:
 				throw ICEException("Unhandled type 2");
@@ -215,20 +207,63 @@ public:
 			{"rm_getConstText", functionType(voidPtrType, {pointerType(int8Type)})},
 			{"rm_emitTypeError", functionType(voidType, {int32Type, int32Type, int8Type, int8Type})},
 			{"rm_emitArgCntError", functionType(voidType, {int32Type, int32Type, int16Type, int16Type})},
-			//{"malloc", functionType(int8Type, {int64Type})},
+			{"rm_unionRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
+			{"rm_joinRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
+			{"rm_loadRel", functionType(voidPtrType, {pointerType(int8Type)})},
+			{"rm_saveRel", functionType(voidType, {voidPtrType, pointerType(int8Type)})}
 		};
 
 		for(auto p: fs)
 			stdlib[p.first] = Function::Create(p.second, Function::ExternalLinkage, p.first, module);
 	}
 
+	std::string tokenToIdentifier(Token token) const {
+		return code->code.substr(token.start, token.length);
+	}
+	
 	LLVMVal visit(std::shared_ptr<VariableExp> node) {
-		NodePtr store(node->store);
-		return store->llvmVal;
+		if (NodePtr store = node->store.lock()) {
+			if (store->nodeType != NodeType::AssignmentExp) return store->llvmVal;
+			std::shared_ptr<AssignmentExp> st=std::static_pointer_cast<AssignmentExp>(store);
+			if (!st->global) return store->llvmVal;
+
+			// TODO once we stop using any in assigment I also need to change
+			LLVMVal v(
+				builder.CreateLoad(builder.CreateConstGEP2_32(st->llvmGlobal, 0, 0)),
+				builder.CreateLoad(builder.CreateConstGEP2_32(st->llvmGlobal, 0, 1)));
+			
+			return cast(v, TAny, node->type, node);
+		} else {
+			Constant * c = ConstantDataArray::getString(getGlobalContext(), tokenToIdentifier(node->nameToken) );
+			GlobalVariable * gv = new GlobalVariable(*module,
+													 c->getType(),
+													 true,
+													 llvm::GlobalValue::PrivateLinkage,
+													 c);
+			return builder.CreateCall(
+				stdlib["rm_loadRel"],
+				builder.CreateConstGEP2_32(gv, 0, 0));
+		}
 	}
 	
 	LLVMVal visit(std::shared_ptr<AssignmentExp> node) {
-		return node->llvmVal = visitNode(node->valueExp);
+		LLVMVal val=visitNode(node->valueExp);
+		if (!node->global)
+			return node->llvmVal=val;
+
+		//TODO there is noo need to store every global variable as a any type
+		LLVMVal v=cast(val, node->type, TAny, node);
+
+		GlobalVariable * gv = new GlobalVariable(
+			*module,
+			anyRetType,
+			false,
+			llvm::GlobalValue::PrivateLinkage, 
+			llvm::ConstantStruct::get(anyRetType, int64(0), int8(0), NULL));
+		node->llvmGlobal = gv;
+		builder.CreateStore(v.value,  builder.CreateConstGEP2_32(gv, 0, 0));
+		builder.CreateStore(v.type,  builder.CreateConstGEP2_32(gv, 0, 1));
+		return val;
 	}
 
 	LLVMVal visit(std::shared_ptr<IfExp> node) {
@@ -607,15 +642,29 @@ public:
 	LLVMVal binopOrBool(LLVMVal lhs, LLVMVal rhs) {
 		return builder.CreateOr(lhs.value, rhs.value);
 	}
+
+	LLVMVal binopUnionRel(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateCall2(stdlib["rm_unionRel"], lhs.value, rhs.value);
+	}
+
+	LLVMVal binopJoinRel(LLVMVal lhs, LLVMVal rhs) {
+		return builder.CreateCall2(stdlib["rm_joinRel"], lhs.value, rhs.value);
+	}
 	
 	LLVMVal visit(std::shared_ptr<BinaryOpExp> node) {
 		switch (node->opToken.id) {
 		case TK_CONCAT:
 			return binopImpl(node, { {TText, TText, TText, &CodeGen::binopConcat} });
 		case TK_PLUS:
-			return binopImpl(node, { {TInt, TInt, TInt, &CodeGen::binopAddInt} });
+			return binopImpl(node, { 
+					{TInt, TInt, TInt, &CodeGen::binopAddInt},
+					{TRel, TRel, TRel, &CodeGen::binopUnionRel}
+				});
 		case TK_MUL:
-			return binopImpl(node, { {TInt, TInt, TInt, &CodeGen::binopMulInt} });
+			return binopImpl(node, {
+					{TInt, TInt, TInt, &CodeGen::binopMulInt},
+					{TRel, TRel, TRel, &CodeGen::binopJoinRel}
+				});
 		case TK_MINUS:
 			return binopImpl(node, { {TInt, TInt, TInt, &CodeGen::binopMinusInt} });
 		case TK_DIV:

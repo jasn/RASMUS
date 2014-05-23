@@ -1,6 +1,6 @@
 InvalidExp|
 VariableExp|nameToken|std::weak_ptr<Node> store
-AssignmentExp|nameToken,assignToken,valueExp
+AssignmentExp|nameToken,assignToken,valueExp|bool global=false|llvm::GlobalVariable * llvmGlobal=nullptr
 Choice|condition,arrowToken,value
 IfExp|ifToken|std::vector<std::shared_ptr<Choice>> choices|Token fiToken
 ForallExp|typeToken,lparenToken|NodeList listExps|rparenToken|pipeToken|colonToken|exp|TokenList names
