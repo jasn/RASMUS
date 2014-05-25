@@ -16,12 +16,13 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#include "code.hh"
-#include "error.hh"
-#include "parser.hh"
-#include "lexer.hh"
-#include "visitor.hh"
-#include "llvmCodeGen.hh"
+
+#include <frontend/code.hh>
+#include <frontend/error.hh>
+#include <frontend/parser.hh>
+#include <frontend/lexer.hh>
+#include <frontend/visitor.hh>
+#include <frontend/llvmCodeGen.hh>
 #include <readline/history.h>
 #include <readline/readline.h>
 #include <iostream>

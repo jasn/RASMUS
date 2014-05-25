@@ -1,0 +1,1 @@
+add_library(test SHARED unit.hh unit.cc log.cc log.hh logstream.hh)

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <stdint.h>
 #include "lib.h"
-#include "type.hh"
+#include <shared/type.hh>
 
 extern "C" {
   void rm_print(uint8_t t, int64_t v) {

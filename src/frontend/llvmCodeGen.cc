@@ -17,10 +17,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #include "lexer.hh"
-#include "AST.hh"
+#include <frontend/AST.hh>
 #include "code.hh"
 #include "error.hh"
-#include "visitor.hh"
+#include <frontend/visitor.hh>
 #include "llvmCodeGen.hh"
 #include <sstream>
 #include <iostream>
@@ -210,7 +210,8 @@ public:
 			{"rm_unionRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
 			{"rm_joinRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
 			{"rm_loadRel", functionType(voidPtrType, {pointerType(int8Type)})},
-			{"rm_saveRel", functionType(voidType, {voidPtrType, pointerType(int8Type)})}
+			{"rm_saveRel", functionType(voidType, {voidPtrType, pointerType(int8Type)})},
+			{"rm_substrText", functionType(voidPtrType, {voidPtrType, int64Type, int64Type})}
 		};
 
 		for(auto p: fs)
@@ -520,14 +521,10 @@ public:
 	}
 
 	LLVMVal visit(std::shared_ptr<SubstringExp> node) {
-		LLVMVal a = castVisit(node->fromExp, TText);
-		LLVMVal b = castVisit(node->toExp, TText);
-
-		//return cast(builder.createCall(self.stdlib['rm_substringSearch'], [a, b]),
-		//				 TBool,
-		//				 node.type,
-		//				 node)
-		throw ICEException("SubstringExp not implemented");
+		LLVMVal s = castVisit(node->stringExp, TText);
+		LLVMVal f = castVisit(node->fromExp, TInt);
+		LLVMVal t = castVisit(node->toExp, TInt);
+		return cast(builder.CreateCall3(stdlib["rm_substrText"], s.value, f.value, t.value), TText, node->type, node);
 	}
 
 	LLVMVal visit(std::shared_ptr<RenameExp> node) {

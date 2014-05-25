@@ -16,9 +16,9 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#include "lexer.hh"
-#include "AST.hh"
-#include "visitor.hh"
+#include <frontend/lexer.hh>
+#include <frontend/AST.hh>
+#include <frontend/visitor.hh>
 namespace {
 
 CharRange r(Token t) {

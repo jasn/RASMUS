@@ -20,7 +20,7 @@
 #include <iostream>
 #include <stdexcept>
 #include "lib.h"
-#include "type.hh"
+#include <shared/type.hh>
 
 static char * text;
 

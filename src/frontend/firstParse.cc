@@ -17,13 +17,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #include "lexer.hh"
-#include "AST.hh"
+#include <frontend/AST.hh>
 #include "code.hh"
 #include "error.hh"
 #include <unordered_map>
 #include <sstream>
 #include <iostream>
-#include "visitor.hh"
+#include <frontend/visitor.hh>
 
 namespace {
 

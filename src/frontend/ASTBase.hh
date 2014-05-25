@@ -19,13 +19,13 @@
 #ifndef __ast_base_hh__
 #define __ast_base_hh__
 
-#include "lexer.hh"
+#include <frontend/lexer.hh>
 #include <memory>
 #include <vector>
 #include <limits>
 #include <ostream>
-#include "nodetype.hh"
-#include "type.hh"
+#include <frontend/nodetype.hh>
+#include <shared/type.hh>
 
 class CharRange {
 public:

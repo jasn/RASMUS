@@ -16,26 +16,30 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#ifndef __parser_hh__
-#define  __parser_hh__
+#ifndef __llvmcodegen_hh__
+#define __llvmcodegen_hh__
 
-#include "lexer.hh"
-#include "error.hh"
-#include "AST.hh"
-#include <memory>
+#include <frontend/lexer.hh>
+#include <frontend/AST.hh>
+#include <frontend/error.hh>
+#include <frontend/code.hh>
 
-class IncompleteInputException: public std::exception {
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Module.h>
+#include <unordered_map>
+
+class LLVMCodeGen {
 public:
+	virtual ~LLVMCodeGen() {};
+
+	std::unordered_map<std::string, llvm::Function *> stdlib;
+
+	virtual llvm::Function * translate(NodePtr node) = 0;
 };
 
-class Parser {
-public:
-	virtual ~Parser() {};
-	virtual NodePtr parse() = 0;
-};
+std::shared_ptr<LLVMCodeGen> llvmCodeGen(
+	std::shared_ptr<Error> error, 
+	std::shared_ptr<Code> code, 
+	llvm::Module * module); 
 
-std::shared_ptr<Parser> parser(std::shared_ptr<Lexer> lexer, 
-							   std::shared_ptr<Error> error,
-							   bool interactiveMode=false);
-
-#endif //__parser_hh
+#endif //__llvmcodegen_hh__
