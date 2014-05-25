@@ -1,0 +1,11 @@
+macro(add_unittest NAME)
+  add_executable(ut-${NAME} ${NAME}.cpp common.hh)
+  target_link_libraries(ut-${NAME} test stdlib)
+  #set(MTESTS ${ARGV})
+  #list(REMOVE_AT MTESTS 0)
+  # foreach(TEST ${MTESTS})
+  #   add_test(${NAME}_${TEST} ut-${NAME} ${TEST})
+  # endforeach(TEST)
+endmacro(add_unittest)
+
+#add_unittest(stdlib_text construct concat substring)
