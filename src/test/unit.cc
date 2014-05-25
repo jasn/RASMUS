@@ -163,6 +163,7 @@ tests::tests(int argc, char ** argv)
 
 		if (arg == "-t" || arg == "--time") {
 			do_time=true;
+			continue;
 		}
 
 		if (arg == "-V" || arg == "--version") {
