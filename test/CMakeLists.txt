@@ -10,4 +10,5 @@ endmacro(add_unittest)
 
 add_unittest(stdlib-text construct concat substring)
 add_unittest(frontend-lexer base)
+add_unittest(frontend-parser base)
 
