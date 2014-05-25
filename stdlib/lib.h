@@ -55,6 +55,9 @@ void rm_printText(rm_object * ptr);
  */
 rm_object * rm_concatText(rm_object * p1, rm_object * p2);
 
+rm_object * rm_substrText(rm_object * str, int64_t start, int64_t end);
+
+
 /**
  * Free an arbetrery rasmus object
  * Note that ptr->ref_ctr must be zero
@@ -82,6 +85,8 @@ void rm_saveRel(rm_object * o, const char * name);
 rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs);
 rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs);
 rm_object * rm_loadRel(const char * name);
+rm_object * rm_select(rm_object * rel, rm_object * func);
+
 
 } //extern C
 #endif //__LIB_H__

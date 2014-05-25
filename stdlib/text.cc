@@ -26,19 +26,35 @@ const size_t smallLength = 20;
 namespace {
 
 template <typename T>
-void buildText(rm_object * o, T & out) {
+void buildText(rm_object * o, T & out, size_t start, size_t end) {
 	switch (o->type) {
 	case Type::canonicalText:
-		out(static_cast<CanonicalText*>(o)->data, static_cast<CanonicalText*>(o)->length);
+		out(static_cast<CanonicalText*>(o)->data + start, end - start);
 		break;
 	case Type::smallText:
-		out(static_cast<SmallText*>(o)->data, static_cast<SmallText*>(o)->length);
+		out(static_cast<SmallText*>(o)->data + start, end-start);
 		break;
 	case Type::concatText:
-		buildText(static_cast<ConcatText*>(o)->left.get(), out);
-		buildText(static_cast<ConcatText*>(o)->right.get(), out);
+	{
+		rm_object * l = static_cast<ConcatText*>(o)->left.get();
+		rm_object * r = static_cast<ConcatText*>(o)->right.get();
+		size_t llen = static_cast<TextBase*>(l)->length;
+		if (start >= llen) 
+			buildText(r, out, start - llen, end-llen);
+		else if (end <= llen) 
+			buildText(l, out, start, end);
+		else {
+			buildText(l, out, start, llen);
+			buildText(r, out, 0, end - llen);
+		}
 		break;
-		//TODO substr
+	}
+	case Type::substrText: 
+	{
+		SubstrText * s = static_cast<SubstrText *>(o);
+		buildText(s->content.get(), out, start + s->start, end + s->start);
+		break;
+	}
 	}
 }
 
@@ -71,7 +87,7 @@ const char * canonizeText(rm_object * o) {
 		size_t length=static_cast<TextBase*>(o)->length;
 		char * data=new char[length];
 		MemcpyBuilder builder(data);
-		buildText(o, builder);
+		buildText(o, builder, 0, length);
 		uint32_t rc=o->ref_cnt;
 		static_cast<ConcatText*>(o)->~ConcatText();
 		new(o) CanonicalText(length, data);
@@ -83,7 +99,7 @@ const char * canonizeText(rm_object * o) {
 		size_t length=static_cast<TextBase*>(o)->length;
 		char * data=new char[length];
 		MemcpyBuilder builder(data);
-		buildText(o, builder);
+		buildText(o, builder, 0, length);
 		uint32_t rc=o->ref_cnt;
 		static_cast<ConcatText*>(o)->~ConcatText();
 		new(o) CanonicalText(length, data);
@@ -147,11 +163,24 @@ rm_object * rm_concatText(rm_object *lhs, rm_object *rhs) {
 	if (len <= smallLength) {
 		SmallText * o = makeSmallText(len);
 		MemcpyBuilder builder(o->data);
-		buildText(lhs, builder);
-		buildText(rhs, builder);
+		buildText(lhs, builder, 0, length(lhs));
+		buildText(rhs, builder, 0, length(rhs));
 		return o;
 	}
 	return makeText<ConcatText>(RefPtr(lhs), RefPtr(rhs));
+}
+
+rm_object * rm_substrText(rm_object * str, int64_t start, int64_t end) {
+	size_t len=length(str);
+	start = std::max<int64_t>(0, start);
+	end = std::min<int64_t>(end, len);
+	if (end < start) end=start;
+	if (end - start <= smallLength) {
+		SmallText * o = makeSmallText(end-start);
+		MemcpyBuilder builder(o->data);
+		buildText(str, builder, start, end);
+	}
+	return makeText<SubstrText>(RefPtr(str), (size_t)start, (size_t)end);
 }
 
 int8_t rm_substringSearch(rm_object *lhs, rm_object *rhs) {
@@ -164,7 +193,7 @@ int8_t rm_substringSearch(rm_object *lhs, rm_object *rhs) {
 
 void rm_printText(rm_object * ptr) {
 	OStreamBuilder b(std::cout);
-	buildText(ptr, b);
+	buildText(ptr, b, 0, length(ptr) );
 	std::cout << std::endl;
 }
 
