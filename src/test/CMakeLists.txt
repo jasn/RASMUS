@@ -1,1 +1,1 @@
-add_library(test SHARED unit.hh unit.cc log.cc log.hh logstream.hh logstream.cc)
+add_library(testlib SHARED unit.hh unit.cc log.cc log.hh logstream.hh logstream.cc)

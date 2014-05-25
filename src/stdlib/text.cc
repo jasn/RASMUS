@@ -198,3 +198,10 @@ void rm_printText(rm_object * ptr) {
 }
 
 }
+
+std::string rm_textToString(rm_object * ptr) {
+	std::string text(' ', length(ptr));
+	MemcpyBuilder builder(&text[0]);
+	buildText(ptr, builder, 0, text.size());
+	return text;
+}
