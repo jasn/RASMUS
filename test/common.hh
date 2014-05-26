@@ -24,5 +24,13 @@
 #include <test/unit.hh>
 #include <test/log.hh>
 
+#define ENSURE_COMP(a, b, COMP) if (a COMP b) {							\
+		rasmus::log_error() << "Line: " <<  __LINE__ << ": Got " << a << " expected " << b << std::endl; \
+	return false; \
+	}
+
+#define ENSURE_NEQ(a, b) ENSURE_COMP(a, b, ==)
+#define ENSURE_EQ(a, b) ENSURE_COMP(a, b, !=)
+
 
 #endif //__COMMON_HH__

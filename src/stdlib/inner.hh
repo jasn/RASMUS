@@ -19,6 +19,7 @@
 #ifndef __INNER_HH__
 #define __INNER_HH__
 #include "lib.h"
+#include <utility>
 
 enum class Type: uint16_t {
 	smallText, concatText, substrText, canonicalText
@@ -94,7 +95,7 @@ struct ConcatText: public TextBase {
 		TextBase(Type::concatText, 
 				 static_cast<TextBase*>(left.get())->length +
 				 static_cast<TextBase*>(right.get())->length),
-		left(left), right(right) {}
+		left(std::move(left)), right(std::move(right)) {}
 	const RefPtr left;
 	const RefPtr right;
 };
@@ -102,7 +103,7 @@ struct ConcatText: public TextBase {
 struct SubstrText: public TextBase {
 	SubstrText(RefPtr content, size_t start, size_t end):
 		TextBase(Type::substrText, end-start),
-		content(content),
+		content(std::move(content)),
 		start(start) {}
 	
 	const RefPtr content;

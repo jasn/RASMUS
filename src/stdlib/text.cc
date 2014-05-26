@@ -114,6 +114,8 @@ template <typename T, typename ...TS>
 T * makeText(TS &&... ts) {
 	T * o=reinterpret_cast<T *>(operator new(std::max(sizeof(ConcatText), std::max(sizeof(SubstrText), sizeof(CanonicalText)))));
 	new(o) T(std::forward<TS>(ts)...);
+	o->incref();
+	return o;
 }
 
 SmallText * makeSmallText(size_t len) {
@@ -146,6 +148,7 @@ void rm_free(rm_object * o) {
 	case Type::substrText:
 		static_cast<SubstrText*>(o)->~SubstrText();
 		operator delete(reinterpret_cast<void *>(o));
+		break;
 	case Type::smallText:
 		static_cast<SmallText*>(o)->~SmallText();
 		operator delete(reinterpret_cast<void *>(o));
@@ -181,6 +184,7 @@ rm_object * rm_substrText(rm_object * str, int64_t start, int64_t end) {
 		SmallText * o = makeSmallText(end-start);
 		MemcpyBuilder builder(o->data);
 		buildText(str, builder, start, end);
+		return o;
 	}
 	return makeText<SubstrText>(RefPtr(str), (size_t)start, (size_t)end);
 }
