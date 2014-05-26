@@ -55,8 +55,8 @@ llvm::Type * int8Type = llvm::Type::getInt8Ty(getGlobalContext());
 llvm::Type * int16Type = llvm::Type::getInt16Ty(getGlobalContext());
 llvm::Type * int32Type = llvm::Type::getInt32Ty(getGlobalContext());
 llvm::Type * int64Type = llvm::Type::getInt64Ty(getGlobalContext());
-llvm::Type * pointerType(llvm::Type * t) {return PointerType::getUnqual(t);}
-llvm::Type * voidPtrType = pointerType(int8Type);
+llvm::PointerType * pointerType(llvm::Type * t) {return PointerType::getUnqual(t);}
+llvm::PointerType * voidPtrType = pointerType(int8Type);
 
 llvm::StructType * structType(std::string name, 
 						std::initializer_list<llvm::Type *> types) {
@@ -87,10 +87,10 @@ llvm::Type * llvmType(::Type t) {
 	}
 }
 
-llvm::Value * int8(uint8_t value) {	return llvm::ConstantInt::get(int8Type, value);}
-llvm::Value * int16(uint16_t value) {return llvm::ConstantInt::get(int16Type, value);}
-llvm::Value * int32(uint32_t value) {return llvm::ConstantInt::get(int32Type, value);}
-llvm::Value * int64(uint8_t value) {return llvm::ConstantInt::get(int64Type, value);}
+llvm::Constant * int8(uint8_t value) {	return llvm::ConstantInt::get(int8Type, value);}
+llvm::Constant * int16(uint16_t value) {return llvm::ConstantInt::get(int16Type, value);}
+llvm::Constant * int32(uint32_t value) {return llvm::ConstantInt::get(int32Type, value);}
+llvm::Constant * int64(uint8_t value) {return llvm::ConstantInt::get(int64Type, value);}
 
 llvm::Value * typeRepr(::Type t) {
 	return int8(t);
@@ -369,8 +369,6 @@ public:
 		vv.owned=false;
 	}
 		
-
-
 	
 	LLVMVal visit(std::shared_ptr<VariableExp> node) {
 		if (NodePtr store = node->store.lock()) {
@@ -378,12 +376,7 @@ public:
 			std::shared_ptr<AssignmentExp> st=std::static_pointer_cast<AssignmentExp>(store);
 			if (!st->global) return borrow(store->llvmVal);
 
-			// TODO once we stop using any in assigment I also need to change
-			LLVMVal v(
-				builder.CreateLoad(builder.CreateConstGEP2_32(st->llvmGlobal, 0, 0)),
-				builder.CreateLoad(builder.CreateConstGEP2_32(st->llvmGlobal, 0, 1)),
-				false);
-			return cast(v, TAny, node->type, node);
+			return cast(loadValue(st->llvmGlobal, {0}, store->type), store->type, node->type, node);
 		} else {
 			Constant * c = ConstantDataArray::getString(getGlobalContext(), tokenToIdentifier(node->nameToken) );
 			GlobalVariable * gv = new GlobalVariable(*module,
@@ -391,54 +384,92 @@ public:
 													 true,
 													 llvm::GlobalValue::PrivateLinkage,
 													 c);
-			return borrowed(builder.CreateCall(
-								stdlib["rm_loadRel"],
-								builder.CreateConstGEP2_32(gv, 0, 0)));
+			return owned(builder.CreateCall(
+							 stdlib["rm_loadRel"],
+							 builder.CreateConstGEP2_32(gv, 0, 0)));
 		}
 	} 
 	
 	LLVMVal visit(std::shared_ptr<AssignmentExp> node) {
-		LLVMVal val=takeOwnership(visitNode(node->valueExp), node->type);
-		if (!node->global)
-			return node->llvmVal=std::move(val);
+		LLVMVal val = castVisit(node->valueExp, node->type);
+		if (!node->global) {
+			node->llvmVal=takeOwnership(borrow(val), node->type);
+			return val;
+		}
+		
+		Constant * c;
+		switch (node->type) {
+		case TAny:
+			c = llvm::ConstantStruct::get(anyRetType, int64(0), int8(0), NULL);
+			break;
+		case TBool:
+			c = int8(0);
+			break;
+		case TInt:
+			c = int64(0);
+			break;
+		case TText:
+		case TRel:
+			c = ConstantPointerNull::get(voidPtrType);
+			break;
+		case TFunc:
+			c = ConstantPointerNull::get(pointerType(funcBase));
+			break;
+		}
 
-		//TODO there is noo need to store every global variable as a any type
-		LLVMVal v=cast(std::move(val), node->type, TAny, node);
 
 		GlobalVariable * gv = new GlobalVariable(
 			*module,
-			anyRetType,
+			llvmType(node->type),
 			false,
-			llvm::GlobalValue::PrivateLinkage, 
-			llvm::ConstantStruct::get(anyRetType, int64(0), int8(0), NULL));
+			llvm::GlobalValue::PrivateLinkage,
+			c);
 		node->llvmGlobal = gv;
-		builder.CreateStore(v.value,  builder.CreateConstGEP2_32(gv, 0, 0));
-		builder.CreateStore(v.type,  builder.CreateConstGEP2_32(gv, 0, 1));
-		assert(v.owned);
-		v.owned = false;
 		
-		std::stringstream ss1;
-		ss1 << "store_rel_" << uid++;
-		BasicBlock * sblock = BasicBlock::Create(getGlobalContext(), ss1.str(), getFunction());
-
-		std::stringstream ss2;
-		ss2 << "continue_" << uid++;
-		BasicBlock * cblock = BasicBlock::Create(getGlobalContext(), ss2.str(), getFunction());
-
-
-		builder.CreateCondBr(builder.CreateICmpEQ(v.type, typeRepr(TRel)), sblock, cblock);
-		builder.SetInsertPoint(sblock);
-		Constant * c = ConstantDataArray::getString(getGlobalContext(), tokenToIdentifier(node->nameToken) );
-		GlobalVariable * ng = new GlobalVariable(*module,
-												 c->getType(),
-												 true,
-												 llvm::GlobalValue::PrivateLinkage,
-												 c);
-		builder.CreateCall2(stdlib["rm_saveRel"], 
-							builder.CreateIntToPtr(v.value, voidPtrType),
-							builder.CreateConstGEP2_32(ng, 0, 0));
-		builder.CreateBr(cblock);
-		builder.SetInsertPoint(cblock);
+		saveValue(gv, {0}, borrow(val), node->type);
+		switch (node->type) {
+		case TRel:
+		{
+			Constant * c = ConstantDataArray::getString(getGlobalContext(), tokenToIdentifier(node->nameToken) );
+			GlobalVariable * ng = new GlobalVariable(*module,
+													 c->getType(),
+													 true,
+													 llvm::GlobalValue::PrivateLinkage,
+													 c);
+			builder.CreateCall2(stdlib["rm_saveRel"], 
+								builder.CreateIntToPtr(val.value, voidPtrType),
+								builder.CreateConstGEP2_32(ng, 0, 0));
+			break;
+		}
+		case TAny:
+		{
+			std::stringstream ss1;
+			ss1 << "store_rel_" << uid++;
+			BasicBlock * sblock = BasicBlock::Create(getGlobalContext(), ss1.str(), getFunction());
+			
+			std::stringstream ss2;
+			ss2 << "continue_" << uid++;
+			BasicBlock * cblock = BasicBlock::Create(getGlobalContext(), ss2.str(), getFunction());
+			
+			
+			builder.CreateCondBr(builder.CreateICmpEQ(val.type, typeRepr(TRel)), sblock, cblock);
+			builder.SetInsertPoint(sblock);
+			Constant * c = ConstantDataArray::getString(getGlobalContext(), tokenToIdentifier(node->nameToken) );
+			GlobalVariable * ng = new GlobalVariable(*module,
+													 c->getType(),
+													 true,
+													 llvm::GlobalValue::PrivateLinkage,
+													 c);
+			builder.CreateCall2(stdlib["rm_saveRel"], 
+								builder.CreateIntToPtr(val.value, voidPtrType),
+								builder.CreateConstGEP2_32(ng, 0, 0));
+			builder.CreateBr(cblock);
+			builder.SetInsertPoint(cblock);
+			break;
+		}
+		default:
+			break;
+		}
 		return val;
 	}
 
