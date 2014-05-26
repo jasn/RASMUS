@@ -20,15 +20,12 @@
 #define __INNER_HH__
 #include "lib.h"
 #include <utility>
-
-enum class Type: uint16_t {
-	smallText, concatText, substrText, canonicalText
-};
+#include <shared/type.hh>
 
 struct rm_object {
 	uint32_t ref_cnt;
-	const Type type;
-	rm_object(Type type): ref_cnt(0), type(type) {}
+	const LType type;
+	rm_object(LType type): ref_cnt(0), type(type) {}
 
 	void incref()  {ref_cnt++;}
 	
@@ -38,6 +35,11 @@ struct rm_object {
 	}
 };
 
+struct function_object: public rm_object {
+	uint16_t argcnt;
+	void (*dtor)(function_object * object);
+	void * func;
+};
 
 class RefPtr {
 public:
@@ -81,18 +83,18 @@ private:
 
 struct TextBase: public rm_object {
 	const size_t length;
-	TextBase(Type type, size_t length):
+	TextBase(LType type, size_t length):
 		rm_object(type), length(length) {}
 };
 
 struct SmallText: public TextBase {
-	SmallText(size_t length): TextBase(Type::smallText, length) {}
+	SmallText(size_t length): TextBase(LType::smallText, length) {}
 	char data[0];
 };
 
 struct ConcatText: public TextBase {
 	ConcatText(RefPtr left, RefPtr right): 
-		TextBase(Type::concatText, 
+		TextBase(LType::concatText, 
 				 static_cast<TextBase*>(left.get())->length +
 				 static_cast<TextBase*>(right.get())->length),
 		left(std::move(left)), right(std::move(right)) {}
@@ -102,7 +104,7 @@ struct ConcatText: public TextBase {
 
 struct SubstrText: public TextBase {
 	SubstrText(RefPtr content, size_t start, size_t end):
-		TextBase(Type::substrText, end-start),
+		TextBase(LType::substrText, end-start),
 		content(std::move(content)),
 		start(start) {}
 	
@@ -111,10 +113,10 @@ struct SubstrText: public TextBase {
 };
 
 struct CanonicalText: public TextBase {
-	CanonicalText(size_t length): TextBase(Type::canonicalText, length), data(nullptr) {
+	CanonicalText(size_t length): TextBase(LType::canonicalText, length), data(nullptr) {
 		data=new char[length];
 	}
-	CanonicalText(size_t length, char * data): TextBase(Type::canonicalText, length), data(data) {}
+	CanonicalText(size_t length, char * data): TextBase(LType::canonicalText, length), data(data) {}
 	
 	~CanonicalText() {
 		delete[] data;

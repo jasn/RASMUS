@@ -28,13 +28,13 @@ namespace {
 template <typename T>
 void buildText(rm_object * o, T & out, size_t start, size_t end) {
 	switch (o->type) {
-	case Type::canonicalText:
+	case LType::canonicalText:
 		out(static_cast<CanonicalText*>(o)->data + start, end - start);
 		break;
-	case Type::smallText:
+	case LType::smallText:
 		out(static_cast<SmallText*>(o)->data + start, end-start);
 		break;
-	case Type::concatText:
+	case LType::concatText:
 	{
 		rm_object * l = static_cast<ConcatText*>(o)->left.get();
 		rm_object * r = static_cast<ConcatText*>(o)->right.get();
@@ -49,7 +49,7 @@ void buildText(rm_object * o, T & out, size_t start, size_t end) {
 		}
 		break;
 	}
-	case Type::substrText: 
+	case LType::substrText: 
 	{
 		SubstrText * s = static_cast<SubstrText *>(o);
 		buildText(s->content.get(), out, start + s->start, end + s->start);
@@ -78,11 +78,11 @@ struct OStreamBuilder {
  */
 const char * canonizeText(rm_object * o) {
 	switch (o->type) {
-	case Type::canonicalText:
+	case LType::canonicalText:
 		return static_cast<CanonicalText*>(o)->data;
-	case Type::smallText:
+	case LType::smallText:
 		return static_cast<SmallText*>(o)->data;
-	case Type::concatText:
+	case LType::concatText:
 	{
 		size_t length=static_cast<TextBase*>(o)->length;
 		char * data=new char[length];
@@ -94,7 +94,7 @@ const char * canonizeText(rm_object * o) {
 		o->ref_cnt=rc;
 		return data;
 	}
-	case Type::substrText:
+	case LType::substrText:
 	{
 		size_t length=static_cast<TextBase*>(o)->length;
 		char * data=new char[length];
@@ -137,22 +137,33 @@ extern "C" {
 
 void rm_free(rm_object * o) {
 	switch (o->type) {
-	case Type::canonicalText:
+	case LType::canonicalText:
+		std::cout << "free(canonicalText)" << std::endl;
 		static_cast<CanonicalText*>(o)->~CanonicalText();
 		operator delete(reinterpret_cast<void *>(o));
 		break;
-	case Type::concatText:
+	case LType::concatText:
+		std::cout << "free(concatText)" << std::endl;
 		static_cast<ConcatText*>(o)->~ConcatText();
 		operator delete(reinterpret_cast<void *>(o));
 		break;
-	case Type::substrText:
+	case LType::substrText:
+		std::cout << "free(substrText)" << std::endl;
 		static_cast<SubstrText*>(o)->~SubstrText();
 		operator delete(reinterpret_cast<void *>(o));
 		break;
-	case Type::smallText:
+	case LType::smallText:
+		std::cout << "free(smallText)" << std::endl;
 		static_cast<SmallText*>(o)->~SmallText();
 		operator delete(reinterpret_cast<void *>(o));
 		break;
+	case LType::function: 
+	{		
+		std::cout << "free(function)" << std::endl;
+		function_object * fo = static_cast<function_object*>(o);
+		fo->dtor(fo);
+		::free(fo); //Functions are allocated with malloc by the codegen
+	}
 	}
 }
 

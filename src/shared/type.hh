@@ -18,18 +18,24 @@
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __type_hh__
 #define __type_hh__
+#include <cstdint>
+#include <ostream>
+
+enum class LType: std::uint16_t {
+	smallText, concatText, substrText, canonicalText, function
+};
 
 enum Type {
-	TBool,
-	TInt,
-	TInvalid,
+	TBool=0,
+	TInt=1,
 	TText,
 	TRel,
 	TTup,
 	TFunc,
+	TInvalid,
 	TAny,
 	TAtom,
-	TNAMEQ
+	TNAMEQ,
 };
 
 inline const char * typeName(Type t) {

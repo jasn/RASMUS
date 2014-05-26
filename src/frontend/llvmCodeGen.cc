@@ -38,14 +38,17 @@
 #include <llvm/PassManager.h>
 #include <llvm/Assembly/PrintModulePass.h>
 #include <llvm/IR/Instructions.h>
+
+#include <llvm/Transforms/Scalar.h>
+#include <llvm/Analysis/Passes.h>
+
+
 namespace {
 using namespace llvm;
 
-class ICEException: public std::runtime_error {
-public:
-	ICEException(const std::string & msg): std::runtime_error(msg) {}
-};
-
+LLVMVal owned(llvm::Value * value, llvm::Value * type = nullptr) {return LLVMVal(value, type, true);}
+LLVMVal borrowed(llvm::Value * value, llvm::Value * type = nullptr) {return LLVMVal(value, type, false);}
+LLVMVal borrow(const LLVMVal & v) {return LLVMVal(v.value, v.type, false);}
 
 llvm::Type * voidType = llvm::Type::getVoidTy(getGlobalContext());
 llvm::Type * int8Type = llvm::Type::getInt8Ty(getGlobalContext());
@@ -53,7 +56,7 @@ llvm::Type * int16Type = llvm::Type::getInt16Ty(getGlobalContext());
 llvm::Type * int32Type = llvm::Type::getInt32Ty(getGlobalContext());
 llvm::Type * int64Type = llvm::Type::getInt64Ty(getGlobalContext());
 llvm::Type * pointerType(llvm::Type * t) {return PointerType::getUnqual(t);}
-llvm::Type * voidPtrType = pointerType(voidType);
+llvm::Type * voidPtrType = pointerType(int8Type);
 
 llvm::StructType * structType(std::string name, 
 						std::initializer_list<llvm::Type *> types) {
@@ -64,8 +67,11 @@ llvm::FunctionType * functionType(llvm::Type * ret, std::initializer_list<llvm::
 	return FunctionType::get(ret, ArrayRef<llvm::Type * >(args.begin(), args.end()), false);
 }
 
+llvm::FunctionType * dtorType = functionType(voidType, {voidPtrType});;
 llvm::StructType * anyRetType = structType("AnyRet", {int64Type, int8Type});
-llvm::StructType * funcBase = structType("FuncBase", {pointerType(voidType), int16Type});
+llvm::StructType * funcBase = structType("FuncBase", {int32Type, int16Type, int16Type, voidPtrType, voidPtrType} );;
+llvm::StructType * objectBaseType = structType("ObjectBase", {int32Type, int16Type});
+
 
 llvm::Type * llvmType(::Type t) {
 	switch (t) {
@@ -89,13 +95,13 @@ llvm::Value * typeRepr(::Type t) {
 LLVMVal getUndef(::Type t) {
 	switch(t) {
 	case TInt:
-		return int64(std::numeric_limits<int64_t>::max() ); 
+		return borrowed(int64(std::numeric_limits<int64_t>::max()) );
 	case TBool:
-		return int8(2);
+		return borrowed(int8(2));
 	case TAny:
-		return LLVMVal(int64(std::numeric_limits<int64_t>::max() ), typeRepr(TInt) ) ;
+		return borrowed(int64(std::numeric_limits<int64_t>::max() ), typeRepr(TInt));
 	case TFunc:
-		return llvm::Constant::getNullValue(pointerType(funcBase));
+		return borrowed(llvm::Constant::getNullValue(pointerType(funcBase)));
 	default:
 		throw ICEException("Unhandled undef");
 	}
@@ -129,19 +135,108 @@ public:
 		ss << "b" << uid++;
 		return BasicBlock::Create(getGlobalContext(), ss.str(), getFunction());
 	}
-	
+
+
+	void abandon(LLVMVal & value, ::Type type) {
+		if (!value.owned) return;
+		value.owned=false;
+		switch (type) {
+		case TInt:
+		case TBool:
+			break;
+		case TFunc:
+		case TRel:
+		case TText:
+		{
+			//TODO CHECK FOR NULLPTR
+			BasicBlock * b1 = newBlock();
+			BasicBlock * b2 = newBlock();
+			Value * v = builder.CreatePointerCast(value.value, pointerType(objectBaseType));
+			Value * rc = builder.CreateSub(builder.CreateLoad(builder.CreateConstGEP2_32(v, 0, 0)), int32(1));
+			builder.CreateStore(rc, builder.CreateConstGEP2_32(v, 0, 0));
+			builder.CreateCondBr(builder.CreateICmpEQ(rc, int32(0)), b1, b2);
+			builder.SetInsertPoint(b1);
+			builder.CreateCall(stdlib["rm_free"], builder.CreatePointerCast(value.value, voidPtrType));
+			builder.CreateBr(b2);
+			builder.SetInsertPoint(b2);
+		}
+			break;
+		case TAny:
+		{
+			//TODO CHECK FOR NULLPTR
+			BasicBlock * b1 = newBlock();
+			BasicBlock * b2 = newBlock();
+			BasicBlock * b3 = newBlock();
+			builder.CreateCondBr(builder.CreateICmpUGE(value.type, int8((int)TText)), b1, b3);
+			builder.SetInsertPoint(b1);
+			Value * p = builder.CreateIntToPtr(value.value, voidPtrType);
+			Value * v = builder.CreatePointerCast(p, pointerType(objectBaseType));
+			Value * rc = builder.CreateSub(builder.CreateLoad(builder.CreateConstGEP2_32(v, 0, 0)), int32(1));
+			builder.CreateStore(rc, builder.CreateConstGEP2_32(v, 0, 0));
+			builder.CreateCondBr(builder.CreateICmpEQ(rc, int32(0)), b2, b3);
+			builder.SetInsertPoint(b2);
+			builder.CreateCall(stdlib["rm_free"], p);
+			builder.CreateBr(b3);
+			builder.SetInsertPoint(b3);
+			break;
+		}
+		default:
+			throw ICEException("Unhandled type in abandon");
+		}
+	}
+
+	LLVMVal takeOwnership(LLVMVal value, ::Type type) {
+		if (value.owned) return value;
+		value.owned = true;
+		switch (type) {
+		case TInt:
+		case TBool:
+			break;
+		case TFunc:
+		case TRel:
+		case TText:
+		{
+			//TODO CHECK FOR NULLPTR
+			Value * v = builder.CreatePointerCast(value.value, pointerType(objectBaseType));
+			Value * rc = builder.CreateAdd(builder.CreateLoad(builder.CreateConstGEP2_32(v, 0, 0)), int32(1));
+			builder.CreateStore(rc, builder.CreateConstGEP2_32(v, 0, 0));
+			break;
+		}
+		case TAny:
+		{
+			//TODO CHECK FOR NULLPTR
+			BasicBlock * b1 = newBlock();
+			BasicBlock * b2 = newBlock();
+			builder.CreateCondBr(builder.CreateICmpUGE(value.type, int8((int)TText)), b1, b2);
+			builder.SetInsertPoint(b1);
+			Value * p = builder.CreateIntToPtr(value.value, voidPtrType);
+			Value * v = builder.CreatePointerCast(p, pointerType(objectBaseType));
+			Value * rc = builder.CreateAdd(builder.CreateLoad(builder.CreateConstGEP2_32(v, 0, 0)), int32(1));
+			builder.CreateStore(rc, builder.CreateConstGEP2_32(v, 0, 0));
+			builder.CreateBr(b2);
+			builder.SetInsertPoint(b2);
+			break;
+		}
+		default:
+			throw ICEException("Unhandled type in takeOwnership");
+		}
+		return value;
+	}
+			
 	LLVMVal cast(LLVMVal value, ::Type tfrom, ::Type tto, NodePtr node) {
-		if (tfrom == tto) return value;
+		bool owned=value.owned;
+		value.owned=false;
+		if (tfrom == tto) return LLVMVal(value.value, value.type, owned);
 		if (tto == TAny) {
 			switch(tfrom) {
 			case TInt:
-				return LLVMVal(value.value, typeRepr(tfrom));
+				return LLVMVal(value.value, typeRepr(tfrom), owned);
 			case TBool:
-				return LLVMVal(builder.CreateZExt(value.value, int64Type), typeRepr(tfrom));
+				return LLVMVal(builder.CreateZExt(value.value, int64Type), typeRepr(tfrom), owned);
 			case TText:
 			case TFunc:
 			case TRel:
-				return LLVMVal(builder.CreatePtrToInt(value.value, int64Type), typeRepr(tfrom));
+				return LLVMVal(builder.CreatePtrToInt(value.value, int64Type), typeRepr(tfrom), owned);
             default:
                 throw ICEException("Unhandled type1");
 			};
@@ -160,13 +255,13 @@ public:
 			builder.SetInsertPoint(nblock);
 			switch (tto) {
 			case TInt:
-				return value.value;
+				return LLVMVal(value.value, owned);
 			case TBool:
-				return builder.CreateTruncOrBitCast(value.value, llvmType(tto));
+				return LLVMVal(builder.CreateTruncOrBitCast(value.value, llvmType(tto)), owned);
 			case TText:
 			case TFunc:
 			case TRel:
-				return builder.CreateIntToPtr(value.value, voidPtrType);
+				return LLVMVal(builder.CreateIntToPtr(value.value, voidPtrType), owned);
 			default:
 				throw ICEException("Unhandled type 2");
 			}
@@ -176,7 +271,6 @@ public:
 			throw ICEException("Unhandled type 3");
 		throw ICEException("Unhandled type 4");
 	}
-
 	
 	LLVMVal castVisit(NodePtr node, ::Type tto) {
 		return cast(visitNode(node), node->type, tto, node);
@@ -188,21 +282,18 @@ public:
 			llvm::Module * module): error(error), code(code), module(module),
 									builder(getGlobalContext()), fpm(module), uid(0) {
 
-		//fpm.add(new DataLayout(module));
-		//fpm.add(createBasicAliasAnalysisPass());
-		// Do simple "peephole" optimizations and bit-twiddling optzns.
-		//fpm.add(createInstructionCombiningPass());
-		// Reassociate expressions.
-		//fpm.add(createReassociatePass());
-		// Eliminate Common SubExpressions.
-		//fpm.add(createGVNPass());
-		// Simplify the control flow graph (deleting unreachable blocks, etc).
-		//fpm.add(createCFGSimplificationPass());
+		fpm.add(new DataLayout(module));
+		fpm.add(createBasicAliasAnalysisPass());
+		fpm.add(createInstructionCombiningPass());
+		fpm.add(createReassociatePass());
+		fpm.add(createGVNPass());
+		fpm.add(createCFGSimplificationPass());
 		fpm.doInitialization();
 
 		std::vector< std::pair<std::string, FunctionType *> > fs =
 		{
 			{"rm_print", functionType(voidType, {int8Type, int64Type})},
+			{"rm_free", functionType(voidType, {voidPtrType})},
 			{"rm_concatText", functionType(voidPtrType, {voidPtrType, voidPtrType})},
 			{"rm_getConstText", functionType(voidPtrType, {pointerType(int8Type)})},
 			{"rm_emitTypeError", functionType(voidType, {int32Type, int32Type, int8Type, int8Type})},
@@ -224,15 +315,15 @@ public:
 	
 	LLVMVal visit(std::shared_ptr<VariableExp> node) {
 		if (NodePtr store = node->store.lock()) {
-			if (store->nodeType != NodeType::AssignmentExp) return store->llvmVal;
+			if (store->nodeType != NodeType::AssignmentExp) return borrow(store->llvmVal);
 			std::shared_ptr<AssignmentExp> st=std::static_pointer_cast<AssignmentExp>(store);
-			if (!st->global) return store->llvmVal;
+			if (!st->global) return borrow(store->llvmVal);
 
 			// TODO once we stop using any in assigment I also need to change
 			LLVMVal v(
 				builder.CreateLoad(builder.CreateConstGEP2_32(st->llvmGlobal, 0, 0)),
-				builder.CreateLoad(builder.CreateConstGEP2_32(st->llvmGlobal, 0, 1)));
-			
+				builder.CreateLoad(builder.CreateConstGEP2_32(st->llvmGlobal, 0, 1)),
+				false);
 			return cast(v, TAny, node->type, node);
 		} else {
 			Constant * c = ConstantDataArray::getString(getGlobalContext(), tokenToIdentifier(node->nameToken) );
@@ -241,19 +332,19 @@ public:
 													 true,
 													 llvm::GlobalValue::PrivateLinkage,
 													 c);
-			return builder.CreateCall(
-				stdlib["rm_loadRel"],
-				builder.CreateConstGEP2_32(gv, 0, 0));
+			return borrowed(builder.CreateCall(
+								stdlib["rm_loadRel"],
+								builder.CreateConstGEP2_32(gv, 0, 0)));
 		}
-	}
+	} 
 	
 	LLVMVal visit(std::shared_ptr<AssignmentExp> node) {
-		LLVMVal val=visitNode(node->valueExp);
+		LLVMVal val=takeOwnership(visitNode(node->valueExp), node->type);
 		if (!node->global)
-			return node->llvmVal=val;
+			return node->llvmVal=std::move(val);
 
 		//TODO there is noo need to store every global variable as a any type
-		LLVMVal v=cast(val, node->type, TAny, node);
+		LLVMVal v=cast(std::move(val), node->type, TAny, node);
 
 		GlobalVariable * gv = new GlobalVariable(
 			*module,
@@ -264,7 +355,8 @@ public:
 		node->llvmGlobal = gv;
 		builder.CreateStore(v.value,  builder.CreateConstGEP2_32(gv, 0, 0));
 		builder.CreateStore(v.type,  builder.CreateConstGEP2_32(gv, 0, 1));
-
+		assert(v.owned);
+		v.owned = false;
 		
 		std::stringstream ss1;
 		ss1 << "store_rel_" << uid++;
@@ -337,76 +429,110 @@ public:
 		FunctionType * ft = funcType(node->args.size());
 
 		std::vector<llvm::Type *> captureContent = {
-			pointerType(ft), //Function ptr
+			int32Type, //Refcount
+			int16Type, //Type
 			int16Type, //Number Of arguments
+			pointerType(dtorType), //Dtor
+			pointerType(ft), //Function ptr
 		};
 		// for (auto cap: node->capture)
 		// 	captureContent.push_back(llvmType(cap->type));
 		StructType * captureType = StructType::create(getGlobalContext(), captureContent);
+		assert(captureType->isSized());
 		
 		//Cache currentFunction
 		auto old_ip = builder.saveIP();
+
+		Function * dtor=nullptr;
 		
-		std::stringstream ss;
-		ss << "f" << uid++;
+		// Create dtor 
+		{
+			std::stringstream ss;
+			ss << "f_dtor" << uid;
+			dtor = Function::Create(dtorType, Function::InternalLinkage, ss.str(), module);
+			BasicBlock * block = BasicBlock::Create(getGlobalContext(), "entry", dtor);
+			builder.SetInsertPoint(block);
+			auto & al = dtor->getArgumentList();
+			auto self = al.begin();
+			self->setName("self");
+			//TODO go through the capture list and abandon all
+			builder.CreateRetVoid();
 
-		Function * function = Function::Create(ft, Function::InternalLinkage, ss.str(), module);
-		BasicBlock * block = BasicBlock::Create(getGlobalContext(), "entry", function);
-		builder.SetInsertPoint(block);
-		// Setup args		
-		auto & al = function->getArgumentList();   
-		auto arg = al.begin();
-		auto self = &(*arg);
-		++arg;
-		auto ret = &(*arg);
-		++arg;
-
-		self->setName("self");
-		ret->setName("ret");
-		Value * selfv = builder.CreateBitCast(self, pointerType(captureType));
-		for (auto a: node->args) {
-			Value * v = &(*arg);
-			++arg;
-			Value * t = &(*arg);
-			++arg;
-			t->setName("abe");
-			v->setName("kat");
-			// t->setName(std::string("t_")+a->name
-			// v->setName(std::string("v_")+a->name
-			a->llvmVal = cast(LLVMVal(v, t), TAny, a->type, a);
+			llvm::verifyFunction(*dtor);
+			dtor->dump();
+			fpm.run(*dtor);
+			dtor->dump();
 		}
-
-//         for i in range(len(node.captures)):
-//             cap = node.captures[i]
-//             cap.value = self.builder.load(self.builder.gep(selfv, [intp(0), intp(2+i)]))
-        
-		// Build function code
-		LLVMVal x = cast(visitNode(node->body), node->body->type, TAny, node->body);
-		builder.CreateStore(x.value, builder.CreateConstGEP2_32(ret, 0, 0));
-		builder.CreateStore(x.type, builder.CreateConstGEP2_32(ret, 0, 1));
-		builder.CreateRetVoid();
 		
-		llvm::verifyFunction(*function);
-		function->dump();
-		fpm.run(*function);
+		Function * function=nullptr;
+		
+		// Create function inner
+		{
+			std::stringstream ss;
+			ss << "f" << uid++;
+			function = Function::Create(ft, Function::InternalLinkage, ss.str(), module);
+			BasicBlock * block = BasicBlock::Create(getGlobalContext(), "entry", function);
+			builder.SetInsertPoint(block);
+			// Setup args		
+			auto & al = function->getArgumentList();   
+			auto arg = al.begin();
+			auto self = &(*arg);
+			++arg;
+			auto ret = &(*arg);
+			++arg;
+			
+			self->setName("self");
+			ret->setName("ret");
+			Value * selfv = builder.CreatePointerCast(self, pointerType(captureType));
+			for (auto a: node->args) {
+				Value * v = &(*arg);
+				++arg;
+				Value * t = &(*arg);
+				++arg;
+				//t->setName("abe");
+				//v->setName("kat");
+				// t->setName(std::string("t_")+a->name
+				// v->setName(std::string("v_")+a->name
+				a->llvmVal = cast(LLVMVal(v, t), TAny, a->type, a);
+			}
+
+			//         for i in range(len(node.captures)):
+			//             cap = node.captures[i]
+			//             cap.value = self.builder.load(self.builder.gep(selfv, [intp(0), intp(2+i)]))
+        
+			// Build function code
+			LLVMVal x = cast(
+				takeOwnership(visitNode(node->body), node->body->type), node->body->type, TAny, node->body);
+			builder.CreateStore(x.value, builder.CreateConstGEP2_32(ret, 0, 0));
+			builder.CreateStore(x.type, builder.CreateConstGEP2_32(ret, 0, 1));
+			builder.CreateRetVoid();
+			assert(x.owned == 1);
+			x.owned = false;
+			llvm::verifyFunction(*function);
+			function->dump();
+			fpm.run(*function);
+			function->dump();
+		}
 
 		// Revert state
 		builder.restoreIP(old_ip);
 
-		/*Type * ty = llvm::Type::getInt32Ty(getGlobalContext());*/
 		Constant* AllocSize = ConstantExpr::getSizeOf(captureType);
 		AllocSize = ConstantExpr::getTruncOrBitCast(AllocSize, int32Type);
 		Instruction * m = CallInst::CreateMalloc(builder.GetInsertBlock(), int32Type, captureType, AllocSize);
 		auto p = builder.Insert(m);
 		
-		builder.CreateStore(function, builder.CreateConstGEP2_32(p, 0, 0));
-		builder.CreateStore(int16(node->args.size()), builder.CreateConstGEP2_32(p, 0, 1));
-
-//         # Store captures
+		builder.CreateStore(int32(1), builder.CreateConstGEP2_32(p, 0, 0)); //RefCount
+		builder.CreateStore(int16((int)LType::function), builder.CreateConstGEP2_32(p, 0, 1)); //RefCount
+		builder.CreateStore(int16(node->args.size()), builder.CreateConstGEP2_32(p, 0, 2));
+		builder.CreateStore(dtor, builder.CreateConstGEP2_32(p, 0, 3));
+		builder.CreateStore(function, builder.CreateConstGEP2_32(p, 0, 4));
+		
+//        // Store captures
 //         for i in range(len(node.captures)):
 //             cap = node.captures[i]
 //             self.builder.store(cap.store.value, self.builder.gep(p, [intp(0), intp(2+i)]))
-		return p;
+		return LLVMVal(p, true);
 	}
 	
 	LLVMVal visit(std::shared_ptr<TupExp> node) {
@@ -414,9 +540,15 @@ public:
 	}
 
 	LLVMVal visit(std::shared_ptr<BlockExp> node) {
-		for (auto v: node->vals) 
-			v->exp->llvmVal = visitNode(v->exp);
-		return visitNode(node->inExp);
+		for (auto v: node->vals)
+			v->exp->llvmVal = takeOwnership(visitNode(v->exp), v->exp->type);
+		// This could be a reference to one of the vals, so we take ownership
+		LLVMVal r = takeOwnership(visitNode(node->inExp), node->inExp->type); 
+		for (auto v: node->vals) {
+			abandon(v->exp->llvmVal, v->exp->type);
+			v->exp->llvmVal=LLVMVal();
+		}
+		return r;
 	}
 
 	LLVMVal visit(std::shared_ptr<BuiltInExp> node) {
@@ -425,7 +557,10 @@ public:
 		{
 			LLVMVal v=castVisit(node->args[0], TAny);
 			builder.CreateCall2(stdlib["rm_print"], v.type, v.value);
-			return int8(1);
+			std::cout << "HELLO " << v.owned << std::endl;
+			abandon(v, TAny);
+			std::cout << "BAR " << v.owned << std::endl;
+			return LLVMVal(int8(1), true);
 		}
 		break;
 		default:
@@ -436,9 +571,9 @@ public:
 	LLVMVal visit(std::shared_ptr<ConstantExp> node) {
 		 switch (node->type) {
 		 case TInt:
-			 return LLVMVal(int64(node->int_value));
+			 return owned(int64(node->int_value));
 		 case TBool:
-			 return LLVMVal(int8(node->bool_value?1:0));
+			 return owned(int8(node->bool_value?1:0));
 		 case TText:
 		 {
 			 Constant * c = ConstantDataArray::getString(getGlobalContext(), node->txt_value);
@@ -447,9 +582,9 @@ public:
 													  true,
 													  llvm::GlobalValue::PrivateLinkage,
 													  c);
-			 return builder.CreateCall(
-				 stdlib["rm_getConstText"],
-				 builder.CreateConstGEP2_32(gv, 0, 0));
+			 return owned( builder.CreateCall(
+							   stdlib["rm_getConstText"],
+							   builder.CreateConstGEP2_32(gv, 0, 0)) );
 		 }
 		 default:
 			 throw ICEException("Const");
@@ -458,10 +593,19 @@ public:
 	
 	LLVMVal visit(std::shared_ptr<UnaryOpExp> node) {
 		switch (node->opToken.id) {
-		case TK_NOT:
-			return cast(builder.CreateNot(castVisit(node->exp, TBool).value), TBool, node->type, node);
+		case TK_NOT: {
+			LLVMVal v=castVisit(node->exp, TBool);
+			LLVMVal r=cast(owned(builder.CreateNot(v.value)), TBool, node->type, node);
+			abandon(v, TBool);
+			return r;
+		}
 		case TK_MINUS:
-			return cast(builder.CreateNeg(castVisit(node->exp, TInt).value), TInt, node->type, node);
+		{
+			LLVMVal v=castVisit(node->exp, TInt);
+			LLVMVal r=cast(owned(builder.CreateNeg(v.value)), TInt, node->type, node);
+			abandon(v, TInt);
+			return r;
+		}
 		default:
 			throw ICEException("Unhandled unary operator");
 		}
@@ -478,7 +622,8 @@ public:
     LLVMVal visit(std::shared_ptr<FuncInvocationExp> node) {
         FunctionType * ft = funcType(node->args.size());
 		
-		Value * capture = builder.CreateBitCast(castVisit(node->funcExp, TFunc).value, pointerType(funcBase));
+		LLVMVal cap=castVisit(node->funcExp, TFunc);
+		Value * capture = builder.CreatePointerCast(cap.value, pointerType(funcBase));
 		Value * rv = builder.CreateAlloca(anyRetType);
 		
 		std::stringstream ss1;
@@ -489,7 +634,7 @@ public:
 		ss2 << "check_succ_" << uid++;
 		BasicBlock * nblock = BasicBlock::Create(getGlobalContext(), ss2.str(), getFunction());
 		
-		Value * argc = builder.CreateLoad(builder.CreateConstGEP2_32(capture, 0, 1));
+		Value * argc = builder.CreateLoad(builder.CreateConstGEP2_32(capture, 0, 2));
 		Value * margc = int16(node->args.size());
 		builder.CreateCondBr(builder.CreateICmpEQ(argc, margc), nblock, fblock);
 		
@@ -504,27 +649,33 @@ public:
 
 		builder.SetInsertPoint(nblock);
 
+		std::vector<LLVMVal> ac;
 		std::vector<Value *> args={capture, rv};
 		for (auto arg: node->args) {
-			LLVMVal v=castVisit(arg, TAny);
-			args.push_back(v.value);
-			args.push_back(v.type);
+			ac.push_back(castVisit(arg, TAny));
+			args.push_back(ac.back().value);
+			args.push_back(ac.back().type);
 		}
 
-		Value * voidfp = builder.CreateLoad(builder.CreateConstGEP2_32(capture, 0, 0));
-		Value * fp = builder.CreateBitCast(voidfp, pointerType(ft));
+		Value * voidfp = builder.CreateLoad(builder.CreateConstGEP2_32(capture, 0, 4));
+		Value * fp = builder.CreatePointerCast(voidfp, pointerType(ft));
 		builder.CreateCall(fp, args);
 		
-		return LLVMVal(
-			builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)),
-			builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1)));
+		for (auto & a: ac)
+			abandon(a, TAny);
+		abandon(cap, TFunc);
+				
+		return owned(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
+					 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1)));
 	}
 
 	LLVMVal visit(std::shared_ptr<SubstringExp> node) {
 		LLVMVal s = castVisit(node->stringExp, TText);
 		LLVMVal f = castVisit(node->fromExp, TInt);
 		LLVMVal t = castVisit(node->toExp, TInt);
-		return cast(builder.CreateCall3(stdlib["rm_substrText"], s.value, f.value, t.value), TText, node->type, node);
+		LLVMVal r = cast(owned(builder.CreateCall3(stdlib["rm_substrText"], s.value, f.value, t.value)), TText, node->type, node);
+		abandon(s, TText); abandon(f, TInt); abandon(t, TInt);
+		return  r;
 	}
 
 	LLVMVal visit(std::shared_ptr<RenameExp> node) {
@@ -575,8 +726,11 @@ public:
 			BinopHelp h = matches[0];
 			LLVMVal a = castVisit(node->lhs, h.lhsType);
 			LLVMVal b = castVisit(node->rhs, h.rhsType);
-			LLVMVal v = h.func(*this, a, b);
-			return cast(v, h.resType, node->type, node);
+			LLVMVal v = h.func(*this, borrow(a), borrow(b));
+			LLVMVal r = cast(std::move(v), h.resType, node->type, node);
+			abandon(a, h.lhsType);
+			abandon(b, h.rhsType);
+			return r;
 		} 
 
 		// There was more then one possible operator we want to call
@@ -585,91 +739,91 @@ public:
 	}
 
 	LLVMVal binopAddInt(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateAdd(lhs.value, rhs.value);
+		return owned(builder.CreateAdd(lhs.value, rhs.value));
 	}
 
 	LLVMVal binopMinusInt(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateSub(lhs.value, rhs.value);
+		return owned(builder.CreateSub(lhs.value, rhs.value));
 	}
 
 	LLVMVal binopMulInt(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateMul(lhs.value, rhs.value);
+		return owned(builder.CreateMul(lhs.value, rhs.value));
 	}
 
 	LLVMVal binopDivInt(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateSDiv(lhs.value, rhs.value);
+		return owned(builder.CreateSDiv(lhs.value, rhs.value));
 	}
 
 	LLVMVal binopModInt(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateSRem(lhs.value, rhs.value);
+		return owned(builder.CreateSRem(lhs.value, rhs.value));
 	}
 
 	LLVMVal binopConcat(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateCall2(stdlib["rm_concatText"], lhs.value, rhs.value);
+		return owned(builder.CreateCall2(stdlib["rm_concatText"], lhs.value, rhs.value));
 	}
 
 	LLVMVal binopLessInt(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateICmpSLT(lhs.value, rhs.value);
+		return owned(builder.CreateICmpSLT(lhs.value, rhs.value));
 	}
 
 	LLVMVal binopLessBool(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateICmpULT(lhs.value, rhs.value);
+		return owned(builder.CreateICmpULT(lhs.value, rhs.value));
 	}
 
 	LLVMVal binopLessEqualInt(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateICmpSLE(lhs.value, rhs.value);
+		return owned(builder.CreateICmpSLE(lhs.value, rhs.value));
 	}
 
 	LLVMVal binopLessEqualBool(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateICmpULE(lhs.value, rhs.value);
+		return owned(builder.CreateICmpULE(lhs.value, rhs.value));
 	}
 
 	LLVMVal binopGreaterInt(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateICmpSGT(lhs.value, rhs.value);
+		return owned(builder.CreateICmpSGT(lhs.value, rhs.value));
 	}
 
 	LLVMVal binopGreaterBool(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateICmpUGT(lhs.value, rhs.value);
+		return owned(builder.CreateICmpUGT(lhs.value, rhs.value));
 	}
 
 	LLVMVal binopGreaterEqualInt(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateICmpSGE(lhs.value, rhs.value);
+		return owned(builder.CreateICmpSGE(lhs.value, rhs.value));
 	}
 
 	LLVMVal binopGreaterEqualBool(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateICmpUGE(lhs.value, rhs.value);
+		return owned(builder.CreateICmpUGE(lhs.value, rhs.value));
 	}
 
 	LLVMVal binopEqualInt(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateICmpEQ(lhs.value, rhs.value);
+		return owned(builder.CreateICmpEQ(lhs.value, rhs.value));
 	}
 
 	LLVMVal binopEqualBool(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateICmpEQ(lhs.value, rhs.value);
+		return owned(builder.CreateICmpEQ(lhs.value, rhs.value));
 	}
 
 	LLVMVal binopDifferentInt(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateICmpNE(lhs.value, rhs.value);
+		return owned(builder.CreateICmpNE(lhs.value, rhs.value));
 	}
 
 	LLVMVal binopDifferentBool(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateICmpNE(lhs.value, rhs.value);
+		return owned(builder.CreateICmpNE(lhs.value, rhs.value));
 	}
 
 	LLVMVal binopAndBool(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateAnd(lhs.value, rhs.value);
+		return owned(builder.CreateAnd(lhs.value, rhs.value));
 	}
 
 	LLVMVal binopOrBool(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateOr(lhs.value, rhs.value);
+		return owned(builder.CreateOr(lhs.value, rhs.value));
 	}
 
 	LLVMVal binopUnionRel(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateCall2(stdlib["rm_unionRel"], lhs.value, rhs.value);
+		return owned(builder.CreateCall2(stdlib["rm_unionRel"], lhs.value, rhs.value));
 	}
 
 	LLVMVal binopJoinRel(LLVMVal lhs, LLVMVal rhs) {
-		return builder.CreateCall2(stdlib["rm_joinRel"], lhs.value, rhs.value);
+		return owned(builder.CreateCall2(stdlib["rm_joinRel"], lhs.value, rhs.value));
 	}
 	
 	LLVMVal visit(std::shared_ptr<BinaryOpExp> node) {
@@ -733,9 +887,16 @@ public:
 	}
 
 	LLVMVal visit(std::shared_ptr<SequenceExp> node) {
+		::Type t;
 		LLVMVal x;
-		for(auto n: node->sequence) 
+		for(auto n: node->sequence) {
+			abandon(x, t);
 			x=visitNode(n);
+			t = n->type;
+		}
+
+		//TODO if I am not outer walk over all sequences again
+		//to abandon any used objects
 		return x;
 	}
 	
@@ -747,7 +908,8 @@ public:
 		Function * function = Function::Create(ft, Function::ExternalLinkage, ss.str(), module);
 		BasicBlock * block = BasicBlock::Create(getGlobalContext(), "entry", function);
 		builder.SetInsertPoint(block);
-		visitNode(ast);
+		LLVMVal val=visitNode(ast);
+		abandon(val, ast->type);
 		builder.CreateRetVoid();
 		function->dump();
 		llvm::verifyFunction(*function);
@@ -761,4 +923,4 @@ public:
 std::shared_ptr<LLVMCodeGen> llvmCodeGen(
 	std::shared_ptr<Error> error, std::shared_ptr<Code> code, llvm::Module * module) {
 	return std::make_shared<CodeGen>(error, code, module);
-}
+} 

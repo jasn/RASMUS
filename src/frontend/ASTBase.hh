@@ -27,6 +27,11 @@
 #include <frontend/nodetype.hh>
 #include <shared/type.hh>
 
+class ICEException: public std::runtime_error {
+public:
+	ICEException(const std::string & msg): std::runtime_error(msg) {}
+};
+
 class CharRange {
 public:
 	size_t lo, hi;
@@ -43,9 +48,36 @@ struct GlobalVariable;
 struct LLVMVal {
 	llvm::Value * value;
 	llvm::Value * type; //Only valid if val is of any type
-	LLVMVal(): value(nullptr), type(nullptr) {}
-	LLVMVal(llvm::Value * value): value(value), type(nullptr) {}
-	LLVMVal(llvm::Value * value, llvm::Value * type): value(value), type(type) {}
+	bool owned;
+	LLVMVal(): value(nullptr), type(nullptr), owned(false) {}
+	LLVMVal(llvm::Value * value, bool owned): value(value), type(nullptr), owned(owned) {}
+	LLVMVal(llvm::Value * value, llvm::Value * type, bool owned): value(value), type(type), owned(owned) {}
+	LLVMVal(const LLVMVal & o): value(o.value), type(o.type), owned(o.owned) {
+		if (owned) throw ICEException("Owned was copied");
+
+	}
+	LLVMVal & operator=(const LLVMVal & o) {
+		value = o.value;
+		type = o.type;
+		owned = o.owned;
+		if (owned) throw ICEException("Owned was copied");
+	}
+
+	LLVMVal(LLVMVal && o): value(o.value), type(o.type), owned(o.owned) {
+		o.value = nullptr;
+		o.type = nullptr;
+		o.owned = false;
+	}
+	LLVMVal & operator=(LLVMVal && o) {
+		if (owned) throw ICEException("Moved into owned");
+		value = o.value; o.value=nullptr;
+		type = o.type; o.type=nullptr;
+		owned = o.owned; o.owned=false;
+	}
+
+	~LLVMVal() {
+		if (owned) throw ICEException("Owned was freed");
+	}
 };
 
 class Node {
