@@ -6,7 +6,7 @@ IfExp|ifToken|std::vector<std::shared_ptr<Choice>> choices|Token fiToken
 ForallExp|typeToken,lparenToken|NodeList listExps|rparenToken|pipeToken|colonToken|exp|TokenList names
 FuncCaptureValue|nameToken|std::weak_ptr<Node> store
 FuncArg|nameToken,colonToken,typeToken
-FuncExp|funcToken,lparenToken|std::vector<std::shared_ptr<FuncArg> > args|rparenToken|arrowToken|lparen2Token|rparen2Token|returnTypeToken|body|endToken|Type rtype
+FuncExp|funcToken,lparenToken|std::vector<std::shared_ptr<FuncArg> > args|rparenToken|arrowToken|lparen2Token|rparen2Token|returnTypeToken|body|endToken|Type rtype|std::vector<std::shared_ptr<FuncCaptureValue> > captures
 TupItem|nameToken,colonToken,exp
 TupExp|tupToken,lparenToken|rparenToken|std::vector<std::shared_ptr<TupItem> > items
 Val|valToken,nameToken,equalToken,exp

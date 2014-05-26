@@ -78,6 +78,10 @@ llvm::Type * llvmType(::Type t) {
 	case TBool: return int8Type;
 	case TInt: return int64Type;
 	case TFunc: return pointerType(funcBase);
+	case TText: 
+	case TRel: 
+		return voidPtrType;
+	case TAny: return anyRetType;
 	default:
 		throw ICEException(std::string("llvmType - Unhandled type ") + typeName(t));
 	}
@@ -312,6 +316,61 @@ public:
 	std::string tokenToIdentifier(Token token) const {
 		return code->code.substr(token.start, token.length);
 	}
+
+
+	LLVMVal loadValue(Value * v, std::initializer_list<int> gep, ::Type type) {
+		std::vector<Value *> GEP;
+		for (int x: gep) GEP.push_back(int32(x));
+		switch (type) {
+		case TInt:
+		case TBool:
+		case TText:
+		case TFunc:
+		case TRel:
+			return borrowed(builder.CreateLoad(builder.CreateGEP(v, GEP)));
+		case TAny:
+		{
+			GEP.push_back(int32(0));
+			Value * value=builder.CreateGEP(v, GEP);
+			GEP.pop_back();
+			GEP.push_back(int32(1));
+			Value * type=builder.CreateGEP(v, GEP);
+			return borrowed(builder.CreateLoad(value), builder.CreateLoad(type));
+		}
+		default:
+			throw ICEException("Unhandled type in loadValue");			
+		}
+	}
+
+	void saveValue(Value * dst, std::initializer_list<int> gep, LLVMVal v, ::Type type) {
+		LLVMVal vv=takeOwnership(v, type);
+		std::vector<Value *> GEP;
+		for (int x: gep) GEP.push_back(int32(x));
+		switch (type) {
+		case TInt:
+		case TBool:
+		case TText:
+		case TFunc:
+		case TRel:
+			builder.CreateStore(vv.value, builder.CreateGEP(dst, GEP));
+			break;
+		case TAny:
+		{
+			GEP.push_back(int32(0));
+			builder.CreateStore(vv.value, builder.CreateGEP(dst, GEP));
+			GEP.pop_back();
+			GEP.push_back(int32(1));
+			builder.CreateStore(vv.type, builder.CreateGEP(dst, GEP));
+			break;
+		}
+		default:
+			throw ICEException("Unhandled type in loadValue");			
+		}
+		vv.owned=false;
+	}
+		
+
+
 	
 	LLVMVal visit(std::shared_ptr<VariableExp> node) {
 		if (NodePtr store = node->store.lock()) {
@@ -435,8 +494,9 @@ public:
 			pointerType(dtorType), //Dtor
 			pointerType(ft), //Function ptr
 		};
-		// for (auto cap: node->capture)
-		// 	captureContent.push_back(llvmType(cap->type));
+		for (auto cap: node->captures)
+			captureContent.push_back(llvmType(cap->type));
+		
 		StructType * captureType = StructType::create(getGlobalContext(), captureContent);
 		assert(captureType->isSized());
 		
@@ -455,7 +515,15 @@ public:
 			auto & al = dtor->getArgumentList();
 			auto self = al.begin();
 			self->setName("self");
-			//TODO go through the capture list and abandon all
+			Value * selfv = builder.CreatePointerCast(self, pointerType(captureType));
+
+			//go through the capture list and abandon all
+			for (size_t i=0; i < node->captures.size(); ++i) {
+				LLVMVal val = loadValue(selfv, {0, 5+(int)i}, node->captures[i]->type);
+				val.owned=true;
+				abandon(val, node->captures[i]->type);
+			}
+
 			builder.CreateRetVoid();
 
 			llvm::verifyFunction(*dtor);
@@ -489,16 +557,11 @@ public:
 				++arg;
 				Value * t = &(*arg);
 				++arg;
-				//t->setName("abe");
-				//v->setName("kat");
-				// t->setName(std::string("t_")+a->name
-				// v->setName(std::string("v_")+a->name
 				a->llvmVal = cast(LLVMVal(v, t), TAny, a->type, a);
 			}
 
-			//         for i in range(len(node.captures)):
-			//             cap = node.captures[i]
-			//             cap.value = self.builder.load(self.builder.gep(selfv, [intp(0), intp(2+i)]))
+			for (size_t i=0; i < node->captures.size(); ++i)
+				node->captures[i]->llvmVal = loadValue(selfv, {0, 5+(int)i}, node->captures[i]->type);
         
 			// Build function code
 			LLVMVal x = cast(
@@ -523,16 +586,19 @@ public:
 		auto p = builder.Insert(m);
 		
 		builder.CreateStore(int32(1), builder.CreateConstGEP2_32(p, 0, 0)); //RefCount
-		builder.CreateStore(int16((int)LType::function), builder.CreateConstGEP2_32(p, 0, 1)); //RefCount
-		builder.CreateStore(int16(node->args.size()), builder.CreateConstGEP2_32(p, 0, 2));
-		builder.CreateStore(dtor, builder.CreateConstGEP2_32(p, 0, 3));
-		builder.CreateStore(function, builder.CreateConstGEP2_32(p, 0, 4));
+		builder.CreateStore(int16((int)LType::function), builder.CreateConstGEP2_32(p, 0, 1)); //Type
+		builder.CreateStore(int16(node->args.size()), builder.CreateConstGEP2_32(p, 0, 2)); //Argc
+		builder.CreateStore(dtor, builder.CreateConstGEP2_32(p, 0, 3)); //Dtor
+		builder.CreateStore(function, builder.CreateConstGEP2_32(p, 0, 4)); //Fptr
 		
-//        // Store captures
-//         for i in range(len(node.captures)):
-//             cap = node.captures[i]
-//             self.builder.store(cap.store.value, self.builder.gep(p, [intp(0), intp(2+i)]))
-		return LLVMVal(p, true);
+        // Store captures
+		for (size_t i=0; i < node->captures.size(); ++i) {
+			NodePtr n(node->captures[i]->store);
+			assert(n);
+			saveValue(p, {0, 5+(int)i}, borrow(n->llvmVal), node->captures[i]->type);;
+		}
+
+		return owned(p);
 	}
 	
 	LLVMVal visit(std::shared_ptr<TupExp> node) {
@@ -557,9 +623,7 @@ public:
 		{
 			LLVMVal v=castVisit(node->args[0], TAny);
 			builder.CreateCall2(stdlib["rm_print"], v.type, v.value);
-			std::cout << "HELLO " << v.owned << std::endl;
 			abandon(v, TAny);
-			std::cout << "BAR " << v.owned << std::endl;
 			return LLVMVal(int8(1), true);
 		}
 		break;

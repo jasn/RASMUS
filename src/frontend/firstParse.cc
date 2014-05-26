@@ -59,7 +59,6 @@ public:
 
 	std::vector<Scope> scopes;
 
-
 	FirstParse(std::shared_ptr<Error> error, std::shared_ptr<Code> code):
 		error(error), code(code) {
 		scopes.push_back(Scope());
@@ -131,7 +130,7 @@ public:
     void visit(std::shared_ptr<VariableExp> node) {
         NodePtr lookedUp;
 		std::string name = tokenToIdentifier(node->nameToken);
-		std::vector<std::shared_ptr<FuncExp> > funcs;
+		std::vector<Scope *> funcs;
         for (auto & lu: reversed(scopes)) {
 			auto it=lu.bind.find(name);
 			if (it != lu.bind.end())  {
@@ -139,7 +138,7 @@ public:
 				break;
 			}
 			if (lu.node && lu.node->nodeType == NodeType::FuncExp)
-				funcs.push_back(std::static_pointer_cast<FuncExp>(lu.node));
+				funcs.push_back(&lu);
 		}
 
 		// If we cannot find the variable, then it must be an external relation
@@ -147,18 +146,17 @@ public:
 			node->type = TRel;
 			return;
 		}
-
-		// TODO Fixme
-        // for (auto &lu: reversed(funcs)) {
-		// 	std::shared_ptr<FuncCaptureValue> cap = 
-		// 		std::make_shared<FuncCaptureValue>(getNameToken(lookedUp)); //TODO FIXME
-        //     //cap->name = name;
-        //     cap->type = lookedUp->type;
-        //     cap->store = lookedUp;
-        //     lu.bind[name] = cap;
-        //     lu.node->captures.append(cap);
-        //     lookedUp = cap;
-		// }
+		
+		for (auto lu: reversed(funcs)) {
+			std::shared_ptr<FuncCaptureValue> cap = 
+				std::make_shared<FuncCaptureValue>(node->nameToken); 
+			cap->type = lookedUp->type;
+			cap->store = lookedUp;
+			lu->bind[name] = cap;
+			lu->bind[name] = cap;
+			std::static_pointer_cast<FuncExp>(lu->node)->captures.push_back(cap);
+			lookedUp = cap;
+		}
 
         node->type = lookedUp->type;  
 		node->store = lookedUp;
