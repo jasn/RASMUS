@@ -68,6 +68,12 @@ public:
 		if (ptr) ptr->decref();
 		ptr = p;
 	}
+
+	static RefPtr steal(rm_object * p) {
+		RefPtr r(p);
+		p->decref();
+		return r;
+	}
 private:
 	rm_object * ptr;
 };

@@ -117,8 +117,10 @@ T * makeText(TS &&... ts) {
 }
 
 SmallText * makeSmallText(size_t len) {
-	SmallText * o = reinterpret_cast<SmallText*>(operator new(sizeof(sizeof(SmallText)+ len)));
-	new(o) SmallText(len);	
+	void * m=operator new(sizeof(SmallText)+ len);
+	SmallText * o = reinterpret_cast<SmallText*>(m);
+	new(o) SmallText(len);
+	o->incref();
 	return o;
 }
 
@@ -200,7 +202,7 @@ void rm_printText(rm_object * ptr) {
 }
 
 std::string rm_textToString(rm_object * ptr) {
-	std::string text(' ', length(ptr));
+	std::string text(length(ptr), ' ');
 	MemcpyBuilder builder(&text[0]);
 	buildText(ptr, builder, 0, text.size());
 	return text;

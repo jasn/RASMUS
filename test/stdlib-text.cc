@@ -18,21 +18,34 @@
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #include "common.hh"
 #include <stdlib/inner.hh>
+using namespace rasmus;
 
 std::string rm_textToString(rm_object * ptr);
 
 bool construct() {
-	RefPtr text(rm_getConstText("Hello world"));
-	if (rm_textToString(text.get()) != "Hello world!") 
-		return false;
+	{
+		RefPtr text=RefPtr::steal(rm_getConstText("Hello"));
+		if (rm_textToString(text.get()) != "Hello") return false;
+		if (text->ref_cnt != 1) return false;
+	}
+	{
+		RefPtr text=RefPtr::steal(rm_getConstText("Hello world!"));
+		if (rm_textToString(text.get()) != "Hello world!") return false;
+		if (text->ref_cnt != 1) return false;
+	}
+	{
+		RefPtr text=RefPtr::steal(rm_getConstText(" -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style \"stroustrup\") (c-set-offset 'innamespace 0) (c-set-offset 'inextern-lang 0)); -*-"));
+		if (rm_textToString(text.get()) != " -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style \"stroustrup\") (c-set-offset 'innamespace 0) (c-set-offset 'inextern-lang 0)); -*-") return false;
+		if (text->ref_cnt != 1) return false;
+	}
 	return true;
 }
 
 bool concat() {
-
+	return true;
 }
 bool substring() {
-
+	return true;
 }
 
 int main(int argc, char **argv) {
