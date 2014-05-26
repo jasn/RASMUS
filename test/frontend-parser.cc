@@ -266,8 +266,7 @@ void base(rasmus::teststream & ts) {
     ts << "paren" << result(pt("(a)", "a"));
 
     ts << "only_block_start" << result(pt("(+", "invalid", 1));
-    ts << "invalid2" << result(pt("system(\"ls\"))", "(system \"ls\")"));
-    ts << "invalid2" << result(pt("system(\"ls\"));true", "(system \"ls\");true"));
+    ts << "invalid2" << result(pt("system(\"ls\"))", "(system \"ls\")", 1));
 }
 
 

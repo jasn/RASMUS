@@ -42,7 +42,7 @@ public:
     for (size_t i=0; i < code.size(); ++i) {
       if (code[i] == '\n') lineStarts.push_back(i);
     }
-    lineStarts.push_back(code.size());
+    lineStarts.push_back(code.size()+1);
   }
   
 };

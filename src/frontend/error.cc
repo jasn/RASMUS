@@ -76,7 +76,7 @@ void TerminalError::report(const char * type, std::string message,
 		lo = std::min<int>(lo, r.lo);
 		hi = std::max<int>(hi, r.hi);
 	}
-
+	
 	auto it=std::upper_bound(code->lineStarts.begin(), code->lineStarts.end(), lo);
 	int line=it - code->lineStarts.begin();
 	printf("%s:%d %s %s\n", code->name.c_str(), (int)line, type, message.c_str());
@@ -84,8 +84,6 @@ void TerminalError::report(const char * type, std::string message,
     int endOfLine = code->lineStarts[line];
 	printf("%s%s%s\n",green, code->code.substr(startOfLine,endOfLine-startOfLine).c_str(),reset);
 	if (ranges.size() == 0 && mainToken) {
-		//std::cout << mainToken.start << " - " << startOfLine << std::endl;
-		//std::cout << mainToken.length << " " << '~' << std::endl;
 		printf("%s%s^%s%s\n", std::string(mainToken.start-startOfLine, ' ').c_str(), blue, std::string(std::max<size_t>(mainToken.length, 1)-1, '~').c_str(), reset);
 	} else {
 		std::string i(endOfLine - startOfLine, ' ');

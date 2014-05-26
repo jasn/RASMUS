@@ -551,8 +551,9 @@ public:
 		currentToken = lexer->getNext();
 		recover(TK_EOF, [&](){
 			n = parseExp();
+			assertTokenConsume(TK_EOF);
 		});
-		assertTokenConsume(TK_EOF);
+
 		return n;
 	}
 };
