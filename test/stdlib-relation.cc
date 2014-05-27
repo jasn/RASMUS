@@ -24,24 +24,60 @@ using namespace rasmus;
 std::string rm_textToString(rm_object * ptr);
 
 
+bool printRel(){
 
-bool construct() {
+	std::cout << std::endl;
+
 	{
-		RefPtr text=RefPtr::steal(rm_getConstText("Hello"));
-		ENSURE_EQ(rm_textToString(text.get()), "Hello");
-		ENSURE_EQ(text->ref_cnt, 1);
+		std::string input = "2\n" 
+			"T Name\n"
+			"I Age\n" 
+			"Bruce Jones\n" 
+			"5\n" 
+			"Mary Ross\n" 
+			"12\n" 
+			"Ann Bird\n" 
+			"12\n" 
+			"Kenneth Lewis\n" 
+			"17\n";
+
+		std::stringstream ss(input);
+
+		rm_object * object = rm_loadRelFromStream(ss);
+	
+		rm_printRel(object);
+
 	}
+
 	{
-		RefPtr text=RefPtr::steal(rm_getConstText("Hello world!"));
-		ENSURE_EQ(rm_textToString(text.get()), "Hello world!");
-		ENSURE_EQ(text->ref_cnt, 1);
+		std::string input = "3\n" 
+			"T Name\n"
+			"I Age\n" 
+			"B Ugly\n" 
+			"Bruce Jones\n" 
+			"5\n" 
+			"true\n" 
+			"Mary Ross\n" 
+			"12\n" 
+  			"true\n" 
+			"Ann Bird\n" 
+			"12\n" 
+			"false\n" 
+			"Kenneth Lewis\n" 
+			"17\n"
+			"true\n";
+
+		std::stringstream ss(input);
+
+		rm_object * object = rm_loadRelFromStream(ss);
+	
+		rm_printRel(object);
+
 	}
-	{
-		RefPtr text=RefPtr::steal(rm_getConstText(" -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style \"stroustrup\") (c-set-offset 'innamespace 0) (c-set-offset 'inextern-lang 0)); -*-"));
-		ENSURE_EQ(rm_textToString(text.get()), " -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style \"stroustrup\") (c-set-offset 'innamespace 0) (c-set-offset 'inextern-lang 0)); -*-");
-		ENSURE_EQ(text->ref_cnt, 1);
-	}
-	return true;
+
+
+	return true; // todo implement actual testing
+
 }
 
 
@@ -111,6 +147,7 @@ bool loadAndSave(){
 int main(int argc, char **argv) {
   return rasmus::tests(argc, argv)
     .test(loadAndSave, "loadAndSave")
+    .test(printRel, "printRel")
     ;
 }
 

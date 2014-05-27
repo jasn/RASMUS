@@ -217,7 +217,6 @@ void rm_printText(rm_object * ptr) {
 void rm_printTextToStream(rm_object * ptr, std::ostream & stream) {
 	OStreamBuilder b(stream);
 	buildText(ptr, b, 0, length(ptr) );
-	
 }
 
 } // extern "C"

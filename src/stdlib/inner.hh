@@ -137,7 +137,9 @@ extern "C" {
 void rm_saveRelToStream(rm_object * o, std::ostream & outFile);
 rm_object * rm_loadRelFromStream(std::istream & inFile);
 void rm_printTextToStream(rm_object * ptr, std::ostream & stream);
-
+void rm_printRel(rm_object * ptr);
 }
+
+std::string rm_textToString(rm_object * ptr);
 
 #endif //__INNER_H__
