@@ -18,6 +18,10 @@ add_library(frontend
   lexer.hh
   llvmCodeGen.cc
   llvmCodeGen.hh
+  interperter.cc
+  interperter.hh
+  callback.cc
+  callback.hh
   parser.cc
   parser.hh)
 

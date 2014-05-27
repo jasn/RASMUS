@@ -16,26 +16,21 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#include <frontend/interperter.hh>
-#include <readline/history.h>
-#include <readline/readline.h>
+#ifndef __interperter_hh__
+#define __interperter_hh__
+#include <frontend/callback.hh>
 
-int main(int argc, char ** argv) {
-	std::shared_ptr<Callback> callback = std::make_shared<TerminalCallback>();
-	std::shared_ptr<Interperter> interperter=makeInterperter(callback);
-	interperter->setup();
-	while (true) {
-		std::string line;
-		char * rl = readline(interperter->complete()?">>>> ":".... ");
-		if (!rl) break;
-		if (!rl[0]) {
-			free(rl); 
-			continue;
-		}
-		add_history(rl);
-		line = rl;
-		free(rl); 
-		interperter->runLine(line);
-	}
-	printf("\n");
-}
+class Interperter {
+public:
+	virtual ~Interperter() {}
+	virtual void setup() = 0;
+	virtual void destroy() = 0;
+	virtual bool runLine(const std::string & str) = 0;
+	virtual bool complete() const = 0;
+	virtual size_t objectCount() const = 0;
+};
+
+std::shared_ptr<Interperter> makeInterperter(std::shared_ptr<Callback> callBack);
+
+#endif //__interperter_hh__
+

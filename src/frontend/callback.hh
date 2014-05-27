@@ -16,26 +16,42 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#include <frontend/interperter.hh>
-#include <readline/history.h>
-#include <readline/readline.h>
+#ifndef __callback_hh__
+#define __callback_hh__
+#include <frontend/code.hh>
+#include <frontend/lexer.hh>
+#include <frontend/ASTBase.hh>
 
-int main(int argc, char ** argv) {
-	std::shared_ptr<Callback> callback = std::make_shared<TerminalCallback>();
-	std::shared_ptr<Interperter> interperter=makeInterperter(callback);
-	interperter->setup();
-	while (true) {
-		std::string line;
-		char * rl = readline(interperter->complete()?">>>> ":".... ");
-		if (!rl) break;
-		if (!rl[0]) {
-			free(rl); 
-			continue;
-		}
-		add_history(rl);
-		line = rl;
-		free(rl); 
-		interperter->runLine(line);
-	}
-	printf("\n");
-}
+enum class MsgType {
+	error, warning, info
+};
+
+class Callback {
+public:
+	virtual ~Callback() {}
+	virtual void report(MsgType type, 
+						std::shared_ptr<Code> code,
+						std::string message,
+						Token mainToken,
+						std::initializer_list<CharRange> ranges) = 0;
+	virtual void report(MsgType type, std::string message) = 0;
+
+	virtual void print(Type type, std::string repr) = 0;
+};
+
+class TerminalCallback: public Callback {
+public:
+	virtual void report(MsgType type, 
+						std::shared_ptr<Code> code,
+						std::string message,
+						Token mainToken,
+						std::initializer_list<CharRange> ranges) override;
+	
+	virtual void report(MsgType type, std::string message) override;
+
+	virtual void print(Type type, std::string repr) override;
+};
+
+
+#endif //__callback_hh__
+
