@@ -57,6 +57,8 @@ public:
 	rm_object & operator*() const {return *ptr;}
 	rm_object * operator->() const {return ptr;}
 	rm_object * get() const  {return ptr;}
+	template<typename T>
+	T * getAs(){return static_cast<T *>(ptr);}
 
 	bool operator <(const RefPtr & o) const {return ptr < o.ptr;}
 	bool operator >(const RefPtr & o) const {return ptr > o.ptr;}
@@ -72,6 +74,12 @@ public:
 		ptr = p;
 	}
 
+	rm_object * unbox(){
+		rm_object * tmp = ptr;
+		ptr = nullptr;
+		return tmp;
+	}
+	
 	static RefPtr steal(rm_object * p) {
 		RefPtr r(p);
 		p->decref();
@@ -123,5 +131,13 @@ struct CanonicalText: public TextBase {
 	}
 	char * data;
 };
+
+extern "C" {
+
+void rm_saveRelToStream(rm_object * o, std::ostream & outFile);
+rm_object * rm_loadRelFromStream(std::istream & inFile);
+void rm_printTextToStream(rm_object * ptr, std::ostream & stream);
+
+}
 
 #endif //__INNER_H__

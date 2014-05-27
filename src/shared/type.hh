@@ -22,7 +22,7 @@
 #include <ostream>
 
 enum class LType: std::uint16_t {
-	smallText, concatText, substrText, canonicalText, function
+	smallText, concatText, substrText, canonicalText, function, schema, tuple, relation
 };
 
 enum Type {
