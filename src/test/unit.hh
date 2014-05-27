@@ -20,13 +20,14 @@
 #ifndef __TEST_UNIT_HH__
 #define __TEST_UNIT_HH__
 
-#include <iostream>
-#include <test/logstream.hh>
-#include <map>
-#include <vector>
 #include <algorithm>
 #include <chrono>
+#include <iostream>
+#include <map>
 #include <sstream>
+#include <test/logstream.hh>
+#include <typeinfo>
+#include <vector>
 
 namespace rasmus {
 
