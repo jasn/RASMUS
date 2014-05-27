@@ -16,89 +16,66 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#include "error.hh"
-#include <limits>
-#include <string>
-#include <algorithm>
-#include <iostream>
+#include <frontend/error.hh>
 
 namespace {
 
-const char * boldRed = "\033[31;1m";
-const char * red = "\033[31m";
-const char * reset = "\x1b[0m";
-const char * green = "\033[32m";
-const char * blue = "\033[34m";
-const char * yellow = "\033[33m";
-const char * boldYellow = "\033[33;1m";
-const char * warningText = "\033[33;1mwarning\x1b[0m";
-const char * errorText = "\033[31merror\x1b[0m";
-
-class TerminalError: public Error {
+class CallbackError: public Error {
 public:
 	size_t numberOfErrors;
 	std::shared_ptr<Code> code;
+	std::shared_ptr<Callback> callback;
 
-	TerminalError(std::shared_ptr<Code> code): numberOfErrors(0), code(code) {}
+	CallbackError(std::shared_ptr<Code> code,
+				  std::shared_ptr<Callback> callback): 
+		numberOfErrors(0), code(code), callback(callback) {}
 	
 	virtual void reportWarning(std::string message,
 							   Token mainToken,
 							   std::initializer_list<CharRange> ranges) override {
-		report(warningText, message, mainToken, ranges);
+		callback->report(MsgType::warning, code, message, mainToken, ranges);
 	}
 	
 	virtual void reportError(std::string message,
 							 Token mainToken,
 							 std::initializer_list<CharRange> ranges) override {
-		report(errorText, message, mainToken, ranges);
+		++numberOfErrors;
+		callback->report(MsgType::error, code, message, mainToken, ranges);
 	}
 
-	void report(const char * type, std::string message,
-				Token mainToken,
-				std::initializer_list<CharRange> ranges);
-
-	virtual size_t count() const override {
-		return numberOfErrors;
-	}
+	virtual size_t count() const {return numberOfErrors;}
 };
 
-void TerminalError::report(const char * type, std::string message,
-						   Token mainToken,
-						   std::initializer_list<CharRange> ranges) {
-	numberOfErrors++;
-	int lo = std::numeric_limits<int>::max();
-	int hi = std::numeric_limits<int>::min();
-	if (mainToken) {
-		lo = std::min<int>(lo, mainToken.start);
-		hi = std::max<int>(hi, mainToken.length + mainToken.start);
-	}
-	for (auto r: ranges) {
-		lo = std::min<int>(lo, r.lo);
-		hi = std::max<int>(hi, r.hi);
+class CountError: public Error {
+public:
+	size_t numberOfErrors;
+
+	CountError(): numberOfErrors(0) {}
+	
+	virtual void reportWarning(std::string message,
+							   Token mainToken,
+							   std::initializer_list<CharRange> ranges) override {
 	}
 	
-	auto it=std::upper_bound(code->lineStarts.begin(), code->lineStarts.end(), lo);
-	int line=it - code->lineStarts.begin();
-	printf("%s:%d %s %s\n", code->name.c_str(), (int)line, type, message.c_str());
-	int startOfLine = code->lineStarts[line-1]+1;
-    int endOfLine = code->lineStarts[line];
-	printf("%s%s%s\n",green, code->code.substr(startOfLine,endOfLine-startOfLine).c_str(),reset);
-	if (ranges.size() == 0 && mainToken) {
-		printf("%s%s^%s%s\n", std::string(mainToken.start-startOfLine, ' ').c_str(), blue, std::string(std::max<size_t>(mainToken.length, 1)-1, '~').c_str(), reset);
-	} else {
-		std::string i(endOfLine - startOfLine, ' ');
-		for (auto r: ranges)
-			for (size_t x=std::max<int>(startOfLine, r.lo); x < std::min<int>(endOfLine, r.hi); ++x) 
-				i[x-startOfLine] = '~';
-		if (mainToken)
-			i[std::max<int>(size_t(0), std::min<int>(mainToken.start + (mainToken.length-1) / 2 - startOfLine, endOfLine-startOfLine-1))] = '^';
-		printf("%s%s%s\n", blue, i.c_str(), reset);
+	virtual void reportError(std::string message,
+							 Token mainToken,
+							 std::initializer_list<CharRange> ranges) override {
+		++numberOfErrors;
 	}
-}
 
+	virtual size_t count() const {return numberOfErrors;}
+};
+
+	
 } //anonymous namespace
 
-std::shared_ptr<Error> terminalError(std::shared_ptr<Code> code) {
-	return std::make_shared<TerminalError>(code);
+std::shared_ptr<Error> callbackError(std::shared_ptr<Code> code,
+									 std::shared_ptr<Callback> callback) {
+	return std::make_shared<CallbackError>(code, callback);
 }
+
+std::shared_ptr<Error> countError() {
+	return std::make_shared<CountError>();
+}
+
     

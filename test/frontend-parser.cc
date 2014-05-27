@@ -177,7 +177,7 @@ public:
 bool pt(const char * txt, const char * exp, int errors=0) {
 	std::shared_ptr<Code> code = std::make_shared<Code>(txt, "monkey");
 	std::shared_ptr<Lexer> lexer = std::make_shared<Lexer>(code, 0);
-	std::shared_ptr<Error> error = terminalError(code);
+	std::shared_ptr<Error> error = countError();
 	std::shared_ptr<Parser> p = parser(lexer, error, false);
 	
 	NodePtr ast=p->parse();

@@ -22,6 +22,7 @@
 #include "ASTBase.hh"
 #include "code.hh"
 #include "lexer.hh"
+#include <frontend/callback.hh>
 
 class Error {
 public:
@@ -38,6 +39,8 @@ public:
 	virtual size_t count() const = 0;
 };
 
-std::shared_ptr<Error> terminalError(std::shared_ptr<Code> code);
+std::shared_ptr<Error> callbackError(std::shared_ptr<Code> code,
+									 std::shared_ptr<Callback> callback);
 
+std::shared_ptr<Error> countError();
 #endif //__error_hh__

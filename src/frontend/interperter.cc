@@ -55,14 +55,16 @@ public:
 	llvm::Module * module;
 	std::shared_ptr<LLVMCodeGen> codeGen;
 	llvm::ExecutionEngine * engine;
-
 	std::string incomplete;
 	std::string theCode;
+	std::shared_ptr<Callback> callback;
 	
+	InterperterImpl(std::shared_ptr<Callback> callback): callback(callback) {}
+
 	void setup() override {
 		llvm::InitializeNativeTarget();
 		code = std::make_shared<Code>("", "Interpreted");
-		error = terminalError(code);
+		error = callbackError(code, callback);
 		lexer = std::make_shared<Lexer>(code);
 		p = parser(lexer, error, true);
 		cr = charRanges();
@@ -72,14 +74,17 @@ public:
 		std::string ErrStr;
 		engine = llvm::EngineBuilder(module).setErrorStr(&ErrStr).create();
 		if (!engine) {
-			std::cerr << "Could not create engine: " << ErrStr << std::endl;
+			callback->report(MsgType::error, std::string("Could not create engine: ")+ ErrStr);
+			return;
 		}
 	
 		void * dll = dlopen((std::string(get_current_dir_name())+"/libstdlib.so").c_str(), RTLD_NOW | RTLD_LOCAL);
 		for (auto & p: codeGen->stdlib) {
 			void * func = dlsym(dll, p.first.c_str());
-			if (!func) 
-				std::cerr << "Unable to load symbol " << p.first << " from stdlib" << std::endl;
+			if (!func) {
+				callback->report(MsgType::error, std::string("Unable to load symbol ")+p.first+" from stdlib");
+				return;
+			}
 			engine->addGlobalMapping(p.second, func);
 		}
 	}
@@ -129,7 +134,7 @@ public:
 
 } //nameless namespace
 
-std::shared_ptr<Interperter> makeInterperter(std::shared_ptr<Callback> callBack) {
-	return std::make_shared<InterperterImpl>();
+std::shared_ptr<Interperter> makeInterperter(std::shared_ptr<Callback> callback) {
+	return std::make_shared<InterperterImpl>(callback);
 }
 
