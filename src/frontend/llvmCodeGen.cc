@@ -46,84 +46,87 @@
 namespace {
 using namespace llvm;
 
-LLVMVal owned(llvm::Value * value, llvm::Value * type = nullptr) {return LLVMVal(value, type, true);}
-LLVMVal borrowed(llvm::Value * value, llvm::Value * type = nullptr) {return LLVMVal(value, type, false);}
-LLVMVal borrow(const LLVMVal & v) {return LLVMVal(v.value, v.type, false);}
-
-llvm::Type * voidType = llvm::Type::getVoidTy(getGlobalContext());
-llvm::Type * int8Type = llvm::Type::getInt8Ty(getGlobalContext());
-llvm::Type * int16Type = llvm::Type::getInt16Ty(getGlobalContext());
-llvm::Type * int32Type = llvm::Type::getInt32Ty(getGlobalContext());
-llvm::Type * int64Type = llvm::Type::getInt64Ty(getGlobalContext());
-llvm::PointerType * pointerType(llvm::Type * t) {return PointerType::getUnqual(t);}
-llvm::PointerType * voidPtrType = pointerType(int8Type);
-
-llvm::StructType * structType(std::string name, 
-						std::initializer_list<llvm::Type *> types) {
-	return StructType::create(getGlobalContext(), ArrayRef<llvm::Type * >(types.begin(), types.end()), name);
-}
-
-llvm::FunctionType * functionType(llvm::Type * ret, std::initializer_list<llvm::Type *> args) {
-	return FunctionType::get(ret, ArrayRef<llvm::Type * >(args.begin(), args.end()), false);
-}
-
-llvm::FunctionType * dtorType = functionType(voidType, {voidPtrType});;
-llvm::StructType * anyRetType = structType("AnyRet", {int64Type, int8Type});
-llvm::StructType * funcBase = structType("FuncBase", {int32Type, int16Type, int16Type, voidPtrType, voidPtrType} );;
-llvm::StructType * objectBaseType = structType("ObjectBase", {int32Type, int16Type});
-
-
-llvm::Type * llvmType(::Type t) {
-	switch (t) {
-	case TBool: return int8Type;
-	case TInt: return int64Type;
-	case TFunc: return pointerType(funcBase);
-	case TText: 
-	case TRel: 
-		return voidPtrType;
-	case TAny: return anyRetType;
-	default:
-		throw ICEException(std::string("llvmType - Unhandled type ") + typeName(t));
-	}
-}
-
-llvm::Constant * int8(uint8_t value) {	return llvm::ConstantInt::get(int8Type, value);}
-llvm::Constant * int16(uint16_t value) {return llvm::ConstantInt::get(int16Type, value);}
-llvm::Constant * int32(uint32_t value) {return llvm::ConstantInt::get(int32Type, value);}
-llvm::Constant * int64(uint8_t value) {return llvm::ConstantInt::get(int64Type, value);}
-
-llvm::Value * typeRepr(::Type t) {
-	return int8(t);
-}
-	
-LLVMVal getUndef(::Type t) {
-	switch(t) {
-	case TInt:
-		return borrowed(int64(std::numeric_limits<int64_t>::max()) );
-	case TBool:
-		return borrowed(int8(2));
-	case TAny:
-		return borrowed(int64(std::numeric_limits<int64_t>::max() ), typeRepr(TInt));
-	case TFunc:
-		return borrowed(llvm::Constant::getNullValue(pointerType(funcBase)));
-	default:
-		throw ICEException("Unhandled undef");
-	}
-}
-
-llvm::FunctionType * funcType(uint16_t argc) {
-	std::vector<llvm::Type *> t;
-	t.push_back(pointerType(funcBase));
-	t.push_back(pointerType(anyRetType));
-	for (size_t i=0; i < argc; ++i) {
-		t.push_back(int64Type);
-		t.push_back(int8Type);
-	}
-	return llvm::FunctionType::get(voidType, t, false);
-}
 
 class CodeGen: public LLVMCodeGen, public VisitorCRTP<CodeGen, LLVMVal> {
 public:
+	LLVMVal owned(llvm::Value * value, llvm::Value * type = nullptr) {return LLVMVal(value, type, true);}
+	LLVMVal borrowed(llvm::Value * value, llvm::Value * type = nullptr) {return LLVMVal(value, type, false);}
+	LLVMVal borrow(const LLVMVal & v) {return LLVMVal(v.value, v.type, false);}
+	
+	llvm::Type * voidType = llvm::Type::getVoidTy(getGlobalContext());
+	llvm::Type * int8Type = llvm::Type::getInt8Ty(getGlobalContext());
+	llvm::Type * int16Type = llvm::Type::getInt16Ty(getGlobalContext());
+	llvm::Type * int32Type = llvm::Type::getInt32Ty(getGlobalContext());
+	llvm::Type * int64Type = llvm::Type::getInt64Ty(getGlobalContext());
+	llvm::PointerType * pointerType(llvm::Type * t) {return PointerType::getUnqual(t);}
+	llvm::PointerType * voidPtrType = pointerType(int8Type);
+	
+	llvm::StructType * structType(std::string name, 
+								  std::initializer_list<llvm::Type *> types) {
+		return StructType::create(getGlobalContext(), ArrayRef<llvm::Type * >(types.begin(), types.end()), name);
+	}
+	
+	llvm::FunctionType * functionType(llvm::Type * ret, std::initializer_list<llvm::Type *> args) {
+		return FunctionType::get(ret, ArrayRef<llvm::Type * >(args.begin(), args.end()), false);
+	}
+	
+	llvm::FunctionType * dtorType = functionType(voidType, {voidPtrType});;
+	llvm::StructType * anyRetType = structType("AnyRet", {int64Type, int8Type});
+	llvm::StructType * funcBase = structType("FuncBase", {int32Type, int16Type, int16Type, voidPtrType, voidPtrType} );;
+	llvm::StructType * objectBaseType = structType("ObjectBase", {int32Type, int16Type});
+	
+	
+	llvm::Type * llvmType(::Type t) {
+		switch (t) {
+		case TBool: return int8Type;
+		case TInt: return int64Type;
+		case TFunc: return pointerType(funcBase);
+		case TText: 
+		case TRel: 
+			return voidPtrType;
+		case TAny: return anyRetType;
+		default:
+			throw ICEException(std::string("llvmType - Unhandled type ") + typeName(t));
+		}
+	}
+	
+	llvm::Constant * int8(uint8_t value) {	return llvm::ConstantInt::get(int8Type, value);}
+	llvm::Constant * int16(uint16_t value) {return llvm::ConstantInt::get(int16Type, value);}
+	llvm::Constant * int32(uint32_t value) {return llvm::ConstantInt::get(int32Type, value);}
+	llvm::Constant * int64(uint8_t value) {return llvm::ConstantInt::get(int64Type, value);}
+	
+	llvm::Value * typeRepr(::Type t) {
+		return int8(t);
+	}
+	
+	LLVMVal getUndef(::Type t) {
+		switch(t) {
+		case TInt:
+			return borrowed(int64(std::numeric_limits<int64_t>::max()) );
+		case TBool:
+			return borrowed(int8(2));
+		case TAny:
+			return borrowed(int64(std::numeric_limits<int64_t>::max() ), typeRepr(TInt));
+		case TFunc:
+			return borrowed(llvm::Constant::getNullValue(pointerType(funcBase)));
+		default:
+			throw ICEException("Unhandled undef");
+		}
+	}
+	
+	llvm::FunctionType * funcType(uint16_t argc) {
+		std::vector<llvm::Type *> t;
+		t.push_back(pointerType(funcBase));
+		t.push_back(pointerType(anyRetType));
+		for (size_t i=0; i < argc; ++i) {
+			t.push_back(int64Type);
+			t.push_back(int8Type);
+		}
+		return llvm::FunctionType::get(voidType, t, false);
+	}
+	
+		
+
 	IRBuilder<> builder;
 	size_t uid;
 	Module * module;
