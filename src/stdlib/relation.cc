@@ -16,15 +16,20 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#include "inner.hh"
+
 #include <iostream>
 #include <vector>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
 #include <iomanip>
+#include <stdlib/refptr.hh>
+#include <stdlib/text.hh>
+#include <stdlib/relation.hh>
+#include <stdlib/callback.hh>
 
 namespace {
+using namespace rasmus::stdlib;
 
 /* holds an attribute; 
    a schema consists of one or more such attributes
@@ -50,12 +55,12 @@ struct AnyValue {
 	union {
 		int64_t intValue;
 		bool boolValue;
-		RefPtr objectValue;
+		RefPtr<rm_object> objectValue;
 	};
 	
 	AnyValue(int64_t value): type(TInt), intValue(value) {}
 	AnyValue(bool value): type(TBool), boolValue(value) {}
-	AnyValue(Type type, RefPtr value): type(type), objectValue(value) {}
+	AnyValue(Type type, RefPtr<rm_object> value): type(type), objectValue(value) {}
 
 	AnyValue(const AnyValue & other): type(other.type) {
 		switch(type){
@@ -66,7 +71,7 @@ struct AnyValue {
 			boolValue = other.boolValue;
 			break;
 		default:
-			new (&objectValue) RefPtr(other.objectValue);
+			new (&objectValue) RefPtr<rm_object>(other.objectValue);
 			break;
 		}
 
@@ -81,7 +86,7 @@ struct AnyValue {
 			boolValue = other.boolValue;
 			break;
 		default:
-			new (&objectValue) RefPtr(std::move(other.objectValue));
+			new (&objectValue) RefPtr<rm_object>(std::move(other.objectValue));
 			break;
 		}
 	}
@@ -104,7 +109,7 @@ struct AnyValue {
 		case TBool:
 			break;
 		default:
-			objectValue.~RefPtr();
+			objectValue.~RefPtr<rm_object>();
 		}
 	}
 };
@@ -114,7 +119,7 @@ struct AnyValue {
  */
 class Tuple: public rm_object {
 public:
-	RefPtr schema;
+	RefPtr<rm_object> schema;
 	std::vector<AnyValue> values;
 	Tuple(): rm_object(LType::tuple){};
 };
@@ -124,18 +129,12 @@ public:
  */
 class Relation: public rm_object {
 public:
-	std::vector<RefPtr> tuples;
-	RefPtr schema;
+	std::vector<RefPtr<rm_object>> tuples;
+	RefPtr<rm_object> schema;
 	Relation(): rm_object(LType::relation){};
 };
 
-} // nameless namespace
-
-extern "C" {
-
-
 int rm_itemWidth(AnyValue av){
-
 	// TODO implement this method properly
 	switch(av.type){
 	case TBool:
@@ -148,28 +147,28 @@ int rm_itemWidth(AnyValue av){
 		return av.objectValue.getAs<TextBase>()->length;
 		break;
 	}
-
 }
 
-void rm_printRel(rm_object * ptr) {
 
+} // nameless namespace
+
+namespace rasmus {
+namespace stdlib {
+
+void printRelationToStream(rm_object * ptr, std::ostream & out) {
 	Relation * relation = static_cast<Relation *>(ptr);
-	
 	// calculate widths
-
 	Schema * schema = relation->schema.getAs<Schema>();
 	size_t num_attributes = schema->attributes.size();
 	std::vector<int> widths(num_attributes, 0);
 
 	// widths for tuples
 	for(auto & tuple : relation->tuples){
-
 		int i = 0;		
 		for(auto & item : tuple.getAs<Tuple>()->values){
 			widths[i] = std::max(widths[i], rm_itemWidth(item));
 			i++;
 		}
-
 	}
 
 	// width for schema names
@@ -183,57 +182,42 @@ void rm_printRel(rm_object * ptr) {
 	total_width += 1 + widths.size() * 3; 
     // 1 for beginning |, 3 per field for 2 spaces and a |
 
-
 	// print header
-	
-	std::cout << std::string(total_width, '-') << std::endl;
-	std::cout << "|";
+	out << std::string(total_width, '-') << std::endl;
+	out << "|";
 
 	i = 0;
 	for(auto & attribute : schema->attributes){
-		std::cout << ' ' << std::left << std::setw(widths[i]) << attribute.name <<  " |";
+		out << ' ' << std::left << std::setw(widths[i]) << attribute.name <<  " |";
 		i++;
 	}
 	
-	std::cout << std::endl;
-		
+	out << std::endl;
 	// print body
-
-	std::cout << std::string(total_width, '-') << std::endl;
-
+	out << std::string(total_width, '-') << std::endl;
 	for(auto & tuple : relation->tuples){
-		
 		i = 0;
-
-		std::cout << '|';
-
+		out << '|';
 		for(auto & value : tuple.getAs<Tuple>()->values){
 
 			switch(value.type){
 			case TInt:
-				std::cout << ' ' << std::right << std::setw(widths[i]) << value.intValue;
+				out << ' ' << std::right << std::setw(widths[i]) << value.intValue;
 				break;
 			case TBool:
-				std::cout << ' ' << std::left << std::setw(widths[i]) << (value.boolValue ? "true" : "false");
+				out << ' ' << std::left << std::setw(widths[i]) << (value.boolValue ? "true" : "false");
 				break;
 			case TText:
-				std::cout << ' ' << std::left << std::setw(widths[i]) << rm_textToString(value.objectValue.get()); 
+				out << ' ' << std::left << std::setw(widths[i]) << textToString(value.objectValue.getAs<TextBase>()); 
 				break;
 			}
-
-			std::cout << " |";
-
+			out << " |";
 			i++;
-
 		}
-
-		std::cout << std::endl;
-
+		out << std::endl;
 	}
-	
-	std::cout << std::string(total_width, '-') << std::endl;
-
-}
+	out << std::string(total_width, '-') << std::endl;
+} 
 
 /*  outputs the given relation to the given stream. 
 
@@ -244,8 +228,7 @@ void rm_printRel(rm_object * ptr) {
 	the type and name of each attribute, and finally
 	the values of the tuples in the relation.
  */
-void rm_saveRelToStream(rm_object * o, std::ostream & outFile){
-	
+void saveRelationToStream(rm_object * o, std::ostream & outFile){
 	Relation * relation = static_cast<Relation *>(o);
 	outFile << relation->schema.getAs<Schema>()->attributes.size() << std::endl;
 	for(auto & attribute : relation->schema.getAs<Schema>()->attributes){
@@ -275,7 +258,7 @@ void rm_saveRelToStream(rm_object * o, std::ostream & outFile){
 				outFile << (value.boolValue ? "true" : "false") << std::endl;
 				break;
 			case TText:
-				rm_printTextToStream(value.objectValue.get(), outFile);
+				printTextToStream(value.objectValue.getAs<TextBase>(), outFile);
 				outFile << std::endl;
 				break;
 			}
@@ -284,34 +267,23 @@ void rm_saveRelToStream(rm_object * o, std::ostream & outFile){
 	
 }	
 
-/* wrapper function */
-void rm_saveRel(rm_object * o, const char * name) {
-	std::ofstream outFile(name);
-	rm_saveRelToStream(o, outFile);
-}
-
-
-rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs) {return nullptr;}
-rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {return nullptr;}
-
-
 /*  parses a relation given by an input stream and returns 
 	it. The format is as given in the RASMUS user manual. 
 
 	The attribute types and names are saved in relations->schema
 	and relations->tuples contains the tuples for the relation
 */
-rm_object * rm_loadRelFromStream(std::istream & inFile){
+rm_object * loadRelationFromStream(std::istream & inFile){
 
 	size_t num_columns;
-	RefPtr schema;
+	RefPtr<rm_object> schema;
 
 	if(!(inFile >> num_columns)){
 		std::cerr << "could not read number of attributes from file "  << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-	schema = RefPtr(new Schema());
+	schema = RefPtr<rm_object>(new Schema());
 	
 	for(size_t i = 0; i < num_columns; i++){
 		char type;
@@ -349,14 +321,14 @@ rm_object * rm_loadRelFromStream(std::istream & inFile){
 		getline(inFile, _);
 	}
 
-	RefPtr relations(new Relation());
+	RefPtr<rm_object> relations(new Relation());
 	relations.getAs<Relation>()->schema = schema;
 
 	bool done = false;
 
 	while(!done){
 		
-		RefPtr tuple(new Tuple());
+		RefPtr<rm_object> tuple(new Tuple());
 		tuple.getAs<Tuple>()->schema = schema;
 
 		for(auto & attribute : schema.getAs<Schema>()->attributes){
@@ -380,7 +352,7 @@ rm_object * rm_loadRelFromStream(std::istream & inFile){
 				tuple.getAs<Tuple>()->values.emplace_back(line != "false");
 				break;
 			case TText:
-				tuple.getAs<Tuple>()->values.emplace_back(TText, RefPtr::steal(rm_getConstText(line.c_str())));
+				tuple.getAs<Tuple>()->values.emplace_back(TText, RefPtr<rm_object>::steal(rm_getConstText(line.c_str())));
 				break;
 			default:
 				std::cerr << "internal library error" << std::endl;
@@ -400,10 +372,22 @@ rm_object * rm_loadRelFromStream(std::istream & inFile){
 
 }
 
+} //namespace stdlib
+} //namespace rasmus
+
+extern "C" {
+
+/* wrapper function */
+void rm_saveRel(rm_object * o, const char * name) {
+	callback->saveRelation(o, name);
+}
+
+rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs) {return nullptr;}
+rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {return nullptr;}
+
 /* wrapper function */
 rm_object * rm_loadRel(const char * name) {
-	std::ifstream inFile(name);
-	return rm_loadRelFromStream(inFile);
+	return callback->loadRelation(name);
 }
 
 

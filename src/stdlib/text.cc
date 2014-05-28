@@ -17,16 +17,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 
-#include "inner.hh"
 #include <cstring>
 #include <iostream>
-
+#include <stdlib/text.hh>
 const size_t smallLength = 20;
 
 namespace {
+using namespace rasmus::stdlib;
 
 template <typename T>
-void buildText(rm_object * o, T & out, size_t start, size_t end) {
+void buildText(TextBase * o, T & out, size_t start, size_t end) {
 	switch (o->type) {
 	case LType::canonicalText:
 		out(static_cast<CanonicalText*>(o)->data + start, end - start);
@@ -36,8 +36,8 @@ void buildText(rm_object * o, T & out, size_t start, size_t end) {
 		break;
 	case LType::concatText:
 	{
-		rm_object * l = static_cast<ConcatText*>(o)->left.get();
-		rm_object * r = static_cast<ConcatText*>(o)->right.get();
+		TextBase * l = static_cast<ConcatText*>(o)->left.get();
+		TextBase * r = static_cast<ConcatText*>(o)->right.get();
 		size_t llen = static_cast<TextBase*>(l)->length;
 		if (start >= llen) 
 			buildText(r, out, start - llen, end-llen);
@@ -76,7 +76,7 @@ struct OStreamBuilder {
 /**
  * Turn a text object into a canonical text
  */
-const char * canonizeText(rm_object * o) {
+const char * canonizeText(TextBase * o) {
 	switch (o->type) {
 	case LType::canonicalText:
 		return static_cast<CanonicalText*>(o)->data;
@@ -84,7 +84,7 @@ const char * canonizeText(rm_object * o) {
 		return static_cast<SmallText*>(o)->data;
 	case LType::concatText:
 	{
-		size_t length=static_cast<TextBase*>(o)->length;
+		size_t length=o->length;
 		char * data=new char[length];
 		MemcpyBuilder builder(data);
 		buildText(o, builder, 0, length);
@@ -96,7 +96,7 @@ const char * canonizeText(rm_object * o) {
 	}
 	case LType::substrText:
 	{
-		size_t length=static_cast<TextBase*>(o)->length;
+		size_t length=o->length;
 		char * data=new char[length];
 		MemcpyBuilder builder(data);
 		buildText(o, builder, 0, length);
@@ -108,7 +108,6 @@ const char * canonizeText(rm_object * o) {
 	}
 	}
 }
-
 
 template <typename T, typename ...TS>
 T * makeText(TS &&... ts) {
@@ -130,42 +129,33 @@ size_t length(rm_object * o) {
 	return static_cast<TextBase*>(o)->length;
 }
 
+TextBase * toTextBase(rm_object * o) {
+	// TODO check for valid type
+	return static_cast<TextBase*>(o);
+}
+
 
 } //unnamed namespace
 
-extern "C" {
+namespace rasmus {
+namespace stdlib {
 
-void rm_free(rm_object * o) {
-	switch (o->type) {
-	case LType::canonicalText:
-		std::cout << "free(canonicalText)" << std::endl;
-		static_cast<CanonicalText*>(o)->~CanonicalText();
-		operator delete(reinterpret_cast<void *>(o));
-		break;
-	case LType::concatText:
-		std::cout << "free(concatText)" << std::endl;
-		static_cast<ConcatText*>(o)->~ConcatText();
-		operator delete(reinterpret_cast<void *>(o));
-		break;
-	case LType::substrText:
-		std::cout << "free(substrText)" << std::endl;
-		static_cast<SubstrText*>(o)->~SubstrText();
-		operator delete(reinterpret_cast<void *>(o));
-		break;
-	case LType::smallText:
-		std::cout << "free(smallText)" << std::endl;
-		static_cast<SmallText*>(o)->~SmallText();
-		operator delete(reinterpret_cast<void *>(o));
-		break;
-	case LType::function: 
-	{		
-		std::cout << "free(function)" << std::endl;
-		function_object * fo = static_cast<function_object*>(o);
-		fo->dtor(fo);
-		::free(fo); //Functions are allocated with malloc by the codegen
-	}
-	}
+void printTextToStream(TextBase * ptr, std::ostream & stream) {
+	OStreamBuilder b(stream);
+	buildText(ptr, b, 0, length(ptr) );
 }
+
+std::string textToString(TextBase * ptr) {
+	std::string text(length(ptr), ' ');
+	MemcpyBuilder builder(&text[0]);
+	buildText(ptr, builder, 0, text.size());
+	return text;
+}
+
+} //stdlib
+} //rasmus
+
+extern "C" {
 
 rm_object * rm_getConstText(const char *cptr) {
 	size_t len = strlen(cptr);
@@ -174,20 +164,23 @@ rm_object * rm_getConstText(const char *cptr) {
 	return o;
 }
 
-rm_object * rm_concatText(rm_object *lhs, rm_object *rhs) {
-	size_t len=length(lhs) + length(rhs);
+rm_object * rm_concatText(rm_object *lhs_, rm_object *rhs_) {
+	TextBase * lhs = toTextBase(lhs_);
+	TextBase * rhs = toTextBase(rhs_);
+	size_t len=lhs->length + rhs->length;
 	if (len <= smallLength) {
 		SmallText * o = makeSmallText(len);
 		MemcpyBuilder builder(o->data);
-		buildText(lhs, builder, 0, length(lhs));
-		buildText(rhs, builder, 0, length(rhs));
+		buildText(lhs, builder, 0, lhs->length);
+		buildText(rhs, builder, 0, rhs->length);
 		return o;
 	}
-	return makeText<ConcatText>(RefPtr(lhs), RefPtr(rhs));
+	return makeText<ConcatText>(RefPtr<TextBase>(lhs), RefPtr<TextBase>(rhs));
 }
 
-rm_object * rm_substrText(rm_object * str, int64_t start, int64_t end) {
-	size_t len=length(str);
+rm_object * rm_substrText(rm_object * str_, int64_t start, int64_t end) {
+	TextBase * str = toTextBase(str_);
+	size_t len=str->length;;
 	start = std::max<int64_t>(0, start);
 	end = std::min<int64_t>(end, len);
 	if (end < start) end=start;
@@ -197,33 +190,15 @@ rm_object * rm_substrText(rm_object * str, int64_t start, int64_t end) {
 		buildText(str, builder, start, end);
 		return o;
 	}
-	return makeText<SubstrText>(RefPtr(str), (size_t)start, (size_t)end);
+	return makeText<SubstrText>(RefPtr<TextBase>(str), (size_t)start, (size_t)end);
 }
 
 int8_t rm_substringSearch(rm_object *lhs, rm_object *rhs) {
-	// TODO This could be much faster
-	const char * lhst = canonizeText(lhs);
-	const char * rhst = canonizeText(rhs);
+	const char * lhst = canonizeText(toTextBase(lhs));
+	const char * rhst = canonizeText(toTextBase(rhs));
 	std::string dummy(rhst, length(rhs));
 	return dummy.find(lhst, length(lhs)) != std::string::npos;
 }	
 
-void rm_printText(rm_object * ptr) {
-	OStreamBuilder b(std::cout);
-	buildText(ptr, b, 0, length(ptr) );
-	std::cout << std::endl;
-}
-
-void rm_printTextToStream(rm_object * ptr, std::ostream & stream) {
-	OStreamBuilder b(stream);
-	buildText(ptr, b, 0, length(ptr) );
-}
-
 } // extern "C"
 
-std::string rm_textToString(rm_object * ptr) {
-	std::string text(length(ptr), ' ');
-	MemcpyBuilder builder(&text[0]);
-	buildText(ptr, builder, 0, text.size());
-	return text;
-}

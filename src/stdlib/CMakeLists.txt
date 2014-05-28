@@ -1,2 +1,19 @@
-add_library(stdlib SHARED error.cc inner.hh lib.h print.cc text.cc relation.cc)
+add_library(
+	stdlib 
+	SHARED
+	callback.cc
+	callback.hh
+	default_callback.hh
+	error.cc
+	function.hh
+	lib.h
+	print.cc
+	refptr.hh
+	relation.cc
+	relation.hh
+	rm_object.cc
+	rm_object.hh
+	text.cc
+	text.hh
+	)
 set_target_properties(stdlib PROPERTIES LIBRARY_OUTPUT_DIRECTORY ../../)

@@ -16,12 +16,35 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#ifndef __COMMON_HH__
-#define __COMMON_HH__
-
-#include <iostream>
+#ifndef __RM_OBJECT_HH__
+#define __RM_OBJECT_HH__
+#include "lib.h"
 #include <cstdint>
-#include <test/unit.hh>
-#include <test/log.hh>
+#include <shared/type.hh>
 
-#endif //__COMMON_HH__
+extern "C" {
+
+struct rm_object {
+	uint32_t ref_cnt;
+	const LType type;
+	rm_object(LType type): ref_cnt(0), type(type) {}
+
+	void incref()  {ref_cnt++;}
+	
+	void decref() {
+		ref_cnt--;
+		if (ref_cnt == 0) rm_free(this);
+	}
+};
+
+} //extern "C"
+
+namespace rasmus {
+namespace stdlib {
+
+size_t getObjectCount();
+
+} //namespace stdlib
+} //namespace rasmus
+
+#endif //__RM_OBJECT_HH__

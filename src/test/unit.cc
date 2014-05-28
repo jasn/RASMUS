@@ -303,6 +303,7 @@ namespace bits {
 	void test_runner::exception() {
 		try {
 			throw;
+		} catch (test_failure) {
 		} catch (const std::runtime_error & e) {
 			log_error() << "Unexpected std::runtime_error: [" << e.what() << "]\n";
 		}

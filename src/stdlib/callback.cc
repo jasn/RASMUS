@@ -16,12 +16,12 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#ifndef __COMMON_HH__
-#define __COMMON_HH__
+#include <stdlib/default_callback.hh>
 
-#include <iostream>
-#include <cstdint>
-#include <test/unit.hh>
-#include <test/log.hh>
+namespace rasmus {
+namespace stdlib {
 
-#endif //__COMMON_HH__
+std::shared_ptr<Callback> callback=std::make_shared<DefaultCallback>();
+
+} //namespace stdlib
+} //namespace rasmus

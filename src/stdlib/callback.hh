@@ -16,12 +16,37 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#ifndef __COMMON_HH__
-#define __COMMON_HH__
+#ifndef __CALLBACK_HH__
+#define __CALLBACK_HH__
+#include <stdlib/rm_object.hh>
+#include <memory>
 
-#include <iostream>
-#include <cstdint>
-#include <test/unit.hh>
-#include <test/log.hh>
+namespace rasmus {
+namespace stdlib {
 
-#endif //__COMMON_HH__
+/**
+ * Callback used by the stdlib to interact with the environment
+ */
+class Callback {
+public:
+	~Callback() {}
+	virtual void saveRelation(rm_object * o, const char * name) = 0;
+	virtual rm_object * loadRelation(const char * name) = 0;
+
+	virtual void printInt(int64_t v) = 0;
+	virtual void printBool(int8_t v) = 0;
+	virtual void printText(rm_object * o) = 0;
+	virtual void printFunc(rm_object * o) = 0;
+	virtual void printTup(rm_object * o) = 0;
+	virtual void printRel(rm_object * o) = 0;
+	
+	virtual void reportError(size_t start, size_t end, std::string text) = 0;
+	virtual void reportMessage(std::string text) = 0;
+};
+
+extern std::shared_ptr<Callback> callback;
+
+} //namespace stdlib
+} //namespace rasmus
+
+#endif //__CALLBACK_HH__

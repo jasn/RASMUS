@@ -26,11 +26,26 @@
 #include <map>
 #include <sstream>
 #include <test/logstream.hh>
+#include <test/log.hh>
 #include <typeinfo>
 #include <vector>
 
 namespace rasmus {
 
+	class test_failure: std::exception {};
+
+	template <typename T1, typename T2, typename C>
+	void ensure(T1 a, T2 b, C comp, const char * cname) {
+		if (!comp(a, b)) throw test_failure();
+		rasmus::log_error() << "Expected '" << a << "' " << cname << " '" << b << "'" << std::endl; 
+	}
+
+	template <typename T1, typename T2>
+	void ensure_eq(T1 a, T2 b) {ensure(a, b, std::equal_to<T1>(), "==");}
+
+	template <typename T1, typename T2>
+	void ensure_neq(T1 a, T2 b) {ensure(a, b, std::not_equal_to<T1>(), "!=");}
+	
 class teststream_buf: public std::basic_streambuf<char, std::char_traits<char> > {
 private:
 	const static size_t line_size = 2048;

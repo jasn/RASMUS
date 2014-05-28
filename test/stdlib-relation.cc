@@ -17,9 +17,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #include "common.hh"
-#include <stdlib/inner.hh>
+#include <stdlib/relation.hh>
 #include <stdlib/lib.h>
 using namespace rasmus;
+using namespace rasmus::stdlib;
 
 std::string rm_textToString(rm_object * ptr);
 
@@ -43,9 +44,9 @@ bool printRel(){
 
 		std::stringstream ss(input);
 
-		rm_object * object = rm_loadRelFromStream(ss);
+		rm_object * object = loadRelationFromStream(ss);
 	
-		rm_printRel(object);
+		printRelationToStream(object, std::cout);
 
 	}
 
@@ -69,9 +70,8 @@ bool printRel(){
 
 		std::stringstream ss(input);
 
-		rm_object * object = rm_loadRelFromStream(ss);
-	
-		rm_printRel(object);
+		rm_object * object = loadRelationFromStream(ss);
+		printRelationToStream(object, std::cout);
 
 	}
 
@@ -98,13 +98,13 @@ bool loadAndSave(){
 
 		std::stringstream ss(input);
 
-		rm_object * object = rm_loadRelFromStream(ss);
+		rm_object * object = loadRelationFromStream(ss);
 	
 		std::stringstream ss2;
 
-		rm_saveRelToStream(object, ss2);
+		saveRelationToStream(object, ss2);
 
-		ENSURE_EQ(ss2.str(), input);
+		ensure_eq(ss2.str(), input);
 
 	}
 
@@ -129,13 +129,13 @@ bool loadAndSave(){
 
 		std::stringstream ss(input);
 
-		rm_object * object = rm_loadRelFromStream(ss);
+		rm_object * object = loadRelationFromStream(ss);
 	
 		std::stringstream ss2;
 
-		rm_saveRelToStream(object, ss2);
+		saveRelationToStream(object, ss2);
 
-		ENSURE_EQ(ss2.str(), input);
+		ensure_eq(ss2.str(), input);
 
 	}
 

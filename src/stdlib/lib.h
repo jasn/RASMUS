@@ -23,7 +23,8 @@
 #include <stddef.h>
 
 /**
- * This header contains the intier public interface of the RASMUS stdlib
+ * This header contains the public C interface boundery between the stdlib and
+ * the compiler (codegen)
  */
 extern "C" {
 
@@ -46,14 +47,10 @@ struct rm_object;
 rm_object * rm_getConstText(const char *cptr); 
 
 /**
- * Print a text
- */
-void rm_printText(rm_object * ptr);
-
-/**
  * Concatinate two text strings
  */
 rm_object * rm_concatText(rm_object * p1, rm_object * p2);
+
 
 rm_object * rm_substrText(rm_object * str, int64_t start, int64_t end);
 
@@ -64,6 +61,8 @@ rm_object * rm_substrText(rm_object * str, int64_t start, int64_t end);
  */
 void rm_free(rm_object * ptr);
 
+void rm_abort();
+
 /////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////  print.cc  /////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
@@ -73,14 +72,17 @@ void rm_print(uint8_t t, int64_t v);
 /////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////  error.cc  /////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
-
 void rm_emitTypeError(uint32_t start, uint32_t end, uint8_t got, uint8_t expect);
+
 
 void rm_emitArgCntError(int32_t start, int32_t end, int16_t got, int16_t expect);
 
-int8_t rm_interactiveWrapper(char * txt, void (* fct)() );
-  
-void rm_printRel(rm_object * ptr);
+
+/////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////  relation.cc  //////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+
+
 void rm_saveRel(rm_object * o, const char * name);
 rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs);
 rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs);

@@ -16,12 +16,20 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#ifndef __COMMON_HH__
-#define __COMMON_HH__
+#ifndef __RELATION_HH__
+#define __RELATION_HH__
+#include "lib.h"
+#include <stdlib/rm_object.hh>
+#include <stdlib/refptr.hh>
 
-#include <iostream>
-#include <cstdint>
-#include <test/unit.hh>
-#include <test/log.hh>
+namespace rasmus {
+namespace stdlib {
 
-#endif //__COMMON_HH__
+void printRelationToStream(rm_object * ptr, std::ostream & out);
+void saveRelationToStream(rm_object * o, std::ostream & outFile);
+rm_object * loadRelationFromStream(std::istream & inFile);
+
+} //namespace stdlib
+} //namespace rasmus
+
+#endif //__RELATION_HH__

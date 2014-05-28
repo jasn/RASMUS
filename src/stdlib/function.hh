@@ -16,12 +16,20 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#ifndef __COMMON_HH__
-#define __COMMON_HH__
+#ifndef __FUNCTION_HH__
+#define __FUNCTION_HH__
+#include "lib.h"
+#include <stdlib/rm_object.hh>
 
-#include <iostream>
-#include <cstdint>
-#include <test/unit.hh>
-#include <test/log.hh>
+namespace rasmus {
+namespace stdlib {
 
-#endif //__COMMON_HH__
+struct function_object: public rm_object {
+	uint16_t argcnt;
+	void (*dtor)(function_object * object);
+	void * func;
+};
+
+} //namespace stdlib
+} //namespace rasmus
+#endif //__FUNCTION_HH__
