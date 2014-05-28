@@ -20,6 +20,10 @@
 #define __interperter_hh__
 #include <frontend/callback.hh>
 
+namespace rasmus {
+namespace frontend {
+
+
 class Interperter {
 public:
 	virtual ~Interperter() {}
@@ -31,6 +35,9 @@ public:
 };
 
 std::shared_ptr<Interperter> makeInterperter(std::shared_ptr<Callback> callBack);
+
+} //namespace frontend
+} //namespace rasmus
 
 #endif //__interperter_hh__
 

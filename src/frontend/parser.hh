@@ -18,11 +18,13 @@
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __parser_hh__
 #define  __parser_hh__
-
 #include <frontend/lexer.hh>
 #include <frontend/error.hh>
 #include <frontend/AST.hh>
 #include <memory>
+
+namespace rasmus {
+namespace frontend {
 
 class IncompleteInputException: public std::exception {
 public:
@@ -34,8 +36,11 @@ public:
 	virtual NodePtr parse() = 0;
 };
 
-std::shared_ptr<Parser> parser(std::shared_ptr<Lexer> lexer, 
-							   std::shared_ptr<Error> error,
-							   bool interactiveMode=false);
+std::shared_ptr<Parser> makeParser(std::shared_ptr<Lexer> lexer, 
+								   std::shared_ptr<Error> error,
+								   bool interactiveMode=false);
+
+} //namespace frontend
+} //namespace rasmus
 
 #endif //__parser_hh

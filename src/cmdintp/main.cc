@@ -21,8 +21,8 @@
 #include <readline/readline.h>
 
 int main(int argc, char ** argv) {
-	std::shared_ptr<Callback> callback = std::make_shared<TerminalCallback>();
-	std::shared_ptr<Interperter> interperter=makeInterperter(callback);
+	std::shared_ptr<rasmus::frontend::Callback> callback = std::make_shared<rasmus::frontend::TerminalCallback>();
+	std::shared_ptr<rasmus::frontend::Interperter> interperter=rasmus::frontend::makeInterperter(callback);
 	interperter->setup();
 	while (true) {
 		std::string line;

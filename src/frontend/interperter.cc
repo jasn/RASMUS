@@ -34,24 +34,32 @@
 #include <llvm/IR/Function.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/ExecutionEngine/JIT.h>
-
 #include <unistd.h>
 #include <dlfcn.h>
-
-std::shared_ptr<Visitor<void> > charRanges(); //Declared in charRanges.cc
-std::shared_ptr<Visitor<void> > firstParse(std::shared_ptr<Error> error, std::shared_ptr<Code> code); 
+#include <stdlib/default_callback.hh>
+#include <frontend/charRanges.hh>
+#include <frontend/firstParse.hh>
 
 
 namespace {
+using namespace rasmus::frontend;
+
+class StdlibCallback: public rasmus::stdlib::DefaultCallback {
+public:
+	std::shared_ptr<Callback> cbb;
+	
+	StdlibCallback(std::shared_ptr<Callback> cb): cbb(cb) {}
+};
+
 
 class InterperterImpl: public Interperter {
 public:
 	std::shared_ptr<Code> code;
 	std::shared_ptr<Error> error;
 	std::shared_ptr<Lexer> lexer;
-	std::shared_ptr<Parser> p;
-	std::shared_ptr<Visitor<void> > cr;
-	std::shared_ptr<Visitor<void> > fp;
+	std::shared_ptr<Parser> parser;
+	std::shared_ptr<CharRanges> charRanges;
+	std::shared_ptr<FirstParse> firstParse;
 	llvm::Module * module;
 	std::shared_ptr<LLVMCodeGen> codeGen;
 	llvm::ExecutionEngine * engine;
@@ -62,15 +70,17 @@ public:
 	InterperterImpl(std::shared_ptr<Callback> callback): callback(callback) {}
 
 	void setup() override {
+		//rasmus::stdlib::callback = std::make_shared<StdlibCallback>(this->callback);
+		
 		llvm::InitializeNativeTarget();
 		code = std::make_shared<Code>("", "Interpreted");
-		error = callbackError(code, callback);
+		error = makeCallbackError(code, callback);
 		lexer = std::make_shared<Lexer>(code);
-		p = parser(lexer, error, true);
-		cr = charRanges();
-		fp = firstParse(error, code);
+		parser = makeParser(lexer, error, true);
+		charRanges = makeCharRanges();
+		firstParse = makeFirstParse(error, code);
 		module = new llvm::Module("my cool jit", llvm::getGlobalContext());
-		codeGen = llvmCodeGen(error, code, module);
+		codeGen = makeLlvmCodeGen(error, code, module);
 		std::string ErrStr;
 		engine = llvm::EngineBuilder(module).setErrorStr(&ErrStr).create();
 		if (!engine) {
@@ -94,14 +104,14 @@ public:
 		code->set(theCode + incomplete + line);
 		try {
 			size_t errorsPrior = error->count();
-			NodePtr r=p->parse();
+			NodePtr r=parser->parse();
 			if (r->nodeType == NodeType::InvalidExp) return false;
 			
 			Token t1(TK_PRINT, 0, 0);
 			std::shared_ptr<BuiltInExp> t = std::make_shared<BuiltInExp>(t1, Token(TK_RPAREN, 0, 0)); 
 			t->args.push_back(r);
-			cr->run(t);
-			fp->run(t);
+			charRanges->run(t);
+			firstParse->run(t);
 			
 			if (error->count() != errorsPrior) return false;
 			
@@ -134,7 +144,12 @@ public:
 
 } //nameless namespace
 
+namespace rasmus {
+namespace frontend {
+
 std::shared_ptr<Interperter> makeInterperter(std::shared_ptr<Callback> callback) {
 	return std::make_shared<InterperterImpl>(callback);
 }
 
+} //namespace frontend
+} //namespace rasmus

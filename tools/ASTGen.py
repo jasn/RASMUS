@@ -4,18 +4,24 @@ import sys
 nt=file("nodetype.hh","w")
 nt.write("#ifndef __nodetype_HH__\n")
 nt.write("#define __nodetype_HH__\n")
+nt.write("namespace rasmus {\n")
+nt.write("namespace frontend {\n")
 nt.write("enum class NodeType {\n")
 
 o=file("AST.hh","w")
 o.write("#ifndef __AST_HH__\n")
 o.write("#define __AST_HH__\n")
 o.write("#include <frontend/ASTBase.hh>\n")
+o.write("namespace rasmus {\n")
+o.write("namespace frontend {\n")
 
 v=file("visitor.hh", "w")
 v.write("#ifndef __VISITOR_HH__\n")
 v.write("#define __VISITOR_HH__\n")
 v.write("#include <frontend/AST.hh>\n")
 v.write("\n")
+v.write("namespace rasmus {\n")
+v.write("namespace frontend {\n")
 v.write("template <typename child_t, typename RT>\n")
 v.write("class VisitorCRTP {\n")
 v.write("public:\n")
@@ -95,9 +101,18 @@ for line in open(sys.argv[1], 'r'):
     v.write("\t\tcase NodeType::%s:\n"%className)
     v.write("\t\t\treturn static_cast<child_t*>(this)->visit(std::static_pointer_cast<%s>(node));\n"%className)
 
+o.write("} //namespace frontend\n");
+o.write("} //namespace rasmus\n");
 o.write("#endif //__AST_HH__\n")
-nt.write("};\n#endif //__nodetype_hh__\n")
+
+nt.write("};\n")
+nt.write("} //namespace frontend\n")
+nt.write("} //namespace rasmus\n")
+nt.write("#endif //__nodetype_hh__\n")
 
 v.write("\t\t}\n");
 v.write("\t}\n");
-v.write("};\n#endif //__visitor_hh__\n")
+v.write("};\n");
+v.write("} //namespace frontend\n");
+v.write("} //namespace rasmus\n");
+v.write("#endif //__visitor_hh__\n")

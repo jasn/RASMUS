@@ -33,6 +33,9 @@ const char * warningText = "\033[33;1mwarning\x1b[0m";
 const char * errorText = "\033[31merror\x1b[0m";
 }
 
+namespace rasmus {
+namespace frontend {
+
 void TerminalCallback::report(MsgType type, 
 							  std::shared_ptr<Code> code,
 							  std::string message,
@@ -105,3 +108,5 @@ void TerminalCallback::print(Type type, std::string repr) {
 	std::cout << repr << std::endl;
 }
 
+} //namespace rasmus
+} //namespace frontend

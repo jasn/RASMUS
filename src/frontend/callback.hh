@@ -22,6 +22,9 @@
 #include <frontend/lexer.hh>
 #include <frontend/ASTBase.hh>
 
+namespace rasmus {
+namespace frontend {
+
 enum class MsgType {
 	error, warning, info
 };
@@ -52,6 +55,7 @@ public:
 	virtual void print(Type type, std::string repr) override;
 };
 
-
+} //namespace frontend
+} //namespace rasmus
 #endif //__callback_hh__
 

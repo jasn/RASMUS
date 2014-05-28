@@ -45,7 +45,7 @@
 
 namespace {
 using namespace llvm;
-
+using namespace rasmus::frontend;
 
 class CodeGen: public LLVMCodeGen, public VisitorCRTP<CodeGen, LLVMVal> {
 public:
@@ -1018,7 +1018,13 @@ public:
 
 } //nameless namespace
 
-std::shared_ptr<LLVMCodeGen> llvmCodeGen(
+namespace rasmus {
+namespace frontend {
+
+std::shared_ptr<LLVMCodeGen> makeLlvmCodeGen(
 	std::shared_ptr<Error> error, std::shared_ptr<Code> code, llvm::Module * module) {
 	return std::make_shared<CodeGen>(error, code, module);
 } 
+
+} //namespace frontend
+} //namespace rasmus

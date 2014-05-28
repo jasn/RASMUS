@@ -19,7 +19,9 @@
 #include <frontend/lexer.hh>
 #include <frontend/AST.hh>
 #include <frontend/visitor.hh>
+#include <frontend/charRanges.hh>
 namespace {
+using namespace rasmus::frontend;
 
 CharRange r(Token t) {
 	if (!t) return CharRange();
@@ -30,7 +32,7 @@ CharRange u(CharRange r1, CharRange r2) {
 	return CharRange(std::min(r1.lo, r2.lo), std::max(r1.hi, r2.hi));
 }
 
-class CharRanges: public Visitor<void>, public VisitorCRTP<CharRanges, void> {
+class CharRangesImpl: public CharRanges, public VisitorCRTP<CharRangesImpl, void> {
 public:
 	void visit(std::shared_ptr<VariableExp> node) {
 		node->charRange = r(node->nameToken);
@@ -154,6 +156,11 @@ public:
 
 } //nameless namespace
 
-std::shared_ptr<Visitor<void> > charRanges() {
-	return std::make_shared<CharRanges>();
+namespace rasmus {
+namespace frontend {
+std::shared_ptr<CharRanges > makeCharRanges() {
+	return std::make_shared<CharRangesImpl>();
 }
+} //namespace frontend
+} //namespace rasmus
+

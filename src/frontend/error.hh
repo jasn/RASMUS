@@ -24,6 +24,9 @@
 #include "lexer.hh"
 #include <frontend/callback.hh>
 
+namespace rasmus {
+namespace frontend {
+
 class Error {
 public:
 	virtual ~Error() {}
@@ -39,8 +42,12 @@ public:
 	virtual size_t count() const = 0;
 };
 
-std::shared_ptr<Error> callbackError(std::shared_ptr<Code> code,
+std::shared_ptr<Error> makeCallbackError(std::shared_ptr<Code> code,
 									 std::shared_ptr<Callback> callback);
 
-std::shared_ptr<Error> countError();
+std::shared_ptr<Error> makeCountError();
+
+} //namespace frontend
+} //namespace rasmus
+
 #endif //__error_hh__

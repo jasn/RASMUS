@@ -24,8 +24,10 @@
 #include <sstream>
 #include <iostream>
 #include <frontend/visitor.hh>
+#include <frontend/firstParse.hh>
 
 namespace {
+using namespace rasmus::frontend;
 
 template <typename T>
 struct Reversed {
@@ -51,7 +53,7 @@ struct Scope {
 	Scope(NodePtr node): node(node) {}
 };
 
-class FirstParse: public Visitor<void>, public VisitorCRTP<FirstParse, void> {
+class FirstParseImpl: public FirstParse, public VisitorCRTP<FirstParseImpl, void> {
 public:
 	//Do name lookup, type checking and constant propagation
 	std::shared_ptr<Error> error;
@@ -59,7 +61,7 @@ public:
 
 	std::vector<Scope> scopes;
 
-	FirstParse(std::shared_ptr<Error> error, std::shared_ptr<Code> code):
+	FirstParseImpl(std::shared_ptr<Error> error, std::shared_ptr<Code> code):
 		error(error), code(code) {
 		scopes.push_back(Scope());
 	}
@@ -541,7 +543,13 @@ public:
 };
 
 } //nameless namespace
+
+namespace rasmus {
+namespace frontend {
         
-std::shared_ptr<Visitor<void> > firstParse(std::shared_ptr<Error> error, std::shared_ptr<Code> code) {
-	return std::make_shared<FirstParse>(error, code);
+std::shared_ptr<FirstParse> makeFirstParse(std::shared_ptr<Error> error, std::shared_ptr<Code> code) {
+	return std::make_shared<FirstParseImpl>(error, code);
 }
+
+} //namespace rasmus
+} //namespace frontend

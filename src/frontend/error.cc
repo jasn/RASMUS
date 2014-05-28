@@ -19,6 +19,7 @@
 #include <frontend/error.hh>
 
 namespace {
+using namespace rasmus::frontend;
 
 class CallbackError: public Error {
 public:
@@ -69,13 +70,18 @@ public:
 	
 } //anonymous namespace
 
-std::shared_ptr<Error> callbackError(std::shared_ptr<Code> code,
+namespace rasmus {
+namespace frontend {
+
+std::shared_ptr<Error> makeCallbackError(std::shared_ptr<Code> code,
 									 std::shared_ptr<Callback> callback) {
 	return std::make_shared<CallbackError>(code, callback);
 }
 
-std::shared_ptr<Error> countError() {
+std::shared_ptr<Error> makeCountError() {
 	return std::make_shared<CountError>();
 }
 
+} //namespace frontend
+} //namespace rasmus
     

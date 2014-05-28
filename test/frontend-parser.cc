@@ -22,6 +22,7 @@
 #include <frontend/code.hh>
 #include <frontend/visitor.hh>
 using namespace rasmus;
+using namespace rasmus::frontend;
 
 class ASTDumper: public VisitorCRTP<ASTDumper, void> {
 public:
@@ -177,8 +178,8 @@ public:
 bool pt(const char * txt, const char * exp, int errors=0) {
 	std::shared_ptr<Code> code = std::make_shared<Code>(txt, "monkey");
 	std::shared_ptr<Lexer> lexer = std::make_shared<Lexer>(code, 0);
-	std::shared_ptr<Error> error = countError();
-	std::shared_ptr<Parser> p = parser(lexer, error, false);
+	std::shared_ptr<Error> error = makeCountError();
+	std::shared_ptr<Parser> p = makeParser(lexer, error, false);
 	
 	NodePtr ast=p->parse();
 	ASTDumper ad(code);

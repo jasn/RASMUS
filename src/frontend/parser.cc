@@ -22,6 +22,7 @@
 #include <iostream>
 
 namespace {
+using namespace rasmus::frontend;
 
 class RecoverException: public std::exception {
 public:
@@ -560,9 +561,13 @@ public:
 
 } //nameless namespace
 
-std::shared_ptr<Parser> parser(std::shared_ptr<Lexer> lexer, 
+namespace rasmus {
+namespace frontend {
+std::shared_ptr<Parser> makeParser(std::shared_ptr<Lexer> lexer, 
 							   std::shared_ptr<Error> error,
 							   bool interactiveMode) {
 	return std::make_shared<TheParser>(lexer, error, interactiveMode);
 }
+} //namespace frontend
+} //namespace rasmus
 

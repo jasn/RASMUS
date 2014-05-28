@@ -23,6 +23,9 @@
 #include <memory>
 #include "code.hh"
 
+namespace rasmus {
+namespace frontend {
+
 enum TokenId {
   TK_ADD,
   TK_AFTER,
@@ -134,12 +137,6 @@ public:
 	uint32_t length;
 };
 
-namespace std {
-  template <>
-  struct hash<TokenId>: public unary_function<TokenId, size_t> {
-    size_t operator()(TokenId c) const {return size_t(c);}
-  };
-}
 
 const std::string getTokenName(TokenId id);
 
@@ -150,5 +147,16 @@ public:
 	Lexer(std::shared_ptr<Code> code, size_t start=0): code(code), index(start) {}
 	Token getNext();
 };
+
+} //namespace frontend
+} //namespace rasmus
+
+namespace std {
+  template <>
+  struct hash<rasmus::frontend::TokenId>: public unary_function<rasmus::frontend::TokenId, size_t> {
+	  size_t operator()(rasmus::frontend::TokenId c) const {return size_t(c);}
+  };
+}
+
 
 #endif //__lexer_hh__

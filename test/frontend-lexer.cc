@@ -20,6 +20,7 @@
 #include <frontend/lexer.hh>
 #include <frontend/code.hh>
 using namespace rasmus;
+using namespace rasmus::frontend;
 
 bool lt(const char * txt, std::initializer_list<TokenId> exp) {
 	std::shared_ptr<Code> code = std::make_shared<Code>(txt, "monkey");

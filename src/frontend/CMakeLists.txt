@@ -6,23 +6,27 @@ add_custom_command(
 
 add_library(frontend
   AST.hh
-  visitor.hh
   nodetype.hh
+  visitor.hh
+
   ASTBase.hh
+  callback.cc
+  callback.hh
   charRanges.cc
-  firstParse.cc
+  charRanges.hh
   code.hh
   error.cc
   error.hh
+  firstParse.cc
+  firstParse.hh
+  interperter.cc
+  interperter.hh
   lexer.cc
   lexer.hh
   llvmCodeGen.cc
   llvmCodeGen.hh
-  interperter.cc
-  interperter.hh
-  callback.cc
-  callback.hh
   parser.cc
-  parser.hh)
+  parser.hh
+)
 
 target_link_libraries(frontend ${LLVM_LFLAGS} ${LLVM_MODULE_LIBS} -lncurses )

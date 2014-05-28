@@ -21,6 +21,7 @@
 #include <cctype>
 
 namespace {
+using namespace rasmus::frontend;
 
 const std::vector<std::pair<TokenId, std::string> > operators = {
     {TK_ASSIGN, ":="},
@@ -144,6 +145,9 @@ InitLexer initLexer;
 
 } //nameless namespace
 
+namespace rasmus {
+namespace frontend {
+
 const std::string getTokenName(TokenId id) {
 	return tokenNames[id];
 }
@@ -210,7 +214,8 @@ Token Lexer::getNext() {
 	return Token(TK_ERR, i, j);
 }
 
-
+} //namespace frontend
+} //namespace rasmus
 
 
 

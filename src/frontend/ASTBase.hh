@@ -27,6 +27,14 @@
 #include <frontend/nodetype.hh>
 #include <shared/type.hh>
 
+namespace llvm {
+struct Value;
+struct GlobalVariable;
+};
+
+namespace rasmus {
+namespace frontend {
+
 class ICEException: public std::runtime_error {
 public:
 	ICEException(const std::string & msg): std::runtime_error(msg) {}
@@ -40,10 +48,6 @@ public:
 };
 
 
-namespace llvm {
-struct Value;
-struct GlobalVariable;
-};
 
 struct LLVMVal {
 	llvm::Value * value;
@@ -92,12 +96,8 @@ public:
 };
 typedef std::shared_ptr<Node> NodePtr;
 
-template <typename RT>
-class Visitor {
-public:
-  virtual ~Visitor() {};
-  virtual RT run(NodePtr node) = 0;
-};
+} //namespace frontend
+} //namespace rasmus
 
 #endif //__ast_base_hh__
 

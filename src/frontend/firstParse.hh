@@ -16,37 +16,25 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#ifndef __llvmcodegen_hh__
-#define __llvmcodegen_hh__
+#ifndef __firstparse_hh__
+#define __firstparse_hh__
 
-#include <frontend/lexer.hh>
 #include <frontend/AST.hh>
 #include <frontend/error.hh>
 #include <frontend/code.hh>
 
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Module.h>
-#include <unordered_map>
-
 namespace rasmus {
 namespace frontend {
 
-class LLVMCodeGen {
+class FirstParse {
 public:
-	virtual ~LLVMCodeGen() {};
-
-	std::unordered_map<std::string, llvm::Function *> stdlib;
-
-	virtual llvm::Function * translate(NodePtr node) = 0;
+	virtual ~FirstParse() {}
+	virtual void run(NodePtr node) = 0;  
 };
 
-std::shared_ptr<LLVMCodeGen> makeLlvmCodeGen(
-	std::shared_ptr<Error> error, 
-	std::shared_ptr<Code> code, 
-	llvm::Module * module); 
-
+std::shared_ptr<FirstParse> makeFirstParse(std::shared_ptr<Error> error, std::shared_ptr<Code> code);
 
 } //namespace frontend
 } //namespace rasmus
 
-#endif //__llvmcodegen_hh__
+#endif //__firstparse_hh__

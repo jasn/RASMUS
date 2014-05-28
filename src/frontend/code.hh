@@ -21,6 +21,9 @@
 #include <string>
 #include <vector>
 
+namespace rasmus {
+namespace frontend {
+
 class Code {
 public:
   std::vector<ssize_t> lineStarts;
@@ -46,5 +49,8 @@ public:
   }
   
 };
+
+} //namespace rasmus
+} //namespace frontend
 
 #endif //__code_hh__
