@@ -29,4 +29,4 @@ add_library(frontend
   parser.hh
 )
 
-target_link_libraries(frontend ${LLVM_LFLAGS} ${LLVM_MODULE_LIBS} -lncurses )
+target_link_libraries(frontend ${LLVM_LFLAGS} ${LLVM_MODULE_LIBS} -lncurses stdlib)

@@ -39,16 +39,59 @@
 #include <stdlib/default_callback.hh>
 #include <frontend/charRanges.hh>
 #include <frontend/firstParse.hh>
-
+#include <sstream>
 
 namespace {
 using namespace rasmus::frontend;
 
 class StdlibCallback: public rasmus::stdlib::DefaultCallback {
 public:
-	std::shared_ptr<Callback> cbb;
+	std::shared_ptr<rasmus::frontend::Callback> cb;
 	
-	StdlibCallback(std::shared_ptr<Callback> cb): cbb(cb) {}
+	StdlibCallback(std::shared_ptr<rasmus::frontend::Callback> cb): cb(cb) {}
+
+	void printInt(int64_t v) override {
+		std::stringstream ss;
+		ss << v;
+		cb->print(TInt, ss.str());
+	}
+
+	void printBool(int8_t v) override {
+		cb->print(TBool, (v?"true":"false"));
+	}
+	
+	void printText(rm_object * o) override {
+		std::stringstream ss;
+		rasmus::stdlib::printTextToStream(static_cast<rasmus::stdlib::TextBase *>(o), ss);
+		cb->print(TText, ss.str());
+	}
+
+	void printFunc(rm_object * o) override {
+		std::stringstream ss;
+		ss << "func(" << o << ")";
+		cb->print(TFunc, ss.str());
+	}
+
+	void printTup(rm_object * o) override {
+		std::stringstream ss;
+		ss << "tup(" << o << ")";
+		cb->print(TTup, ss.str());
+	}
+
+	void printRel(rm_object * o) override {
+		std::stringstream ss;
+		rasmus::stdlib::printRelationToStream(o, ss);
+		cb->print(TRel, ss.str());
+	}
+	
+	void reportError(size_t start, size_t end, std::string text) override {
+		//TODO we chould create a char range here
+		cb->report(MsgType::error, text);
+	}
+	
+	void reportMessage(std::string text) override {
+		cb->report(MsgType::info, text);
+	}
 };
 
 
@@ -65,13 +108,13 @@ public:
 	llvm::ExecutionEngine * engine;
 	std::string incomplete;
 	std::string theCode;
-	std::shared_ptr<Callback> callback;
+	std::shared_ptr<rasmus::frontend::Callback> callback;
 	
-	InterperterImpl(std::shared_ptr<Callback> callback): callback(callback) {}
+	InterperterImpl(std::shared_ptr<rasmus::frontend::Callback> callback): callback(callback) {}
 
 	void setup() override {
-		//rasmus::stdlib::callback = std::make_shared<StdlibCallback>(this->callback);
-		
+		rasmus::stdlib::callback = std::make_shared<StdlibCallback>(callback);
+
 		llvm::InitializeNativeTarget();
 		code = std::make_shared<Code>("", "Interpreted");
 		error = makeCallbackError(code, callback);
