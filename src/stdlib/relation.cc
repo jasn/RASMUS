@@ -369,8 +369,18 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 	}
 	
 	return relations.unbox();
-
 }
+
+void saveRelationToFile(rm_object * rel, const char * name) {
+	std::ofstream file(name);
+	saveRelationToStream(rel, file);
+}
+
+rm_object * loadRelationFromFile(const char * name) {
+	std::ifstream file(name);
+	return loadRelationFromStream(file);
+}
+
 
 } //namespace stdlib
 } //namespace rasmus

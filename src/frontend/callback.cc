@@ -17,6 +17,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #include <frontend/callback.hh>
+#include <stdlib/relation.hh>
 #include <iostream>
 #include <algorithm>
 
@@ -106,6 +107,14 @@ void TerminalCallback::report(MsgType type, std::string message) {
 
 void TerminalCallback::print(Type type, std::string repr) {
 	std::cout << repr << std::endl;
+}
+
+void TerminalCallback::saveRelation(rm_object * o, const char * name) {
+	rasmus::stdlib::saveRelationToFile(o, name);
+}
+
+rm_object * TerminalCallback::loadRelation(const char * name) {
+	return rasmus::stdlib::loadRelationFromFile(name);
 }
 
 } //namespace rasmus

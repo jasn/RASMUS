@@ -33,13 +33,11 @@ namespace stdlib {
 class DefaultCallback: public Callback {
 public:
 	void saveRelation(rm_object * rel, const char * name) override {
-		std::ofstream file(name);
-		saveRelationToStream(rel, file);
+		saveRelationToFile(rel, name);
 	}
 
 	rm_object * loadRelation(const char * name) override {
-		std::ifstream file(name);
-		return loadRelationFromStream(file);
+		return loadRelationFromFile(name);
 	}
 
 	void printInt(int64_t v) override {

@@ -36,7 +36,9 @@
 #include <llvm/ExecutionEngine/JIT.h>
 #include <unistd.h>
 #include <dlfcn.h>
-#include <stdlib/default_callback.hh>
+#include <stdlib/callback.hh>
+#include <stdlib/text.hh>
+#include <stdlib/relation.hh>
 #include <frontend/charRanges.hh>
 #include <frontend/firstParse.hh>
 #include <sstream>
@@ -44,7 +46,7 @@
 namespace {
 using namespace rasmus::frontend;
 
-class StdlibCallback: public rasmus::stdlib::DefaultCallback {
+class StdlibCallback: public rasmus::stdlib::Callback {
 public:
 	std::shared_ptr<rasmus::frontend::Callback> cb;
 	
@@ -92,6 +94,14 @@ public:
 	void reportMessage(std::string text) override {
 		cb->report(MsgType::info, text);
 	}
+
+	void saveRelation(rm_object * o, const char * name) override {
+		cb->saveRelation(o, name);
+	}
+
+	rm_object * loadRelation(const char * name) override {
+		return cb->loadRelation(name);
+	}
 };
 
 
@@ -114,7 +124,7 @@ public:
 
 	void setup() override {
 		rasmus::stdlib::callback = std::make_shared<StdlibCallback>(callback);
-
+		rasmus::stdlib::objectCount = 0;
 		llvm::InitializeNativeTarget();
 		code = std::make_shared<Code>("", "Interpreted");
 		error = makeCallbackError(code, callback);
@@ -181,7 +191,7 @@ public:
 	}
 
 	size_t objectCount() const override {
-		return 0;
+		return rasmus::stdlib::objectCount;
 	}
 };
 

@@ -309,7 +309,8 @@ public:
 			{"rm_joinRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
 			{"rm_loadRel", functionType(voidPtrType, {pointerType(int8Type)})},
 			{"rm_saveRel", functionType(voidType, {voidPtrType, pointerType(int8Type)})},
-			{"rm_substrText", functionType(voidPtrType, {voidPtrType, int64Type, int64Type})}
+			{"rm_substrText", functionType(voidPtrType, {voidPtrType, int64Type, int64Type})},
+			{"rm_createFunction", functionType(voidPtrType, {int32Type})}
 		};
 
 		for(auto p: fs)
@@ -613,14 +614,11 @@ public:
 
 		// Revert state
 		builder.restoreIP(old_ip);
-
 		Constant* AllocSize = ConstantExpr::getSizeOf(captureType);
 		AllocSize = ConstantExpr::getTruncOrBitCast(AllocSize, int32Type);
-		Instruction * m = CallInst::CreateMalloc(builder.GetInsertBlock(), int32Type, captureType, AllocSize);
-		auto p = builder.Insert(m);
-		
+		auto pp = builder.CreateCall(stdlib["rm_createFunction"], AllocSize);
+		auto p = builder.CreatePointerCast(pp, pointerType(captureType));
 		builder.CreateStore(int32(1), builder.CreateConstGEP2_32(p, 0, 0)); //RefCount
-		builder.CreateStore(int16((int)LType::function), builder.CreateConstGEP2_32(p, 0, 1)); //Type
 		builder.CreateStore(int16(node->args.size()), builder.CreateConstGEP2_32(p, 0, 2)); //Argc
 		builder.CreateStore(dtor, builder.CreateConstGEP2_32(p, 0, 3)); //Dtor
 		builder.CreateStore(function, builder.CreateConstGEP2_32(p, 0, 4)); //Fptr

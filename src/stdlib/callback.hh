@@ -24,6 +24,11 @@
 namespace rasmus {
 namespace stdlib {
 
+class IOException: public std::runtime_error {
+public:
+	using std::runtime_error::runtime_error;
+};
+
 /**
  * Callback used by the stdlib to interact with the environment
  */

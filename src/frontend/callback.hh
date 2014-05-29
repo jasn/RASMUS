@@ -22,8 +22,13 @@
 #include <frontend/lexer.hh>
 #include <frontend/ASTBase.hh>
 
+extern "C" {
+struct rm_object;
+}
+
 namespace rasmus {
 namespace frontend {
+
 
 enum class MsgType {
 	error, warning, info
@@ -40,6 +45,9 @@ public:
 	virtual void report(MsgType type, std::string message) = 0;
 
 	virtual void print(Type type, std::string repr) = 0;
+
+	virtual void saveRelation(rm_object * o, const char * name) = 0;
+	virtual rm_object * loadRelation(const char * name) = 0;
 };
 
 class TerminalCallback: public Callback {
@@ -53,6 +61,10 @@ public:
 	virtual void report(MsgType type, std::string message) override;
 
 	virtual void print(Type type, std::string repr) override;
+	
+	virtual void saveRelation(rm_object * o, const char * name) override;
+	
+	virtual rm_object * loadRelation(const char * name) override;
 };
 
 } //namespace frontend

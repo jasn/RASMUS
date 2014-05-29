@@ -18,6 +18,8 @@
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #include "common.hh"
 #include <frontend/interperter.hh>
+#include <stdlib/callback.hh>
+#include <stdlib/relation.hh>
 using namespace rasmus;
 using namespace rasmus::frontend;
 
@@ -43,10 +45,25 @@ public:
 	Type printType;
 	std::string printText;
 	size_t errors;
+	std::map<std::string, std::string> relations;
 	
 	void print(Type type, std::string repr) override {
 		printType = type;
 		printText = repr;
+	}
+
+	void saveRelation(rm_object * o, const char * name) override {
+		std::stringstream ss;
+		rasmus::stdlib::saveRelationToStream(o, ss);
+		relations[name] = ss.str();
+	}
+
+	rm_object * loadRelation(const char * name) override {
+		auto x=relations.find(name);
+		if (x == relations.end())
+			throw rasmus::stdlib::IOException("Does not exist");
+		std::stringstream ss(x->second);
+		return rasmus::stdlib::loadRelationFromStream(ss);
 	}
 };
 
@@ -67,6 +84,11 @@ bool it(std::string txt, const char * exp, int errors=0) {
 	}
 	if (cb->errors != errors) 
 		return false;
+	size_t oc=interperter->objectCount();
+	if (oc != 0) {
+		log_error() << oc << " objects where not freed" << std::endl;
+		return false;
+	}
 	return true;
 }
 
@@ -83,7 +105,29 @@ void base(rasmus::teststream & ts) {
 }
 
 
+bool relation() {
+	std::shared_ptr<TestCallback> cb = std::make_shared<TestCallback>();
+	std::shared_ptr<rasmus::frontend::Interperter> interperter=rasmus::frontend::makeInterperter(cb);
+	interperter->setup();
+	std::string input = "2\n" 
+		"T Name\n"
+		"I Age\n" 
+		"Bruce Jones\n" 
+		"5\n" 
+		"Mary Ross\n" 
+		"12\n" 
+		"Ann Bird\n" 
+		"12\n" 
+		"Kenneth Lewis\n" 
+		"17\n";
+	cb->relations["abe"] = input;
+	if (!interperter->runLine("hat:=abe")) return false;
+	ensure_eq(cb->relations["hat"], input);
+	return true;
+}
+
 int main(int argc, char **argv) {
 	return rasmus::tests(argc, argv)
-		.multi_test(base, "base");
+		.multi_test(base, "base")
+		.test(relation, "relation");
 }

@@ -29,6 +29,9 @@ void printRelationToStream(rm_object * ptr, std::ostream & out);
 void saveRelationToStream(rm_object * o, std::ostream & outFile);
 rm_object * loadRelationFromStream(std::istream & inFile);
 
+void saveRelationToFile(rm_object * o, const char * name);
+rm_object * loadRelationFromFile(const char * name);
+
 } //namespace stdlib
 } //namespace rasmus
 
