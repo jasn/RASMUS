@@ -73,7 +73,7 @@ bool it(std::string txt, const char * exp, int errors=0) {
 	interperter->setup();
 	size_t start=0;
 	while (start < txt.size()) {
-		size_t end=txt.find_first_of("\n");
+		size_t end=txt.find_first_of("\n", start);
 		if (end == std::string::npos) end=txt.size();
 		if (!interperter->runLine(txt.substr(start, end-start))) return false;
 		start = end+1;
@@ -95,14 +95,30 @@ bool it(std::string txt, const char * exp, int errors=0) {
 void base(rasmus::teststream & ts) {
     ts << "true" << result(it("true", "true"));
     ts << "false" << result(it("false", "false"));
-    ts << "int" << result(it("1", "1"));
-    ts << "addition" << result(it("1+2", "3"));
     ts << "string" << result(it("\"abe\"", "abe"));
     ts << "concat" << result(it("\"abe\"++\"bea\"", "abebea"));
     ts << "block" << result(it("(+val a=4 in a +)", "4"));
     ts << "function" << result(it("(func()->(Int)5 end)()", "5"));
     ts << "capture" << result(it("(+val a=\"abe\" in func()->(Text)a end+)()", "abe"));
 }
+
+void integer(rasmus::teststream & ts) {
+    ts << "int" << result(it("1", "1"));
+	ts << "var" << result(it("x:=3\nx", "3"));
+    ts << "add" << result(it("2+3", "5"));
+    ts << "mult" << result(it("2*3", "6"));
+    ts << "div" << result(it("5/2", "2"));
+	ts << "mod" << result(it("5 mod 2", "1"));
+	ts << "prec1" << result(it("2+3*4", "14"));
+	ts << "prec2" << result(it("(2+3)*4", "20"));
+	ts << "prec3" << result(it("2+3-4+1", "2"));
+	ts << "prec4" << result(it("4*2+3", "11"));
+    ts << "?" << result(it("?-Int", "?"));
+    ts << "?1" << result(it("1+?-Int", "?"));
+    ts << "?2" << result(it("?-Int*2", "?"));
+	ts << "?3" << result(it("5/0", "?"));
+}
+	
 
 
 bool relation() {
@@ -129,5 +145,6 @@ bool relation() {
 int main(int argc, char **argv) {
 	return rasmus::tests(argc, argv)
 		.multi_test(base, "base")
+		.multi_test(integer, "integer")
 		.test(relation, "relation");
 }
