@@ -122,12 +122,12 @@ public:
 	
 	InterperterImpl(std::shared_ptr<rasmus::frontend::Callback> callback): callback(callback) {}
 
-	void setup(int options) override {
+	void setup(int options, std::string name) override {
 		rasmus::stdlib::callback = std::make_shared<StdlibCallback>(callback);
 		rasmus::stdlib::objectCount = 0;
 		rasmus::stdlib::debugAllocations = options & DumpAllocations;
 		llvm::InitializeNativeTarget();
-		code = std::make_shared<Code>("", "Interpreted");
+		code = std::make_shared<Code>("", name);
 		error = makeCallbackError(code, callback);
 		lexer = std::make_shared<Lexer>(code);
 		parser = makeParser(lexer, error, true);

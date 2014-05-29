@@ -33,7 +33,7 @@ public:
 	};
 
 	virtual ~Interperter() {}
-	virtual void setup(int options=0) = 0;
+	virtual void setup(int options=0, std::string name="Interpreted") = 0;
 	virtual void destroy() = 0;
 	virtual bool runLine(const std::string & str) = 0;
 	virtual bool complete() const = 0;
