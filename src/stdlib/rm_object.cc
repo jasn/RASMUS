@@ -21,13 +21,27 @@
 #include <stdlib/text.hh>
 #include <stdlib/callback.hh>
 #include <iostream>
+#include <sstream>
 
 namespace rasmus {
 namespace stdlib {
 
 size_t objectCount=0;
-size_t getObjectCount() {return objectCount;}
-bool debugAllocations = false;
+bool debugAllocations=true;
+
+void reportAllocation(rm_object * ptr) {
+	std::stringstream ss;
+	ss << "alloc " << ptr << " of type " << ptr->type;
+	callback->reportMessage(ss.str());
+}
+
+
+void reportDeallocation(rm_object * ptr) {
+	std::stringstream ss;
+	ss << "dealloc " << ptr << " of type " << ptr->type;
+	callback->reportMessage(ss.str());
+}
+
 
 
 } //namespace stdlib
@@ -37,38 +51,43 @@ extern "C" {
 using namespace rasmus::stdlib;
 
 void rm_free(rm_object * o) {
-	--rasmus::stdlib::objectCount;
+	registerDeallocation(o);
 	switch (o->type) {
 	case LType::canonicalText:
-		if (debugAllocations) callback->reportMessage("free(canonicalText)");
 		static_cast<CanonicalText*>(o)->~CanonicalText();
 		operator delete(reinterpret_cast<void *>(o));
 		break;
 	case LType::concatText:
-		if (debugAllocations) callback->reportMessage("free(concatText)");
 		static_cast<ConcatText*>(o)->~ConcatText();
 		operator delete(reinterpret_cast<void *>(o));
 		break;
 	case LType::substrText:
-		if (debugAllocations) callback->reportMessage("free(substrText)");
 		static_cast<SubstrText*>(o)->~SubstrText();
 		operator delete(reinterpret_cast<void *>(o));
 		break;
 	case LType::smallText:
-		if (debugAllocations) callback->reportMessage("free(smallText)");
 		static_cast<SmallText*>(o)->~SmallText();
 		operator delete(reinterpret_cast<void *>(o));
 		break;
 	case LType::function: 
 	{		
-		if (debugAllocations) callback->reportMessage("free(function)");
 		function_object * fo = static_cast<function_object*>(o);
 		fo->dtor(fo);
-		::free(fo); //Functions are allocated with malloc by the codegen
+		operator delete(reinterpret_cast<void *>(fo));
 	}
 	}
 }
 
+/**
+ * Create a new function
+ */
+rm_object * rm_createFunction(uint32_t size) {
+	void * m=operator new(size);
+	function_object * o = static_cast<function_object*>(m);
+	new(o) function_object();
+	registerAllocation(o);
+	return o;
+}
 
 void rm_abort() {
 	exit(EXIT_FAILURE);

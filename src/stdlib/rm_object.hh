@@ -42,7 +42,22 @@ struct rm_object {
 namespace rasmus {
 namespace stdlib {
 
-size_t getObjectCount();
+extern size_t objectCount;
+extern bool debugAllocations;
+
+void reportAllocation(rm_object * ptr);
+void reportDeallocation(rm_object * ptr);
+
+inline void registerAllocation(rm_object * ptr) {
+	++objectCount;
+	if (debugAllocations) reportAllocation(ptr);
+}
+
+inline void registerDeallocation(rm_object * ptr) {
+	--objectCount;
+	if (debugAllocations) reportDeallocation(ptr);
+}
+
 
 } //namespace stdlib
 } //namespace rasmus

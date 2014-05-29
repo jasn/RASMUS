@@ -20,6 +20,7 @@
 #include <cstring>
 #include <iostream>
 #include <stdlib/text.hh>
+#include <stdlib/rm_object.hh>
 const size_t smallLength = 20;
 
 namespace {
@@ -84,6 +85,7 @@ const char * canonizeText(TextBase * o) {
 		return static_cast<SmallText*>(o)->data;
 	case LType::concatText:
 	{
+		registerDeallocation(o);
 		size_t length=o->length;
 		char * data=new char[length];
 		MemcpyBuilder builder(data);
@@ -92,10 +94,12 @@ const char * canonizeText(TextBase * o) {
 		static_cast<ConcatText*>(o)->~ConcatText();
 		new(o) CanonicalText(length, data);
 		o->ref_cnt=rc;
+		registerAllocation(o);
 		return data;
 	}
 	case LType::substrText:
 	{
+		registerDeallocation(o);
 		size_t length=o->length;
 		char * data=new char[length];
 		MemcpyBuilder builder(data);
@@ -104,6 +108,7 @@ const char * canonizeText(TextBase * o) {
 		static_cast<ConcatText*>(o)->~ConcatText();
 		new(o) CanonicalText(length, data);
 		o->ref_cnt=rc;
+		registerAllocation(o);
 		return data;
 	}
 	}
@@ -113,6 +118,7 @@ template <typename T, typename ...TS>
 T * makeText(TS &&... ts) {
 	T * o=reinterpret_cast<T *>(operator new(std::max(sizeof(ConcatText), std::max(sizeof(SubstrText), sizeof(CanonicalText)))));
 	new(o) T(std::forward<TS>(ts)...);
+	registerAllocation(o);
 	o->incref();
 	return o;
 }
@@ -121,6 +127,7 @@ SmallText * makeSmallText(size_t len) {
 	void * m=operator new(sizeof(SmallText)+ len);
 	SmallText * o = reinterpret_cast<SmallText*>(m);
 	new(o) SmallText(len);
+	registerAllocation(o);
 	o->incref();
 	return o;
 }

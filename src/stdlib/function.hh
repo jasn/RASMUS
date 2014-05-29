@@ -25,6 +25,8 @@ namespace rasmus {
 namespace stdlib {
 
 struct function_object: public rm_object {
+	function_object(): rm_object(LType::function), argcnt(0), dtor(nullptr), func(nullptr) {}
+	
 	uint16_t argcnt;
 	void (*dtor)(function_object * object);
 	void * func;

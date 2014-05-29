@@ -25,6 +25,23 @@ enum class LType: std::uint16_t {
 	smallText, concatText, substrText, canonicalText, function, schema, tuple, relation
 };
 
+inline const char * ltypeName(LType t) {
+	switch(t) {
+	case LType::smallText: return "SmallText";
+	case LType::concatText: return "ConcatText";
+	case LType::substrText: return "SubstrText";
+	case LType::canonicalText: return "CanonicalText";
+	case LType::function: return "Function";
+	case LType::schema: return "Schema";
+	case LType::tuple: return "Tuple";
+	case LType::relation: return "Relation";
+	}
+}
+
+inline std::ostream & operator << (std::ostream & o, LType t) {
+	return o << ltypeName(t);
+}
+
 enum Type {
 	TBool=0,
 	TInt=1,
