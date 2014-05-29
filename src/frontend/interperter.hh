@@ -26,8 +26,14 @@ namespace frontend {
 
 class Interperter {
 public:
+	enum SetupOptions {
+		DumpAllocations=1,
+		DumpRawFunction=2,
+		DumpOptFunction=4,
+	};
+
 	virtual ~Interperter() {}
-	virtual void setup() = 0;
+	virtual void setup(int options=0) = 0;
 	virtual void destroy() = 0;
 	virtual bool runLine(const std::string & str) = 0;
 	virtual bool complete() const = 0;

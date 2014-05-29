@@ -124,14 +124,15 @@ public:
 		}
 		return llvm::FunctionType::get(voidType, t, false);
 	}
-	
-		
 
 	IRBuilder<> builder;
 	size_t uid;
 	Module * module;
 	std::shared_ptr<Error> error;
 	std::shared_ptr<Code> code;
+	bool dumpRawFunctions;
+	bool dumpOptFunctions;
+	FunctionPassManager fpm;
 
 	Function * getFunction() {
 		return builder.GetInsertBlock()->getParent();
@@ -283,12 +284,13 @@ public:
 		return cast(visitNode(node), node->type, tto, node);
 	}
 
-	FunctionPassManager fpm;
 
 	CodeGen(std::shared_ptr<Error> error, std::shared_ptr<Code> code,
-			llvm::Module * module): error(error), code(code), module(module),
-									builder(getGlobalContext()), fpm(module), uid(0) {
-
+			llvm::Module * module, bool dumpRawFunctions,
+			bool dumpOptFunctions): error(error), code(code), module(module),
+									builder(getGlobalContext()), fpm(module), 
+									uid(0), dumpRawFunctions(dumpRawFunctions),
+									dumpOptFunctions(dumpOptFunctions) {
 		fpm.add(new DataLayout(module));
 		fpm.add(createBasicAliasAnalysisPass());
 		fpm.add(createInstructionCombiningPass());
@@ -315,6 +317,13 @@ public:
 
 		for(auto p: fs)
 			stdlib[p.first] = Function::Create(p.second, Function::ExternalLinkage, p.first, module);
+	}
+	
+	void finishFunction(Function * func) {
+		llvm::verifyFunction(*func);
+		if (dumpRawFunctions) func->dump();
+		fpm.run(*func);
+		if (dumpOptFunctions) func->dump();
 	}
 
 	std::string tokenToIdentifier(Token token) const {
@@ -561,10 +570,7 @@ public:
 
 			builder.CreateRetVoid();
 
-			llvm::verifyFunction(*dtor);
-			dtor->dump();
-			fpm.run(*dtor);
-			dtor->dump();
+			finishFunction(dtor);
 		}
 		
 		Function * function=nullptr;
@@ -606,10 +612,7 @@ public:
 			builder.CreateRetVoid();
 			assert(x.owned == 1);
 			x.owned = false;
-			llvm::verifyFunction(*function);
-			function->dump();
-			fpm.run(*function);
-			function->dump();
+			finishFunction(function);
 		}
 
 		// Revert state
@@ -1007,9 +1010,7 @@ public:
 		LLVMVal val=visitNode(ast);
 		abandon(val, ast->type);
 		builder.CreateRetVoid();
-		function->dump();
-		llvm::verifyFunction(*function);
-		fpm.run(*function);
+		finishFunction(function);
 		return function;
 	}
 };
@@ -1020,8 +1021,9 @@ namespace rasmus {
 namespace frontend {
 
 std::shared_ptr<LLVMCodeGen> makeLlvmCodeGen(
-	std::shared_ptr<Error> error, std::shared_ptr<Code> code, llvm::Module * module) {
-	return std::make_shared<CodeGen>(error, code, module);
+	std::shared_ptr<Error> error, std::shared_ptr<Code> code, llvm::Module * module,
+	bool dumpRawFunctions, bool dumpOptFunctions) {
+	return std::make_shared<CodeGen>(error, code, module, dumpRawFunctions, dumpOptFunctions);
 } 
 
 } //namespace frontend

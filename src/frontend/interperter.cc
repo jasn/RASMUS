@@ -122,9 +122,10 @@ public:
 	
 	InterperterImpl(std::shared_ptr<rasmus::frontend::Callback> callback): callback(callback) {}
 
-	void setup() override {
+	void setup(int options) override {
 		rasmus::stdlib::callback = std::make_shared<StdlibCallback>(callback);
 		rasmus::stdlib::objectCount = 0;
+		rasmus::stdlib::debugAllocations = options & DumpAllocations;
 		llvm::InitializeNativeTarget();
 		code = std::make_shared<Code>("", "Interpreted");
 		error = makeCallbackError(code, callback);
@@ -133,7 +134,9 @@ public:
 		charRanges = makeCharRanges();
 		firstParse = makeFirstParse(error, code);
 		module = new llvm::Module("my cool jit", llvm::getGlobalContext());
-		codeGen = makeLlvmCodeGen(error, code, module);
+		codeGen = makeLlvmCodeGen(error, code, module,
+								  options & DumpRawFunction,
+								  options & DumpOptFunction);
 		std::string ErrStr;
 		engine = llvm::EngineBuilder(module).setErrorStr(&ErrStr).create();
 		if (!engine) {
@@ -172,7 +175,6 @@ public:
 			incomplete = "";
 
 			llvm::Function * f = codeGen->translate(t);
-			f->dump();
 			void * fp = engine->getPointerToFunction(f);
 			void (*FP)() = (void (*)())fp;
 			FP();

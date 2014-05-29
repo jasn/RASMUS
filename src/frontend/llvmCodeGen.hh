@@ -43,7 +43,9 @@ public:
 std::shared_ptr<LLVMCodeGen> makeLlvmCodeGen(
 	std::shared_ptr<Error> error, 
 	std::shared_ptr<Code> code, 
-	llvm::Module * module); 
+	llvm::Module * module,
+	bool dumpRawFunctions,
+	bool dumpOptFunctions); 
 
 
 } //namespace frontend
