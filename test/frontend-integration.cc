@@ -67,7 +67,7 @@ public:
 	}
 };
 
-bool it(std::string txt, const char * exp, int errors=0) {
+bool it(std::string txt, const char * exp, int errors=0, int leaks=0) {
 	std::shared_ptr<TestCallback> cb = std::make_shared<TestCallback>();
 	std::shared_ptr<rasmus::frontend::Interperter> interperter=rasmus::frontend::makeInterperter(cb);
 	interperter->setup();
@@ -79,13 +79,13 @@ bool it(std::string txt, const char * exp, int errors=0) {
 		start = end+1;
 	}
 	if (cb->printText != exp) {
-		log_error() << "Got " << cb->printText << " expected " << exp << std::endl;
+		log_error() << "\"" << txt << "\": gave " << cb->printText << " expected " << exp << std::endl;
 		return false;
 	}
 	if (cb->errors != errors) 
 		return false;
 	size_t oc=interperter->objectCount();
-	if (oc != 0) {
+	if (oc != leaks) {
 		log_error() << oc << " objects where not freed" << std::endl;
 		return false;
 	}
@@ -100,6 +100,8 @@ void base(rasmus::teststream & ts) {
     ts << "block" << result(it("(+val a=4 in a +)", "4"));
     ts << "function" << result(it("(func()->(Int)5 end)()", "5"));
     ts << "capture" << result(it("(+val a=\"abe\" in func()->(Text)a end+)()", "abe"));
+	ts << "globalText" << result(it("y:=\"abe\"\ny", "abe", 0, 1));
+	ts << "globalFunc" << result(it("y:=func()->(Int) 4 end\ny()", "4"));
 }
 
 void integer(rasmus::teststream & ts) {
@@ -113,10 +115,10 @@ void integer(rasmus::teststream & ts) {
 	ts << "prec2" << result(it("(2+3)*4", "20"));
 	ts << "prec3" << result(it("2+3-4+1", "2"));
 	ts << "prec4" << result(it("4*2+3", "11"));
-    ts << "?" << result(it("?-Int", "?"));
-    ts << "?1" << result(it("1+?-Int", "?"));
-    ts << "?2" << result(it("?-Int*2", "?"));
-	ts << "?3" << result(it("5/0", "?"));
+    ts << "?" << result(it("?-Int", "?-Int"));
+    ts << "?1" << result(it("1+?-Int", "?-Int"));
+    ts << "?2" << result(it("?-Int*2", "?-Int"));
+	ts << "?3" << result(it("5/0", "?-Int"));
 }
 	
 
