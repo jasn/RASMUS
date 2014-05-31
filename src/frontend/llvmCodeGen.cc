@@ -312,7 +312,9 @@ public:
 			{"rm_loadRel", functionType(voidPtrType, {pointerType(int8Type)})},
 			{"rm_saveRel", functionType(voidType, {voidPtrType, pointerType(int8Type)})},
 			{"rm_substrText", functionType(voidPtrType, {voidPtrType, int64Type, int64Type})},
-			{"rm_createFunction", functionType(voidPtrType, {int32Type})}
+			{"rm_createFunction", functionType(voidPtrType, {int32Type})},
+			{"rm_loadGlobalAny", functionType(voidType, {int32Type, pointerType(anyRetType)})},
+			{"rm_saveGlobalAny", functionType(voidType, {int32Type, int64Type, int8Type})}
 		};
 
 		for(auto p: fs)
@@ -387,9 +389,21 @@ public:
 		if (NodePtr store = node->store.lock()) {
 			if (store->nodeType != NodeType::AssignmentExp) return borrow(store->llvmVal);
 			std::shared_ptr<AssignmentExp> st=std::static_pointer_cast<AssignmentExp>(store);
-			if (!st->global) return borrow(store->llvmVal);
+			
+			if (st->globalId == NOT_GLOBAL)
+				return borrow(store->llvmVal);
 
-			return cast(loadValue(st->llvmGlobal, {0}, store->type), store->type, node->type, node);
+			
+			Value * rv = builder.CreateAlloca(anyRetType);
+
+			builder.CreateCall2(stdlib["rm_loadGlobalAny"],
+								int32(st->globalId),
+								rv);
+
+			return cast(borrowed(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
+								 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1))),
+						TAny, node->type, node);
+			
 		} else {
 			Constant * c = ConstantDataArray::getString(getGlobalContext(), tokenToIdentifier(node->nameToken) );
 			GlobalVariable * gv = new GlobalVariable(*module,
@@ -405,41 +419,20 @@ public:
 	
 	LLVMVal visit(std::shared_ptr<AssignmentExp> node) {
 		LLVMVal val = castVisit(node->valueExp, node->type);
-		if (!node->global) {
+		if (node->globalId == NOT_GLOBAL) {
 			node->llvmVal=takeOwnership(borrow(val), node->type);
 			return val;
 		}
-		
-		Constant * c;
-		switch (node->type) {
-		case TAny:
-			c = llvm::ConstantStruct::get(anyRetType, int64(0), int8(0), NULL);
-			break;
-		case TBool:
-			c = int8(0);
-			break;
-		case TInt:
-			c = int64(0);
-			break;
-		case TText:
-		case TRel:
-			c = ConstantPointerNull::get(voidPtrType);
-			break;
-		case TFunc:
-			c = ConstantPointerNull::get(pointerType(funcBase));
-			break;
+
+		{
+			LLVMVal v2 = cast(borrow(val), node->type, TAny, node);
+			
+			builder.CreateCall3(stdlib["rm_saveGlobalAny"], 
+								int32(node->globalId),
+								v2.value,
+								v2.type);
 		}
 
-
-		GlobalVariable * gv = new GlobalVariable(
-			*module,
-			llvmType(node->type),
-			false,
-			llvm::GlobalValue::PrivateLinkage,
-			c);
-		node->llvmGlobal = gv;
-		
-		saveValue(gv, {0}, borrow(val), node->type);
 		switch (node->type) {
 		case TRel:
 		{

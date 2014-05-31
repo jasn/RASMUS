@@ -34,6 +34,7 @@
 #include <llvm/IR/Function.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/ExecutionEngine/JIT.h>
+#include <llvm/ExecutionEngine/MCJIT.h>
 #include <unistd.h>
 #include <dlfcn.h>
 #include <stdlib/callback.hh>
@@ -42,15 +43,20 @@
 #include <frontend/charRanges.hh>
 #include <frontend/firstParse.hh>
 #include <sstream>
+#include <stdlib/lib.h>
 
 namespace {
 using namespace rasmus::frontend;
 
+struct ErrException: public std::exception {};
+
+
 class StdlibCallback: public rasmus::stdlib::Callback {
 public:
 	std::shared_ptr<rasmus::frontend::Callback> cb;
-	
-	StdlibCallback(std::shared_ptr<rasmus::frontend::Callback> cb): cb(cb) {}
+	std::shared_ptr<Code> code;
+	StdlibCallback(std::shared_ptr<rasmus::frontend::Callback> cb,
+				   std::shared_ptr<Code> code): cb(cb), code(code) {}
 
 	void printInt(int64_t v) override {
 		std::stringstream ss;
@@ -87,8 +93,15 @@ public:
 	}
 	
 	void reportError(size_t start, size_t end, std::string text) override {
-		//TODO we chould create a char range here
-		cb->report(MsgType::error, text);
+	
+		if (start < end)
+			cb->report(MsgType::error, code,
+					   text,
+					   Token(),
+					   {{start, end}});
+		else
+			cb->report(MsgType::error, text);
+		throw ErrException();
 	}
 	
 	void reportMessage(std::string text) override {
@@ -119,40 +132,28 @@ public:
 	std::string incomplete;
 	std::string theCode;
 	std::shared_ptr<rasmus::frontend::Callback> callback;
-	
+	int options;
 	InterperterImpl(std::shared_ptr<rasmus::frontend::Callback> callback): callback(callback) {}
 
 	void setup(int options, std::string name) override {
-		rasmus::stdlib::callback = std::make_shared<StdlibCallback>(callback);
 		rasmus::stdlib::objectCount = 0;
 		rasmus::stdlib::debugAllocations = options & DumpAllocations;
 		llvm::InitializeNativeTarget();
+		llvm::InitializeNativeTargetAsmPrinter();
+		llvm::InitializeNativeTargetAsmParser();
+
 		code = std::make_shared<Code>("", name);
+		rasmus::stdlib::callback = std::make_shared<StdlibCallback>(callback, code);
 		error = makeCallbackError(code, callback);
 		lexer = std::make_shared<Lexer>(code);
 		parser = makeParser(lexer, error, true);
 		charRanges = makeCharRanges();
 		firstParse = makeFirstParse(error, code);
-		module = new llvm::Module("my cool jit", llvm::getGlobalContext());
-		codeGen = makeLlvmCodeGen(error, code, module,
-								  options & DumpRawFunction,
-								  options & DumpOptFunction);
-		std::string ErrStr;
-		engine = llvm::EngineBuilder(module).setErrorStr(&ErrStr).create();
-		if (!engine) {
-			callback->report(MsgType::error, std::string("Could not create engine: ")+ ErrStr);
-			return;
-		}
-	
-		void * dll = dlopen((std::string(get_current_dir_name())+"/libstdlib.so").c_str(), RTLD_NOW | RTLD_LOCAL);
-		for (auto & p: codeGen->stdlib) {
-			void * func = dlsym(dll, p.first.c_str());
-			if (!func) {
-				callback->report(MsgType::error, std::string("Unable to load symbol ")+p.first+" from stdlib");
-				return;
-			}
-			engine->addGlobalMapping(p.second, func);
-		}
+
+		// TODO: if this line is removed ./rm does not link, WTF??
+		if (options & 12345) dlopen("monkey.so", 0);
+
+		this->options = options;
 	}
 
 	bool runLine(const std::string & line) override {
@@ -174,10 +175,27 @@ public:
 			theCode = code->code+"\n";
 			incomplete = "";
 
+
+			module = new llvm::Module("my cool jit", llvm::getGlobalContext());
+			codeGen = makeLlvmCodeGen(error, code, module,
+									  options & DumpRawFunction,
+									  options & DumpOptFunction);
+
 			llvm::Function * f = codeGen->translate(t);
+			
+			std::string ErrStr;
+			engine = llvm::EngineBuilder(module).setErrorStr(&ErrStr).setUseMCJIT(true).create();
+			if (!engine) {
+				callback->report(MsgType::error, std::string("Could not create engine: ")+ ErrStr);
+				return false;
+			}
+		
+			engine->finalizeObject();
 			void * fp = engine->getPointerToFunction(f);
 			void (*FP)() = (void (*)())fp;
 			FP();
+		} catch (ErrException) {
+			return false; //Error in code execution
 		} catch (IncompleteInputException) {
 			incomplete = line + "\n";
 		}
@@ -194,6 +212,10 @@ public:
 
 	size_t objectCount() const override {
 		return rasmus::stdlib::objectCount;
+	}
+
+	virtual void freeGlobals() {
+		rm_clearGlobals();
 	}
 };
 

@@ -27,6 +27,7 @@
 #include <stdlib/text.hh>
 #include <stdlib/relation.hh>
 #include <stdlib/callback.hh>
+#include <stdlib/anyvalue.hh>
 
 namespace {
 using namespace rasmus::stdlib;
@@ -47,72 +48,6 @@ public:
 	Schema(): rm_object(LType::schema){};
 };
 
-/* used as a container class for tuples; each tuple has a number
-   of AnyValues which can either be a TInt, TText or TBool
- */
-struct AnyValue {
-	Type type;
-	union {
-		int64_t intValue;
-		bool boolValue;
-		RefPtr<rm_object> objectValue;
-	};
-	
-	AnyValue(int64_t value): type(TInt), intValue(value) {}
-	AnyValue(bool value): type(TBool), boolValue(value) {}
-	AnyValue(Type type, RefPtr<rm_object> value): type(type), objectValue(value) {}
-
-	AnyValue(const AnyValue & other): type(other.type) {
-		switch(type){
-		case TInt:
-			intValue = other.intValue;
-			break;
-		case TBool:
-			boolValue = other.boolValue;
-			break;
-		default:
-			new (&objectValue) RefPtr<rm_object>(other.objectValue);
-			break;
-		}
-
-	}
-	
-	AnyValue(AnyValue && other): type(other.type) {
-		switch(type){
-		case TInt:
-			intValue = other.intValue;
-			break;
-		case TBool:
-			boolValue = other.boolValue;
-			break;
-		default:
-			new (&objectValue) RefPtr<rm_object>(std::move(other.objectValue));
-			break;
-		}
-	}
-
-	AnyValue & operator= (const AnyValue & other){
-		this->~AnyValue();
-		new (this) AnyValue(other);
-		return *this;
-	}
-	
-	AnyValue & operator= ( AnyValue && other){
-		this->~AnyValue();
-		new (this) AnyValue(std::move(other));
-		return *this;
-	}
-	
-	~AnyValue() {
-		switch (type) {
-		case TInt:
-		case TBool:
-			break;
-		default:
-			objectValue.~RefPtr<rm_object>();
-		}
-	}
-};
 
 /* a tuple consists of a schema and a set of values 
    with data corresponding to the schema.

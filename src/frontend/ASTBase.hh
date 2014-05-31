@@ -29,11 +29,13 @@
 
 namespace llvm {
 struct Value;
-struct GlobalVariable;
 };
 
 namespace rasmus {
 namespace frontend {
+
+typedef size_t GlobalId;
+const GlobalId NOT_GLOBAL=std::numeric_limits<GlobalId>::max();
 
 class ICEException: public std::runtime_error {
 public:

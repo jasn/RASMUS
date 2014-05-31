@@ -67,6 +67,7 @@ public:
 	
 	void reportError(size_t start, size_t end, std::string text) override {
 		std::cerr << "Error: " << text << std::endl;
+		exit(EXIT_FAILURE);
 	}
 	
 	void reportMessage(std::string text) override {

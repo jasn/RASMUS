@@ -15,5 +15,6 @@ add_library(
 	rm_object.hh
 	text.cc
 	text.hh
+	global.cc
 	)
 set_target_properties(stdlib PROPERTIES LIBRARY_OUTPUT_DIRECTORY ../../)

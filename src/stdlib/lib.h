@@ -32,10 +32,11 @@ extern "C" {
  * Baseclass of all objecs used by rasmus
  */
 struct rm_object;
-// struct rm_object {
-// 	uint32_t ref_cnt;
-// ...
-// };
+
+struct AnyRet {
+	int64_t value;
+	int8_t type;
+};
 
 /////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////  text.cc  //////////////////////////////////////////
@@ -109,6 +110,9 @@ rm_object * rm_loadRel(const char * name);
 
 rm_object * rm_select(rm_object * rel, rm_object * func);
 
+void rm_loadGlobalAny(uint32_t id,  AnyRet * ret);
+void rm_saveGlobalAny(uint32_t id, int64_t value, int8_t type);
+void rm_clearGlobals();
 
 } //extern C
 #endif //__LIB_H__

@@ -40,7 +40,7 @@ execute_process(
 )
 
 execute_process(
-  COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs  core jit native engine interpreter
+  COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs  core jit mcjit native engine interpreter
   OUTPUT_VARIABLE LLVM_MODULE_LIBS
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )

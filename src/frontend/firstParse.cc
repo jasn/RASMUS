@@ -58,12 +58,13 @@ public:
 	//Do name lookup, type checking and constant propagation
 	std::shared_ptr<Error> error;
 	std::shared_ptr<Code> code;
-
 	std::vector<Scope> scopes;
+	GlobalId globalId;
 
 	FirstParseImpl(std::shared_ptr<Error> error, std::shared_ptr<Code> code):
 		error(error), code(code) {
 		scopes.push_back(Scope());
+		globalId;
 	}
 	
 	std::string tokenToIdentifier(Token token) const {
@@ -167,7 +168,8 @@ public:
     void visit(std::shared_ptr<AssignmentExp> node) {
         visitNode(node->valueExp);
 		// Possibly check that the type was not changes since the last binding of the same name
-		node->global = !bool(scopes.back().node);
+		if (!(scopes.back().node)) 
+			node->globalId = globalId++;
 		scopes.back().bind[tokenToIdentifier(node->nameToken)] = node;
         node->type = node->valueExp->type;
 	}

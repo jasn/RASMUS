@@ -16,25 +16,59 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#include <stdint.h>
-#include "lib.h"
-#include <shared/type.hh>
-#include <sstream>
-#include <stdlib/callback.hh>
-
-extern "C" {
+#include <cstring>
+#include <iostream>
+#include <stdlib/anyvalue.hh>
+#include <vector>
+namespace {
 using namespace rasmus::stdlib;
 
-void rm_emitTypeError(uint32_t start, uint32_t end, uint8_t got, uint8_t expect) {
-	std::stringstream ss;
-	ss << "Excepted type " << Type(expect) << " but got " << Type(got);
-	callback->reportError(start, end, ss.str());
+std::vector<AnyValue> globals;
+
+} //nameless namespace
+
+extern "C" {
+
+
+void rm_loadGlobalAny(uint32_t id, 
+					  AnyRet * ret) {
+	AnyValue & v = globals[id];
+	ret->type = v.type;
+	switch (v.type) {
+	case TInt:
+		ret->value = v.intValue;
+		break;
+	case TBool:
+		ret->value = v.boolValue;
+		break;
+	default:
+		ret->value = reinterpret_cast<int64_t>(v.objectValue.get());
+		break;
+	}
 }
 
-void rm_emitArgCntError(int32_t start, int32_t end, int16_t got, int16_t expect) {
-	std::stringstream ss;
-	ss << "Expected " << expect << " arguments but got " << got;
-	callback->reportError(start, end, ss.str());
+void rm_saveGlobalAny(uint32_t id, int64_t value, int8_t type) {
+	if (globals.size() <= id) 
+		globals.resize(id*2+10);
+	
+	switch (type) {
+	case TInt:
+		globals[id] = AnyValue(value);
+		break;
+	case TBool:
+		globals[id] = AnyValue(bool(value));
+		break;
+	default:
+		globals[id] = AnyValue((Type)type, 
+			RefPtr<rm_object>(reinterpret_cast<rm_object*>(value))
+				);
+		break;
+	}	
 }
 
-} //extern C
+void rm_clearGlobals() {
+	globals.clear();
+}
+
+} // extern "C"
+
