@@ -60,13 +60,14 @@ struct LLVMVal {
 	LLVMVal(llvm::Value * value, llvm::Value * type, bool owned): value(value), type(type), owned(owned) {}
 	LLVMVal(const LLVMVal & o): value(o.value), type(o.type), owned(o.owned) {
 		if (owned) throw ICEException("Owned was copied");
-
 	}
+
 	LLVMVal & operator=(const LLVMVal & o) {
 		value = o.value;
 		type = o.type;
 		owned = o.owned;
 		if (owned) throw ICEException("Owned was copied");
+		return *this;
 	}
 
 	LLVMVal(LLVMVal && o): value(o.value), type(o.type), owned(o.owned) {
@@ -79,6 +80,7 @@ struct LLVMVal {
 		value = o.value; o.value=nullptr;
 		type = o.type; o.type=nullptr;
 		owned = o.owned; o.owned=false;
+		return *this;
 	}
 
 	~LLVMVal() {

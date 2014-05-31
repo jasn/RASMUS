@@ -23,13 +23,13 @@
 
 namespace {
 
-const char * boldRed = "\033[31;1m";
-const char * red = "\033[31m";
+//const char * boldRed = "\033[31;1m";
+//const char * red = "\033[31m";
 const char * reset = "\x1b[0m";
 const char * green = "\033[32m";
 const char * blue = "\033[34m";
-const char * yellow = "\033[33m";
-const char * boldYellow = "\033[33;1m";
+//const char * yellow = "\033[33m";
+//const char * boldYellow = "\033[33;1m";
 const char * warningText = "\033[33;1mwarning\x1b[0m";
 const char * errorText = "\033[31merror\x1b[0m";
 }
@@ -84,7 +84,7 @@ void TerminalCallback::report(MsgType type,
 	} else {
 		std::string i(endOfLine - startOfLine, ' ');
 		for (auto r: ranges)
-			for (size_t x=std::max<int>(startOfLine, r.lo); x < std::min<int>(endOfLine, r.hi); ++x) 
+			for (int x=std::max<int>(startOfLine, r.lo); x < std::min<int>(endOfLine, r.hi); ++x) 
 				i[x-startOfLine] = '~';
 		if (mainToken)
 			i[std::max<int>(size_t(0), std::min<int>(mainToken.start + (mainToken.length-1) / 2 - startOfLine, endOfLine-startOfLine-1))] = '^';
@@ -105,7 +105,7 @@ void TerminalCallback::report(MsgType type, std::string message) {
 	}
 }
 
-void TerminalCallback::print(Type type, std::string repr) {
+void TerminalCallback::print(Type, std::string repr) {
 	std::cout << repr << std::endl;
 }
 

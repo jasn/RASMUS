@@ -28,6 +28,7 @@
 #include <stdlib/relation.hh>
 #include <stdlib/callback.hh>
 #include <stdlib/anyvalue.hh>
+#include <stdlib/ile.hh>
 
 namespace {
 using namespace rasmus::stdlib;
@@ -74,13 +75,12 @@ int rm_itemWidth(AnyValue av){
 	switch(av.type){
 	case TBool:
 		return 5; // strlen("false")
-		break;
 	case TInt:
 		return std::to_string(av.intValue).size();
-		break;
-	default:
+	case TText:
 		return av.objectValue.getAs<TextBase>()->length;
-		break;
+	default:
+		ILE("Unhandled type");
 	}
 }
 
@@ -134,7 +134,6 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
 		i = 0;
 		out << '|';
 		for(auto & value : tuple.getAs<Tuple>()->values){
-
 			switch(value.type){
 			case TInt:
 				out << ' ' << std::right << std::setw(widths[i]) << value.intValue;
@@ -145,6 +144,8 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
 			case TText:
 				out << ' ' << std::left << std::setw(widths[i]) << textToString(value.objectValue.getAs<TextBase>()); 
 				break;
+			default:
+				ILE("Unhandled type", value.type);
 			}
 			out << " |";
 			i++;
@@ -177,7 +178,8 @@ void saveRelationToStream(rm_object * o, std::ostream & outFile){
 		case TText:
 			outFile << "T ";
 			break;
-			// TODO add error checking here
+		default:
+			ILE("Unhandled type", attribute.type);
 		}
 		outFile << attribute.name << std::endl;
 		
@@ -196,6 +198,8 @@ void saveRelationToStream(rm_object * o, std::ostream & outFile){
 				printTextToStream(value.objectValue.getAs<TextBase>(), outFile);
 				outFile << std::endl;
 				break;
+			default:
+				ILE("Unhandled type", value.type);
 			}
 		}
 	}

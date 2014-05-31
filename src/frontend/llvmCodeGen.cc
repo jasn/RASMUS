@@ -49,10 +49,15 @@ using namespace rasmus::frontend;
 
 class CodeGen: public LLVMCodeGen, public VisitorCRTP<CodeGen, LLVMVal> {
 public:
-	LLVMVal owned(llvm::Value * value, llvm::Value * type = nullptr) {return LLVMVal(value, type, true);}
-	LLVMVal borrowed(llvm::Value * value, llvm::Value * type = nullptr) {return LLVMVal(value, type, false);}
-	LLVMVal borrow(const LLVMVal & v) {return LLVMVal(v.value, v.type, false);}
-	
+	size_t uid=0;
+	std::shared_ptr<Error> error;
+	std::shared_ptr<Code> code;
+	Module * module;
+	IRBuilder<> builder;
+	FunctionPassManager fpm;
+	bool dumpRawFunctions;
+	bool dumpOptFunctions;
+
 	llvm::Type * voidType = llvm::Type::getVoidTy(getGlobalContext());
 	llvm::Type * int8Type = llvm::Type::getInt8Ty(getGlobalContext());
 	llvm::Type * int16Type = llvm::Type::getInt16Ty(getGlobalContext());
@@ -74,7 +79,51 @@ public:
 	llvm::StructType * anyRetType = structType("AnyRet", {int64Type, int8Type});
 	llvm::StructType * funcBase = structType("FuncBase", {int32Type, int16Type, int16Type, voidPtrType, voidPtrType} );;
 	llvm::StructType * objectBaseType = structType("ObjectBase", {int32Type, int16Type});
+
+	CodeGen(std::shared_ptr<Error> error, std::shared_ptr<Code> code,
+			llvm::Module * module, bool dumpRawFunctions,
+			bool dumpOptFunctions): error(error), code(code), module(module),
+									builder(getGlobalContext()), fpm(module), 
+									dumpRawFunctions(dumpRawFunctions),
+									dumpOptFunctions(dumpOptFunctions) {
+		fpm.add(new DataLayout(module));
+		fpm.add(createBasicAliasAnalysisPass());
+		fpm.add(createInstructionCombiningPass());
+		fpm.add(createReassociatePass());
+		fpm.add(createGVNPass());
+		fpm.add(createCFGSimplificationPass());
+		fpm.doInitialization();
+
+		std::vector< std::pair<std::string, FunctionType *> > fs =
+		{
+			{"rm_print", functionType(voidType, {int8Type, int64Type})},
+			{"rm_free", functionType(voidType, {voidPtrType})},
+			{"rm_concatText", functionType(voidPtrType, {voidPtrType, voidPtrType})},
+			{"rm_getConstText", functionType(voidPtrType, {pointerType(int8Type)})},
+			{"rm_emitTypeError", functionType(voidType, {int32Type, int32Type, int8Type, int8Type})},
+			{"rm_emitArgCntError", functionType(voidType, {int32Type, int32Type, int16Type, int16Type})},
+			{"rm_unionRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
+			{"rm_joinRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
+			{"rm_loadRel", functionType(voidPtrType, {pointerType(int8Type)})},
+			{"rm_saveRel", functionType(voidType, {voidPtrType, pointerType(int8Type)})},
+			{"rm_substrText", functionType(voidPtrType, {voidPtrType, int64Type, int64Type})},
+			{"rm_createFunction", functionType(voidPtrType, {int32Type})},
+			{"rm_loadGlobalAny", functionType(voidType, {int32Type, pointerType(anyRetType)})},
+			{"rm_saveGlobalAny", functionType(voidType, {int32Type, int64Type, int8Type})}
+		};
+
+		for(auto p: fs)
+			stdlib[p.first] = Function::Create(p.second, Function::ExternalLinkage, p.first, module);
+	}
+
 	
+
+
+
+
+	LLVMVal owned(llvm::Value * value, llvm::Value * type = nullptr) {return LLVMVal(value, type, true);}
+	LLVMVal borrowed(llvm::Value * value, llvm::Value * type = nullptr) {return LLVMVal(value, type, false);}
+	LLVMVal borrow(const LLVMVal & v) {return LLVMVal(v.value, v.type, false);}
 	
 	llvm::Type * llvmType(::Type t) {
 		switch (t) {
@@ -125,14 +174,6 @@ public:
 		return llvm::FunctionType::get(voidType, t, false);
 	}
 
-	IRBuilder<> builder;
-	size_t uid;
-	Module * module;
-	std::shared_ptr<Error> error;
-	std::shared_ptr<Code> code;
-	bool dumpRawFunctions;
-	bool dumpOptFunctions;
-	FunctionPassManager fpm;
 
 	Function * getFunction() {
 		return builder.GetInsertBlock()->getParent();
@@ -285,41 +326,6 @@ public:
 	}
 
 
-	CodeGen(std::shared_ptr<Error> error, std::shared_ptr<Code> code,
-			llvm::Module * module, bool dumpRawFunctions,
-			bool dumpOptFunctions): error(error), code(code), module(module),
-									builder(getGlobalContext()), fpm(module), 
-									uid(0), dumpRawFunctions(dumpRawFunctions),
-									dumpOptFunctions(dumpOptFunctions) {
-		fpm.add(new DataLayout(module));
-		fpm.add(createBasicAliasAnalysisPass());
-		fpm.add(createInstructionCombiningPass());
-		fpm.add(createReassociatePass());
-		fpm.add(createGVNPass());
-		fpm.add(createCFGSimplificationPass());
-		fpm.doInitialization();
-
-		std::vector< std::pair<std::string, FunctionType *> > fs =
-		{
-			{"rm_print", functionType(voidType, {int8Type, int64Type})},
-			{"rm_free", functionType(voidType, {voidPtrType})},
-			{"rm_concatText", functionType(voidPtrType, {voidPtrType, voidPtrType})},
-			{"rm_getConstText", functionType(voidPtrType, {pointerType(int8Type)})},
-			{"rm_emitTypeError", functionType(voidType, {int32Type, int32Type, int8Type, int8Type})},
-			{"rm_emitArgCntError", functionType(voidType, {int32Type, int32Type, int16Type, int16Type})},
-			{"rm_unionRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
-			{"rm_joinRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
-			{"rm_loadRel", functionType(voidPtrType, {pointerType(int8Type)})},
-			{"rm_saveRel", functionType(voidType, {voidPtrType, pointerType(int8Type)})},
-			{"rm_substrText", functionType(voidPtrType, {voidPtrType, int64Type, int64Type})},
-			{"rm_createFunction", functionType(voidPtrType, {int32Type})},
-			{"rm_loadGlobalAny", functionType(voidType, {int32Type, pointerType(anyRetType)})},
-			{"rm_saveGlobalAny", functionType(voidType, {int32Type, int64Type, int8Type})}
-		};
-
-		for(auto p: fs)
-			stdlib[p.first] = Function::Create(p.second, Function::ExternalLinkage, p.first, module);
-	}
 	
 	void finishFunction(Function * func) {
 		llvm::verifyFunction(*func);
@@ -516,7 +522,7 @@ public:
 		return val;
 	}
 
-	LLVMVal visit(std::shared_ptr<ForallExp> node) {
+	LLVMVal visit(std::shared_ptr<ForallExp>) {
 		throw ICEException("ForallExp");
 	}
 
@@ -629,7 +635,7 @@ public:
 		return owned(p);
 	}
 	
-	LLVMVal visit(std::shared_ptr<TupExp> node) {
+	LLVMVal visit(std::shared_ptr<TupExp>) {
 		throw ICEException("Tub not implemented");
 	}
 
@@ -703,11 +709,11 @@ public:
 		}
 	}
 
-	LLVMVal visit(std::shared_ptr<RelExp> node) {
+	LLVMVal visit(std::shared_ptr<RelExp>) {
         throw ICEException("Rel");
 	}
 
-	LLVMVal visit(std::shared_ptr<LenExp> node) {
+	LLVMVal visit(std::shared_ptr<LenExp>) {
 		throw ICEException("Len");
 	}
 
@@ -770,30 +776,30 @@ public:
 		return  r;
 	}
 
-	LLVMVal visit(std::shared_ptr<RenameExp> node) {
+	LLVMVal visit(std::shared_ptr<RenameExp>) {
 		throw ICEException("Rename");
 	}
         
-	LLVMVal visit(std::shared_ptr<DotExp> node) {
+	LLVMVal visit(std::shared_ptr<DotExp>) {
 		throw ICEException("DotExp");
 	}
 
-	LLVMVal visit(std::shared_ptr<AtExp> node) {
+	LLVMVal visit(std::shared_ptr<AtExp>) {
 		throw ICEException("At");
 	}
 
-	LLVMVal visit(std::shared_ptr<ProjectExp> node) {
+	LLVMVal visit(std::shared_ptr<ProjectExp>) {
 		throw ICEException("Project");
 	}
 
 
-	LLVMVal visit(std::shared_ptr<Choice> node) {throw ICEException("Choice");}
-	LLVMVal visit(std::shared_ptr<FuncCaptureValue> node) {throw ICEException("FuncCaptureValue");}
-	LLVMVal visit(std::shared_ptr<FuncArg> node) {throw ICEException("FuncArg");}
-	LLVMVal visit(std::shared_ptr<TupItem> node) {throw ICEException("TupItem");}
-	LLVMVal visit(std::shared_ptr<InvalidExp> node) {throw ICEException("InvalidExp");}
-	LLVMVal visit(std::shared_ptr<Val> node) {throw ICEException("Val");}
-	LLVMVal visit(std::shared_ptr<RenameItem> node) {throw ICEException("RenameItem");}
+	LLVMVal visit(std::shared_ptr<Choice>) {throw ICEException("Choice");}
+	LLVMVal visit(std::shared_ptr<FuncCaptureValue>) {throw ICEException("FuncCaptureValue");}
+	LLVMVal visit(std::shared_ptr<FuncArg>) {throw ICEException("FuncArg");}
+	LLVMVal visit(std::shared_ptr<TupItem>) {throw ICEException("TupItem");}
+	LLVMVal visit(std::shared_ptr<InvalidExp>) {throw ICEException("InvalidExp");}
+	LLVMVal visit(std::shared_ptr<Val>) {throw ICEException("Val");}
+	LLVMVal visit(std::shared_ptr<RenameItem>) {throw ICEException("RenameItem");}
 
 	struct BinopHelp {
 		::Type lhsType;

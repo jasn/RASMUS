@@ -33,6 +33,9 @@ extern "C" {
  */
 struct rm_object;
 
+/**
+ * Type used to encapsulate an any return value
+ */
 struct AnyRet {
 	int64_t value;
 	int8_t type;
@@ -43,17 +46,19 @@ struct AnyRet {
 /////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Generate a text constant
+ * Generate a text constant, the returned value has refcnt 1
+ *
+ * @param cptr A zero terminated cstring
  */
 rm_object * rm_getConstText(const char *cptr); 
 
 /**
- * Concatinate two text strings
+ * Concatinate two text strings, the returned value has refcnt 1
  */
 rm_object * rm_concatText(rm_object * p1, rm_object * p2);
 
 /**
- * Get the substring of a text
+ * Get the substring of a text, the returned value has refcnt 1
  */
 rm_object * rm_substrText(rm_object * str, int64_t start, int64_t end);
 
@@ -68,12 +73,10 @@ rm_object * rm_substrText(rm_object * str, int64_t start, int64_t end);
 void rm_free(rm_object * ptr);
 
 /**
- * Terminate the rasmus process
- */
-void rm_abort();
-
-/**
- * Create a new function
+ * Create a new function rm_object, the returned object
+ * will have ref_cnt=0
+ * 
+ * @param The size in bytes of the function object
  */
 rm_object * rm_createFunction(uint32_t size);
 
@@ -91,11 +94,25 @@ void rm_print(uint8_t t, int64_t v);
 ////////////////////////////////  error.cc  /////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
 
-void rm_emitTypeError(uint32_t start, uint32_t end, uint8_t got, uint8_t expect);
+/**
+ * Emit a type error
+ *
+ * @param start the first character in the source where the error occurs
+ * @param end the last character in the source where the error occurs
+ * @param got the Type we found
+ * @param expected the Type we expected
+ */
+void rm_emitTypeError [[ noreturn ]] (uint32_t start, uint32_t end, uint8_t got, uint8_t expect);
 
-
-void rm_emitArgCntError(int32_t start, int32_t end, int16_t got, int16_t expect);
-
+/**
+ * Emit an argument count error
+ *
+ * @param start the first character in the source where the error occurs
+ * @param end the last character in the source where the error occurs
+ * @param got The number of arguments we got
+ * @param expected the number of arguments we expected
+ */
+void rm_emitArgCntError [[ noreturn ]] (int32_t start, int32_t end, int16_t got, int16_t expect);
 
 /////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////  relation.cc  //////////////////////////////////////
@@ -110,8 +127,32 @@ rm_object * rm_loadRel(const char * name);
 
 rm_object * rm_select(rm_object * rel, rm_object * func);
 
-void rm_loadGlobalAny(uint32_t id,  AnyRet * ret);
+
+/////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////  global.cc  //////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * load a global from the globals database, in case the return object
+ * is a rm_object the refcnt is NOT increased
+ *
+ * @parm id The id of the global to load
+ * @param ret Pointer of where to store the result
+ */
+void rm_loadGlobalAny(uint32_t id, AnyRet * ret);
+
+/**
+ * save a global to the globals database. 
+ *
+ * @param id The if of the global to save
+ * @param value The value of the global casted to a int64_t
+ * @param type The Type of the global cast to a int8_t
+ */
 void rm_saveGlobalAny(uint32_t id, int64_t value, int8_t type);
+
+/**
+ * clear all storred globals
+ */
 void rm_clearGlobals();
 
 } //extern C

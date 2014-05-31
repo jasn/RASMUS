@@ -16,39 +16,35 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#include <iostream>
-#include <stdint.h>
-#include "lib.h"
-#include <shared/type.hh>
 #include <stdlib/callback.hh>
+#include <sstream>
 
-extern "C" {
-using namespace rasmus::stdlib;
+namespace rasmus {
+namespace stdlib {
 
-void rm_print(uint8_t t, int64_t v) {
-    switch (Type(t)) {
-    case TBool:
-		callback->printBool(v);
-		break;
-    case TInt:
-		callback->printInt(v);
-		break;
-    case TText: //It's a Text
-		callback->printText((rm_object*)v);
-		break;
-    case TRel:
-		callback->printRel((rm_object*)v);
-		break;
-    case TTup:
-		callback->printTup((rm_object*)v);
-		break;
-    case TFunc:
-		callback->printFunc((rm_object*)v);
-		break;
-    default:
-		callback->reportMessage("ILE: rm_print called on unhandled type");
-		break;
-    }
+inline void ile_append(std::ostream &) {}
+
+template <typename T, typename ... TT>
+inline void ile_append(std::ostream & o, const T & t, const TT & ... tt) {
+	o << " " << t;
+	ile_append(o, tt...);
 }
 
-} //extern "C"
+template <typename ... T>
+inline void ile [[noreturn]] (const char * file, 
+							  const char * function,
+							  size_t line,
+							  const T & ... t) {
+	std::stringstream ss;
+	ss << file << ":" << line << "(" << function << "):";
+	ile_append(ss, t...);
+	callback->reportError(0, 0, ss.str().c_str());
+	__builtin_unreachable();
+}
+
+#define ILE(...) ile(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+
+} //namespace stdlib
+} //namespace rasmus
+
+

@@ -53,14 +53,14 @@ public:
 
 	CountError(): numberOfErrors(0) {}
 	
-	virtual void reportWarning(std::string message,
-							   Token mainToken,
-							   std::initializer_list<CharRange> ranges) override {
+	virtual void reportWarning(std::string,
+							   Token,
+							   std::initializer_list<CharRange>) override {
 	}
 	
-	virtual void reportError(std::string message,
-							 Token mainToken,
-							 std::initializer_list<CharRange> ranges) override {
+	virtual void reportError(std::string,
+							 Token,
+							 std::initializer_list<CharRange>) override {
 		++numberOfErrors;
 	}
 

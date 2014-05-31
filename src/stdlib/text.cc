@@ -21,6 +21,7 @@
 #include <iostream>
 #include <stdlib/text.hh>
 #include <stdlib/rm_object.hh>
+#include <stdlib/ile.hh>
 const size_t smallLength = 20;
 
 namespace {
@@ -56,6 +57,8 @@ void buildText(TextBase * o, T & out, size_t start, size_t end) {
 		buildText(s->content.get(), out, start + s->start, end + s->start);
 		break;
 	}
+	default:
+		ILE("Unhandled type", o->type);
 	}
 }
 
@@ -111,7 +114,10 @@ const char * canonizeText(TextBase * o) {
 		registerAllocation(o);
 		return data;
 	}
+	default:
+		ILE("Unhandled type", o->type);
 	}
+	return nullptr;
 }
 
 template <typename T, typename ...TS>
@@ -191,7 +197,7 @@ rm_object * rm_substrText(rm_object * str_, int64_t start, int64_t end) {
 	start = std::max<int64_t>(0, start);
 	end = std::min<int64_t>(end, len);
 	if (end < start) end=start;
-	if (end - start <= smallLength) {
+	if (end - start <= (int64_t)smallLength) {
 		SmallText * o = makeSmallText(end-start);
 		MemcpyBuilder builder(o->data);
 		buildText(str, builder, start, end);

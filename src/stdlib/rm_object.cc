@@ -20,6 +20,7 @@
 #include <stdlib/function.hh>
 #include <stdlib/text.hh>
 #include <stdlib/callback.hh>
+#include <stdlib/ile.hh>
 #include <iostream>
 #include <sstream>
 
@@ -74,7 +75,10 @@ void rm_free(rm_object * o) {
 		function_object * fo = static_cast<function_object*>(o);
 		fo->dtor(fo);
 		operator delete(reinterpret_cast<void *>(fo));
+		break;
 	}
+	default:
+		ILE("Unhandled type", o->type);
 	}
 }
 
@@ -87,10 +91,6 @@ rm_object * rm_createFunction(uint32_t size) {
 	new(o) function_object();
 	registerAllocation(o);
 	return o;
-}
-
-void rm_abort() {
-	exit(EXIT_FAILURE);
 }
 
 } //extern "C"

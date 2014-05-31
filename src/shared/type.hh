@@ -36,6 +36,7 @@ inline const char * ltypeName(LType t) {
 	case LType::tuple: return "Tuple";
 	case LType::relation: return "Relation";
 	}
+	return "Unknown";
 }
 
 inline std::ostream & operator << (std::ostream & o, LType t) {
@@ -68,6 +69,7 @@ inline const char * typeName(Type t) {
 	case TAtom: return "TAtom";
 	case TNAMEQ: return "TNAMEQ";
 	}
+	return "Unknown";
 }
 
 inline std::ostream & operator<<(std::ostream & o, Type t) {

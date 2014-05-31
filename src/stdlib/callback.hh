@@ -45,7 +45,7 @@ public:
 	virtual void printTup(rm_object * o) = 0;
 	virtual void printRel(rm_object * o) = 0;
 	
-	virtual void reportError(size_t start, size_t end, std::string text) = 0;
+	virtual void reportError [[noreturn]] (size_t start, size_t end, std::string text) = 0;
 	virtual void reportMessage(std::string text) = 0;
 };
 

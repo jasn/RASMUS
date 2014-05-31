@@ -64,7 +64,7 @@ public:
 	FirstParseImpl(std::shared_ptr<Error> error, std::shared_ptr<Code> code):
 		error(error), code(code) {
 		scopes.push_back(Scope());
-		globalId;
+		globalId=0;
 	}
 	
 	std::string tokenToIdentifier(Token token) const {
@@ -236,7 +236,6 @@ public:
     void visit(std::shared_ptr<BuiltInExp> node) {
 		Type returnType;
 		std::vector<Type> argumentTypes;
-        TokenId tkn = node->nameToken.id;
 		switch (node->nameToken.id) {
 		case TK_ISATOM:
 		case TK_ISTUP:
@@ -529,14 +528,14 @@ public:
     //     node->type = node->exp->type;
 	// }
 
-	void visit(std::shared_ptr<Choice> node) {}
-	void visit(std::shared_ptr<FuncCaptureValue> node) {}
-	void visit(std::shared_ptr<FuncArg> node) {}
-	void visit(std::shared_ptr<TupItem> node) {}
-	void visit(std::shared_ptr<Val> node) {}
-	void visit(std::shared_ptr<RenameItem> node) {}
+	void visit(std::shared_ptr<Choice>) {}
+	void visit(std::shared_ptr<FuncCaptureValue>) {}
+	void visit(std::shared_ptr<FuncArg>) {}
+	void visit(std::shared_ptr<TupItem>) {}
+	void visit(std::shared_ptr<Val>) {}
+	void visit(std::shared_ptr<RenameItem>) {}
 
-	void visit(std::shared_ptr<AtExp> node) {/*TODO*/	}
+	void visit(std::shared_ptr<AtExp>) {/*TODO*/	}
 
 	virtual void run(NodePtr node) override {
 		visitNode(node);

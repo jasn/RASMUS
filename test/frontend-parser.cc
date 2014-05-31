@@ -158,7 +158,7 @@ public:
 		ss << ")";
 	}
 
-    void visit(std::shared_ptr<InvalidExp> node) {	
+    void visit(std::shared_ptr<InvalidExp>) {	
 		ss << "invalid";
 	}
 
@@ -166,16 +166,16 @@ public:
 		ss << "(@ " << v(node->exp) << ")";
 	}
 
-	void visit(std::shared_ptr<Choice> node) {}
-	void visit(std::shared_ptr<FuncCaptureValue> node) {}
-	void visit(std::shared_ptr<FuncArg> node) {}
-	void visit(std::shared_ptr<TupItem> node) {}
-	void visit(std::shared_ptr<Val> node) {}
-	void visit(std::shared_ptr<RenameItem> node) {}
+	void visit(std::shared_ptr<Choice>) {}
+	void visit(std::shared_ptr<FuncCaptureValue>) {}
+	void visit(std::shared_ptr<FuncArg>) {}
+	void visit(std::shared_ptr<TupItem>) {}
+	void visit(std::shared_ptr<Val>) {}
+	void visit(std::shared_ptr<RenameItem>) {}
 };
 
 
-bool pt(const char * txt, const char * exp, int errors=0) {
+bool pt(const char * txt, const char * exp, size_t errors=0) {
 	std::shared_ptr<Code> code = std::make_shared<Code>(txt, "monkey");
 	std::shared_ptr<Lexer> lexer = std::make_shared<Lexer>(code, 0);
 	std::shared_ptr<Error> error = makeCountError();

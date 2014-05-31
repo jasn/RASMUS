@@ -111,6 +111,7 @@ nt.write("} //namespace rasmus\n")
 nt.write("#endif //__nodetype_hh__\n")
 
 v.write("\t\t}\n");
+v.write("\t\treturn RT();\n");
 v.write("\t}\n");
 v.write("};\n");
 v.write("} //namespace frontend\n");

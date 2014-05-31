@@ -46,7 +46,7 @@ void version(std::ostream & out) {
 		<< "Written by Thomas Engelbrecht Hybel, Jesper Asbjørn Sindahl Nielsen and Jakob Truelsen" << std::endl;
 }
 
-int main(int argc, char ** argv) {
+int main(int /*argc*/, char ** argv) {
 	bool displayUsage=false;
 	bool displayVersion=false;
 	int options=0;

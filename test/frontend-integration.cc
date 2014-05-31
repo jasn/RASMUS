@@ -28,10 +28,10 @@ public:
 	TestCallback(): errors(0) {}
 
 	void report(MsgType type, 
-				std::shared_ptr<Code> code,
+				std::shared_ptr<Code>,
 				std::string message,
-				Token mainToken,
-				std::initializer_list<CharRange> ranges) override {
+				Token,
+				std::initializer_list<CharRange>) override {
 		report(type, message);
 	}
 	
@@ -67,7 +67,7 @@ public:
 	}
 };
 
-bool it(std::string txt, const char * exp, int errors=0) {
+bool it(std::string txt, const char * exp, size_t errors=0) {
 	std::shared_ptr<TestCallback> cb = std::make_shared<TestCallback>();
 	std::shared_ptr<rasmus::frontend::Interperter> interperter=rasmus::frontend::makeInterperter(cb);
 	interperter->setup();
