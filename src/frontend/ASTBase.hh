@@ -45,41 +45,33 @@ public:
 	CharRange(size_t lo, size_t hi): lo(lo), hi(hi) {}
 };
 
-
-struct LLVMVal {
+struct OwnedLLVMVal {
+public:
 	llvm::Value * value;
 	llvm::Value * type; //Only valid if val is of any type
-	bool owned;
-	LLVMVal(): value(nullptr), type(nullptr), owned(false) {}
-	LLVMVal(llvm::Value * value, bool owned): value(value), type(nullptr), owned(owned) {}
-	LLVMVal(llvm::Value * value, llvm::Value * type, bool owned): value(value), type(type), owned(owned) {}
-	LLVMVal(const LLVMVal & o): value(o.value), type(o.type), owned(o.owned) {
-		if (owned) ICE("Owned was copied");
+
+	OwnedLLVMVal(): value(nullptr), type(nullptr) {};
+	OwnedLLVMVal(llvm::Value * value): value(value), type(nullptr) {}
+	OwnedLLVMVal(llvm::Value * value, llvm::Value * type): value(value), type(type) {}
+	
+	OwnedLLVMVal(const OwnedLLVMVal & o) = delete;
+	OwnedLLVMVal & operator=(const OwnedLLVMVal & o) = delete;
+	OwnedLLVMVal(OwnedLLVMVal && o): value(o.value), type(o.type) {
+		o.value=nullptr;
+		o.type=nullptr;
 	}
 
-	LLVMVal & operator=(const LLVMVal & o) {
-		value = o.value;
-		type = o.type;
-		owned = o.owned;
-		if (owned) ICE("Owned was copied");
+	OwnedLLVMVal & operator=(OwnedLLVMVal && o) {
+		if (value) ICE("Write to tainted OwnedLLVMVAL");
+		value=o.value;
+		type=o.type;
+		o.value=nullptr;
+		o.type=nullptr;
 		return *this;
 	}
-
-	LLVMVal(LLVMVal && o): value(o.value), type(o.type), owned(o.owned) {
-		o.value = nullptr;
-		o.type = nullptr;
-		o.owned = false;
-	}
-	LLVMVal & operator=(LLVMVal && o) {
-		if (owned) ICE("Moved into owned");
-		value = o.value; o.value=nullptr;
-		type = o.type; o.type=nullptr;
-		owned = o.owned; o.owned=false;
-		return *this;
-	}
-
-	~LLVMVal() {
-		if (owned) ICE("Owned was freed");
+	
+	~OwnedLLVMVal() {
+		if (!std::uncaught_exception() && (value || type) ) ICE("Free of owned LLVMValue");
 	}
 };
 
@@ -89,7 +81,7 @@ public:
 	bool tainted;
 	CharRange charRange;
 	Type type;
-	LLVMVal llvmVal;
+	OwnedLLVMVal llvmVal;
 	Node(NodeType t): nodeType(t), tainted(false), type(TInvalid) {}
 	virtual ~Node() {}
 };
