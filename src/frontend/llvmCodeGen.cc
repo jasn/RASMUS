@@ -135,7 +135,7 @@ public:
 			return voidPtrType;
 		case TAny: return anyRetType;
 		default:
-			throw ICEException(std::string("llvmType - Unhandled type ") + typeName(t));
+			ICE("llvmType - Unhandled type ", t);
 		}
 	}
 	
@@ -159,7 +159,7 @@ public:
 		case TFunc:
 			return borrowed(llvm::Constant::getNullValue(pointerType(funcBase)));
 		default:
-			throw ICEException("Unhandled undef");
+			ICE("Unhandled undef", t);
 		}
 	}
 	
@@ -230,7 +230,7 @@ public:
 			break;
 		}
 		default:
-			throw ICEException("Unhandled type in abandon");
+			ICE("Unhandled type in abandon", type);
 		}
 	}
 
@@ -267,7 +267,7 @@ public:
 			break;
 		}
 		default:
-			throw ICEException("Unhandled type in takeOwnership");
+			ICE("Unhandled type in takeOwnership", type);
 		}
 		return value;
 	}
@@ -287,7 +287,7 @@ public:
 			case TRel:
 				return LLVMVal(builder.CreatePtrToInt(value.value, int64Type), typeRepr(tfrom), owned);
             default:
-                throw ICEException("Unhandled type1");
+                ICE("Unhandled type", tfrom);
 			};
 		}
 
@@ -312,20 +312,15 @@ public:
 			case TRel:
 				return LLVMVal(builder.CreateIntToPtr(value.value, voidPtrType), owned);
 			default:
-				throw ICEException("Unhandled type 2");
+				ICE("Unhandled type", tto);
 			}
 		}
-
-		if (tfrom == TText)
-			throw ICEException("Unhandled type 3");
-		throw ICEException("Unhandled type 4");
+		ICE("Unhandled type", tfrom);
 	}
 	
 	LLVMVal castVisit(NodePtr node, ::Type tto) {
 		return cast(visitNode(node), node->type, tto, node);
 	}
-
-
 	
 	void finishFunction(Function * func) {
 		llvm::verifyFunction(*func);
@@ -359,7 +354,7 @@ public:
 			return borrowed(builder.CreateLoad(value), builder.CreateLoad(type));
 		}
 		default:
-			throw ICEException("Unhandled type in loadValue");			
+			ICE("Unhandled type", type);
 		}
 	}
 
@@ -385,7 +380,7 @@ public:
 			break;
 		}
 		default:
-			throw ICEException("Unhandled type in loadValue");			
+			ICE("Unhandled type", type);
 		}
 		vv.owned=false;
 	}
@@ -486,8 +481,7 @@ public:
 	}
 
 	LLVMVal visit(std::shared_ptr<IfExp> node) {
-		if (node->type == TAny) 
-			throw ICEException("If not implemented for anytype");
+		if (node->type == TAny) ICE("If not implemented for anytype");
 		bool done=false;
 		std::vector<std::pair<LLVMVal, LLVMVal> > hats;
 		LLVMVal val;
@@ -523,7 +517,7 @@ public:
 	}
 
 	LLVMVal visit(std::shared_ptr<ForallExp>) {
-		throw ICEException("ForallExp");
+		ICE("ForallExp");
 	}
 
 	LLVMVal visit(std::shared_ptr<FuncExp> node) {
@@ -636,7 +630,7 @@ public:
 	}
 	
 	LLVMVal visit(std::shared_ptr<TupExp>) {
-		throw ICEException("Tub not implemented");
+		ICE("Tub not implemented");
 	}
 
 	LLVMVal visit(std::shared_ptr<BlockExp> node) {
@@ -662,7 +656,7 @@ public:
 		}
 		break;
 		default:
-			throw ICEException("BuildIn not implemented");
+			ICE("BuildIn not implemented", node->nameToken.id);
 		}
 	}
 
@@ -685,7 +679,7 @@ public:
 							   builder.CreateConstGEP2_32(gv, 0, 0)) );
 		 }
 		 default:
-			 throw ICEException("Const");
+			 ICE("Unhandled type", node->type);
 		 }
 	}
 	
@@ -705,16 +699,16 @@ public:
 			return r;
 		}
 		default:
-			throw ICEException("Unhandled unary operator");
+			ICE("Unhandled operator", node->opToken.id);
 		}
 	}
 
 	LLVMVal visit(std::shared_ptr<RelExp>) {
-        throw ICEException("Rel");
+        ICE("Rel");
 	}
 
 	LLVMVal visit(std::shared_ptr<LenExp>) {
-		throw ICEException("Len");
+		ICE("Len");
 	}
 
     LLVMVal visit(std::shared_ptr<FuncInvocationExp> node) {
@@ -777,29 +771,29 @@ public:
 	}
 
 	LLVMVal visit(std::shared_ptr<RenameExp>) {
-		throw ICEException("Rename");
+		ICE("Rename");
 	}
         
 	LLVMVal visit(std::shared_ptr<DotExp>) {
-		throw ICEException("DotExp");
+		ICE("DotExp");
 	}
 
 	LLVMVal visit(std::shared_ptr<AtExp>) {
-		throw ICEException("At");
+		ICE("At");
 	}
 
 	LLVMVal visit(std::shared_ptr<ProjectExp>) {
-		throw ICEException("Project");
+		ICE("Project");
 	}
 
 
-	LLVMVal visit(std::shared_ptr<Choice>) {throw ICEException("Choice");}
-	LLVMVal visit(std::shared_ptr<FuncCaptureValue>) {throw ICEException("FuncCaptureValue");}
-	LLVMVal visit(std::shared_ptr<FuncArg>) {throw ICEException("FuncArg");}
-	LLVMVal visit(std::shared_ptr<TupItem>) {throw ICEException("TupItem");}
-	LLVMVal visit(std::shared_ptr<InvalidExp>) {throw ICEException("InvalidExp");}
-	LLVMVal visit(std::shared_ptr<Val>) {throw ICEException("Val");}
-	LLVMVal visit(std::shared_ptr<RenameItem>) {throw ICEException("RenameItem");}
+	LLVMVal visit(std::shared_ptr<Choice>) {ICE("Choice");}
+	LLVMVal visit(std::shared_ptr<FuncCaptureValue>) {ICE("FuncCaptureValue");}
+	LLVMVal visit(std::shared_ptr<FuncArg>) {ICE("FuncArg");}
+	LLVMVal visit(std::shared_ptr<TupItem>) {ICE("TupItem");}
+	LLVMVal visit(std::shared_ptr<InvalidExp>) {ICE("InvalidExp");}
+	LLVMVal visit(std::shared_ptr<Val>) {ICE("Val");}
+	LLVMVal visit(std::shared_ptr<RenameItem>) {ICE("RenameItem");}
 
 	struct BinopHelp {
 		::Type lhsType;
@@ -816,7 +810,7 @@ public:
 			matches.push_back(h);
 		}
 		if (matches.size() == 0)
-			throw ICEException("Infeasible types in binopImpl, there is a bug in the typechecker!!");
+			ICE("Infeasible types in binopImpl, there is a bug in the typechecker!!");
 
 		if (matches.size() == 1) {
 			// Even though there might be any arguments
@@ -833,7 +827,7 @@ public:
 
 		// There was more then one possible operator we want to call
 		// So we have to determine on runtime which is the right
-		throw ICEException("Dynamic binops are not implemented");
+		ICE("Dynamic binops are not implemented");
 	}
 
 	LLVMVal binopAddInt(LLVMVal lhs, LLVMVal rhs) {
@@ -980,7 +974,7 @@ public:
 		case TK_OR:
 			return binopImpl(node, { {TBool, TBool, TBool, &CodeGen::binopOrBool} });
 		default: 
-			throw ICEException("Binop not implemented");
+			ICE("Binop not implemented", node->opToken.id);
 		}
 	}
 

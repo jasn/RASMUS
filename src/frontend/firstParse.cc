@@ -197,17 +197,15 @@ public:
 	}
 	
     void visit(std::shared_ptr<ForallExp> node) {
-		//TODO
 		visitAll(node->listExps);
 		visitNode(node->exp);
+		ICE("Not implemented");
 	}
 
     void visit(std::shared_ptr<FuncExp> node) {
         scopes.push_back(Scope(node));
         node->type = TFunc;
         for (auto a: node->args) {
-			// a->name = tokenToIdentifier(a->nameToken);
-			// self.scopes.back().bind[a->name] = a;
 			scopes.back().bind[tokenToIdentifier(a->nameToken)] = a;
 			a->type = tokenToType(a->typeToken);
 		}
@@ -329,6 +327,7 @@ public:
                 //     err.reportError("Expected identifier", None, [node->args[i].charRange])
 				// 		}
 				//TODO FIX ME
+				ICE("Not implemented");
 			}
 		}
 	}
@@ -344,7 +343,6 @@ public:
             node->type = TBool;
 			break;
         case TK_INT:
-			//TODO
             node->int_value = atoi(code->code.substr(node->valueToken.start, node->valueToken.length).c_str());
 			node->type = TInt;
 			break;
@@ -364,15 +362,15 @@ public:
             // 'the relation with the empty Schema that has exactly one tuple which is empty'
             break;
         case TK_STDBOOL:
-			// TODO
+			ICE("stdbool");
             node->type = TBool;
 			break;
         case TK_STDINT:
-			// TODO
+			ICE("stdint");
             node->type = TInt;
 			break;
         case TK_STDTEXT:
-			// TODO
+			ICE("stdtext");
             node->type = TText;
 			break;
 		default:
@@ -535,7 +533,7 @@ public:
 	void visit(std::shared_ptr<Val>) {}
 	void visit(std::shared_ptr<RenameItem>) {}
 
-	void visit(std::shared_ptr<AtExp>) {/*TODO*/	}
+	void visit(std::shared_ptr<AtExp>) {ICE("AtExt");}
 
 	virtual void run(NodePtr node) override {
 		visitNode(node);

@@ -26,6 +26,7 @@
 #include <ostream>
 #include <frontend/nodetype.hh>
 #include <shared/type.hh>
+#include <frontend/ice.hh>
 
 namespace llvm {
 struct Value;
@@ -37,18 +38,12 @@ namespace frontend {
 typedef size_t GlobalId;
 const GlobalId NOT_GLOBAL=std::numeric_limits<GlobalId>::max();
 
-class ICEException: public std::runtime_error {
-public:
-	ICEException(const std::string & msg): std::runtime_error(msg) {}
-};
-
 class CharRange {
 public:
 	size_t lo, hi;
 	CharRange(): lo(std::numeric_limits<size_t>::max()), hi(std::numeric_limits<size_t>::min()) {}
 	CharRange(size_t lo, size_t hi): lo(lo), hi(hi) {}
 };
-
 
 
 struct LLVMVal {
@@ -59,14 +54,14 @@ struct LLVMVal {
 	LLVMVal(llvm::Value * value, bool owned): value(value), type(nullptr), owned(owned) {}
 	LLVMVal(llvm::Value * value, llvm::Value * type, bool owned): value(value), type(type), owned(owned) {}
 	LLVMVal(const LLVMVal & o): value(o.value), type(o.type), owned(o.owned) {
-		if (owned) throw ICEException("Owned was copied");
+		if (owned) ICE("Owned was copied");
 	}
 
 	LLVMVal & operator=(const LLVMVal & o) {
 		value = o.value;
 		type = o.type;
 		owned = o.owned;
-		if (owned) throw ICEException("Owned was copied");
+		if (owned) ICE("Owned was copied");
 		return *this;
 	}
 
@@ -76,7 +71,7 @@ struct LLVMVal {
 		o.owned = false;
 	}
 	LLVMVal & operator=(LLVMVal && o) {
-		if (owned) throw ICEException("Moved into owned");
+		if (owned) ICE("Moved into owned");
 		value = o.value; o.value=nullptr;
 		type = o.type; o.type=nullptr;
 		owned = o.owned; o.owned=false;
@@ -84,7 +79,7 @@ struct LLVMVal {
 	}
 
 	~LLVMVal() {
-		if (owned) throw ICEException("Owned was freed");
+		if (owned) ICE("Owned was freed");
 	}
 };
 

@@ -196,6 +196,9 @@ public:
 			FP();
 		} catch (ErrException) {
 			return false; //Error in code execution
+		} catch (ICEException e) {
+			callback->report(MsgType::error, e.what());
+			return false;
 		} catch (IncompleteInputException) {
 			incomplete = line + "\n";
 		}
