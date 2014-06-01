@@ -42,6 +42,7 @@
 #include <stdlib/relation.hh>
 #include <frontend/charRanges.hh>
 #include <frontend/firstParse.hh>
+#include <frontend/astPrinter.hh>
 #include <sstream>
 #include <stdlib/lib.h>
 
@@ -126,6 +127,7 @@ public:
 	std::shared_ptr<Parser> parser;
 	std::shared_ptr<CharRanges> charRanges;
 	std::shared_ptr<FirstParse> firstParse;
+	std::shared_ptr<AstPrinter> astPrinter;
 	llvm::Module * module;
 	std::shared_ptr<LLVMCodeGen> codeGen;
 	llvm::ExecutionEngine * engine;
@@ -149,7 +151,7 @@ public:
 		parser = makeParser(lexer, error, true);
 		charRanges = makeCharRanges();
 		firstParse = makeFirstParse(error, code);
-
+		astPrinter = makeAstPrinter(code);
 		// TODO: if this line is removed ./rm does not link, WTF??
 		if (options & 12345) dlopen("monkey.so", 0);
 
@@ -164,12 +166,12 @@ public:
 			NodePtr r=parser->parse();
 			if (r->nodeType == NodeType::InvalidExp) return false;
 			
-			Token t1(TK_PRINT, 0, 0);
-			std::shared_ptr<BuiltInExp> t = std::make_shared<BuiltInExp>(t1, Token(TK_RPAREN, 0, 0)); 
+			std::shared_ptr<BuiltInExp> t = std::make_shared<BuiltInExp>(Token(TK_PRINT, "print"), Token(TK_RPAREN, ")")); 
 			t->args.push_back(r);
 			charRanges->run(t);
 			firstParse->run(t);
-			
+			if (options & DumpAST) astPrinter->run(t, std::cout);
+
 			if (error->count() != errorsPrior) return false;
 			
 			theCode = code->code+"\n";

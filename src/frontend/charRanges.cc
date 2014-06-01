@@ -24,7 +24,7 @@ namespace {
 using namespace rasmus::frontend;
 
 CharRange r(Token t) {
-	if (!t) return CharRange();
+	if (!t || t.length == 0) return CharRange();
 	return CharRange(t.start, t.start+t.length);
 }
 

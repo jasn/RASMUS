@@ -31,7 +31,7 @@ void usage(std::ostream & out) {
 		<< "  -d, --dump                Short for all --dump-* commands" << std::endl
 		<< "      --dump-raw-function   Dump raw llvm-ir for functions" << std::endl
 		<< "      --dump-opt-function   Dump optimized llvm-ir for functions" << std::endl
-		<< "      --dump-allocations    Dump information about (de)allocations" << std::endl
+		<< "      --dump-ast            Dump the ast" << std::endl
 		<< "  -h, --help                Display this help" << std::endl
 		<< "  -v, --version             Display version information" << std::endl;
 }
@@ -68,6 +68,7 @@ int main(int /*argc*/, char ** argv) {
 					options |= 
 						rasmus::frontend::Interperter::DumpRawFunction |
 						rasmus::frontend::Interperter::DumpOptFunction |
+						rasmus::frontend::Interperter::DumpAST |
 						rasmus::frontend::Interperter::DumpAllocations;
 				else if (!strcmp(arg, "--dump-raw-function"))
 					options |= rasmus::frontend::Interperter::DumpRawFunction;
@@ -75,6 +76,8 @@ int main(int /*argc*/, char ** argv) {
 					options |= rasmus::frontend::Interperter::DumpOptFunction;
 				else if (!strcmp(arg, "--dump-allocations"))
 					options |= rasmus::frontend::Interperter::DumpAllocations;
+				else if (!strcmp(arg, "--dump-ast"))
+					options |= rasmus::frontend::Interperter::DumpAST;
 				else {
 					std::cerr << "Unknown switch " << arg << std::endl;
 					usage(std::cerr);
@@ -94,6 +97,7 @@ int main(int /*argc*/, char ** argv) {
 						options |= 
 							rasmus::frontend::Interperter::DumpRawFunction |
 							rasmus::frontend::Interperter::DumpOptFunction |
+							rasmus::frontend::Interperter::DumpAST |
 							rasmus::frontend::Interperter::DumpAllocations;
 						break;
 					default:

@@ -67,15 +67,11 @@ public:
 		globalId=0;
 	}
 	
-	std::string tokenToIdentifier(Token token) const {
-		return code->code.substr(token.start, token.length);
-	}
-	
     void internalError(Token token, std::string message) {
         error->reportError(std::string("Internal error: ")+message, token);
 	}
         
-	bool typeCheck(Token token, NodePtr expr, std::initializer_list<Type> t) {
+	bool typeCheck(Token token, NodePtr expr, const std::vector<Type> & t) {
 		if (expr->type == TInvalid || expr->type == TAny) 
 			return true;
 		for(Type i: t) 
@@ -99,7 +95,7 @@ public:
 	}
 	
 	bool typeMatch(Token token, NodePtr e1, NodePtr e2, 
-				   std::initializer_list<Type> possibleTypes={TAny}) {
+				   const std::vector<Type> & possibleTypes={TAny}) {
 		bool leftOk = typeCheck(token, e1, possibleTypes);
 		bool rightOk = typeCheck(token, e2, possibleTypes);
 		if (!leftOk || !rightOk) 
@@ -132,7 +128,7 @@ public:
 
     void visit(std::shared_ptr<VariableExp> node) {
         NodePtr lookedUp;
-		std::string name = tokenToIdentifier(node->nameToken);
+		std::string name = node->nameToken.getText(code);
 		std::vector<Scope *> funcs;
         for (auto & lu: reversed(scopes)) {
 			auto it=lu.bind.find(name);
@@ -170,7 +166,7 @@ public:
 		// Possibly check that the type was not changes since the last binding of the same name
 		if (!(scopes.back().node)) 
 			node->globalId = globalId++;
-		scopes.back().bind[tokenToIdentifier(node->nameToken)] = node;
+		scopes.back().bind[node->nameToken.getText(code)] = node;
         node->type = node->valueExp->type;
 	}
 
@@ -206,7 +202,7 @@ public:
         scopes.push_back(Scope(node));
         node->type = TFunc;
         for (auto a: node->args) {
-			scopes.back().bind[tokenToIdentifier(a->nameToken)] = a;
+			scopes.back().bind[a->nameToken.getText(code)] = a;
 			a->type = tokenToType(a->typeToken);
 		}
         node->rtype = tokenToType(node->returnTypeToken);
@@ -224,7 +220,7 @@ public:
         scopes.push_back(Scope(node));
         for (auto val: node->vals) {
             visitNode(val->exp);
-            scopes.back().bind[tokenToIdentifier(val->nameToken)] = val->exp;
+            scopes.back().bind[val->nameToken.getText(code)] = val->exp;
 		}
         visitNode(node->inExp);
         node->type = node->inExp->type;
@@ -445,64 +441,110 @@ public:
     void visit(std::shared_ptr<InvalidExp> node) {
         node->type = TInvalid;
 	}
-	
-    void visit(std::shared_ptr<BinaryOpExp> node) {
+
+	struct BinopHelp {
+		::Type lhsType;
+		::Type rhsType;
+		::Type resType;
+	};
+
+
+	void binopTypeCheck(std::shared_ptr<BinaryOpExp> node,
+						std::initializer_list<BinopHelp> ops) {
         visitNode(node->lhs);
         visitNode(node->rhs);
+		::Type lhst=node->lhs->type;
+		::Type rhst=node->rhs->type;
+		
+		std::vector<BinopHelp> matches;
+		for(auto h: ops) {
+			if (h.lhsType != lhst && lhst != TAny) continue;
+			if (h.rhsType != rhst && rhst != TAny) continue;
+			matches.push_back(h);
+		}
+		
+		if (matches.size() == 0) {
+			if (ops.size() == 1) {
+				typeCheck(node->opToken, node->lhs, {ops.begin()->lhsType});
+				typeCheck(node->opToken, node->rhs, {ops.begin()->rhsType});
+			} else {
+				bool allMatch = true;
+				std::vector<Type> matchTypes;
+				for(auto h: ops) {
+					if (h.lhsType != h.rhsType) {
+						allMatch=false;
+						break;
+					}
+					matchTypes.push_back(h.lhsType);
+				}
+				if (allMatch) 
+					typeMatch(node->opToken, node->lhs, node->rhs, matchTypes);
+				else {
+					std::stringstream ss;
+					ss << "Invalid operator use, the types (" << lhst << ", " << rhst
+					   << ") does not match any of ";
+					bool first=true;
+					for(auto h: ops) {
+						if (first) first=false;
+						else ss << ", ";
+						ss << "(" << h.lhsType << ", " << h.rhsType << ")";
+					}
+					error->reportError(ss.str(), node->opToken, {node->lhs->charRange, node->rhs->charRange});
+				}
+			}
+		}
+
+		::Type rtype=matches[0].resType;
+		for (auto h: matches) {
+			if (h.resType == rtype) continue;
+			rtype = TAny;
+		}
+		node->type = rtype;
+	}
+
+	
+    void visit(std::shared_ptr<BinaryOpExp> node) {
 		switch(node->opToken.id) {
 		case TK_PLUS:
 		case TK_MUL:
 		case TK_MINUS:
-            typeMatch(node->opToken, node->lhs, node->rhs, {TRel, TInt});
-			if (node->lhs->type == TInt && node->rhs->type != TRel)
-                node->type = TInt;
-			else if (node->lhs->type != TRel && node->rhs->type == TInt)
-                node->type = TInt;
-            else if (node->lhs->type == TRel && node->rhs->type != TInt)
-                node->type = TRel;
-            else if (node->lhs->type != TInt && node->rhs->type == TRel)
-                node->type = TRel;
-			else if (node->lhs->type == TAny && node->rhs->type == TAny)
-				node->type = TAny;
+			binopTypeCheck(node, {
+					{TInt, TInt, TInt},
+					{TRel, TRel, TRel}
+				});
 			break;
 		case TK_DIV:
 		case TK_MOD:
-            typeCheck(node->opToken, node->lhs, {TInt});
-			typeCheck(node->opToken, node->rhs, {TInt});
-            node->type = TInt;
+			binopTypeCheck(node, { {TInt, TInt, TInt} });
 			break;
 		case TK_AND:
 		case TK_OR:
-            typeCheck(node->opToken, node->lhs, {TBool});
-			typeCheck(node->opToken, node->rhs, {TBool});
-            node->type = TBool;
+			binopTypeCheck(node, { {TBool, TBool, TBool} });
 			break;
         case TK_CONCAT:
-            typeCheck(node->opToken, node->lhs, {TText});
-			typeCheck(node->opToken, node->rhs, {TText});
-            node->type = TText;
+			binopTypeCheck(node, { {TText, TText, TText} });
 			break;
 		case TK_LESSEQUAL:
 		case TK_LESS:
 		case TK_GREATER:
 		case TK_GREATEREQUAL:
-            typeCheck(node->opToken, node->lhs, {TInt});
-			typeCheck(node->opToken, node->rhs, {TInt});
-            node->type = TBool;
+			binopTypeCheck(node, { {TInt, TInt, TBool} });
 			break;
 		case TK_EQUAL:
 		case TK_DIFFERENT:
-            // informal semantics page 17-18: 
-            // Values of the same type can be compared && the result of a comparison
-            // is a boolean.
-            // 
-            // Any two values can be compared using = or <>.
-            typeMatch(node->opToken, node->lhs, node->rhs, {TAny});
-			node->type = TBool;
+			binopTypeCheck(node, { 
+					{TInt, TInt, TBool},
+					{TBool, TBool, TBool},
+					{TText, TText, TBool},
+					{TFunc, TFunc, TBool},
+					{TTup, TTup, TBool},
+					{TRel, TRel, TBool}});
 			break;
 		case TK_TILDE:
-			node->type = TBool;
-			typeMatch(node->opToken, node->lhs, node->rhs, {TText});
+			binopTypeCheck(node, { {TText, TText, TBool} });
+			break;
+		case TK_QUESTION:
+			binopTypeCheck(node, { {TRel, TFunc, TRel} });
 			break;
 		default:
             internalError(node->opToken, std::string("Invalid operator")+getTokenName(node->opToken.id));
@@ -519,21 +561,14 @@ public:
             node->type = node->sequence.back()->type;
 	}
     
-    // void visit(std::shared_ptr<Exp> node) {
-    //     scopes.push_back(Scope(node));
-    //     visitNode(node->exp);
-    //     scopes.pop_back();
-    //     node->type = node->exp->type;
-	// }
 
-	void visit(std::shared_ptr<Choice>) {}
-	void visit(std::shared_ptr<FuncCaptureValue>) {}
-	void visit(std::shared_ptr<FuncArg>) {}
-	void visit(std::shared_ptr<TupItem>) {}
-	void visit(std::shared_ptr<Val>) {}
-	void visit(std::shared_ptr<RenameItem>) {}
-
-	void visit(std::shared_ptr<AtExp>) {ICE("AtExt");}
+	void visit(std::shared_ptr<Choice>) {ICE("Choice");}
+	void visit(std::shared_ptr<FuncCaptureValue>) {ICE("FCV");}
+	void visit(std::shared_ptr<FuncArg>) {ICE("FuncArg");}
+	void visit(std::shared_ptr<TupItem>) {ICE("TupItem");}
+	void visit(std::shared_ptr<Val>) {ICE("Val");}
+	void visit(std::shared_ptr<RenameItem>) {ICE("RenameItem");}
+	void visit(std::shared_ptr<AtExp>) {ICE("AtExp");}
 
 	virtual void run(NodePtr node) override {
 		visitNode(node);

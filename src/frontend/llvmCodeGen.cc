@@ -329,11 +329,6 @@ public:
 		if (dumpOptFunctions) func->dump();
 	}
 
-	std::string tokenToIdentifier(Token token) const {
-		return code->code.substr(token.start, token.length);
-	}
-
-
 	LLVMVal loadValue(Value * v, std::initializer_list<int> gep, ::Type type) {
 		std::vector<Value *> GEP;
 		for (int x: gep) GEP.push_back(int32(x));
@@ -406,7 +401,7 @@ public:
 						TAny, node->type, node);
 			
 		} else {
-			Constant * c = ConstantDataArray::getString(getGlobalContext(), tokenToIdentifier(node->nameToken) );
+			Constant * c = ConstantDataArray::getString(getGlobalContext(), node->nameToken.getText(code) );
 			GlobalVariable * gv = new GlobalVariable(*module,
 													 c->getType(),
 													 true,
@@ -437,7 +432,7 @@ public:
 		switch (node->type) {
 		case TRel:
 		{
-			Constant * c = ConstantDataArray::getString(getGlobalContext(), tokenToIdentifier(node->nameToken) );
+			Constant * c = ConstantDataArray::getString(getGlobalContext(), node->nameToken.getText(code) );
 			GlobalVariable * ng = new GlobalVariable(*module,
 													 c->getType(),
 													 true,
@@ -461,7 +456,7 @@ public:
 			
 			builder.CreateCondBr(builder.CreateICmpEQ(val.type, typeRepr(TRel)), sblock, cblock);
 			builder.SetInsertPoint(sblock);
-			Constant * c = ConstantDataArray::getString(getGlobalContext(), tokenToIdentifier(node->nameToken) );
+			Constant * c = ConstantDataArray::getString(getGlobalContext(), node->nameToken.getText(code) );
 			GlobalVariable * ng = new GlobalVariable(*module,
 													 c->getType(),
 													 true,

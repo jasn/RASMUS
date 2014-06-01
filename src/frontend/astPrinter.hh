@@ -16,36 +16,27 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#ifndef __interperter_hh__
-#define __interperter_hh__
-#include <frontend/callback.hh>
+#ifndef __astprinter_hh__
+#define __astprinter_hh__
+
+#include <frontend/AST.hh>
+#include <frontend/code.hh>
+#include <ostream>
 
 namespace rasmus {
 namespace frontend {
 
-
-class Interperter {
+class AstPrinter {
 public:
-	enum SetupOptions {
-		DumpAllocations=1,
-		DumpRawFunction=2,
-		DumpOptFunction=4,
-		DumpAST=8,
-	};
-
-	virtual ~Interperter() {}
-	virtual void setup(int options=0, std::string name="Interpreted") = 0;
-	virtual void destroy() = 0;
-	virtual bool runLine(const std::string & str) = 0;
-	virtual bool complete() const = 0;
-	virtual size_t objectCount() const = 0;
-	virtual void freeGlobals() = 0;
+	virtual ~AstPrinter() {}
+	virtual void run(NodePtr node, std::ostream & os) = 0;  
 };
 
-std::shared_ptr<Interperter> makeInterperter(std::shared_ptr<Callback> callBack);
+std::shared_ptr<AstPrinter> makeAstPrinter(std::shared_ptr<Code> code);
 
 } //namespace frontend
 } //namespace rasmus
 
-#endif //__interperter_hh__
+#endif //__astprinter_hh__
+
 

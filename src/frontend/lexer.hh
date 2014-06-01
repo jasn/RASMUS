@@ -126,15 +126,21 @@ enum TokenId {
 
 class Token {
 public:
-	Token(TokenId id, uint32_t start, uint32_t length): id(id), start(start), length(length) {}
-	Token(): id(TK_INVALID), start(0), length(0) {}
+	Token(TokenId id, const char * txt): id(id), start(0), length(0), txt(txt) {}
+	Token(TokenId id, uint32_t start, uint32_t length): id(id), start(start), length(length), txt(nullptr) {}
+	Token(): id(TK_INVALID), start(0), length(0), txt(nullptr) {}
 		
 	operator bool() {return id != TK_INVALID;}
-	
 	
 	TokenId id;
 	uint32_t start;
 	uint32_t length;
+	const char * txt;
+
+	std::string getText(const std::shared_ptr<Code> & code) const {
+		if (txt) return txt;
+		return code->code.substr(start, length);
+	}
 };
 
 

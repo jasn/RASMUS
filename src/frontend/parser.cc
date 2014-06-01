@@ -501,9 +501,26 @@ public:
 
     NodePtr parseSelectExp() {
         NodePtr n = parsePlusMinusOrExp();
-        while (currentToken.id == TK_QUESTION) {
-			Token t=consumeToken();
-            n = std::make_shared<BinaryOpExp>(t, n, parsePlusMinusOrExp());
+        if (currentToken.id == TK_QUESTION) {
+			Token t=consumeToken();			
+
+			std::shared_ptr<FuncExp> f = std::make_shared<FuncExp>(
+				Token(TK_FUNC, "func"),
+				Token(TK_LPAREN, "("));
+			
+			f->args.push_back(std::make_shared<FuncArg>(
+								  Token(TK_NAME, "#"),
+								  Token(TK_COLON, ":"),
+								  Token(TK_TYPE_TUP, "Tup")));
+			f->rparenToken = Token(TK_RPAREN, ")");
+			f->arrowToken = Token(TK_RIGHTARROW, "->");
+			f->lparen2Token = Token(TK_LPAREN, "(");
+			f->returnTypeToken = Token(TK_TYPE_BOOL, "Bool");
+			f->rparen2Token = Token(TK_RPAREN, ")");
+			f->body = parsePlusMinusOrExp();
+			f->endToken = Token(TK_END, "end");
+			
+			n = std::make_shared<BinaryOpExp>(t, n, f);
 		}
         return n;
 	}
