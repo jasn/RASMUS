@@ -738,7 +738,7 @@ public:
 		OwnedLLVMVal r = takeOwnership(visitNode(node->inExp), node->inExp->type); 
 		
 		for (auto v: node->vals) 
-			disown(v->llvmVal, v->type);
+			disown(v->exp->llvmVal, v->exp->type);
 		
 		return LLVMVal(std::move(r));
 	}
