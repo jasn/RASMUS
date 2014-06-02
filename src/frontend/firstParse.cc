@@ -458,8 +458,8 @@ public:
 		
 		std::vector<BinopHelp> matches;
 		for(auto h: ops) {
-			if (h.lhsType != lhst && lhst != TAny) continue;
-			if (h.rhsType != rhst && rhst != TAny) continue;
+			if (h.lhsType != lhst && lhst != TAny && lhst != TInvalid) continue;
+			if (h.rhsType != rhst && rhst != TAny && rhst != TInvalid) continue;
 			matches.push_back(h);
 		}
 		
@@ -492,6 +492,7 @@ public:
 					error->reportError(ss.str(), node->opToken, {node->lhs->charRange, node->rhs->charRange});
 				}
 			}
+			return;
 		}
 
 		::Type rtype=matches[0].resType;
