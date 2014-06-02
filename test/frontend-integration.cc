@@ -105,6 +105,7 @@ void base(rasmus::teststream & ts) {
 	ts << "globalFunc" << result(it("y:=func()->(Int) 4 end\ny()", "4"));
 	ts << "argCntErr" << result(it("(+ val x = func ()->(Int)1 end in x(2) +)", "", 1));
 	ts << "argTypeErr" << result(it("(+ val x = func (t:Text)->(Int)t end in x(2) +)", "", 1));
+	ts << "Crash1" << result(it("(+ val x := 2 in x + 5 +)", "", 1));
 }
 
 void integer(rasmus::teststream & ts) {
