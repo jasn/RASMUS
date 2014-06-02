@@ -147,9 +147,33 @@ bool relation() {
 	return true;
 }
 
+
+bool comments() {
+	std::shared_ptr<TestCallback> cb = std::make_shared<TestCallback>();
+	std::shared_ptr<rasmus::frontend::Interperter> interpreter=rasmus::frontend::makeInterperter(cb);
+	interpreter->setup();
+
+	std::string program = "// comment here \n"
+		"a:=2+2;"
+		"//another comment \n"
+		"\n"
+		"// hulla bulla \n"
+		"// fdsa fdas \n"
+		"b:=a+a;\n\n\n"
+		"// asdf\n\n  \n\t"
+		"// last comment\n\n\n\n"
+		"b+b";
+	
+	if (!interpreter->runLine(program)) return false;
+	ensure_eq(cb->printText, "16");
+	return true;
+
+}
+
 int main(int argc, char **argv) {
 	return rasmus::tests(argc, argv)
 		.multi_test(base, "base")
 		.multi_test(integer, "integer")
+		.test(comments, "comments")
 		.test(relation, "relation");
 }

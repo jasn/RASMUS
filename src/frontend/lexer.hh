@@ -42,6 +42,7 @@ enum TokenId {
   TK_CLOSE,
   TK_COLON,
   TK_COMMA,
+  TK_COMMENT,
   TK_CONCAT,
   TK_COUNT,
   TK_DATE,

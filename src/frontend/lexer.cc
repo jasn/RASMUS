@@ -34,6 +34,7 @@ const std::vector<std::pair<TokenId, std::string> > operators = {
     {TK_CHOICE, "&"},
     {TK_COLON, ":"},
     {TK_COMMA, ","},
+	{TK_COMMENT, "//"},
     {TK_CONCAT, "++"},
     {TK_DIFFERENT, "<>"},
     {TK_DIV, "/"},
@@ -156,9 +157,21 @@ Token Lexer::getNext() {
 	const std::string & c=code->code;
 	size_t i=index;
 
-	while (i < c.length() && isspace(c[i]))
-		++i;
-
+	bool moreComments = true;
+	while (moreComments) {
+		moreComments = false;
+		while (i < c.length() && isspace(c[i]))
+			++i;
+		
+		if (i + 1 < c.length() && c[i] == '/' && c[i+1] == '/') {
+			while (i < c.length() && c[i] != '\n') {
+				++i;
+			}
+			++i; // skip the '\n'
+			moreComments = true;
+		}
+	}
+	
 	index=i;
 
 	if (i == c.length())
