@@ -36,8 +36,9 @@ namespace rasmus {
 
 	template <typename T1, typename T2, typename C>
 	void ensure(T1 a, T2 b, C comp, const char * cname) {
-		if (!comp(a, b)) throw test_failure();
+		if (comp(a, b)) return;
 		rasmus::log_error() << "Expected '" << a << "' " << cname << " '" << b << "'" << std::endl; 
+		throw test_failure();
 	}
 
 	template <typename T1, typename T2>
