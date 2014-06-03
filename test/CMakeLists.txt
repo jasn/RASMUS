@@ -15,3 +15,4 @@ add_unittest(frontend-integration base integer bool comments relation if)
 add_unittest(stdlib-relation loadAndSave)
 
 
+add_executable(int-speed-test int-speed-test.cc)
