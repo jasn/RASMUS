@@ -127,7 +127,7 @@ void ifs(rasmus::teststream & ts) {
 	ts << "int" << result(it("if false -> 2 & true -> 1 fi", "1"));
 	ts << "bool" << result(it("if false -> true & true -> ?-Bool fi", "?-Bool"));
 	ts << "text" << result(it("if false -> \"abe\" & true -> \"kat\" fi", "kat"));
-	ts << "any" << result(it("(+ val ident=func(X:Any)->(Any) in if false -> ident(2) & ?-Bool -> ident(3) & true -> ident(4) fi +)", "4"));
+	ts << "any" << result(it("(+ val ident=func(X:Any)->(Any) x end in if false -> ident(2) & ?-Bool -> ident(3) & true -> ident(4) fi +)", "4"));
 	ts << "first" << result(it("if false -> 1 & true -> 2 & true -> 3 & false -> 4 fi", "2"));
 	ts << "none-int" << result(it("if false -> 0 fi", "?-Int"));
 	ts << "none-bool" << result(it("if false -> true fi", "?-Bool"));
