@@ -125,6 +125,29 @@ void integer(rasmus::teststream & ts) {
 	ts << "?3" << result(it("5/0", "?-Int"));
 }
 	
+void bools(rasmus::teststream & ts) {
+    ts << "false" << result(it("false", "false"));
+	ts << "true" << result(it("true", "true"));
+	ts << "?-Bool" << result(it("?-Bool", "?-Bool"));
+	ts << "and 1" << result(it("true and false", "false"));
+	ts << "and 2" << result(it("true and true", "true"));
+	ts << "and 3" << result(it("true and ?-Bool", "?-Bool"));
+	ts << "and 4" << result(it("false and ?-Bool", "false"));
+	ts << "or 1" << result(it("true or false", "true"));
+	ts << "or 2" << result(it("false or false", "false"));
+	ts << "or 3" << result(it("true or ?-Bool", "true"));
+	ts << "or 4" << result(it("false or ?-Bool", "?-Bool"));
+	ts << "equal 1" << result(it("false == false", "true"));
+	ts << "equal 2" << result(it("false == true", "false"));
+	ts << "equal 3" << result(it("false == ?-Bool", "?-Bool"));
+	ts << "equal 4" << result(it("true == ?-Bool", "?-Bool"));
+	ts << "equal 5" << result(it("?-Bool == ?-Bool", "?-Bool"));
+	ts << "defferent 1" << result(it("false <> false", "false"));
+	ts << "defferent 2" << result(it("false <> true", "true"));
+	ts << "defferent 3" << result(it("false <> ?-Bool", "?-Bool"));
+	ts << "defferent 4" << result(it("true <> ?-Bool", "?-Bool"));
+	ts << "defferent 5" << result(it("?-Bool <> ?-Bool", "?-Bool"));
+}
 
 
 bool relation() {
@@ -175,6 +198,7 @@ int main(int argc, char **argv) {
 	return rasmus::tests(argc, argv)
 		.multi_test(base, "base")
 		.multi_test(integer, "integer")
+		.multi_test(bools, "bool")
 		.test(comments, "comments")
 		.test(relation, "relation");
 }
