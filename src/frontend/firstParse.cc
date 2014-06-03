@@ -331,47 +331,30 @@ public:
     void visit(std::shared_ptr<ConstantExp> node) {
 		switch (node->valueToken.id) {
 		case TK_FALSE:
-            node->bool_value = false;
-            node->type = TBool;
-			break;
         case TK_TRUE:
-            node->bool_value = true;
+        case TK_STDBOOL:
             node->type = TBool;
-			break;
-        case TK_INT:
-            node->int_value = atoi(code->code.substr(node->valueToken.start, node->valueToken.length).c_str());
-			node->type = TInt;
 			break;
 		case TK_TEXT:
-			node->txt_value = code->code.substr(node->valueToken.start+1, node->valueToken.length-2);
-            node->type = TText;
+        case TK_STDTEXT:
+			node->type = TText;
 			break;
         case TK_ZERO:
-			node->type = TRel;
-			//  dunno what to do here.
-            // it needs to be the 'empty relation'
-            break;
         case TK_ONE:
-            node->type = TRel;
-            // dunno what to do here.
-            // it needs to be 
-            // 'the relation with the empty Schema that has exactly one tuple which is empty'
-            break;
-        case TK_STDBOOL:
-			ICE("stdbool");
-            node->type = TBool;
+			node->type = TRel;
 			break;
         case TK_STDINT:
-			ICE("stdint");
-            node->type = TInt;
+			node->type = TInt;
 			break;
-        case TK_STDTEXT:
-			ICE("stdtext");
-            node->type = TText;
+		case TK_INT:
+			//TODO Validate the integer and check its range
+            //atoi(code->code.substr(node->valueToken.start, node->valueToken.length).c_str());
+			node->type = TInt;
 			break;
 		default:
 			internalError(node->valueToken, std::string("Invalid constant type ")+getTokenName(node->valueToken.id));
             node->type = TInvalid;
+			break;
 		}
 	}   
 

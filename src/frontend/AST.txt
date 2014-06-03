@@ -13,7 +13,7 @@ Val|valToken,nameToken,equalToken,exp
 BlockExp|blockstartToken|std::vector<std::shared_ptr<Val> > vals|inToken|inExp|blockendToken
 BuiltInExp|nameToken,lparenToken|NodeList args|rparenToken
 AtExp|atToken,lparenToken|exp|rparenToken
-ConstantExp|valueToken|bool bool_value|int int_value|std::string txt_value
+ConstantExp|valueToken
 UnaryOpExp|opToken,exp
 RelExp|relToken,lparenToken|exp|rparenToken
 LenExp|leftPipeToken,exp,rightPipeToken

@@ -137,16 +137,19 @@ void bools(rasmus::teststream & ts) {
 	ts << "or 2" << result(it("false or false", "false"));
 	ts << "or 3" << result(it("true or ?-Bool", "true"));
 	ts << "or 4" << result(it("false or ?-Bool", "?-Bool"));
-	ts << "equal 1" << result(it("false == false", "true"));
-	ts << "equal 2" << result(it("false == true", "false"));
-	ts << "equal 3" << result(it("false == ?-Bool", "?-Bool"));
-	ts << "equal 4" << result(it("true == ?-Bool", "?-Bool"));
-	ts << "equal 5" << result(it("?-Bool == ?-Bool", "?-Bool"));
+	ts << "equal 1" << result(it("false = false", "true"));
+	ts << "equal 2" << result(it("false = true", "false"));
+	ts << "equal 3" << result(it("false = ?-Bool", "?-Bool"));
+	ts << "equal 4" << result(it("true = ?-Bool", "?-Bool"));
+	ts << "equal 5" << result(it("?-Bool = ?-Bool", "?-Bool"));
 	ts << "defferent 1" << result(it("false <> false", "false"));
 	ts << "defferent 2" << result(it("false <> true", "true"));
 	ts << "defferent 3" << result(it("false <> ?-Bool", "?-Bool"));
 	ts << "defferent 4" << result(it("true <> ?-Bool", "?-Bool"));
 	ts << "defferent 5" << result(it("?-Bool <> ?-Bool", "?-Bool"));
+	ts << "not 1" << result(it("not ?-Bool", "?-Bool"));
+	ts << "not 2" << result(it("not true", "false"));
+	ts << "not 2" << result(it("not false", "true"));
 }
 
 

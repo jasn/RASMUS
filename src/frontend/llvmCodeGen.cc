@@ -759,33 +759,48 @@ public:
 	}
 	
 	LLVMVal visit(std::shared_ptr<ConstantExp> node) {
-		 switch (node->type) {
-		 case TInt:
-			 return OwnedLLVMVal(int64(node->int_value));
-		 case TBool:
-			 return OwnedLLVMVal(int8(node->bool_value?1:0));
-		 case TText:
-		 {
-			 Constant * c = ConstantDataArray::getString(getGlobalContext(), node->txt_value);
-			 GlobalVariable * gv = new GlobalVariable(*module,
-													  c->getType(),
-													  true,
-													  llvm::GlobalValue::PrivateLinkage,
-													  c);
-			 return OwnedLLVMVal( builder.CreateCall(
-							   getStdlibFunc("rm_getConstText"),
-							   builder.CreateConstGEP2_32(gv, 0, 0)) );
-		 }
-		 default:
-			 ICE("Unhandled type", node->type);
-		 }
+		switch (node->valueToken.id) {
+		case TK_FALSE:
+			return OwnedLLVMVal(int8(0));
+        case TK_TRUE:
+			return OwnedLLVMVal(int8(3));
+        case TK_STDBOOL:
+			return OwnedLLVMVal(int8(2));
+		case TK_INT:
+			return OwnedLLVMVal(int64(atol(node->valueToken.getText(code).c_str())));
+		case TK_TEXT:
+		{
+			std::string text=node->valueToken.getText(code);
+			Constant * c = ConstantDataArray::getString(getGlobalContext(), 
+														text.substr(1,text.size()-2));
+			GlobalVariable * gv = new GlobalVariable(*module,
+													 c->getType(),
+													 true,
+													 llvm::GlobalValue::PrivateLinkage,
+													 c);
+			return OwnedLLVMVal( builder.CreateCall(
+									 getStdlibFunc("rm_getConstText"),
+									 builder.CreateConstGEP2_32(gv, 0, 0)) );
+		}
+		case TK_STDTEXT:
+        case TK_ZERO:
+        case TK_ONE:
+        case TK_STDINT:
+		default:
+			ICE("No codegen for", node->valueToken.id);
+			break;		
+		}
 	}
 	
 	LLVMVal visit(std::shared_ptr<UnaryOpExp> node) {
 		switch (node->opToken.id) {
 		case TK_NOT: {
 			LLVMVal v=castVisit(node->exp, TBool);
-			LLVMVal r=cast(OwnedLLVMVal(builder.CreateNot(v.value)), TBool, node->type, node);
+			LLVMVal r=cast(OwnedLLVMVal(
+							   builder.CreateSelect(
+								   builder.CreateICmpEQ(v.value, int8(2)),
+								   int8(2),
+								   builder.CreateSub(int8(3), v.value))), TBool, node->type, node);
 			disown(v, TBool);
 			return r;
 		}
@@ -1004,7 +1019,17 @@ public:
 	}
 
 	LLVMVal binopEqualBool(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateICmpEQ(lhs.value, rhs.value));
+		return OwnedLLVMVal(
+			builder.CreateSelect(
+				builder.CreateICmpEQ(lhs.value, int8(2)),
+				int8(2),
+				builder.CreateSelect(
+					builder.CreateICmpEQ(rhs.value, int8(2)),
+					int8(2),
+					builder.CreateSelect(
+						builder.CreateICmpEQ(lhs.value, rhs.value),
+						int8(3),
+						int8(0)))));
 	}
 
 	LLVMVal binopDifferentInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
@@ -1012,10 +1037,21 @@ public:
 	}
 
 	LLVMVal binopDifferentBool(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateICmpNE(lhs.value, rhs.value));
+		return OwnedLLVMVal(
+			builder.CreateSelect(
+				builder.CreateICmpEQ(lhs.value, int8(2)),
+				int8(2),
+				builder.CreateSelect(
+					builder.CreateICmpEQ(rhs.value, int8(2)),
+					int8(2),
+					builder.CreateSelect(
+						builder.CreateICmpEQ(lhs.value, rhs.value),
+						int8(0),
+						int8(3)))));
 	}
 
 	LLVMVal binopAndBool(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
+		
 		return OwnedLLVMVal(builder.CreateAnd(lhs.value, rhs.value));
 	}
 

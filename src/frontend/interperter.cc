@@ -66,7 +66,17 @@ public:
 	}
 
 	void printBool(int8_t v) override {
-		cb->print(TBool, (v?"true":"false"));
+		switch (v) {
+		case 0:
+			cb->print(TBool, "false");
+			break;
+		case 3:
+			cb->print(TBool, "true");
+			break;
+		default:
+			cb->print(TBool, "?-Bool");
+			break;
+		}
 	}
 	
 	void printText(rm_object * o) override {
