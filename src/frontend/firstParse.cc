@@ -228,7 +228,7 @@ public:
 	}
 
     void visit(std::shared_ptr<BuiltInExp> node) {
-		Type returnType;
+		Type returnType=TInvalid;
 		std::vector<Type> argumentTypes;
 		switch (node->nameToken.id) {
 		case TK_ISATOM:
@@ -297,6 +297,7 @@ public:
 			break;
 		default:
             error->reportError("Unknown buildin", node->nameToken, {node->charRange});
+			break;
 		}
 		
         node->type=returnType;

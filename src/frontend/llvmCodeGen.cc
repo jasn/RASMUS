@@ -1173,7 +1173,7 @@ public:
 	}
 	
 	LLVMVal visit(std::shared_ptr<SequenceExp> node) {
-		::Type t;
+		::Type t=TInvalid;
 		LLVMVal x;
 		for(auto n: node->sequence) {
 			disown(x, t);
