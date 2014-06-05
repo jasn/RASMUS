@@ -67,7 +67,7 @@ public:
 	}
 };
 
-bool it(std::string txt, const char * exp, size_t errors=0) {
+bool it(std::string txt, const char * exp, bool error=false) {
 	std::shared_ptr<TestCallback> cb = std::make_shared<TestCallback>();
 	std::shared_ptr<rasmus::frontend::Interperter> interperter=rasmus::frontend::makeInterperter(cb);
 	interperter->setup();
@@ -75,18 +75,18 @@ bool it(std::string txt, const char * exp, size_t errors=0) {
 	while (start < txt.size()) {
 		size_t end=txt.find_first_of("\n", start);
 		if (end == std::string::npos) end=txt.size();
-		if (!interperter->runLine(txt.substr(start, end-start)) && (errors == 0)) return false;
+		if (!interperter->runLine(txt.substr(start, end-start)) && !error) return false;
 		start = end+1;
 	}
 	if (cb->printText != exp) {
 		log_error() << "\"" << txt << "\": gave " << cb->printText << " expected " << exp << std::endl;
 		return false;
 	}
-	if (cb->errors != errors) 
+	if ((cb->errors > 0) != error)
 		return false;
 	interperter->freeGlobals();
 	size_t oc=interperter->objectCount();
-	if (oc != 0) {
+	if (oc != 0 && (cb->errors == 0)) {
 		log_error() << oc << " objects where not freed" << std::endl;
 		return false;
 	}
@@ -101,9 +101,9 @@ void base(rasmus::teststream & ts) {
     ts << "capture" << result(it("(+val a=\"abe\" in func()->(Text)a end+)()", "abe"));
 	ts << "globalText" << result(it("y:=\"abe\"\ny", "abe"));
 	ts << "globalFunc" << result(it("y:=func()->(Int) 4 end\ny()", "4"));
-	ts << "argCntErr" << result(it("(+ val x = func ()->(Int)1 end in x(2) +)", "", 1));
-	ts << "argTypeErr" << result(it("(+ val x = func (t:Text)->(Int)t end in x(2) +)", "", 1));
-	ts << "Crash1" << result(it("(+ val x := 2 in x + 5 +)", "", 1));
+	ts << "argCntErr" << result(it("(+ val x = func ()->(Int)1 end in x(2) +)", "", true));
+	ts << "argTypeErr" << result(it("(+ val x = func (t:Text)->(Int)t end in x(2) +)", "", true));
+	ts << "Crash1" << result(it("(+ val x := 2 in x + 5 +)", "", true));
 }
 
 void integer(rasmus::teststream & ts) {
