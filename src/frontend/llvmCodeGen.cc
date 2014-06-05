@@ -351,6 +351,10 @@ public:
 			return BorrowedLLVMVal(int64(std::numeric_limits<int64_t>::max() ), typeRepr(TInt));
 		case TFunc:
 			return BorrowedLLVMVal(llvm::Constant::getNullValue(pointerType(funcBase)));
+		case TText:
+		case TRel:
+		case TTup:
+			return BorrowedLLVMVal(llvm::Constant::getNullValue(voidPtrType));
 		default:
 			ICE("Unhandled undef", t);
 		}
@@ -573,11 +577,32 @@ public:
 
 	LLVMVal visit(std::shared_ptr<IfExp> node) {
 		// The following code is no good with ownership or anytype
-		
-		std::vector<std::pair<LLVMVal, BasicBlock *> > vals;
+		Value * value=nullptr;
+		Value * type=nullptr;
+		switch (node->type) {
+		case TText:
+		case TRel:
+		case TTup:
+			value = builder.CreateAlloca(voidPtrType);
+			break;
+		case TBool:
+			value = builder.CreateAlloca(int8Type);
+			break;
+		case TInt:
+			value = builder.CreateAlloca(int64Type);
+			break;
+		case TAny:
+			value = builder.CreateAlloca(int64Type);
+			type = builder.CreateAlloca(int8Type);
+			break;
+		default:
+			ICE("Unhandled", node->type);
+		}
+
 
 		BasicBlock * end = newBlock();
 		bool done=false;
+
 		for (auto choice: node->choices) {
 			LLVMVal cond = castVisit(choice->condition, TBool);
 		 	llvm::ConstantInt * ci = dyn_cast<llvm::ConstantInt>(cond.value);
@@ -588,7 +613,10 @@ public:
 		 	}
 
 			if (ci && ci->equalsInt(3)) {
-				vals.push_back(std::make_pair(castVisit(choice->value, node->type), builder.GetInsertBlock()));
+				LLVMVal v=takeOwnership(castVisit(choice->value, node->type), node->type);
+				builder.CreateStore(v.value, value);
+				if (type) builder.CreateStore(v.type, type);
+				forgetOwnership(v);
 				builder.CreateBr(end);
 				done=true;
 			} else {
@@ -597,54 +625,27 @@ public:
 				builder.CreateCondBr(builder.CreateICmpEQ(cond.value, int8(3)), b1, b2);
 				
 				builder.SetInsertPoint(b1);
-				vals.push_back(std::make_pair(takeOwnership(castVisit(choice->value, node->type), node->type), b1));
+				LLVMVal v=takeOwnership(castVisit(choice->value, node->type), node->type);
+				builder.CreateStore(v.value, value);
+				if (type) builder.CreateStore(v.type, type);
+				forgetOwnership(v);
 				builder.CreateBr(end);
 				
 				builder.SetInsertPoint(b2);
 			}
-			forgetOwnership(cond); //We should realy disown cond here, however for bools it does not matter
+			forgetOwnership(cond);
 		}
 
 		if (!done) {
-			vals.push_back(
-				std::make_pair(getUndef(node->type), builder.GetInsertBlock()));
-
+			LLVMVal v=takeOwnership(getUndef(node->type), node->type);
+			builder.CreateStore(v.value, value);
+			if (type) builder.CreateStore(v.type, type);
+			forgetOwnership(v);			
 			builder.CreateBr(end);
 		}
 		builder.SetInsertPoint(end);
-		
-		PHINode * value_phi=nullptr;
-		PHINode * type_phi=nullptr;
-		switch (node->type) {
-		case TText:
-		case TRel:
-		case TTup:
-			value_phi=builder.CreatePHI(voidPtrType, vals.size());
-			break;
-		case TBool:
-			value_phi=builder.CreatePHI(int8Type, vals.size());
-			break;
-		case TInt:
-			value_phi=builder.CreatePHI(int64Type, vals.size());
-			break;
-		case TAny:
-			value_phi=builder.CreatePHI(int64Type, vals.size());
-			type_phi=builder.CreatePHI(int8Type, vals.size());
-			break;
-		default:
-			ICE("Unhandled", node->type);
-		}
-		
-		for ( auto & v: vals ) {
-			value_phi->addIncoming(v.first.value, v.second);
-			if (node->type == TAny) type_phi->addIncoming(v.first.type, v.second);
-			forgetOwnership(v.first);
-		}	   
-		
-		if (node->type == TAny)
-			return OwnedLLVMVal(value_phi, type_phi);
-		else
-			return OwnedLLVMVal(value_phi, nullptr);
+	
+		return OwnedLLVMVal(builder.CreateLoad(value), type?builder.CreateLoad(type):nullptr);
 	}
 
 	LLVMVal visit(std::shared_ptr<ForallExp>) {
