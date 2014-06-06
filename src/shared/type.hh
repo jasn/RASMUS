@@ -22,11 +22,12 @@
 #include <ostream>
 
 enum class LType: std::uint16_t {
-	smallText, concatText, substrText, canonicalText, function, schema, tuple, relation
+	smallText, concatText, substrText, canonicalText, function, schema, tuple, relation, undefText
 };
 
 inline const char * ltypeName(LType t) {
 	switch(t) {
+	case LType::undefText: return "UndefText";
 	case LType::smallText: return "SmallText";
 	case LType::concatText: return "ConcatText";
 	case LType::substrText: return "SubstrText";

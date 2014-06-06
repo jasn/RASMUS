@@ -153,12 +153,18 @@ TextBase * toTextBase(rm_object * o) {
 namespace rasmus {
 namespace stdlib {
 
+
 void printTextToStream(TextBase * ptr, std::ostream & stream) {
+	if (ptr == &undef_text) {
+		stream << "?-Text";
+		return;
+	}
 	OStreamBuilder b(stream);
 	buildText(ptr, b, 0, length(ptr) );
 }
 
 std::string textToString(TextBase * ptr) {
+	if (ptr == &undef_text) return "?-Text";
 	std::string text(length(ptr), ' ');
 	MemcpyBuilder builder(&text[0]);
 	buildText(ptr, builder, 0, text.size());
@@ -170,6 +176,8 @@ std::string textToString(TextBase * ptr) {
 
 extern "C" {
 
+rm_object undef_text = rm_object(LType::undefText);
+
 rm_object * rm_getConstText(const char *cptr) {
 	size_t len = strlen(cptr);
 	SmallText * o = makeSmallText(len);
@@ -178,6 +186,10 @@ rm_object * rm_getConstText(const char *cptr) {
 }
 
 rm_object * rm_concatText(rm_object *lhs_, rm_object *rhs_) {
+	if (lhs_ == &undef_text || rhs_ == &undef_text) {
+		undef_text.incref();
+		return &undef_text;
+	}
 	TextBase * lhs = toTextBase(lhs_);
 	TextBase * rhs = toTextBase(rhs_);
 	size_t len=lhs->length + rhs->length;
@@ -192,6 +204,10 @@ rm_object * rm_concatText(rm_object *lhs_, rm_object *rhs_) {
 }
 
 rm_object * rm_substrText(rm_object * str_, int64_t start, int64_t end) {
+	if (str_ == &undef_text) {
+		undef_text.incref();
+		return &undef_text;
+	}
 	TextBase * str = toTextBase(str_);
 	size_t len=str->length;;
 	start = std::max<int64_t>(0, start);
@@ -212,6 +228,8 @@ int8_t rm_substringSearch(rm_object *lhs, rm_object *rhs) {
 	std::string dummy(rhst, length(rhs));
 	return dummy.find(lhst, length(lhs)) != std::string::npos;
 }	
+
+
 
 } // extern "C"
 

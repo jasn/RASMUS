@@ -61,7 +61,8 @@ public:
 
 	void printInt(int64_t v) override {
 		std::stringstream ss;
-		ss << v;
+		if (v == std::numeric_limits<int64_t>::min()) ss << "?-Int";
+		else ss << v;
 		cb->print(TInt, ss.str());
 	}
 

@@ -190,7 +190,9 @@ public:
 	llvm::Constant * int8(uint8_t value) {	return llvm::ConstantInt::get(int8Type, value);}
 	llvm::Constant * int16(uint16_t value) {return llvm::ConstantInt::get(int16Type, value);}
 	llvm::Constant * int32(uint32_t value) {return llvm::ConstantInt::get(int32Type, value);}
-	llvm::Constant * int64(uint8_t value) {return llvm::ConstantInt::get(int64Type, value);}
+	llvm::Constant * int64(int64_t value) {return llvm::ConstantInt::get(int64Type, value);}
+
+	llvm::Constant * undefInt = int64(std::numeric_limits<int64_t>::min());
 	
 	llvm::Value * typeRepr(::Type t) {
 		return int8(t);
@@ -341,17 +343,24 @@ public:
 		forgetOwnership(value);
 	}
 
+
 	BorrowedLLVMVal getUndef(::Type t) {
 		switch(t) {
 		case TInt:
-			return BorrowedLLVMVal(int64(std::numeric_limits<int64_t>::max()));
+			return BorrowedLLVMVal(undefInt);
 		case TBool:
 			return BorrowedLLVMVal(int8(2));
 		case TAny:
-			return BorrowedLLVMVal(int64(std::numeric_limits<int64_t>::max() ), typeRepr(TInt));
+			return BorrowedLLVMVal(undefInt, typeRepr(TInt));
 		case TFunc:
 			return BorrowedLLVMVal(llvm::Constant::getNullValue(pointerType(funcBase)));
 		case TText:
+			return BorrowedLLVMVal(new GlobalVariable(*module,
+													  int8Type,
+													  true,
+													  llvm::GlobalValue::ExternalLinkage,
+													  nullptr,
+													  "undef_text"));
 		case TRel:
 		case TTup:
 			return BorrowedLLVMVal(llvm::Constant::getNullValue(voidPtrType));
@@ -805,7 +814,7 @@ public:
         case TK_TRUE:
 			return OwnedLLVMVal(int8(3));
         case TK_STDBOOL:
-			return OwnedLLVMVal(int8(2));
+			return getUndef(TBool);
 		case TK_INT:
 			return OwnedLLVMVal(int64(atol(node->valueToken.getText(code).c_str())));
 		case TK_TEXT:
@@ -823,9 +832,11 @@ public:
 									 builder.CreateConstGEP2_32(gv, 0, 0)) );
 		}
 		case TK_STDTEXT:
-        case TK_ZERO:
-        case TK_ONE:
+			return getUndef(TText);
         case TK_STDINT:
+			return getUndef(TInt);
+        case TK_ZERO:
+		case TK_ONE:
 		default:
 			ICE("No codegen for", node->valueToken.id);
 			break;		
@@ -999,23 +1010,40 @@ public:
 	}
 
 	LLVMVal binopAddInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateAdd(lhs.value, rhs.value));
+		return OwnedLLVMVal(
+			builder.CreateSelect(builder.CreateICmpEQ(lhs.value, undefInt), undefInt,
+								 builder.CreateSelect(builder.CreateICmpEQ(rhs.value, undefInt), undefInt,
+													  builder.CreateAdd(lhs.value, rhs.value))));
 	}
 
 	LLVMVal binopMinusInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateSub(lhs.value, rhs.value));
+		return OwnedLLVMVal(
+			builder.CreateSelect(builder.CreateICmpEQ(lhs.value, undefInt), undefInt,
+								 builder.CreateSelect(builder.CreateICmpEQ(rhs.value, undefInt), undefInt,
+													  builder.CreateSub(lhs.value, rhs.value))));
 	}
 
 	LLVMVal binopMulInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateMul(lhs.value, rhs.value));
+		return OwnedLLVMVal(
+			builder.CreateSelect(builder.CreateICmpEQ(lhs.value, undefInt), undefInt,
+								 builder.CreateSelect(builder.CreateICmpEQ(rhs.value, undefInt), undefInt,
+													  builder.CreateMul(lhs.value, rhs.value))));
 	}
 
 	LLVMVal binopDivInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateSDiv(lhs.value, rhs.value));
+		return OwnedLLVMVal(
+			builder.CreateSelect(builder.CreateICmpEQ(lhs.value, undefInt), undefInt,
+								 builder.CreateSelect(builder.CreateICmpEQ(rhs.value, undefInt), undefInt,
+													  builder.CreateSelect(builder.CreateICmpEQ(rhs.value, int64(0)), undefInt,
+																		   builder.CreateSDiv(lhs.value, rhs.value)))));
 	}
 
 	LLVMVal binopModInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateSRem(lhs.value, rhs.value));
+		return OwnedLLVMVal(
+			builder.CreateSelect(builder.CreateICmpEQ(lhs.value, undefInt), undefInt,
+								 builder.CreateSelect(builder.CreateICmpEQ(rhs.value, undefInt), undefInt,
+													  builder.CreateSelect(builder.CreateICmpEQ(rhs.value, int64(0)), undefInt,
+																		   builder.CreateSRem(lhs.value, rhs.value)))));
 	}
 
 	LLVMVal binopConcat(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {

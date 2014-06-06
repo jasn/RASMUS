@@ -25,6 +25,7 @@
 extern "C" {
 using namespace rasmus::stdlib;
 
+
 void rm_print(uint8_t t, int64_t v) {
     switch (Type(t)) {
     case TBool:
