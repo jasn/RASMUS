@@ -161,7 +161,7 @@ public:
 		lexer = std::make_shared<Lexer>(code);
 		parser = makeParser(lexer, error, true);
 		charRanges = makeCharRanges();
-		firstParse = makeFirstParse(error, code);
+		firstParse = makeFirstParse(error, code, this->callback);
 		astPrinter = makeAstPrinter(code);
 		// TODO: if this line is removed ./rm does not link, WTF??
 		if (options & 12345) dlopen("monkey.so", 0);

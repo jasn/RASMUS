@@ -22,6 +22,7 @@
 #include <frontend/AST.hh>
 #include <frontend/error.hh>
 #include <frontend/code.hh>
+#include <frontend/callback.hh>
 
 namespace rasmus {
 namespace frontend {
@@ -32,7 +33,8 @@ public:
 	virtual void run(NodePtr node) = 0;  
 };
 
-std::shared_ptr<FirstParse> makeFirstParse(std::shared_ptr<Error> error, std::shared_ptr<Code> code);
+std::shared_ptr<FirstParse> makeFirstParse(std::shared_ptr<Error> error, std::shared_ptr<Code> code,
+										   std::shared_ptr<Callback> callback);
 
 } //namespace frontend
 } //namespace rasmus

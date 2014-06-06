@@ -48,6 +48,7 @@ public:
 
 	virtual void saveRelation(rm_object * o, const char * name) = 0;
 	virtual rm_object * loadRelation(const char * name) = 0;
+	virtual bool hasRelation(const char * name) = 0;
 };
 
 class TerminalCallback: public Callback {
@@ -63,8 +64,8 @@ public:
 	virtual void print(Type type, std::string repr) override;
 	
 	virtual void saveRelation(rm_object * o, const char * name) override;
-	
 	virtual rm_object * loadRelation(const char * name) override;
+	virtual bool hasRelation(const char * name) override;
 };
 
 } //namespace frontend

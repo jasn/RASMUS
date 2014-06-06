@@ -65,6 +65,11 @@ public:
 		std::stringstream ss(x->second);
 		return rasmus::stdlib::loadRelationFromStream(ss);
 	}
+
+	bool hasRelation(const char * name) override {
+		return relations.count(name);
+	}
+
 };
 
 bool it(std::string txt, const char * exp, bool error=false) {

@@ -18,6 +18,7 @@
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #include <frontend/callback.hh>
 #include <stdlib/relation.hh>
+#include <llvm/Support/FileSystem.h>
 #include <iostream>
 #include <algorithm>
 
@@ -110,11 +111,15 @@ void TerminalCallback::print(Type, std::string repr) {
 }
 
 void TerminalCallback::saveRelation(rm_object * o, const char * name) {
-	rasmus::stdlib::saveRelationToFile(o, name);
+	rasmus::stdlib::saveRelationToFile(o, (std::string(name)+".rdb").c_str());
 }
 
 rm_object * TerminalCallback::loadRelation(const char * name) {
-	return rasmus::stdlib::loadRelationFromFile(name);
+	return rasmus::stdlib::loadRelationFromFile((std::string(name)+".rdb").c_str());
+}
+
+bool TerminalCallback::hasRelation(const char * name) {
+	return llvm::sys::fs::exists(std::string(name)+".rdb");
 }
 
 } //namespace rasmus
