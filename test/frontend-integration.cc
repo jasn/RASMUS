@@ -99,16 +99,23 @@ bool it(std::string txt, const char * exp, bool error=false) {
 }
 
 void base(rasmus::teststream & ts) {
-    ts << "string" << result(it("\"abe\"", "abe"));
-    ts << "concat" << result(it("\"abe\"++\"bea\"", "abebea"));
     ts << "block" << result(it("(+val a=4 in a +)", "4"));
     ts << "function" << result(it("(func()->(Int)5 end)()", "5"));
     ts << "capture" << result(it("(+val a=\"abe\" in func()->(Text)a end+)()", "abe"));
-	ts << "globalText" << result(it("y:=\"abe\"\ny", "abe"));
 	ts << "globalFunc" << result(it("y:=func()->(Int) 4 end\ny()", "4"));
 	ts << "argCntErr" << result(it("(+ val x = func ()->(Int)1 end in x(2) +)", "", true));
 	ts << "argTypeErr" << result(it("(+ val x = func (t:Text)->(Int)t end in x(2) +)", "", true));
 	ts << "Crash1" << result(it("(+ val x := 2 in x + 5 +)", "", true));
+}
+
+void text(rasmus::teststream & ts) {
+    ts << "string" << result(it("\"abe\"", "abe"));
+	ts << "global" << result(it("y:=\"abe\"\ny", "abe"));
+    ts << "concat" << result(it("\"abe\"++\"bea\"", "abebea"));
+	ts << "substr" << result(it("\"minime\"(1..4)", "ini"));
+	ts << "?" << result(it("?-Text", "?-Text"));
+    ts << "?concat" << result(it("?-Text++\"bea\"", "abebea"));
+	ts << "?substr" << result(it("\"minime\"(?-Int..4)", "?-Text"));
 }
 
 void integer(rasmus::teststream & ts) {
@@ -166,6 +173,7 @@ void bools(rasmus::teststream & ts) {
 	ts << "not 1" << result(it("not ?-Bool", "?-Bool"));
 	ts << "not 2" << result(it("not true", "false"));
 	ts << "not 2" << result(it("not false", "true"));
+	ts << "var" << result(it("x:=?-Bool\nx", "?-Bool"));
 }
 
 
@@ -217,6 +225,7 @@ int main(int argc, char **argv) {
 	return rasmus::tests(argc, argv)
 		.multi_test(base, "base")
 		.multi_test(integer, "integer")
+		.multi_test(text, "text")
 		.multi_test(bools, "bool")
 		.multi_test(ifs, "if")
 		.test(comments, "comments")

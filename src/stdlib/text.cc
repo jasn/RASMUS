@@ -22,6 +22,7 @@
 #include <stdlib/text.hh>
 #include <stdlib/rm_object.hh>
 #include <stdlib/ile.hh>
+#include <limits>
 const size_t smallLength = 20;
 
 namespace {
@@ -204,7 +205,9 @@ rm_object * rm_concatText(rm_object *lhs_, rm_object *rhs_) {
 }
 
 rm_object * rm_substrText(rm_object * str_, int64_t start, int64_t end) {
-	if (str_ == &undef_text) {
+	if (str_ == &undef_text ||
+		start == std::numeric_limits<int64_t>::min() ||
+		end == std::numeric_limits<int64_t>::min()) {
 		undef_text.incref();
 		return &undef_text;
 	}
