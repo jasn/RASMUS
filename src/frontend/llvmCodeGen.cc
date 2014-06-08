@@ -139,7 +139,7 @@ public:
 		fpm.add(createBasicAliasAnalysisPass());
 		fpm.add(createInstructionCombiningPass());
 		fpm.add(createReassociatePass());
-		fpm.add(createGVNPass());
+		//fpm.add(createGVNPass());
 		fpm.add(createCFGSimplificationPass());
 		fpm.doInitialization();
 
@@ -257,7 +257,6 @@ public:
 		case TRel:
 		case TText:
 		{
-			//TODO CHECK FOR NULLPTR
 			Value * v = builder.CreatePointerCast(value.value, pointerType(objectBaseType));
 			Value * rc = builder.CreateAdd(builder.CreateLoad(builder.CreateConstGEP2_32(v, 0, 0)), int32(1));
 			builder.CreateStore(rc, builder.CreateConstGEP2_32(v, 0, 0));
@@ -265,7 +264,6 @@ public:
 		}
 		case TAny:
 		{
-			//TODO CHECK FOR NULLPTR
 			BasicBlock * b1 = newBlock();
 			BasicBlock * b2 = newBlock();
 			builder.CreateCondBr(builder.CreateICmpUGE(value.type, int8((int)TText)), b1, b2);
