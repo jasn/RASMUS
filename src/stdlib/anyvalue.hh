@@ -16,6 +16,9 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
+#ifndef __ANYVALUE_HH__
+#define __ANYVALUE_HH__
+
 #include <shared/type.hh>
 #include <stdlib/refptr.hh>
 #include <stdlib/rm_object.hh>
@@ -98,3 +101,5 @@ struct AnyValue {
 
 } //namespace stdlib
 } //namespace rasmus
+
+#endif //__ANYVALUE_HH__

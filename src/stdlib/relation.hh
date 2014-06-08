@@ -21,9 +21,49 @@
 #include "lib.h"
 #include <stdlib/rm_object.hh>
 #include <stdlib/refptr.hh>
+#include <vector>
+#include <stdlib/anyvalue.hh>
 
 namespace rasmus {
 namespace stdlib {
+
+/* holds an attribute; 
+   a schema consists of one or more such attributes
+*/
+struct Attribute {
+	Type type;
+	std::string name;
+};
+
+/* represents a schema e.g. for a tuple or a relation
+ */
+class Schema: public rm_object {
+public:
+	std::vector<Attribute> attributes;
+	Schema(): rm_object(LType::schema) {};
+};
+
+
+/* a tuple consists of a schema and a set of values 
+   with data corresponding to the schema.
+ */
+class Tuple: public rm_object {
+public:
+	RefPtr<rm_object> schema;
+	std::vector<AnyValue> values;
+	Tuple(): rm_object(LType::tuple) {};
+};
+
+/* a relation has a schema and some amount of tuples; 
+   the tuples contain data corresponding to the schema
+ */
+class Relation: public rm_object {
+public:
+	std::vector<RefPtr<rm_object>> tuples;
+	RefPtr<rm_object> schema;
+	Relation(): rm_object(LType::relation) {};
+};
+
 
 void printRelationToStream(rm_object * ptr, std::ostream & out);
 void saveRelationToStream(rm_object * o, std::ostream & outFile);

@@ -19,6 +19,7 @@
 #include <stdlib/rm_object.hh>
 #include <stdlib/function.hh>
 #include <stdlib/text.hh>
+#include <stdlib/relation.hh>
 #include <stdlib/callback.hh>
 #include <stdlib/ile.hh>
 #include <shared/type.hh>
@@ -72,6 +73,15 @@ void rm_free(rm_object * o) {
 		static_cast<SmallText*>(o)->~SmallText();
 		operator delete(reinterpret_cast<void *>(o));
 		break;
+	case LType::schema:
+		delete static_cast<Schema*>(o);
+		break;
+	case LType::relation:
+		delete static_cast<Relation*>(o);
+		break;
+	case LType::tuple:
+		delete static_cast<Tuple*>(o);
+		break;
 	case LType::function: 
 	{		
 		function_object * fo = static_cast<function_object*>(o);
@@ -104,6 +114,12 @@ int64_t rm_length(rm_object * obj) {
 	case LType::smallText:
 	case LType::canonicalText:
 		return static_cast<TextBase*>(obj)->length;
+	case LType::schema:
+		return static_cast<Schema*>(obj)->attributes.size();
+	case LType::tuple:
+		return static_cast<Tuple*>(obj)->values.size();
+	case LType::relation:
+		return static_cast<Relation*>(obj)->tuples.size();
 	default:
 		ILE("Unhandled type", obj->type);
 	}
