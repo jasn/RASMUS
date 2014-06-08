@@ -27,7 +27,7 @@ extern "C" {
 struct rm_object {
 	uint32_t ref_cnt;
 	const LType type;
-	rm_object(LType type): ref_cnt(0), type(type) {}
+	rm_object(LType type, uint32_t ref_cnt=0): ref_cnt(ref_cnt), type(type) {}
 
 	void incref()  {ref_cnt++;}
 	

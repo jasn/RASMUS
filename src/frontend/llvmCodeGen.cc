@@ -160,7 +160,8 @@ public:
 			{"rm_loadGlobalAny", functionType(voidType, {int32Type, pointerType(anyRetType)})},
 			{"rm_saveGlobalAny", functionType(voidType, {int32Type, int64Type, int8Type})},
 			{"rm_tupleEntry", functionType(voidType, {voidPtrType, pointerType(int8Type), pointerType(anyRetType)})},
-			{"rm_selectRel", functionType(voidPtrType, {voidPtrType, voidPtrType})}
+			{"rm_selectRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
+			{"rm_length", functionType(int64Type, {voidPtrType})}
 		};
 
 		for(auto p: fs)
@@ -871,8 +872,14 @@ public:
         ICE("Rel");
 	}
 
-	LLVMVal visit(std::shared_ptr<LenExp>) {
-		ICE("Len");
+	LLVMVal visit(std::shared_ptr<LenExp> exp) {
+		LLVMVal v=castVisit(exp->exp, TAny);
+		LLVMVal v2=OwnedLLVMVal(builder.CreateCall(
+									getStdlibFunc("rm_length"), 
+									builder.CreateIntToPtr(v.value, voidPtrType)));
+		
+		disown(v, TAny);
+		return v2;
 	}
 
     LLVMVal visit(std::shared_ptr<FuncInvocationExp> node) {

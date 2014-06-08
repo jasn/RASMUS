@@ -21,8 +21,10 @@
 #include <stdlib/text.hh>
 #include <stdlib/callback.hh>
 #include <stdlib/ile.hh>
+#include <shared/type.hh>
 #include <iostream>
 #include <sstream>
+#include <limits>
 
 namespace rasmus {
 namespace stdlib {
@@ -92,6 +94,21 @@ rm_object * rm_createFunction(uint32_t size) {
 	registerAllocation(o);
 	return o;
 }
+
+int64_t rm_length(rm_object * obj) {
+	switch (obj->type) {
+	case LType::undefText:
+		return std::numeric_limits<int64_t>::min();
+	case LType::concatText:
+	case LType::substrText:
+	case LType::smallText:
+	case LType::canonicalText:
+		return static_cast<TextBase*>(obj)->length;
+	default:
+		ILE("Unhandled type", obj->type);
+	}
+}
+
 
 } //extern "C"
 

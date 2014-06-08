@@ -177,7 +177,7 @@ std::string textToString(TextBase * ptr) {
 
 extern "C" {
 
-rm_object undef_text = rm_object(LType::undefText);
+rm_object undef_text = rm_object(LType::undefText, 1);
 
 rm_object * rm_getConstText(const char *cptr) {
 	size_t len = strlen(cptr);
