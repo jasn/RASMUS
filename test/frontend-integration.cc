@@ -179,7 +179,9 @@ void bools(rasmus::teststream & ts) {
 }
 
 void tuple(rasmus::teststream & ts) {
-	ts << "construct" << result(it("tup(abe: 4, kat: ?-Text)", "(abe: 4, kat: ?-Text)"));
+	ts << "construct" << result(it("tup()", "()"));
+	ts << "construct2" << result(it("tup(abe: 4, kat: ?-Text)", "(abe: 4, kat: ?-Text)"));
+	//ts << "?-Tup" << result(it("?-Tup", "?-Tup"));
 	ts << "union" << result(it("tup(abe: 4, kat: 5) << tup(kat: ?-Text, baz: 2)", "(abe: 4, kat: 5, kaz: 2)"));
 	ts << "dot" << result(it("tup(abe: 4, kat: ?-Text).abe", "4"));
 	ts << "dot_err" << result(it("tup(abe: 4, kat: ?-Text).baz", "", true));
@@ -188,6 +190,11 @@ void tuple(rasmus::teststream & ts) {
 	ts << "has" << result(it("has(tup(abe: 4, kat: ?-Text), kat)", "true"));
 	ts << "has2" << result(it("has(tup(abe: 4, kat: ?-Text), baz)", "false"));
 	ts << "len" << result(it("|tup(abe: 4, kat: ?-Text)|", "2"));
+	// ts << "?union" << result(it("tup(abe: 4, kat: 5) << ?-Tup", "?-Tup"));
+	// ts << "?dot" << result(it("?-Tup.abe", "", true));
+	// ts << "?rem" << result(it("?-Tup\abe", "", true));
+	// ts << "+len" << result(it("|?-Tup|", "?-Int"));
+	// ts << "has" << result(it("has(?-Tup, kat)", "?-Bool"));
 }
 
 void relation(rasmus::teststream & ts) {

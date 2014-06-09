@@ -125,6 +125,7 @@ public:
 	
 	llvm::FunctionType * dtorType = functionType(voidType, {voidPtrType});;
 	llvm::StructType * anyRetType = structType("AnyRet", {int64Type, int8Type});
+	llvm::StructType * tupleEntryType = structType("TupleEntry", {pointerType(int8Type), int64Type, int8Type});
 	llvm::StructType * funcBase = structType("FuncBase", {int32Type, int16Type, int16Type, voidPtrType, voidPtrType} );;
 	llvm::StructType * objectBaseType = structType("ObjectBase", {int32Type, int16Type});
 
@@ -159,9 +160,10 @@ public:
 			{"rm_createFunction", functionType(voidPtrType, {int32Type})},
 			{"rm_loadGlobalAny", functionType(voidType, {int32Type, pointerType(anyRetType)})},
 			{"rm_saveGlobalAny", functionType(voidType, {int32Type, int64Type, int8Type})},
-			{"rm_tupleEntry", functionType(voidType, {voidPtrType, pointerType(int8Type), pointerType(anyRetType)})},
+			{"rm_tupEntry", functionType(voidType, {voidPtrType, pointerType(int8Type), pointerType(anyRetType)})},
 			{"rm_selectRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
-			{"rm_length", functionType(int64Type, {voidPtrType})}
+			{"rm_length", functionType(int64Type, {voidPtrType})},
+			{"rm_createTup", functionType(voidPtrType, {int32Type, pointerType(tupleEntryType)})}
 		};
 
 		for(auto p: fs)
@@ -294,6 +296,7 @@ public:
 		case TFunc:
 		case TRel:
 		case TText:
+		case TTup:
 		{
 			
 			//TODO CHECK FOR NULLPTR
@@ -379,6 +382,7 @@ public:
 			case TText:
 			case TFunc:
 			case TRel:
+			case TTup:
 				return BorrowedLLVMVal(builder.CreatePtrToInt(value.value, int64Type), typeRepr(tfrom));
             default:
                 ICE("Unhandled type", tfrom);
@@ -489,7 +493,20 @@ public:
 		}
 		forgetOwnership(v);
 	}
-		
+
+	Value * globalString(std::string s) {
+		Constant * c = ConstantDataArray::getString(getGlobalContext(), s);
+		GlobalVariable * gv = new GlobalVariable(*module,
+												 c->getType(),
+												 true,
+												 llvm::GlobalValue::PrivateLinkage,
+												 c);
+		return builder.CreateConstGEP2_32(gv, 0, 0);
+	}
+	
+	Value * globalString(Token t) {
+		return globalString(t.getText(code));
+	}
 	
 	LLVMVal visit(std::shared_ptr<VariableExp> node) {
 		if (NodePtr store = node->store.lock()) {
@@ -510,15 +527,9 @@ public:
 						TAny, node->type, node);
 			
 		} else {
-			Constant * c = ConstantDataArray::getString(getGlobalContext(), node->nameToken.getText(code) );
-			GlobalVariable * gv = new GlobalVariable(*module,
-													 c->getType(),
-													 true,
-													 llvm::GlobalValue::PrivateLinkage,
-													 c);
 			return OwnedLLVMVal(builder.CreateCall(
 									getStdlibFunc("rm_loadRel"),
-									builder.CreateConstGEP2_32(gv, 0, 0)));
+									globalString(node->nameToken)));
 		}
 	} 
 	
@@ -540,15 +551,9 @@ public:
 		switch (node->type) {
 		case TRel:
 		{
-			Constant * c = ConstantDataArray::getString(getGlobalContext(), node->nameToken.getText(code) );
-			GlobalVariable * ng = new GlobalVariable(*module,
-													 c->getType(),
-													 true,
-													 llvm::GlobalValue::PrivateLinkage,
-													 c);
 			builder.CreateCall2(getStdlibFunc("rm_saveRel"), 
 								builder.CreateIntToPtr(val.value, voidPtrType),
-								builder.CreateConstGEP2_32(ng, 0, 0));
+								globalString(node->nameToken));
 			break;
 		}
 		case TAny:
@@ -564,15 +569,9 @@ public:
 			
 			builder.CreateCondBr(builder.CreateICmpEQ(val.type, typeRepr(TRel)), sblock, cblock);
 			builder.SetInsertPoint(sblock);
-			Constant * c = ConstantDataArray::getString(getGlobalContext(), node->nameToken.getText(code) );
-			GlobalVariable * ng = new GlobalVariable(*module,
-													 c->getType(),
-													 true,
-													 llvm::GlobalValue::PrivateLinkage,
-													 c);
 			builder.CreateCall2(getStdlibFunc("rm_saveRel"), 
 								builder.CreateIntToPtr(val.value, voidPtrType),
-								builder.CreateConstGEP2_32(ng, 0, 0));
+								globalString(node->nameToken));
 			builder.CreateBr(cblock);
 			builder.SetInsertPoint(cblock);
 			break;
@@ -774,8 +773,24 @@ public:
 		return OwnedLLVMVal(p);
 	}
 	
-	LLVMVal visit(std::shared_ptr<TupExp>) {
-		ICE("Tub not implemented");
+	LLVMVal visit(std::shared_ptr<TupExp> exp) {
+		std::vector<LLVMVal> values;
+		Value * entries = builder.CreateAlloca(tupleEntryType, int32(exp->items.size()) );
+		for (size_t i=0; i < exp->items.size(); ++i) {
+			auto item = exp->items[i];
+			values.push_back( visitNode(item->exp) );
+			BorrowedLLVMVal v = cast(borrow(values.back()), item->exp->type, TAny, item->exp);
+			
+			builder.CreateStore(globalString(item->nameToken), builder.CreateConstGEP2_32(entries, i, 0)); //name
+			builder.CreateStore(v.value, builder.CreateConstGEP2_32(entries, i, 1)); //value
+			builder.CreateStore(v.type, builder.CreateConstGEP2_32(entries, i, 2)); //type
+		}
+
+		OwnedLLVMVal r(builder.CreateCall2(getStdlibFunc("rm_createTup"), int32(exp->items.size()), entries));
+		
+		for (size_t i=0; i < exp->items.size(); ++i)
+			disown(values[i], exp->items[i]->exp->type);
+		return LLVMVal(std::move(r));
 	}
 
 	LLVMVal visit(std::shared_ptr<BlockExp> node) {
@@ -816,19 +831,11 @@ public:
 			return getUndef(TBool);
 		case TK_INT:
 			return OwnedLLVMVal(int64(atol(node->valueToken.getText(code).c_str())));
-		case TK_TEXT:
-		{
+		case TK_TEXT: {
 			std::string text=node->valueToken.getText(code);
-			Constant * c = ConstantDataArray::getString(getGlobalContext(), 
-														text.substr(1,text.size()-2));
-			GlobalVariable * gv = new GlobalVariable(*module,
-													 c->getType(),
-													 true,
-													 llvm::GlobalValue::PrivateLinkage,
-													 c);
 			return OwnedLLVMVal( builder.CreateCall(
 									 getStdlibFunc("rm_getConstText"),
-									 builder.CreateConstGEP2_32(gv, 0, 0)) );
+									 globalString(text.substr(1, text.size()-2))));
 		}
 		case TK_STDTEXT:
 			return getUndef(TText);
@@ -946,15 +953,8 @@ public:
         
 	LLVMVal visit(std::shared_ptr<DotExp> node) {
 		LLVMVal tup=castVisit(node->lhs, TTup);
-
-		Constant * c = ConstantDataArray::getString(getGlobalContext(), node->nameToken.getText(code));
-		GlobalVariable * gv = new GlobalVariable(*module,
-												 c->getType(),
-												 true,
-												 llvm::GlobalValue::PrivateLinkage,
-												 c);
 		Value * rv = builder.CreateAlloca(anyRetType);
-		builder.CreateCall3(getStdlibFunc("rm_tupleEntry"), tup.value, gv, rv);
+		builder.CreateCall3(getStdlibFunc("rm_tupEntry"), tup.value, globalString(node->nameToken), rv);
 		
 		OwnedLLVMVal r=cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
 										 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1))),
