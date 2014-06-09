@@ -178,8 +178,26 @@ void bools(rasmus::teststream & ts) {
 	ts << "var" << result(it("x:=?-Bool\nx", "?-Bool"));
 }
 
+void tuple(rasmus::teststream & ts) {
+	ts << "construct" << result(it("tup(abe: 4, kat: ?-Text)", "(abe: 4, kat: ?-Text)"));
+	ts << "union" << result(it("tup(abe: 4, kat: 5) << tup(kat: ?-Text, baz: 2)", "(abe: 4, kat: 5, kaz: 2)"));
+	ts << "dot" << result(it("tup(abe: 4, kat: ?-Text).abe", "4"));
+	ts << "dot_err" << result(it("tup(abe: 4, kat: ?-Text).baz", "", true));
+	ts << "rem" << result(it("tup(abe: 4, kat: ?-Text)\abe", "(kat: ?-Text)"));
+	ts << "rem2" << result(it("tup(abe: 4, kat: ?-Text)\baz", "", true));
+	ts << "has" << result(it("has(tup(abe: 4, kat: ?-Text), kat)", "true"));
+	ts << "has2" << result(it("has(tup(abe: 4, kat: ?-Text), baz)", "false"));
+	ts << "len" << result(it("|tup(abe: 4, kat: ?-Text)|", "2"));
+}
 
-bool relation() {
+void relation(rasmus::teststream & ts) {
+	ts << "construct" << result(it("|rel(tup(abe: 4, kat: ?-Text))|", "1"));
+	ts << "union" << result(it("|rel(tup(abe: 4, kat: ?-Text))+rel(tup(abe: 5, kat: ?-Text))|", "2"));
+	ts << "union2" << result(it("|rel(tup(abe: 4, kat: ?-Text))+rel(tup(abe: 4, kat: ?-Text))|", "1"));
+}
+
+
+bool relation_external() {
 	std::shared_ptr<TestCallback> cb = std::make_shared<TestCallback>();
 	std::shared_ptr<rasmus::frontend::Interperter> interperter=rasmus::frontend::makeInterperter(cb);
 	interperter->setup();
@@ -229,7 +247,9 @@ int main(int argc, char **argv) {
 		.multi_test(integer, "integer")
 		.multi_test(text, "text")
 		.multi_test(bools, "bool")
+		.multi_test(tuple, "tuple")
+		.multi_test(relation, "relation")
 		.multi_test(ifs, "if")
 		.test(comments, "comments")
-		.test(relation, "relation");
+		.test(relation_external, "relation_external");
 }
