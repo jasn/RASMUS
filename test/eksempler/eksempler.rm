@@ -1,0 +1,63 @@
+Kampe := Runde1 + Runde2;
+
+Turnering := Kampe * Resultater;
+
+Turnering ? (#.HjScore > #.UdeScore);
+
+Resultater |+ Id,UdeScore;
+
+Resultater |- HjScore;
+
+(Runde1 + Runde2) |+ Id;
+
+Spilledag [ Kamp <- Id ];
+
+// eksempel 6
+
+((Runde1 ? (#.HjHold="AGF"))*(Spilledag[Kamp<-Id])) |+ Dato;
+
+// eksempel 7
+
+(Turnering |+ Udehold) -
+((Turnering ? (#.HjScore<#.UdeScore)) |+ UdeHold);
+
+// eksempel 8
+
+(((Kampe * (Tips ? (#.Uge=18))) ? (#.UdeHold="AGF")) +
+ ((Kampe * (tips ? (#.uge=18))) ? (#.HjHold="AGF"))) |+ Nr;
+
+// eksempel 9
+
+(+ val X = Kampe * (Tips ? (#.Uge=18))
+   in ((X ? (#.HjHold="AGF"))+(X ? (#.UdeHold="AGF"))) |+ Nr
++);
+
+// eksempel 10
+
+FindNr := func (uge:Int, hold:Text) -> (Rel)
+            (+ val X = Kampe * (Tips ? (#.Uge=uge))
+               in ((X ? (#.HjHold=hold))+(X ? (#.UdeHold=hold))) |+ Nr
+            +)
+          end;
+
+FindNr(18,"AGF");
+
+FindNr(19,"Lyngby");
+
+// eksempel 11
+
+Strip := func (uge:Int) -> (Rel)
+           ((Turnering*Tips) ? (#.Uge=uge)) |- Id,Uge
+         end;
+
+
+// eksempel 12
+
+Kupon := func (ugenr:Int) -> (Rel)
+           (((Strip(ugenr) ? (#.HjScore < #.UdeScore))*To) +
+            ((Strip(ugenr) ? (#.HjScore = #.UdeScore))*Kryds) +
+            ((Strip(ugenr) ? (#.HjScore > #.UdeScore))*Et)
+           ) |- HjScore,UdeScore
+         end;
+
+Kupon(18);
