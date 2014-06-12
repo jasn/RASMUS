@@ -120,6 +120,11 @@ public:
         node->charRange = u(node->lhs->charRange, r(node->nameToken));
 	}
 
+    void visit(std::shared_ptr<TupMinus> node) {
+        visitNode(node->lhs);
+        node->charRange = u(node->lhs->charRange, r(node->nameToken));
+	}
+
     void visit(std::shared_ptr<ProjectExp> node) {
         visitNode(node->lhs);
         node->charRange = u(node->lhs->charRange, r(node->names[-1]));

@@ -84,6 +84,7 @@ void base(rasmus::teststream & ts) {
     ts << "choice" << result(lt("&", {TK_CHOICE}));
     ts << "bang" << result(lt("!!<<!>", {TK_BANG, TK_BANGLT, TK_LESS, TK_BANGGT}));
     ts << "tilde" << result(lt("~", {TK_TILDE}));
+	ts << "remove" << result(lt("abe\\baz", {TK_NAME, TK_SET_MINUS, TK_NAME}));
     ts << "is" << result(lt("is-Booll is-Int is-Text is-Atom is-Tup is-Rel is-Func is-Any",
 							{TK_ISBOOL, TK_NAME, TK_ISINT, TK_ISTEXT, TK_ISATOM, TK_ISTUP, TK_ISREL, TK_ISFUNC, TK_ISANY}));
     ts << "error" << result(lt("hat %%Kat hat", {TK_NAME, TK_ERR, TK_NAME}));

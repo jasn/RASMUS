@@ -140,6 +140,10 @@ public:
 		ss << "(. " << v(node->lhs) << " " << t(node->nameToken) << ")";
 	}
 
+    void visit(std::shared_ptr<TupMinus> node) {
+		ss << "(\\ " << v(node->lhs) << " " << t(node->nameToken) << ")";
+	}
+
     void visit(std::shared_ptr<ProjectExp> node) {
 		ss << "(" << t(node->projectionToken) << " " << v(node->lhs);
         for (auto name: node->names)
@@ -245,7 +249,10 @@ void base(rasmus::teststream & ts) {
     ts << "call3" << result(pt("hat(1)", "(call hat 1)"));
     ts << "rename1" << result(pt("a[x<-y, a<-b]", "([ a x y a b)"));
     ts << "rename2" << result(pt("a[x<-y]", "([ a x y)"));
-    ts << "dot" << result(pt("a.b", "(. a b)"));
+    ts << "dot1" << result(pt("a.b", "(. a b)"));
+    ts << "dot2" << result(pt("tup(b: 4).b", "(. (tup b 4) b)"));
+    ts << "remove1" << result(pt("a\\b", "(\\ a b)"));
+    ts << "remove2" << result(pt("tup(b: 4)\\b", "(\\ (tup b 4) b)"));
     //ts << "extend(self):
     ts << "concat" << result(pt("a++b", "(++ a b)"));
     ts << "proj1" << result(pt("a |+ a, b", "(|+ a a b)"));

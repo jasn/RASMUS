@@ -301,6 +301,7 @@ rm_object * rm_createTup(uint32_t count, TupEntry * entries) {
 	//TODO IMPLEMENT ME
 	Tuple * t=new Tuple();
 	t->ref_cnt = 1;
+	registerAllocation(t);
 	return t;
 }
 
@@ -309,6 +310,24 @@ void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret) {
 	//TODO fix me
 	ret->value=0;
 	ret->type=TInt;
+}
+
+
+rm_object * rm_extendTup(rm_object * lhs, rm_object * rhs) {
+	//TODO fixme
+	lhs->ref_cnt++;
+	return lhs;
+}
+
+rm_object * rm_tupRemove(rm_object * tup, const char * name) {
+	//TODO fixme
+	tup->ref_cnt++;
+	return tup;
+}
+
+uint8_t rm_tupHasEntry(rm_object * tup, const char * name) {
+	//TODO fixme
+	return false;
 }
 
 

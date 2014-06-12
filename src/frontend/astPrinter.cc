@@ -260,6 +260,10 @@ public:
 		*s << start(node, "lookup") << p("tup", node->lhs) << p("name", node->nameToken) << end();
 	}
 
+    void visit(std::shared_ptr<TupMinus> node) {
+		*s << start(node, "remove") << p("tup", node->lhs) << p("name", node->nameToken) << end();
+	}
+
     void visit(std::shared_ptr<ProjectExp> node) {
 		*s << start(node, "project")
 		   << p("op", node->projectionToken)

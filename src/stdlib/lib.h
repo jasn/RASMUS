@@ -139,6 +139,12 @@ rm_object * rm_select(rm_object * rel, rm_object * func);
 
 rm_object * rm_createTup(uint32_t count, TupEntry * entries);
 
+rm_object * rm_extendTup(rm_object * lhs, rm_object * rhs);
+
+rm_object * rm_tupRemove(rm_object * tup, const char * name);
+
+uint8_t rm_tupHasEntry(rm_object * tup, const char * name);
+
 void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret);
 
 /////////////////////////////////////////////////////////////////////////////////////

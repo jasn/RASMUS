@@ -326,13 +326,8 @@ public:
             if (i < argumentTypes.size() && argumentTypes[i] != TNAMEQ)
                 typeCheck(node->nameToken, node->args[i], {argumentTypes[i]});
             if (i < argumentTypes.size() && argumentTypes[i] == TNAMEQ) {
-                // if (not isinstance(node->args[i], VariableExp) 
-                //     && not(isinstance(node->args[i], Exp) 
-                //             && isinstance(node->args[i].exp, VariableExp))):
-                //     err.reportError("Expected identifier", None, [node->args[i].charRange])
-				// 		}
-				//TODO FIX ME
-				ICE("Not implemented");
+				if (node->args[i]->nodeType != NodeType::VariableExp) 
+					error->reportError("Expected identifier", Token(), {node->args[i]->charRange});
 			}
 		}
 	}
@@ -422,6 +417,12 @@ public:
         visitNode(node->lhs);
         typeCheck(node->dotToken, node->lhs, {TTup});
         node->type = TAny;
+	}
+
+    void visit(std::shared_ptr<TupMinus> node) {
+        visitNode(node->lhs);
+        typeCheck(node->opToken, node->lhs, {TTup});
+        node->type = TTup;
 	}
 
     void visit(std::shared_ptr<ProjectExp> node) {
@@ -538,6 +539,9 @@ public:
 			break;
 		case TK_QUESTION:
 			binopTypeCheck(node, { {TRel, TFunc, TRel} });
+			break;
+		case TK_OPEXTEND:
+			binopTypeCheck(node, { {TTup, TTup, TTup} });
 			break;
 		default:
             internalError(node->opToken, std::string("Invalid operator")+getTokenName(node->opToken.id));

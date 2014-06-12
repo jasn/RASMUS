@@ -418,7 +418,7 @@ public:
 	}
 
     NodePtr parseRenameExp() {
-        NodePtr n =parseSubstringOrFuncInvocationExp();
+        NodePtr n=parseSubstringOrFuncInvocationExp();
         while (currentToken.id == TK_LBRACKET) {
 			std::shared_ptr<RenameExp> e=std::make_shared<RenameExp>(n, consumeToken());
 			recover(TK_RBRACKET, [&]() {
@@ -443,6 +443,9 @@ public:
 		if (currentToken.id == TK_ONE_DOT) {
 			Token t=consumeToken();
             n = std::make_shared<DotExp>(n, t, assertTokenConsume(TK_NAME));
+		} else if (currentToken.id == TK_SET_MINUS) {
+			Token t=consumeToken();
+			n = std::make_shared<TupMinus>(n, t, assertTokenConsume(TK_NAME));
 		}
         return n;
 	}

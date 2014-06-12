@@ -156,14 +156,17 @@ public:
 			{"rm_joinRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
 			{"rm_loadRel", functionType(voidPtrType, {pointerType(int8Type)})},
 			{"rm_saveRel", functionType(voidType, {voidPtrType, pointerType(int8Type)})},
+			{"rm_selectRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
 			{"rm_substrText", functionType(voidPtrType, {voidPtrType, int64Type, int64Type})},
 			{"rm_createFunction", functionType(voidPtrType, {int32Type})},
 			{"rm_loadGlobalAny", functionType(voidType, {int32Type, pointerType(anyRetType)})},
 			{"rm_saveGlobalAny", functionType(voidType, {int32Type, int64Type, int8Type})},
-			{"rm_tupEntry", functionType(voidType, {voidPtrType, pointerType(int8Type), pointerType(anyRetType)})},
-			{"rm_selectRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
 			{"rm_length", functionType(int64Type, {voidPtrType})},
-			{"rm_createTup", functionType(voidPtrType, {int32Type, pointerType(tupleEntryType)})}
+			{"rm_tupEntry", functionType(voidType, {voidPtrType, pointerType(int8Type), pointerType(anyRetType)})},
+			{"rm_createTup", functionType(voidPtrType, {int32Type, pointerType(tupleEntryType)})},
+			{"rm_extendTup", functionType(voidPtrType, {voidPtrType, voidPtrType})},
+			{"rm_tupRemove", functionType(voidPtrType, {voidPtrType, pointerType(int8Type)})},
+			{"rm_tupHasEntry", functionType(int8Type, {voidPtrType, pointerType(int8Type)})},
 		};
 
 		for(auto p: fs)
@@ -815,6 +818,16 @@ public:
 			disown(v, TAny);
 			return OwnedLLVMVal(int8(1));
 		}
+		case TK_HAS:
+		{
+			LLVMVal v=castVisit(node->args[0], TTup);
+			OwnedLLVMVal r(builder.CreateCall2(
+							   getStdlibFunc("rm_tupHasEntry"), 
+							   v.value, 
+							   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code))));
+			disown(v, TTup);
+			return LLVMVal(std::move(r));
+		}
 		break;
 		default:
 			ICE("BuildIn not implemented", node->nameToken.id);
@@ -962,6 +975,15 @@ public:
 		disown(tup, TTup);
 		return LLVMVal(std::move(r));
 	}
+
+	LLVMVal visit(std::shared_ptr<TupMinus> node) {
+		LLVMVal tup=castVisit(node->lhs, TTup);
+
+		OwnedLLVMVal ans(builder.CreateCall2(getStdlibFunc("rm_tupRemove"), tup.value, globalString(node->nameToken)));
+		disown(tup, TTup);
+		return LLVMVal(std::move(ans));
+	}
+
 
 	LLVMVal visit(std::shared_ptr<AtExp>) {
 		ICE("At");
@@ -1143,6 +1165,11 @@ public:
 	LLVMVal binopSelectRel(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_selectRel"), lhs.value, rhs.value));
 	}
+
+	LLVMVal binopExtendTup(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
+		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_extendTup"), lhs.value, rhs.value));
+	}
+
 	
 	LLVMVal visit(std::shared_ptr<BinaryOpExp> node) {
 		switch (node->opToken.id) {
@@ -1201,6 +1228,8 @@ public:
 			return binopImpl(node, { {TBool, TBool, TBool, &CodeGen::binopOrBool} });
 		case TK_QUESTION:
 			return binopImpl(node, { {TRel, TFunc, TRel, &CodeGen::binopSelectRel} });
+		case TK_OPEXTEND:
+			return binopImpl(node, { {TTup, TTup, TTup, &CodeGen::binopExtendTup} });
 		default: 
 			ICE("Binop not implemented", node->opToken.id);
 		}

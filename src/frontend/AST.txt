@@ -21,6 +21,7 @@ FuncInvocationExp|funcExp,lparenToken|NodeList args|rparenToken
 SubstringExp|stringExp,lparenToken,fromExp,dotdotToken,toExp,rparenToken
 RenameItem|fromNameToken,arrowToken,toNameToken
 RenameExp|lhs,lbracketToken|std::vector<std::shared_ptr<RenameItem> > renames|rbracketToken
+TupMinus|lhs,opToken,nameToken
 DotExp|lhs,dotToken,nameToken
 ProjectExp|lhs,projectionToken|TokenList names
 BinaryOpExp|opToken,lhs,rhs
