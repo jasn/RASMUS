@@ -268,7 +268,7 @@ public:
 			break;
         case TK_HAS:
             returnType = TBool;
-            argumentTypes.push_back(TRel);
+            argumentTypes.push_back(TTup);
 			argumentTypes.push_back(TNAMEQ);
 			break;
 		case TK_MAX:
