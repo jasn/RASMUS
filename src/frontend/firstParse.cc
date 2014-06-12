@@ -391,7 +391,7 @@ public:
 	
     void visit(std::shared_ptr<LenExp> node) {
         visitNode(node->exp);
-		typeCheck(node->leftPipeToken, node->exp, {TText, TRel});
+		typeCheck(node->leftPipeToken, node->exp, {TText, TRel, TTup});
         node->type = TInt;
 	}
 
