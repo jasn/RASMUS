@@ -237,7 +237,7 @@ public:
 
     void visit(std::shared_ptr<BuiltInExp> node) {
 		Type returnType=TInvalid;
-		std::vector<Type> argumentTypes;
+		std::vector<std::vector<Type> > argumentTypes;
 		switch (node->nameToken.id) {
 		case TK_ISATOM:
 		case TK_ISTUP:
@@ -245,31 +245,31 @@ public:
 		case TK_ISFUNC:
 		case TK_ISANY:
             returnType = TBool;
-            argumentTypes.push_back(TAny);
+            argumentTypes.push_back({TAny});
 			break;
         case TK_ISBOOL:
 		case TK_ISINT:
 		case TK_ISTEXT:
             returnType = TBool;
-			argumentTypes.push_back(TAny);
-            if (node->args.size() >= 2) argumentTypes.push_back(TNAMEQ);
+			argumentTypes.push_back({TAny});
+            if (node->args.size() >= 2) argumentTypes.push_back({TNAMEQ});
 			break;
         case TK_SYSTEM:
             returnType = TInt;
-            argumentTypes.push_back(TText);
+            argumentTypes.push_back({TText});
 			break;
         case TK_OPEN:
 		case TK_WRITE:
             returnType = TBool;
-            argumentTypes.push_back(TText);
+            argumentTypes.push_back({TText});
 			break;
         case TK_CLOSE:
             returnType = TBool;
 			break;
         case TK_HAS:
             returnType = TBool;
-            argumentTypes.push_back(TTup);
-			argumentTypes.push_back(TNAMEQ);
+            argumentTypes.push_back({TTup, TRel});
+			argumentTypes.push_back({TNAMEQ});
 			break;
 		case TK_MAX:
 		case TK_MIN:
@@ -277,31 +277,31 @@ public:
 		case TK_ADD:
 		case TK_MULT:
             returnType = TInt;
-			argumentTypes.push_back(TRel);
-			argumentTypes.push_back(TNAMEQ);
+			argumentTypes.push_back({TRel});
+			argumentTypes.push_back({TNAMEQ});
 			break;
 		case TK_DAYS:
             returnType = TInt;
-            argumentTypes.push_back(TText);
-			argumentTypes.push_back(TText);
+            argumentTypes.push_back({TText});
+			argumentTypes.push_back({TText});
 			break;
 		case TK_BEFORE:
 		case TK_AFTER:
             returnType = TText;
-            argumentTypes.push_back(TText);
-			argumentTypes.push_back(TText);
+            argumentTypes.push_back({TText});
+			argumentTypes.push_back({TText});
 			break;
 		case TK_DATE:
             returnType = TText;
-            argumentTypes.push_back(TText);
-			argumentTypes.push_back(TInt);
+            argumentTypes.push_back({TText});
+			argumentTypes.push_back({TInt});
 			break;
         case TK_TODAY:
             returnType = TText;
 			break;
 		case TK_PRINT:
             returnType = TBool;
-            argumentTypes.push_back(TAny);
+            argumentTypes.push_back({TAny});
 			break;
 		default:
             error->reportError("Unknown buildin", node->nameToken, {node->charRange});
@@ -321,11 +321,11 @@ public:
 		
 		
 		for (size_t i=0; i < node->args.size(); ++i) {
-            if (i >= argumentTypes.size() || argumentTypes[i] != TNAMEQ)
+            if (i >= argumentTypes.size() || argumentTypes[i] != std::vector<Type>{TNAMEQ})
                 visitNode(node->args[i]);
-            if (i < argumentTypes.size() && argumentTypes[i] != TNAMEQ)
-                typeCheck(node->nameToken, node->args[i], {argumentTypes[i]});
-            if (i < argumentTypes.size() && argumentTypes[i] == TNAMEQ) {
+            if (i < argumentTypes.size() && argumentTypes[i] != std::vector<Type>{TNAMEQ})
+                typeCheck(node->nameToken, node->args[i], argumentTypes[i]);
+            if (i < argumentTypes.size() && argumentTypes[i] == std::vector<Type>{TNAMEQ}) {
 				if (node->args[i]->nodeType != NodeType::VariableExp) 
 					error->reportError("Expected identifier", Token(), {node->args[i]->charRange});
 			}

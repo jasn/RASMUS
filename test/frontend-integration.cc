@@ -181,7 +181,10 @@ void bools(rasmus::teststream & ts) {
 void tuple(rasmus::teststream & ts) {
 	ts << "construct" << result(it("tup()", "()"));
 	ts << "construct2" << result(it("tup(abe: 4, kat: ?-Text)", "(abe: 4, kat: ?-Text)"));
-	//ts << "?-Tup" << result(it("?-Tup", "?-Tup"));
+	ts << "equality1" << result(it("tup() = tup()", "true"));
+	ts << "equality2" << result(it("tup() = tup(abe: 4)", "false"));
+	ts << "inequality1" << result(it("tup() <> tup()", "false"));
+	ts << "inequality2" << result(it("tup() <> tup(abe: 4)", "true"));
 	ts << "union" << result(it("tup(abe: 4, kat: 5) << tup(kat: ?-Text, baz: 2)", "(abe: 4, kat: 5, kaz: 2)"));
 	ts << "rem" << result(it("tup(abe: 4, kat: ?-Text)\\abe", "(kat: ?-Text)"));
 	ts << "rem2" << result(it("tup(abe: 4, kat: ?-Text)\\baz", "", true));
@@ -198,9 +201,29 @@ void tuple(rasmus::teststream & ts) {
 }
 
 void relation(rasmus::teststream & ts) {
+	ts << "zero" << result(it("|zero|", "0"));
+	ts << "one" << result(it("|one|", "1"));
+	ts << "equality1" << result(it("zero = zero", "true"));
+	ts << "equality2" << result(it("zero = one", "false"));
+	ts << "inequality1" << result(it("zero <> zero", "false"));
+	ts << "inequality2" << result(it("zero <> one", "true"));
 	ts << "construct" << result(it("|rel(tup(abe: 4, kat: ?-Text))|", "1"));
+	ts << "has" << result(it("has(rel(tup(abe: 4, kat: ?-Text)), kat)", "true"));
+	ts << "has2" << result(it("has(rel(tup(abe: 4, kat: ?-Text)), baz)", "false"));
 	ts << "union" << result(it("|rel(tup(abe: 4, kat: ?-Text))+rel(tup(abe: 5, kat: ?-Text))|", "2"));
-	ts << "union2" << result(it("|rel(tup(abe: 4, kat: ?-Text))+rel(tup(abe: 4, kat: ?-Text))|", "1"));
+	ts << "union2" << result(it("rel(tup(abe: 4, kat: ?-Text))+rel(tup(abe: 4, kat: ?-Text)) = rel(tup(abe: 4, kat: ?-Text)", "true"));
+	ts << "diff" << result(it("|rel(tup(abe: 4, kat: ?-Text))-rel(tup(abe: 4, kat: ?-Text))|", "0"));
+	ts << "join" << result(it("rel(tup(abe: 4, kat: 5)) * rel(tup(kat: 5, bar: 6)) = rel(tup(abe: 4, kat: 5, bar: 6))", "true"));
+	ts << "select" << result(it("|rel(tup(abe: 4, kat:5))?(#.kat=5)|", "1"));
+	ts << "project1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |+ abe,baz = rel(tup(abe: 4, baz:2))", "true"));
+	ts << "project2" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |- abe,baz = rel(tup(kat: 5))", "true"));
+	ts << "rename" << result(it("rel(tup(abe: 4, kat:5, baz:2)) [abe<-foo, kat<-taz] = rel(tup(foo: 4, taz:5, baz:2))", "true"));
+	ts << "min" << result(it("min(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "4"));
+	ts << "max" << result(it("max(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "5"));
+	ts << "add" << result(it("add(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "9"));
+	ts << "mult" << result(it("mult(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "20"));
+	ts << "count" << result(it("count(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "2"));
+	//TODO factor
 }
 
 
