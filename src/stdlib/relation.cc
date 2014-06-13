@@ -289,13 +289,91 @@ rm_object * loadRelationFromFile(const char * name) {
 
 extern "C" {
 
+//TODO fix me
+Relation zero_rel;
+//TODO fix me
+Relation one_rel;
+
+
 /* wrapper function */
 void rm_saveRel(rm_object * o, const char * name) {
 	callback->saveRelation(o, name);
 }
 
-rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs) {return nullptr;}
-rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {return nullptr;}
+/* wrapper function */
+rm_object * rm_loadRel(const char * name) {
+	return callback->loadRelation(name);
+}
+
+
+rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs) {
+	//TODO
+	lhs->ref_cnt++;
+	return lhs;
+}
+
+rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
+	//TODO
+	lhs->ref_cnt++;
+	return lhs;
+}
+
+rm_object * rm_diffRel(rm_object * lhs, rm_object * rhs) {
+	//TODO
+	lhs->ref_cnt++;
+	return lhs;
+}
+
+rm_object * rm_selectRel(rm_object * rel, rm_object * func) {
+	//TODO
+	rel->ref_cnt++;
+	return rel;
+}
+
+rm_object * rm_projectPlusRel(rm_object * rel, uint32_t name_count, const char ** names) {
+	//TODO
+	rel->ref_cnt++;
+	return rel;
+}
+
+rm_object * rm_projectMinusRel(rm_object * rel, uint32_t name_count, const char ** names) {
+	//TODO
+	rel->ref_cnt++;
+	return rel;
+}
+
+rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** names) {
+	//TODO
+	rel->ref_cnt++;
+	return rel;
+}
+
+int64_t rm_maxRel(rm_object * lhs, const char * name) {
+	//TODO
+	return std::numeric_limits<int64_t>::min();
+}
+
+int64_t rm_minRel(rm_object * lhs, const char * name) {
+	//TODO
+	return std::numeric_limits<int64_t>::min();
+}
+
+int64_t rm_addRel(rm_object * lhs, const char * name) {
+	//TODO
+	return std::numeric_limits<int64_t>::min();
+}
+
+int64_t rm_multRel(rm_object * lhs, const char * name) {
+	//TODO
+	return std::numeric_limits<int64_t>::min();
+}
+
+int64_t rm_countRel(rm_object * lhs, const char * name) {
+	//TODO
+	return std::numeric_limits<int64_t>::min();
+}
+
+
 
 rm_object * rm_createTup(uint32_t count, TupEntry * entries) {
 	//TODO IMPLEMENT ME
@@ -305,13 +383,19 @@ rm_object * rm_createTup(uint32_t count, TupEntry * entries) {
 	return t;
 }
 
+rm_object * rm_createRel(rm_object * tup) {
+	//TODO
+	Relation * r = new Relation();
+	r->ref_cnt = 1;
+	registerAllocation(r);
+	return r;
+}
 
 void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret) {
 	//TODO fix me
 	ret->value=0;
 	ret->type=TInt;
 }
-
 
 rm_object * rm_extendTup(rm_object * lhs, rm_object * rhs) {
 	//TODO fixme
@@ -327,14 +411,21 @@ rm_object * rm_tupRemove(rm_object * tup, const char * name) {
 
 uint8_t rm_tupHasEntry(rm_object * tup, const char * name) {
 	//TODO fixme
-	return false;
+	return 0;
+}
+
+uint8_t rm_relHasEntry(rm_object * tup, const char * name) {
+	//TODO fixme
+	return 0;
+}
+
+uint8_t rm_equalRel(rm_object * lhs, rm_object * rhs) {
+	return 3; //TODO 
 }
 
 
-/* wrapper function */
-rm_object * rm_loadRel(const char * name) {
-	return callback->loadRelation(name);
+uint8_t rm_equalTup(rm_object * lhs, rm_object * rhs) {
+	return 3; //TODO 
 }
-
 
 } // extern "C"

@@ -186,6 +186,14 @@ rm_object * rm_getConstText(const char *cptr) {
 	return o;
 }
 
+uint8_t rm_equalText(rm_object *lhs, rm_object *rhs) {
+	if (lhs == &undef_text || rhs == &undef_text) return 2;
+
+	const char * lhst = canonizeText(toTextBase(lhs));
+	const char * rhst = canonizeText(toTextBase(rhs));
+	return strcmp(lhst, rhst) ? 0: 3;
+}
+
 rm_object * rm_concatText(rm_object *lhs_, rm_object *rhs_) {
 	if (lhs_ == &undef_text || rhs_ == &undef_text) {
 		undef_text.incref();

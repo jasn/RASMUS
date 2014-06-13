@@ -110,6 +110,10 @@ void base(rasmus::teststream & ts) {
 
 void text(rasmus::teststream & ts) {
     ts << "string" << result(it("\"abe\"", "abe"));
+	ts << "equal1" << result(it("\"monkey\" = \"monkey\"", "true"));
+	ts << "equal2" << result(it("\"monkey\" = \"mankey\"", "false"));
+	ts << "diferent1" << result(it("\"monkey\" <> \"monkey\"", "false"));
+	ts << "diferent2" << result(it("\"monkey\" <> \"mankey\"", "true"));
 	ts << "global" << result(it("y:=\"abe\"\ny", "abe"));
     ts << "concat" << result(it("\"abe\"++\"bea\"", "abebea"));
 	ts << "substr" << result(it("\"minime\"(1..4)", "ini"));

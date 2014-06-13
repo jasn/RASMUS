@@ -154,9 +154,18 @@ public:
 			{"rm_emitArgCntError", functionType(voidType, {int32Type, int32Type, int16Type, int16Type})},
 			{"rm_unionRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
 			{"rm_joinRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
+			{"rm_diffRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
 			{"rm_loadRel", functionType(voidPtrType, {pointerType(int8Type)})},
 			{"rm_saveRel", functionType(voidType, {voidPtrType, pointerType(int8Type)})},
+			{"rm_maxRel", functionType(int64Type, {voidPtrType, pointerType(int8Type)})},
+			{"rm_minRel", functionType(int64Type, {voidPtrType, pointerType(int8Type)})},
+			{"rm_addRel", functionType(int64Type, {voidPtrType, pointerType(int8Type)})},
+			{"rm_multRel", functionType(int64Type, {voidPtrType, pointerType(int8Type)})},
+			{"rm_countRel", functionType(int64Type, {voidPtrType, pointerType(int8Type)})},
 			{"rm_selectRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
+			{"rm_projectPlusRel", functionType(voidPtrType, {voidPtrType, int32Type, pointerType(pointerType(int8Type))})},
+			{"rm_renameRel", functionType(voidPtrType, {voidPtrType, int32Type, pointerType(pointerType(int8Type))})},
+			{"rm_projectMinusRel", functionType(voidPtrType, {voidPtrType, int32Type, pointerType(pointerType(int8Type))})},
 			{"rm_substrText", functionType(voidPtrType, {voidPtrType, int64Type, int64Type})},
 			{"rm_createFunction", functionType(voidPtrType, {int32Type})},
 			{"rm_loadGlobalAny", functionType(voidType, {int32Type, pointerType(anyRetType)})},
@@ -167,6 +176,11 @@ public:
 			{"rm_extendTup", functionType(voidPtrType, {voidPtrType, voidPtrType})},
 			{"rm_tupRemove", functionType(voidPtrType, {voidPtrType, pointerType(int8Type)})},
 			{"rm_tupHasEntry", functionType(int8Type, {voidPtrType, pointerType(int8Type)})},
+			{"rm_relHasEntry", functionType(int8Type, {voidPtrType, pointerType(int8Type)})},
+			{"rm_equalText", functionType(int8Type, {voidPtrType, voidPtrType})},
+			{"rm_equalRel", functionType(int8Type, {voidPtrType, voidPtrType})},
+			{"rm_equalTup", functionType(int8Type, {voidPtrType, voidPtrType})},
+			{"rm_createRel", functionType(voidPtrType, {voidPtrType})}
 		};
 
 		for(auto p: fs)
@@ -360,12 +374,7 @@ public:
 		case TFunc:
 			return BorrowedLLVMVal(llvm::Constant::getNullValue(pointerType(funcBase)));
 		case TText:
-			return BorrowedLLVMVal(new GlobalVariable(*module,
-													  int8Type,
-													  true,
-													  llvm::GlobalValue::ExternalLinkage,
-													  nullptr,
-													  "undef_text"));
+			return extGlobalObject("undef_text");
 		case TRel:
 		case TTup:
 			return BorrowedLLVMVal(llvm::Constant::getNullValue(voidPtrType));
@@ -511,6 +520,16 @@ public:
 		return globalString(t.getText(code));
 	}
 	
+	BorrowedLLVMVal extGlobalObject(const char * name) {
+		if (module->getGlobalVariable(name)) return BorrowedLLVMVal(module->getGlobalVariable(name));
+		return BorrowedLLVMVal(new GlobalVariable(*module,
+												  int8Type,
+												  true,
+												  llvm::GlobalValue::ExternalLinkage,
+												  nullptr,
+												  name));
+	}
+
 	LLVMVal visit(std::shared_ptr<VariableExp> node) {
 		if (NodePtr store = node->store.lock()) {
 			if (store->nodeType != NodeType::AssignmentExp) return borrow(store->llvmVal);
@@ -662,6 +681,7 @@ public:
 		ICE("ForallExp");
 	}
 
+
 	LLVMVal visit(std::shared_ptr<FuncExp> node) {
 		// Create function type
 		FunctionType * ft = funcType(node->args.size());
@@ -809,6 +829,9 @@ public:
 		return LLVMVal(std::move(r));
 	}
 
+
+
+
 	LLVMVal visit(std::shared_ptr<BuiltInExp> node) {
 		switch (node->nameToken.id) {
 		case TK_PRINT:
@@ -819,16 +842,77 @@ public:
 			return OwnedLLVMVal(int8(1));
 		}
 		case TK_HAS:
-		{
-			LLVMVal v=castVisit(node->args[0], TTup);
+			if (node->args[0]->type == TTup) {
+				LLVMVal v=castVisit(node->args[0], TTup);
+				OwnedLLVMVal r(builder.CreateCall2(
+								   getStdlibFunc("rm_tupHasEntry"), 
+								   v.value, 
+								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code))));
+				disown(v, TTup);
+				return LLVMVal(std::move(r));
+			} else if (node->args[0]->type == TRel) {
+				LLVMVal v=castVisit(node->args[0], TRel);
+				OwnedLLVMVal r(builder.CreateCall2(
+								   getStdlibFunc("rm_relHasEntry"), 
+								   v.value, 
+								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code))));
+				disown(v, TRel);
+				return LLVMVal(std::move(r));
+			} else if (node->args[0]->type == TAny) {
+				ICE("Dynamic switching not implemented");
+			} else
+				ICE("Unexpected type", node->args[0]->type);
+			break;
+		case TK_MAX:
+		{	
+			LLVMVal v=castVisit(node->args[0], TRel);
 			OwnedLLVMVal r(builder.CreateCall2(
-							   getStdlibFunc("rm_tupHasEntry"), 
-							   v.value, 
-							   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code))));
-			disown(v, TTup);
+								   getStdlibFunc("rm_maxRel"), 
+								   v.value, 
+								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code))));
+			disown(v, TRel);
 			return LLVMVal(std::move(r));
 		}
-		break;
+		case TK_MIN:
+		{	
+			LLVMVal v=castVisit(node->args[0], TRel);
+			OwnedLLVMVal r(builder.CreateCall2(
+								   getStdlibFunc("rm_minRel"), 
+								   v.value, 
+								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code))));
+			disown(v, TRel);
+			return LLVMVal(std::move(r));
+		}
+		case TK_ADD:
+		{	
+			LLVMVal v=castVisit(node->args[0], TRel);
+			OwnedLLVMVal r(builder.CreateCall2(
+								   getStdlibFunc("rm_addRel"), 
+								   v.value, 
+								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code))));
+			disown(v, TRel);
+			return LLVMVal(std::move(r));
+		}
+		case TK_MULT:
+		{	
+			LLVMVal v=castVisit(node->args[0], TRel);
+			OwnedLLVMVal r(builder.CreateCall2(
+								   getStdlibFunc("rm_multRel"), 
+								   v.value, 
+								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code))));
+			disown(v, TRel);
+			return LLVMVal(std::move(r));
+		}
+		case TK_COUNT:
+		{	
+			LLVMVal v=castVisit(node->args[0], TRel);
+			OwnedLLVMVal r(builder.CreateCall2(
+								   getStdlibFunc("rm_countRel"), 
+								   v.value, 
+								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code))));
+			disown(v, TRel);
+			return LLVMVal(std::move(r));
+		}
 		default:
 			ICE("BuildIn not implemented", node->nameToken.id);
 		}
@@ -855,7 +939,9 @@ public:
         case TK_STDINT:
 			return getUndef(TInt);
         case TK_ZERO:
+			return extGlobalObject("zero_rel");
 		case TK_ONE:
+			return extGlobalObject("one_rel");
 		default:
 			ICE("No codegen for", node->valueToken.id);
 			break;		
@@ -886,8 +972,11 @@ public:
 		}
 	}
 
-	LLVMVal visit(std::shared_ptr<RelExp>) {
-        ICE("Rel");
+	LLVMVal visit(std::shared_ptr<RelExp> exp) {
+		LLVMVal v = castVisit(exp->exp, TTup);
+		LLVMVal v2 = OwnedLLVMVal(builder.CreateCall(getStdlibFunc("rm_createRel"), v.value));
+		disown(v, TTup);
+		return v2;
 	}
 
 	LLVMVal visit(std::shared_ptr<LenExp> exp) {
@@ -960,8 +1049,18 @@ public:
 		return r;;
 	}
 
-	LLVMVal visit(std::shared_ptr<RenameExp>) {
-		ICE("Rename");
+	LLVMVal visit(std::shared_ptr<RenameExp> exp) {
+		Value * names = builder.CreateAlloca(voidPtrType, int32(2*exp->renames.size()) );
+		for (size_t i=0; i < exp->renames.size(); ++i) {
+			builder.CreateStore(globalString(exp->renames[i]->fromNameToken), builder.CreateConstGEP1_32(names, 2*i));
+			builder.CreateStore(globalString(exp->renames[i]->toNameToken), builder.CreateConstGEP1_32(names, 2*i+1));
+		}
+		
+		LLVMVal rel=castVisit(exp->lhs, TRel);
+		LLVMVal ret=OwnedLLVMVal(builder.CreateCall3(getStdlibFunc("rm_renameRel"), rel.value, int32(exp->renames.size()), names));
+		disown(rel, TRel);
+		return ret;
+
 	}
         
 	LLVMVal visit(std::shared_ptr<DotExp> node) {
@@ -989,8 +1088,25 @@ public:
 		ICE("At");
 	}
 
-	LLVMVal visit(std::shared_ptr<ProjectExp>) {
-		ICE("Project");
+	LLVMVal visit(std::shared_ptr<ProjectExp> exp) {
+		Value * names = builder.CreateAlloca(voidPtrType, int32(exp->names.size()) );
+		for (size_t i=0; i < exp->names.size(); ++i)
+			builder.CreateStore(globalString(exp->names[i]), builder.CreateConstGEP1_32(names, i));
+		
+		LLVMVal rel=castVisit(exp->lhs, TRel);
+		LLVMVal ret;
+		switch (exp->projectionToken.id) {
+		case TK_PROJECT_MINUS:
+			ret=OwnedLLVMVal(builder.CreateCall3(getStdlibFunc("rm_projectMinusRel"), rel.value, int32(exp->names.size()), names));
+			break;
+		case TK_PROJECT_PLUS:
+			ret=OwnedLLVMVal(builder.CreateCall3(getStdlibFunc("rm_projectPlusRel"), rel.value, int32(exp->names.size()), names));
+			break;
+		default:
+			ICE("Bad project", exp->projectionToken.id);
+		}
+		disown(rel, TRel);
+		return ret;
 	}
 
 	LLVMVal visit(std::shared_ptr<Choice>) {ICE("Choice");}
@@ -1127,6 +1243,19 @@ public:
 						int8(0)))));
 	}
 
+	LLVMVal binopEqualText(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
+		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_equalText"), lhs.value, rhs.value));
+	}
+
+	LLVMVal binopEqualRel(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
+		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_equalRel"), lhs.value, rhs.value));
+	}
+
+	LLVMVal binopEqualTup(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
+		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_equalTup"), lhs.value, rhs.value));
+	}
+
+
 	LLVMVal binopDifferentInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(builder.CreateICmpNE(lhs.value, rhs.value));
 	}
@@ -1145,8 +1274,23 @@ public:
 						int8(3)))));
 	}
 
+	LLVMVal binopDifferentText(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
+		return OwnedLLVMVal(
+			builder.CreateSub(int8(3), builder.CreateCall2(getStdlibFunc("rm_equalText"), lhs.value, rhs.value)));
+	}
+
+	LLVMVal binopDifferentRel(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
+		return OwnedLLVMVal(
+			builder.CreateSub(int8(3), builder.CreateCall2(getStdlibFunc("rm_equalRel"), lhs.value, rhs.value)));
+	}
+
+	LLVMVal binopDifferentTup(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
+		return OwnedLLVMVal(
+			builder.CreateSub(int8(3), builder.CreateCall2(getStdlibFunc("rm_equalTup"), lhs.value, rhs.value)));
+	}
+
+
 	LLVMVal binopAndBool(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		
 		return OwnedLLVMVal(builder.CreateAnd(lhs.value, rhs.value));
 	}
 
@@ -1162,14 +1306,18 @@ public:
 		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_joinRel"), lhs.value, rhs.value));
 	}
 
+	LLVMVal binopDiffRel(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
+		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_diffRel"), lhs.value, rhs.value));
+	}
+
 	LLVMVal binopSelectRel(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_selectRel"), lhs.value, rhs.value));
+		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_selectRel"), lhs.value, 
+												builder.CreatePointerCast(rhs.value, voidPtrType)));
 	}
 
 	LLVMVal binopExtendTup(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_extendTup"), lhs.value, rhs.value));
 	}
-
 	
 	LLVMVal visit(std::shared_ptr<BinaryOpExp> node) {
 		switch (node->opToken.id) {
@@ -1186,7 +1334,10 @@ public:
 					{TRel, TRel, TRel, &CodeGen::binopJoinRel}
 				});
 		case TK_MINUS:
-			return binopImpl(node, { {TInt, TInt, TInt, &CodeGen::binopMinusInt} });
+			return binopImpl(node, { 
+					{TInt, TInt, TInt, &CodeGen::binopMinusInt},
+					{TRel, TRel, TRel, &CodeGen::binopDiffRel}
+				});
 		case TK_DIV:
 			return binopImpl(node, { {TInt, TInt, TInt, &CodeGen::binopDivInt} });
 		case TK_MOD:
@@ -1215,12 +1366,17 @@ public:
 			return binopImpl(node, { 
 					{TInt, TInt, TBool, &CodeGen::binopEqualInt} ,
 					{TBool, TBool, TBool, &CodeGen::binopEqualBool} ,
+					{TRel, TRel, TBool, &CodeGen::binopEqualRel} ,
+					{TTup, TTup, TBool, &CodeGen::binopEqualTup} ,
+					{TText, TText, TBool, &CodeGen::binopEqualText} ,
 						});
 		case TK_DIFFERENT:
-
 			return binopImpl(node, { 
 					{TInt, TInt, TBool, &CodeGen::binopDifferentInt} ,
 					{TBool, TBool, TBool, &CodeGen::binopDifferentBool} ,
+					{TRel, TRel, TBool, &CodeGen::binopDifferentRel} ,
+					{TTup, TTup, TBool, &CodeGen::binopDifferentTup} ,
+					{TText, TText, TBool, &CodeGen::binopDifferentText} ,
 						});
 		case TK_AND:
 			return binopImpl(node, { {TBool, TBool, TBool, &CodeGen::binopAndBool} });
