@@ -24,6 +24,7 @@
 #include "llvmCodeGen.hh"
 #include <sstream>
 #include <iostream>
+#include <memory>
 #include <unordered_map>
 
 #include <llvm/IR/IRBuilder.h>
@@ -46,6 +47,11 @@
 namespace {
 using namespace llvm;
 using namespace rasmus::frontend;
+
+template<int ...> struct seq {};
+	template<int N, int ...S> struct gens : gens<N-1, N-1, S...> {};
+	template<int ...S> struct gens<0, S...>{ typedef seq<S...> type; };
+	
 
 struct BorrowedLLVMVal {
 public:
@@ -377,7 +383,6 @@ public:
 			return extGlobalObject("undef_text");
 		case TRel:
 		case TTup:
-			return BorrowedLLVMVal(llvm::Constant::getNullValue(voidPtrType));
 		default:
 			ICE("Unhandled undef", t);
 		}
@@ -917,7 +922,7 @@ public:
 			ICE("BuildIn not implemented", node->nameToken.id);
 		}
 	}
-	
+
 	LLVMVal visit(std::shared_ptr<ConstantExp> node) {
 		switch (node->valueToken.id) {
 		case TK_FALSE:
@@ -1117,6 +1122,104 @@ public:
 	LLVMVal visit(std::shared_ptr<Val>) {ICE("Val");}
 	LLVMVal visit(std::shared_ptr<RenameItem>) {ICE("RenameItem");}
 
+	template <typename T>
+	struct bwh {
+		typedef BorrowedLLVMVal t;
+	};
+
+	template <typename T>
+	struct th {
+		typedef ::Type t;
+	};
+
+	template <typename ...T>
+	struct OpImpl {
+		::Type ret;
+		std::array<::Type, sizeof...(T)> types;
+		std::function<LLVMVal(typename bwh<T>::t ...)> func;
+	};
+
+	template <typename ...T>
+	OpImpl<typename th<T>::t...> dOp(
+		::Type rtype, 
+		std::function<LLVMVal(typename bwh<T>::t ...)> func, 
+		T... types) {
+		typedef OpImpl<typename th<T>::t...> rt; 
+		return rt{rtype, {types...}, func};
+	}
+
+
+	template <typename ...T>
+	OpImpl<typename th<T>::t...> dOp(
+		::Type rtype, 
+		std::function<LLVMVal(CodeGen&, typename bwh<T>::t ...)> func, 
+		T... types) {
+		typedef OpImpl<typename th<T>::t...> rt; 
+		return rt{rtype, {types...}, 
+				[func,this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) -> LLVMVal {
+					return func(*this, lhs, rhs);
+				}};
+	}	
+
+	template <int i>
+	struct bwi {
+		typedef BorrowedLLVMVal t;
+	};
+
+	template <int ...S>
+	LLVMVal doCall(seq<S...>, 
+				   std::function<LLVMVal(typename bwi<S>::t ...)> func,
+				   std::array<LLVMVal, sizeof...(S)> & v) {
+		return func(borrow(v[S])...);
+	}
+
+	template <typename ...T>
+	LLVMVal opImp(std::shared_ptr<Node> node,
+				  std::vector<OpImpl<typename th<T>::t...> > ops,
+				  T ... c
+		) {
+		const int N=sizeof...(T);
+		typedef OpImpl<typename th<T>::t...> oi_t;
+		std::vector<oi_t> matches;
+
+		std::array<::Type, N> types={c->type...};
+		for (auto op: ops) {
+			bool ok=true;
+			for (size_t i=0; i < N; ++i) 
+				ok = ok && (types[i] == op.types[i] || types[i] == TAny);
+			if (!ok) continue;
+			matches.push_back(op);
+		}
+	
+		if (matches.size() == 0)
+		 	ICE("Infeasible types in binopImpl, there is a bug in the typechecker!!");
+			
+		if (matches.size() == 1) {
+		 	// Even though there might be any arguments
+			// we have determined that this is the only possible alloweable call
+		 	oi_t h = matches[0];
+
+			std::array<std::shared_ptr<Node>, N> clds={std::static_pointer_cast<Node>(c)...};
+			std::array<LLVMVal, N> values;
+			for (size_t i=0; i < N; ++i)
+				values[i] = castVisit(clds[i], h.types[i]);
+			
+			LLVMVal v=doCall(typename gens<N>::type(), h.func, values);;
+			
+			LLVMVal r(cast(std::move(v), h.ret, node->type, node));
+
+			for (size_t i=0; i < N; ++i)
+				disown(values[i], h.types[i]);
+			
+			return r;
+		} 
+		
+		// There was more then one possible operator we want to call
+		// So we have to determine on runtime which is the right
+		ICE("Dynamic binops are not implemented");
+	}
+
+	  
 	struct BinopHelp {
 		::Type lhsType;
 		::Type rhsType;
@@ -1125,33 +1228,13 @@ public:
 	};
 	
 	LLVMVal binopImpl(std::shared_ptr<BinaryOpExp> node, std::initializer_list<BinopHelp> types) {
-		std::vector<BinopHelp> matches;
-		for(auto h: types) {
-			if (h.lhsType != node->lhs->type && node->lhs->type != TAny) continue;
-			if (h.rhsType != node->rhs->type && node->rhs->type != TAny) continue;
-			matches.push_back(h);
+		std::vector<OpImpl<::Type, ::Type> > ops;
+		for (BinopHelp h: types) {
+			ops.push_back( dOp(h.resType, h.func, h.lhsType, h.rhsType) );
 		}
-		if (matches.size() == 0)
-			ICE("Infeasible types in binopImpl, there is a bug in the typechecker!!");
-
-		if (matches.size() == 1) {
-			// Even though there might be any arguments
-			// we have determined that this is the only possible alloweable call
-			BinopHelp h = matches[0];
-			LLVMVal a(castVisit(node->lhs, h.lhsType));
-			LLVMVal b(castVisit(node->rhs, h.rhsType));
-			LLVMVal v(h.func(*this, borrow(a), borrow(b)));
-			LLVMVal r(cast(std::move(v), h.resType, node->type, node));
-			disown(a, h.lhsType);
-			disown(b, h.rhsType);
-			return r;
-		} 
-
-		// There was more then one possible operator we want to call
-		// So we have to determine on runtime which is the right
-		ICE("Dynamic binops are not implemented");
+		return opImp(node, ops, node->lhs, node->rhs);
 	}
-
+	
 	LLVMVal binopAddInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(
 			builder.CreateSelect(builder.CreateICmpEQ(lhs.value, undefInt), undefInt,
