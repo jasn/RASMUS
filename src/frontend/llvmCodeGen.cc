@@ -535,6 +535,104 @@ public:
 												  name));
 	}
 
+
+	template <typename T>
+	struct bwh {
+		typedef BorrowedLLVMVal t;
+	};
+
+	template <typename T>
+	struct th {
+		typedef ::Type t;
+	};
+
+	template <typename ...T>
+	struct OpImpl {
+		::Type ret;
+		std::array<::Type, sizeof...(T)> types;
+		std::function<LLVMVal(typename bwh<T>::t ...)> func;
+	};
+
+	template <typename F, typename ...T>
+	OpImpl<typename th<T>::t...> dOp(
+		F func, 
+		::Type rtype, 
+		T... types) {
+		typedef OpImpl<typename th<T>::t...> rt; 
+		return rt{rtype, {types...}, func};
+	}
+
+	template <typename F, typename ...T>
+	OpImpl<typename th<T>::t...> dOpM(
+		F func, 
+		::Type rtype, 
+		T... types) {
+		typedef OpImpl<typename th<T>::t...> rt; 
+		return rt{rtype, {types...}, 
+				[func,this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) -> LLVMVal {
+					return (this->*func)(lhs, rhs);
+				}};
+	}	
+
+	template <int i>
+	struct bwi {
+		typedef BorrowedLLVMVal t;
+	};
+
+	template <int ...S>
+	LLVMVal doCall(seq<S...>, 
+				   std::function<LLVMVal(typename bwi<S>::t ...)> func,
+				   std::array<LLVMVal, sizeof...(S)> & v) {
+		return func(borrow(v[S])...);
+	}
+
+	template <typename ...T>
+	LLVMVal opImp(std::vector<OpImpl<typename th<T>::t...> > ops,
+				  std::shared_ptr<Node> node,
+				  T ... c
+		) {
+		const int N=sizeof...(T);
+		typedef OpImpl<typename th<T>::t...> oi_t;
+		std::vector<oi_t> matches;
+
+		std::array<::Type, N> types={c->type...};
+		for (auto op: ops) {
+			bool ok=true;
+			for (size_t i=0; i < N; ++i) 
+				ok = ok && (types[i] == op.types[i] || types[i] == TAny);
+			if (!ok) continue;
+			matches.push_back(op);
+		}
+	
+		if (matches.size() == 0)
+		 	ICE("Infeasible types in binopImpl, there is a bug in the typechecker!!");
+			
+		if (matches.size() == 1) {
+		 	// Even though there might be any arguments
+			// we have determined that this is the only possible alloweable call
+		 	oi_t h = matches[0];
+
+			std::array<std::shared_ptr<Node>, N> clds={std::static_pointer_cast<Node>(c)...};
+			std::array<LLVMVal, N> values;
+			for (size_t i=0; i < N; ++i)
+				values[i] = castVisit(clds[i], h.types[i]);
+			
+			LLVMVal v=doCall(typename gens<N>::type(), h.func, values);;
+			
+			LLVMVal r(cast(std::move(v), h.ret, node->type, node));
+
+			for (size_t i=0; i < N; ++i)
+				disown(values[i], h.types[i]);
+			
+			return r;
+		} 
+		
+		// There was more then one possible operator we want to call
+		// So we have to determine on runtime which is the right
+		ICE("Dynamic binops are not implemented");
+	}
+
+
 	LLVMVal visit(std::shared_ptr<VariableExp> node) {
 		if (NodePtr store = node->store.lock()) {
 			if (store->nodeType != NodeType::AssignmentExp) return borrow(store->llvmVal);
@@ -835,8 +933,6 @@ public:
 	}
 
 
-
-
 	LLVMVal visit(std::shared_ptr<BuiltInExp> node) {
 		switch (node->nameToken.id) {
 		case TK_PRINT:
@@ -847,26 +943,24 @@ public:
 			return OwnedLLVMVal(int8(1));
 		}
 		case TK_HAS:
-			if (node->args[0]->type == TTup) {
-				LLVMVal v=castVisit(node->args[0], TTup);
-				OwnedLLVMVal r(builder.CreateCall2(
-								   getStdlibFunc("rm_tupHasEntry"), 
-								   v.value, 
-								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code))));
-				disown(v, TTup);
-				return LLVMVal(std::move(r));
-			} else if (node->args[0]->type == TRel) {
-				LLVMVal v=castVisit(node->args[0], TRel);
-				OwnedLLVMVal r(builder.CreateCall2(
-								   getStdlibFunc("rm_relHasEntry"), 
-								   v.value, 
-								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code))));
-				disown(v, TRel);
-				return LLVMVal(std::move(r));
-			} else if (node->args[0]->type == TAny) {
-				ICE("Dynamic switching not implemented");
-			} else
-				ICE("Unexpected type", node->args[0]->type);
+			
+			return opImp(
+				{
+					dOp([this, node](LLVMVal v) -> OwnedLLVMVal {
+							return builder.CreateCall2(
+								getStdlibFunc("rm_tupHasEntry"), 
+								v.value, 
+								globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)));
+						}, TBool, TTup),
+					dOp([this, node](LLVMVal v) -> OwnedLLVMVal {
+							return builder.CreateCall2(
+								getStdlibFunc("rm_relHasEntry"), 
+								v.value, 
+								globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)));
+						}, TBool, TRel)
+				}, 
+				node,
+				node->args[0]);
 			break;
 		case TK_MAX:
 		{	
@@ -1121,118 +1215,10 @@ public:
 	LLVMVal visit(std::shared_ptr<InvalidExp>) {ICE("InvalidExp");}
 	LLVMVal visit(std::shared_ptr<Val>) {ICE("Val");}
 	LLVMVal visit(std::shared_ptr<RenameItem>) {ICE("RenameItem");}
-
-	template <typename T>
-	struct bwh {
-		typedef BorrowedLLVMVal t;
-	};
-
-	template <typename T>
-	struct th {
-		typedef ::Type t;
-	};
-
-	template <typename ...T>
-	struct OpImpl {
-		::Type ret;
-		std::array<::Type, sizeof...(T)> types;
-		std::function<LLVMVal(typename bwh<T>::t ...)> func;
-	};
-
-	template <typename ...T>
-	OpImpl<typename th<T>::t...> dOp(
-		::Type rtype, 
-		std::function<LLVMVal(typename bwh<T>::t ...)> func, 
-		T... types) {
-		typedef OpImpl<typename th<T>::t...> rt; 
-		return rt{rtype, {types...}, func};
-	}
-
-
-	template <typename ...T>
-	OpImpl<typename th<T>::t...> dOp(
-		::Type rtype, 
-		std::function<LLVMVal(CodeGen&, typename bwh<T>::t ...)> func, 
-		T... types) {
-		typedef OpImpl<typename th<T>::t...> rt; 
-		return rt{rtype, {types...}, 
-				[func,this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) -> LLVMVal {
-					return func(*this, lhs, rhs);
-				}};
-	}	
-
-	template <int i>
-	struct bwi {
-		typedef BorrowedLLVMVal t;
-	};
-
-	template <int ...S>
-	LLVMVal doCall(seq<S...>, 
-				   std::function<LLVMVal(typename bwi<S>::t ...)> func,
-				   std::array<LLVMVal, sizeof...(S)> & v) {
-		return func(borrow(v[S])...);
-	}
-
-	template <typename ...T>
-	LLVMVal opImp(std::shared_ptr<Node> node,
-				  std::vector<OpImpl<typename th<T>::t...> > ops,
-				  T ... c
-		) {
-		const int N=sizeof...(T);
-		typedef OpImpl<typename th<T>::t...> oi_t;
-		std::vector<oi_t> matches;
-
-		std::array<::Type, N> types={c->type...};
-		for (auto op: ops) {
-			bool ok=true;
-			for (size_t i=0; i < N; ++i) 
-				ok = ok && (types[i] == op.types[i] || types[i] == TAny);
-			if (!ok) continue;
-			matches.push_back(op);
-		}
 	
-		if (matches.size() == 0)
-		 	ICE("Infeasible types in binopImpl, there is a bug in the typechecker!!");
-			
-		if (matches.size() == 1) {
-		 	// Even though there might be any arguments
-			// we have determined that this is the only possible alloweable call
-		 	oi_t h = matches[0];
-
-			std::array<std::shared_ptr<Node>, N> clds={std::static_pointer_cast<Node>(c)...};
-			std::array<LLVMVal, N> values;
-			for (size_t i=0; i < N; ++i)
-				values[i] = castVisit(clds[i], h.types[i]);
-			
-			LLVMVal v=doCall(typename gens<N>::type(), h.func, values);;
-			
-			LLVMVal r(cast(std::move(v), h.ret, node->type, node));
-
-			for (size_t i=0; i < N; ++i)
-				disown(values[i], h.types[i]);
-			
-			return r;
-		} 
-		
-		// There was more then one possible operator we want to call
-		// So we have to determine on runtime which is the right
-		ICE("Dynamic binops are not implemented");
-	}
-
-	  
-	struct BinopHelp {
-		::Type lhsType;
-		::Type rhsType;
-		::Type resType;
-		std::function<LLVMVal(CodeGen&, BorrowedLLVMVal, BorrowedLLVMVal) > func;
-	};
-	
-	LLVMVal binopImpl(std::shared_ptr<BinaryOpExp> node, std::initializer_list<BinopHelp> types) {
-		std::vector<OpImpl<::Type, ::Type> > ops;
-		for (BinopHelp h: types) {
-			ops.push_back( dOp(h.resType, h.func, h.lhsType, h.rhsType) );
-		}
-		return opImp(node, ops, node->lhs, node->rhs);
+	LLVMVal binopImpl(std::shared_ptr<BinaryOpExp> node, 
+					  std::initializer_list<OpImpl<::Type, ::Type> > ops) {
+		return opImp(std::vector<OpImpl<::Type, ::Type> >(ops), node, node->lhs, node->rhs);
 	}
 	
 	LLVMVal binopAddInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
@@ -1405,70 +1391,72 @@ public:
 	LLVMVal visit(std::shared_ptr<BinaryOpExp> node) {
 		switch (node->opToken.id) {
 		case TK_CONCAT:
-			return binopImpl(node, { {TText, TText, TText, &CodeGen::binopConcat} });
+			return binopImpl(node, { 
+					dOpM(&CodeGen::binopConcat, TText, TText, TText)
+						});
 		case TK_PLUS:
 			return binopImpl(node, { 
-					{TInt, TInt, TInt, &CodeGen::binopAddInt},
-					{TRel, TRel, TRel, &CodeGen::binopUnionRel}
-				});
+					dOpM(&CodeGen::binopAddInt, TInt, TInt, TInt),
+					dOpM(&CodeGen::binopUnionRel, TRel, TRel, TRel)
+						});
 		case TK_MUL:
 			return binopImpl(node, {
-					{TInt, TInt, TInt, &CodeGen::binopMulInt},
-					{TRel, TRel, TRel, &CodeGen::binopJoinRel}
+					dOpM(&CodeGen::binopMulInt, TInt, TInt, TInt),
+					dOpM(&CodeGen::binopJoinRel, TRel, TRel, TRel)
 				});
 		case TK_MINUS:
-			return binopImpl(node, { 
-					{TInt, TInt, TInt, &CodeGen::binopMinusInt},
-					{TRel, TRel, TRel, &CodeGen::binopDiffRel}
+			return binopImpl(node, {
+					dOpM(&CodeGen::binopMinusInt, TInt, TInt, TInt),
+					dOpM(&CodeGen::binopDiffRel, TRel, TRel, TRel)
 				});
 		case TK_DIV:
-			return binopImpl(node, { {TInt, TInt, TInt, &CodeGen::binopDivInt} });
+			return binopImpl(node, { dOpM(&CodeGen::binopDivInt, TInt, TInt, TInt) });
 		case TK_MOD:
-			return binopImpl(node, { {TInt, TInt, TInt, &CodeGen::binopModInt} });
+			return binopImpl(node, { dOpM(&CodeGen::binopModInt, TInt, TInt, TInt) });
 		case TK_LESS:
 			return binopImpl(node, { 
-					{TInt, TInt, TBool, &CodeGen::binopLessInt} ,
-					{TBool, TBool, TBool, &CodeGen::binopLessBool} ,
+					dOpM(&CodeGen::binopLessInt, TBool, TInt, TInt) ,
+					dOpM(&CodeGen::binopLessBool, TBool, TBool, TBool) ,
 						});
 		case TK_LESSEQUAL:
 			return binopImpl(node, { 
-					{TInt, TInt, TBool, &CodeGen::binopLessEqualInt} ,
-					{TBool, TBool, TBool, &CodeGen::binopLessEqualBool} ,
+					dOpM(&CodeGen::binopLessEqualInt, TBool, TInt, TInt) ,
+					dOpM(&CodeGen::binopLessEqualBool, TBool, TBool, TBool) ,
 						});
 		case TK_GREATER:
 			return binopImpl(node, { 
-					{TInt, TInt, TBool, &CodeGen::binopGreaterInt} ,
-					{TBool, TBool, TBool, &CodeGen::binopGreaterBool} ,
+					dOpM(&CodeGen::binopGreaterInt, TBool,  TInt, TInt) ,
+					dOpM(&CodeGen::binopGreaterBool, TBool, TBool, TBool) ,
 						});
 		case TK_GREATEREQUAL:
 			return binopImpl(node, { 
-					{TInt, TInt, TBool, &CodeGen::binopGreaterEqualInt} ,
-					{TBool, TBool, TBool, &CodeGen::binopGreaterEqualBool} ,
+					dOpM(&CodeGen::binopGreaterEqualInt, TBool, TInt, TInt) ,
+					dOpM(&CodeGen::binopGreaterEqualBool, TBool, TBool, TBool) ,
 						});
 		case TK_EQUAL:
 			return binopImpl(node, { 
-					{TInt, TInt, TBool, &CodeGen::binopEqualInt} ,
-					{TBool, TBool, TBool, &CodeGen::binopEqualBool} ,
-					{TRel, TRel, TBool, &CodeGen::binopEqualRel} ,
-					{TTup, TTup, TBool, &CodeGen::binopEqualTup} ,
-					{TText, TText, TBool, &CodeGen::binopEqualText} ,
+					dOpM(&CodeGen::binopEqualInt, TBool, TInt, TInt) ,
+					dOpM(&CodeGen::binopEqualBool, TBool, TBool, TBool) ,
+					dOpM(&CodeGen::binopEqualRel, TBool, TRel, TRel) ,
+					dOpM(&CodeGen::binopEqualTup, TBool, TTup, TTup) ,
+					dOpM(&CodeGen::binopEqualText, TBool, TText, TText) ,
 						});
 		case TK_DIFFERENT:
 			return binopImpl(node, { 
-					{TInt, TInt, TBool, &CodeGen::binopDifferentInt} ,
-					{TBool, TBool, TBool, &CodeGen::binopDifferentBool} ,
-					{TRel, TRel, TBool, &CodeGen::binopDifferentRel} ,
-					{TTup, TTup, TBool, &CodeGen::binopDifferentTup} ,
-					{TText, TText, TBool, &CodeGen::binopDifferentText} ,
+					dOpM(&CodeGen::binopDifferentInt, TBool, TInt, TInt) ,
+					dOpM(&CodeGen::binopDifferentBool, TBool, TBool, TBool) ,
+					dOpM(&CodeGen::binopDifferentRel, TBool, TRel, TRel) ,
+					dOpM(&CodeGen::binopDifferentTup, TBool, TTup, TTup) ,
+					dOpM(&CodeGen::binopDifferentText, TBool, TText, TText) ,
 						});
 		case TK_AND:
-			return binopImpl(node, { {TBool, TBool, TBool, &CodeGen::binopAndBool} });
+			return binopImpl(node, { dOpM(&CodeGen::binopAndBool, TBool, TBool, TBool) });
 		case TK_OR:
-			return binopImpl(node, { {TBool, TBool, TBool, &CodeGen::binopOrBool} });
+			return binopImpl(node, { dOpM(&CodeGen::binopOrBool, TBool, TBool, TBool) });
 		case TK_QUESTION:
-			return binopImpl(node, { {TRel, TFunc, TRel, &CodeGen::binopSelectRel} });
+			return binopImpl(node, { dOpM(&CodeGen::binopSelectRel, TRel, TRel, TFunc) });
 		case TK_OPEXTEND:
-			return binopImpl(node, { {TTup, TTup, TTup, &CodeGen::binopExtendTup} });
+			return binopImpl(node, { dOpM(&CodeGen::binopExtendTup, TTup, TTup, TTup) });
 		default: 
 			ICE("Binop not implemented", node->opToken.id);
 		}
