@@ -113,10 +113,10 @@ public:
 	bool dumpOptFunctions;
 
 	llvm::Type * voidType = llvm::Type::getVoidTy(getGlobalContext());
-	llvm::Type * int8Type = llvm::Type::getInt8Ty(getGlobalContext());
-	llvm::Type * int16Type = llvm::Type::getInt16Ty(getGlobalContext());
-	llvm::Type * int32Type = llvm::Type::getInt32Ty(getGlobalContext());
-	llvm::Type * int64Type = llvm::Type::getInt64Ty(getGlobalContext());
+	llvm::IntegerType * int8Type = llvm::Type::getInt8Ty(getGlobalContext());
+	llvm::IntegerType * int16Type = llvm::Type::getInt16Ty(getGlobalContext());
+	llvm::IntegerType * int32Type = llvm::Type::getInt32Ty(getGlobalContext());
+	llvm::IntegerType * int64Type = llvm::Type::getInt64Ty(getGlobalContext());
 	llvm::PointerType * pointerType(llvm::Type * t) {return PointerType::getUnqual(t);}
 	llvm::PointerType * voidPtrType = pointerType(int8Type);
 	
@@ -213,12 +213,12 @@ public:
 		}
 	}
 	
-	llvm::Constant * int8(uint8_t value) {	return llvm::ConstantInt::get(int8Type, value);}
-	llvm::Constant * int16(uint16_t value) {return llvm::ConstantInt::get(int16Type, value);}
-	llvm::Constant * int32(uint32_t value) {return llvm::ConstantInt::get(int32Type, value);}
-	llvm::Constant * int64(int64_t value) {return llvm::ConstantInt::get(int64Type, value);}
+	llvm::ConstantInt * int8(uint8_t value) {return llvm::ConstantInt::get(int8Type, value);}
+	llvm::ConstantInt * int16(uint16_t value) {return llvm::ConstantInt::get(int16Type, value);}
+	llvm::ConstantInt * int32(uint32_t value) {return llvm::ConstantInt::get(int32Type, value);}
+	llvm::ConstantInt * int64(int64_t value) {return llvm::ConstantInt::get(int64Type, value);}
 
-	llvm::Constant * undefInt = int64(std::numeric_limits<int64_t>::min());
+	llvm::ConstantInt * undefInt = int64(std::numeric_limits<int64_t>::min());
 	
 	llvm::Value * typeRepr(::Type t) {
 		return int8(t);
@@ -582,54 +582,137 @@ public:
 	template <int ...S>
 	LLVMVal doCall(seq<S...>, 
 				   std::function<LLVMVal(typename bwi<S>::t ...)> func,
-				   std::array<LLVMVal, sizeof...(S)> & v) {
-		return func(borrow(v[S])...);
+				   std::array<BorrowedLLVMVal, sizeof...(S)> & v) {
+		return func(v[S]...);
+	}
+
+	
+	template <typename oi_t,
+			  int N> 
+	LLVMVal opImp_(int i,
+				   std::vector<oi_t> ops,
+				   NodePtr node,
+				   std::array<NodePtr, N> childs,
+				   std::array<BorrowedLLVMVal, N> args) {
+		if (i == N) {
+			if (ops.size() > 1) ICE("Multiple identical binops");
+			LLVMVal v=doCall(typename gens<N>::type(), ops[0].func, args);
+			LLVMVal r(cast(std::move(v), ops[0].ret, node->type, node));
+			return r;
+		}
+		
+		::Type type=childs[i]->type;
+		
+		if (type != TAny) {
+			std::vector<oi_t> matches;
+			for (auto op: ops) {
+				if (type != op.types[i]) continue;
+				matches.push_back(op);
+			}
+			if (matches.size() == 0)
+				ICE("Infeasible types in binopImpl, there is a bug in the typechecker!!");
+			LLVMVal v=castVisit(childs[i], type);
+			args[i] = borrow(v);
+			LLVMVal r=opImp_<oi_t, N>(i+1, matches, node, childs, args);
+			disown(v, type);
+			return r;
+		} else {
+			BasicBlock * errTarget = newBlock();
+			BasicBlock * end = newBlock();
+			LLVMVal v=castVisit(childs[i], TAny);
+			SwitchInst * sw=builder.CreateSwitch(v.type, errTarget);
+			std::sort(ops.begin(), ops.end(), [i](const oi_t & a, const oi_t & b) {
+					return a.types[i] < b.types[i];
+				});
+
+			
+			Value * value=nullptr;
+			Value * type=nullptr;
+			switch (node->type) {
+			case TText:
+			case TRel:
+			case TTup:
+				value = builder.CreateAlloca(voidPtrType);
+				break;
+			case TBool:
+				value = builder.CreateAlloca(int8Type);
+				break;
+			case TInt:
+				value = builder.CreateAlloca(int64Type);
+				break;
+			case TAny:
+				value = builder.CreateAlloca(int64Type);
+				type = builder.CreateAlloca(int8Type);
+				break;
+			default:
+				ICE("Unhandled", node->type);
+			}
+
+
+			auto a=ops.begin();
+			while (a != ops.end()) {
+				auto b=a;
+				do {
+					++b;
+				} while(b != ops.end() && b->types[i] == a->types[i]);
+
+				BasicBlock * block = newBlock();
+				sw->addCase(int8(a->types[i]), block);
+				builder.SetInsertPoint(block);
+				
+				switch (a->types[i]) {
+				case TInt:
+					args[i] = BorrowedLLVMVal(v.value);
+					break;
+				case TBool:
+					args[i] = BorrowedLLVMVal(builder.CreateTruncOrBitCast(v.value, int8Type));
+					break;
+				case TText:
+				case TFunc:
+				case TRel:
+				case TTup:
+					args[i] = BorrowedLLVMVal(builder.CreateIntToPtr(v.value, voidPtrType));
+					break;
+				default:
+					ICE("Unhandled", node->type);
+			
+				};
+				
+				std::vector<oi_t> matches(a, b);
+				LLVMVal r=opImp_<oi_t, N>(i+1, matches, node, childs, args);
+				builder.CreateStore(r.value, value);
+				if (type) builder.CreateStore(r.type, type);
+				forgetOwnership(r);	
+				builder.CreateBr(end);
+				a=b;
+			}
+			
+			builder.SetInsertPoint(errTarget);
+			
+			builder.CreateCall4(getStdlibFunc("rm_emitTypeError"),
+								int32(node->charRange.lo), int32(node->charRange.hi),
+								v.type,
+								typeRepr(TInt)); //TODO FIXME, this should not be tint
+			builder.CreateUnreachable();
+			builder.SetInsertPoint(end);
+			LLVMVal r=OwnedLLVMVal(
+				builder.CreateLoad(value),
+				type?builder.CreateLoad(type):nullptr);
+			disown(v, TAny);
+			return r;
+		}
 	}
 
 	template <typename ...T>
-	LLVMVal opImp(std::vector<OpImpl<typename th<T>::t...> > ops,
+	LLVMVal opImp(std::initializer_list<OpImpl<typename th<T>::t...> > ops,
 				  std::shared_ptr<Node> node,
 				  T ... c
 		) {
 		const int N=sizeof...(T);
 		typedef OpImpl<typename th<T>::t...> oi_t;
-		std::vector<oi_t> matches;
-
-		std::array<::Type, N> types={c->type...};
-		for (auto op: ops) {
-			bool ok=true;
-			for (size_t i=0; i < N; ++i) 
-				ok = ok && (types[i] == op.types[i] || types[i] == TAny);
-			if (!ok) continue;
-			matches.push_back(op);
-		}
-	
-		if (matches.size() == 0)
-		 	ICE("Infeasible types in binopImpl, there is a bug in the typechecker!!");
-			
-		if (matches.size() == 1) {
-		 	// Even though there might be any arguments
-			// we have determined that this is the only possible alloweable call
-		 	oi_t h = matches[0];
-
-			std::array<std::shared_ptr<Node>, N> clds={std::static_pointer_cast<Node>(c)...};
-			std::array<LLVMVal, N> values;
-			for (size_t i=0; i < N; ++i)
-				values[i] = castVisit(clds[i], h.types[i]);
-			
-			LLVMVal v=doCall(typename gens<N>::type(), h.func, values);;
-			
-			LLVMVal r(cast(std::move(v), h.ret, node->type, node));
-
-			for (size_t i=0; i < N; ++i)
-				disown(values[i], h.types[i]);
-			
-			return r;
-		} 
-		
-		// There was more then one possible operator we want to call
-		// So we have to determine on runtime which is the right
-		ICE("Dynamic binops are not implemented");
+		std::array<std::shared_ptr<Node>, N> childs={std::static_pointer_cast<Node>(c)...};
+		std::array<BorrowedLLVMVal, N> args;
+		return opImp_<oi_t, N>(0, ops, node, childs, args);
 	}
 
 
@@ -942,17 +1025,16 @@ public:
 			disown(v, TAny);
 			return OwnedLLVMVal(int8(1));
 		}
-		case TK_HAS:
-			
+		case TK_HAS:			
 			return opImp(
 				{
-					dOp([this, node](LLVMVal v) -> OwnedLLVMVal {
+					dOp([this, node](BorrowedLLVMVal v) -> OwnedLLVMVal {
 							return builder.CreateCall2(
 								getStdlibFunc("rm_tupHasEntry"), 
 								v.value, 
 								globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)));
 						}, TBool, TTup),
-					dOp([this, node](LLVMVal v) -> OwnedLLVMVal {
+					dOp([this, node](BorrowedLLVMVal v) -> OwnedLLVMVal {
 							return builder.CreateCall2(
 								getStdlibFunc("rm_relHasEntry"), 
 								v.value, 
@@ -1218,7 +1300,7 @@ public:
 	
 	LLVMVal binopImpl(std::shared_ptr<BinaryOpExp> node, 
 					  std::initializer_list<OpImpl<::Type, ::Type> > ops) {
-		return opImp(std::vector<OpImpl<::Type, ::Type> >(ops), node, node->lhs, node->rhs);
+		return opImp(ops, node, node->lhs, node->rhs);
 	}
 	
 	LLVMVal binopAddInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
