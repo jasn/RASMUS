@@ -402,7 +402,7 @@ public:
 			case TTup:
 				return BorrowedLLVMVal(builder.CreatePtrToInt(value.value, int64Type), typeRepr(tfrom));
             default:
-                ICE("Unhandled type", tfrom);
+                ICE("Unhandled type", tfrom, tto, node);
 			};
 		}
 
@@ -428,10 +428,10 @@ public:
 			case TTup:
 				return BorrowedLLVMVal(builder.CreateIntToPtr(value.value, voidPtrType));
 			default:
-				ICE("Unhandled type", tto);
+				ICE("Unhandled type", tfrom, tto, node);
 			}
 		}
-		ICE("Unhandled type", tfrom);
+		ICE("Unhandled type", tfrom, tto, node);
 	}
 	
 	LLVMVal cast(LLVMVal value, ::Type tfrom, ::Type tto, NodePtr node) {
@@ -596,7 +596,7 @@ public:
 				   std::array<NodePtr, N> childs,
 				   std::array<BorrowedLLVMVal, N> args) {
 		if (i == N) {
-			if (ops.size() > 1) ICE("Multiple identical binops");
+			if (ops.size() > 1) ICE("Multiple identical binops", node);
 			LLVMVal v=doCall(typename gens<N>::type(), ops[0].func, args);
 			LLVMVal r(cast(std::move(v), ops[0].ret, node->type, node));
 			return r;
@@ -641,7 +641,7 @@ public:
 				type = builder.CreateAlloca(int8Type);
 				break;
 			default:
-				ICE("Unhandled", node->type);
+				ICE("Unhandled", node->type, node);
 			}
 
 
@@ -672,7 +672,7 @@ public:
 					args[i] = BorrowedLLVMVal(builder.CreateIntToPtr(vals[i].value, voidPtrType));
 					break;
 				default:
-					ICE("Unhandled", node->type);
+					ICE("Unhandled", node->type, node);
 			
 				};
 				
@@ -825,7 +825,7 @@ public:
 			type = builder.CreateAlloca(int8Type);
 			break;
 		default:
-			ICE("Unhandled", node->type);
+			ICE("Unhandled", node->type, node);
 		}
 
 
@@ -877,8 +877,8 @@ public:
 		return OwnedLLVMVal(builder.CreateLoad(value), type?builder.CreateLoad(type):nullptr);
 	}
 
-	LLVMVal visit(std::shared_ptr<ForallExp>) {
-		ICE("ForallExp");
+	LLVMVal visit(std::shared_ptr<ForallExp> node) {
+		ICE("ForallExp", node);
 	}
 
 
@@ -1109,7 +1109,7 @@ public:
 			return LLVMVal(std::move(r));
 		}
 		default:
-			ICE("BuildIn not implemented", node->nameToken.id);
+			ICE("BuildIn not implemented", node->nameToken.id, node->nameToken, node);
 		}
 	}
 
@@ -1138,7 +1138,7 @@ public:
 		case TK_ONE:
 			return extGlobalObject("one_rel");
 		default:
-			ICE("No codegen for", node->valueToken.id);
+			ICE("No codegen for", node->valueToken.id, node);
 			break;		
 		}
 	}
@@ -1163,7 +1163,7 @@ public:
 			return r;
 		}
 		default:
-			ICE("Unhandled operator", node->opToken.id);
+			ICE("Unhandled operator", node->opToken.id, node);
 		}
 	}
 
@@ -1279,8 +1279,8 @@ public:
 	}
 
 
-	LLVMVal visit(std::shared_ptr<AtExp>) {
-		ICE("At");
+	LLVMVal visit(std::shared_ptr<AtExp> node) {
+		ICE("At", node);
 	}
 
 	LLVMVal visit(std::shared_ptr<ProjectExp> exp) {
@@ -1298,19 +1298,19 @@ public:
 			ret=OwnedLLVMVal(builder.CreateCall3(getStdlibFunc("rm_projectPlusRel"), rel.value, int32(exp->names.size()), names));
 			break;
 		default:
-			ICE("Bad project", exp->projectionToken.id);
+			ICE("Bad project", exp->projectionToken.id, exp->projectionToken, exp);
 		}
 		disown(rel, TRel);
 		return ret;
 	}
 
-	LLVMVal visit(std::shared_ptr<Choice>) {ICE("Choice");}
-	LLVMVal visit(std::shared_ptr<FuncCaptureValue>) {ICE("FuncCaptureValue");}
-	LLVMVal visit(std::shared_ptr<FuncArg>) {ICE("FuncArg");}
-	LLVMVal visit(std::shared_ptr<TupItem>) {ICE("TupItem");}
-	LLVMVal visit(std::shared_ptr<InvalidExp>) {ICE("InvalidExp");}
-	LLVMVal visit(std::shared_ptr<Val>) {ICE("Val");}
-	LLVMVal visit(std::shared_ptr<RenameItem>) {ICE("RenameItem");}
+	LLVMVal visit(std::shared_ptr<Choice> node) {ICE("Choice", node);}
+	LLVMVal visit(std::shared_ptr<FuncCaptureValue> node) {ICE("FuncCaptureValue", node);}
+	LLVMVal visit(std::shared_ptr<FuncArg> node) {ICE("FuncArg", node);}
+	LLVMVal visit(std::shared_ptr<TupItem> node) {ICE("TupItem", node);}
+	LLVMVal visit(std::shared_ptr<InvalidExp> node) {ICE("InvalidExp", node);}
+	LLVMVal visit(std::shared_ptr<Val> node) {ICE("Val", node);}
+	LLVMVal visit(std::shared_ptr<RenameItem> node) {ICE("RenameItem", node);}
 	
 	LLVMVal binopImpl(std::shared_ptr<BinaryOpExp> node, 
 					  std::initializer_list<OpImpl<::Type, ::Type> > ops) {
@@ -1576,7 +1576,7 @@ public:
 		case TK_OPEXTEND:
 			return binopImpl(node, { dOpM(&CodeGen::binopExtendTup, TTup, TTup, TTup) });
 		default: 
-			ICE("Binop not implemented", node->opToken.id);
+			ICE("Binop not implemented", node->opToken.id, node->opToken, node);
 		}
 	}
 	

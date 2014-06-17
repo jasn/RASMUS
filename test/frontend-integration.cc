@@ -106,7 +106,7 @@ void base(rasmus::teststream & ts) {
 	ts << "argCntErr" << result(it("(+ val x = func ()->(Int)1 end in x(2) +)", "", true));
 	ts << "argTypeErr" << result(it("(+ val x = func (t:Text)->(Int)t end in x(2) +)", "", true));
 	ts << "Crash1" << result(it("(+ val x := 2 in x + 5 +)", "", true));
-	ts << "fac"<< result(it("(+ val f = func(f:Func, i:Int)->(Int) if i = 1 -> 1 & true -> f(i-1)*i fi end in f(f, 5) +)", "120"));
+	ts << "fac"<< result(it("(+ val f = func(f:Func, i:Int)->(Int) if i = 1 -> 1 & true -> f(f, i-1)*i fi end in f(f, 5) +)", "120"));
 }
 
 void text(rasmus::teststream & ts) {
