@@ -114,8 +114,10 @@ void text(rasmus::teststream & ts) {
     ts << "string" << result(it("\"abe\"", "abe"));
 	ts << "equal1" << result(it("\"monkey\" = \"monkey\"", "true"));
 	ts << "equal2" << result(it("\"monkey\" = \"mankey\"", "false"));
+	ts << "equal3" << result(it("\"monkey\" = ?-Text", "?-Bool"));
 	ts << "diferent1" << result(it("\"monkey\" <> \"monkey\"", "false"));
 	ts << "diferent2" << result(it("\"monkey\" <> \"mankey\"", "true"));
+	ts << "diferent3" << result(it("\"monkey\" <> ?-Text", "?-Bool"));
 	ts << "global" << result(it("y:=\"abe\"\ny", "abe"));
     ts << "concat" << result(it("\"abe\"++\"bea\"", "abebea"));
 	ts << "substr" << result(it("\"minime\"(1..4)", "ini"));
@@ -124,6 +126,7 @@ void text(rasmus::teststream & ts) {
     ts << "?concat" << result(it("?-Text++\"bea\"", "?-Text"));
 	ts << "?substr" << result(it("\"minime\"(?-Int..4)", "?-Text"));
 	ts << "?len" << result(it("|?-Text|", "?-Int"));
+
 }
 
 void integer(rasmus::teststream & ts) {
@@ -141,6 +144,27 @@ void integer(rasmus::teststream & ts) {
     ts << "?1" << result(it("1+?-Int", "?-Int"));
     ts << "?2" << result(it("?-Int*2", "?-Int"));
 	ts << "?3" << result(it("5/0", "?-Int"));
+
+	ts << "equal1" << result(it("1 = 1", "true"));
+	ts << "equal2" << result(it("1 = 2", "false"));
+	ts << "equal3" << result(it("1 = ?-Int", "?-Bool"));
+	ts << "diferent1" << result(it("1 <> 1", "false"));
+	ts << "diferent2" << result(it("1 <> 2", "true"));
+	ts << "diferent3" << result(it("1 <> ?-Int", "?-Bool"));
+
+	ts << "less1" << result(it("1 < 1", "false"));
+	ts << "less2" << result(it("1 < 2", "true"));
+	ts << "less3" << result(it("1 < ?-Int", "?-Bool"));
+	ts << "greater1" << result(it("1 > 1", "false"));
+	ts << "greater2" << result(it("2 > 1", "true"));
+	ts << "greater3" << result(it("1 > ?-Int", "?-Bool"));
+
+	ts << "less equal 1" << result(it("1 <= 0", "false"));
+	ts << "less equal 2" << result(it("1 <= 1", "true"));
+	ts << "less equal 3" << result(it("1 <= ?-Int", "?-Bool"));
+	ts << "greater equal 1" << result(it("0 >= 1", "false"));
+	ts << "greater equal 2" << result(it("1 >= 1", "true"));
+	ts << "greater equal 3" << result(it("1 >= ?-Int", "?-Bool"));
 }
 
 void ifs(rasmus::teststream & ts) {
