@@ -42,7 +42,7 @@ void TerminalCallback::report(MsgType type,
 							  std::shared_ptr<Code> code,
 							  std::string message,
 							  Token mainToken,
-							  std::initializer_list<CharRange> ranges) {
+							  std::vector<CharRange> ranges) {
 	int lo = std::numeric_limits<int>::max();
 	int hi = std::numeric_limits<int>::min();
 	if (mainToken) {

@@ -210,7 +210,10 @@ public:
 		} catch (ErrException) {
 			return false; //Error in code execution
 		} catch (ICEException e) {
-			callback->report(MsgType::error, e.what());
+			if (e.mainToken || e.ranges.size())
+				callback->report(MsgType::error, code, e.what(), e.mainToken, e.ranges);
+			else
+				callback->report(MsgType::error, e.what());
 			return false;
 		} catch (IncompleteInputException) {
 			incomplete = line + "\n";

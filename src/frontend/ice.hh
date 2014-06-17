@@ -19,21 +19,55 @@
 #include <stdlib/callback.hh>
 #include <sstream>
 #include <exception>
+#include <frontend/lexer.hh>
+#include <frontend/ASTBase.hh>
+
 namespace rasmus {
 namespace frontend {
 
-class ICEException: public std::runtime_error {
+class CharRange {
 public:
-	ICEException(const std::string & msg): std::runtime_error(msg) {}
+	size_t lo, hi;
+	CharRange(): lo(std::numeric_limits<size_t>::max()), hi(std::numeric_limits<size_t>::min()) {}
+	CharRange(size_t lo, size_t hi): lo(lo), hi(hi) {}
 };
 
-inline void ice_append(std::ostream &) {}
+
+class ICEException: public std::runtime_error {
+public:
+	Token mainToken;
+	std::vector<CharRange> ranges;
+	ICEException(const std::string & msg, Token mainToken, std::vector<CharRange> ranges): 
+		std::runtime_error(msg), mainToken(mainToken), ranges(ranges) {}
+};
+
+
+struct ice_help {
+	Token mainToken;
+	std::vector<CharRange> ranges;
+};
+
+inline void ice_append(std::ostream &, ice_help &) {}
 
 template <typename T, typename ... TT>
-inline void ice_append(std::ostream & o, const T & t, const TT & ... tt) {
+inline void ice_append(std::ostream & o, ice_help & h, const T & t, const TT & ... tt) {
 	o << " " << t;
-	ice_append(o, tt...);
+	ice_append(o, h, tt...);
 }
+
+template <typename ... TT>
+inline void ice_append(std::ostream & o, ice_help & h, Token t, const TT & ... tt) {
+	if (!h.mainToken) h.mainToken=t;
+	else h.ranges.push_back(CharRange(t.start, t.start+t.length));
+	ice_append(o, h, tt...);
+}
+
+template <typename ... TT>
+inline void ice_append(std::ostream & o, ice_help & h, CharRange r, const TT & ... tt) {
+	h.ranges.push_back(r);
+	ice_append(o, h, tt...);
+}
+
 
 template <typename ... T>
 inline void ice [[noreturn]] (const char * file, 
@@ -42,8 +76,9 @@ inline void ice [[noreturn]] (const char * file,
 							  const T & ... t) {
 	std::stringstream ss;
 	ss << file << ":" << line << "(" << function << "):";
-	ice_append(ss, t...);
-	throw ICEException(ss.str());
+	ice_help h;
+	ice_append(ss, h, t...);
+	throw ICEException(ss.str(), h.mainToken, h.ranges);
 }
 
 #define ICE(...) ice(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)

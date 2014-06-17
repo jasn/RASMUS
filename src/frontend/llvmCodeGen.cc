@@ -454,8 +454,8 @@ public:
 	}
 	
 	void finishFunction(Function * func) {
-		llvm::verifyFunction(*func);
 		if (dumpRawFunctions) func->dump();
+		llvm::verifyFunction(*func);
 		fpm.run(*func);
 		if (dumpOptFunctions) func->dump();
 	}
@@ -592,6 +592,7 @@ public:
 	LLVMVal opImp_(int i,
 				   std::vector<oi_t> ops,
 				   NodePtr node,
+				   const std::array<LLVMVal, N> & vals,
 				   std::array<NodePtr, N> childs,
 				   std::array<BorrowedLLVMVal, N> args) {
 		if (i == N) {
@@ -610,21 +611,16 @@ public:
 				matches.push_back(op);
 			}
 			if (matches.size() == 0)
-				ICE("Infeasible types in binopImpl, there is a bug in the typechecker!!");
-			LLVMVal v=castVisit(childs[i], type);
-			args[i] = borrow(v);
-			LLVMVal r=opImp_<oi_t, N>(i+1, matches, node, childs, args);
-			disown(v, type);
+				ICE("Infeasible types in binopImpl, there is a bug in the typechecker!!", node);
+			args[i] = borrow(vals[i]);
+			LLVMVal r=opImp_<oi_t, N>(i+1, matches, node, vals, childs, args);
 			return r;
 		} else {
 			BasicBlock * errTarget = newBlock();
 			BasicBlock * end = newBlock();
-			LLVMVal v=castVisit(childs[i], TAny);
-			SwitchInst * sw=builder.CreateSwitch(v.type, errTarget);
 			std::sort(ops.begin(), ops.end(), [i](const oi_t & a, const oi_t & b) {
 					return a.types[i] < b.types[i];
 				});
-
 			
 			Value * value=nullptr;
 			Value * type=nullptr;
@@ -649,6 +645,8 @@ public:
 			}
 
 
+			SwitchInst * sw=builder.CreateSwitch(vals[i].type, errTarget);
+
 			auto a=ops.begin();
 			while (a != ops.end()) {
 				auto b=a;
@@ -662,16 +660,16 @@ public:
 				
 				switch (a->types[i]) {
 				case TInt:
-					args[i] = BorrowedLLVMVal(v.value);
+					args[i] = BorrowedLLVMVal(vals[i].value);
 					break;
 				case TBool:
-					args[i] = BorrowedLLVMVal(builder.CreateTruncOrBitCast(v.value, int8Type));
+					args[i] = BorrowedLLVMVal(builder.CreateTruncOrBitCast(vals[i].value, int8Type));
 					break;
 				case TText:
 				case TFunc:
 				case TRel:
 				case TTup:
-					args[i] = BorrowedLLVMVal(builder.CreateIntToPtr(v.value, voidPtrType));
+					args[i] = BorrowedLLVMVal(builder.CreateIntToPtr(vals[i].value, voidPtrType));
 					break;
 				default:
 					ICE("Unhandled", node->type);
@@ -679,11 +677,12 @@ public:
 				};
 				
 				std::vector<oi_t> matches(a, b);
-				LLVMVal r=opImp_<oi_t, N>(i+1, matches, node, childs, args);
+				LLVMVal r=opImp_<oi_t, N>(i+1, matches, node, vals, childs, args);
 				builder.CreateStore(r.value, value);
 				if (type) builder.CreateStore(r.type, type);
-				forgetOwnership(r);	
 				builder.CreateBr(end);
+				
+				forgetOwnership(r);	
 				a=b;
 			}
 			
@@ -691,14 +690,13 @@ public:
 			
 			builder.CreateCall4(getStdlibFunc("rm_emitTypeError"),
 								int32(node->charRange.lo), int32(node->charRange.hi),
-								v.type,
+								vals[i].type,
 								typeRepr(TInt)); //TODO FIXME, this should not be tint
 			builder.CreateUnreachable();
 			builder.SetInsertPoint(end);
 			LLVMVal r=OwnedLLVMVal(
 				builder.CreateLoad(value),
 				type?builder.CreateLoad(type):nullptr);
-			disown(v, TAny);
 			return r;
 		}
 	}
@@ -710,9 +708,25 @@ public:
 		) {
 		const int N=sizeof...(T);
 		typedef OpImpl<typename th<T>::t...> oi_t;
+
 		std::array<std::shared_ptr<Node>, N> childs={std::static_pointer_cast<Node>(c)...};
+		
+		std::vector<oi_t> matches;
+		for (auto op: ops) {
+			bool ok=true;
+			for (size_t i=0; i < N; ++i)
+				ok = ok && (childs[i]->type == op.types[i] || childs[i]->type == TAny);
+			if (!ok) continue;
+			matches.push_back(op);
+		}
 		std::array<BorrowedLLVMVal, N> args;
-		return opImp_<oi_t, N>(0, ops, node, childs, args);
+		std::array<LLVMVal, N> vals;
+		for (size_t i=0; i < N; ++i) 
+			vals[i]=visitNode(childs[i]);
+		LLVMVal r=opImp_<oi_t, N>(0, matches, node, vals, childs, args);
+		for (size_t i=0; i < N; ++i)
+			disown(vals[i], childs[i]->type);
+		return  r;
 	}
 
 
@@ -1377,7 +1391,18 @@ public:
 	}
 
 	LLVMVal binopEqualInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateICmpEQ(lhs.value, rhs.value));
+		return OwnedLLVMVal(
+			builder.CreateSelect(
+				builder.CreateICmpEQ(lhs.value, undefInt),
+				int8(2),
+				builder.CreateSelect(
+					builder.CreateICmpEQ(rhs.value, undefInt),
+					int8(2),
+					builder.CreateSelect(
+						builder.CreateICmpEQ(lhs.value, rhs.value),
+						int8(3),
+						int8(0)))))
+;
 	}
 
 	LLVMVal binopEqualBool(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
@@ -1408,7 +1433,18 @@ public:
 
 
 	LLVMVal binopDifferentInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateICmpNE(lhs.value, rhs.value));
+		return OwnedLLVMVal(
+			builder.CreateSelect(
+				builder.CreateICmpEQ(lhs.value, undefInt),
+				int8(2),
+				builder.CreateSelect(
+					builder.CreateICmpEQ(rhs.value, undefInt),
+					int8(2),
+					builder.CreateSelect(
+						builder.CreateICmpEQ(lhs.value, rhs.value),
+						int8(0),
+						int8(3)))))
+;
 	}
 
 	LLVMVal binopDifferentBool(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {

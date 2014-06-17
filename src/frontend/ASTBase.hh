@@ -38,13 +38,6 @@ namespace frontend {
 typedef size_t GlobalId;
 const GlobalId NOT_GLOBAL=std::numeric_limits<GlobalId>::max();
 
-class CharRange {
-public:
-	size_t lo, hi;
-	CharRange(): lo(std::numeric_limits<size_t>::max()), hi(std::numeric_limits<size_t>::min()) {}
-	CharRange(size_t lo, size_t hi): lo(lo), hi(hi) {}
-};
-
 struct OwnedLLVMVal {
 public:
 	llvm::Value * value;
@@ -86,6 +79,13 @@ public:
 	virtual ~Node() {}
 };
 typedef std::shared_ptr<Node> NodePtr;
+
+template <typename ... TT>
+inline void ice_append(std::ostream & o, ice_help & h, NodePtr n, const TT & ... tt) {
+	h.ranges.push_back(n->charRange);
+	ice_append(o, h, tt...);
+}
+
 
 } //namespace frontend
 } //namespace rasmus

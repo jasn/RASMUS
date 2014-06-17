@@ -41,7 +41,7 @@ public:
 						std::shared_ptr<Code> code,
 						std::string message,
 						Token mainToken,
-						std::initializer_list<CharRange> ranges) = 0;
+						std::vector<CharRange> ranges) = 0;
 	virtual void report(MsgType type, std::string message) = 0;
 
 	virtual void print(Type type, std::string repr) = 0;
@@ -57,7 +57,7 @@ public:
 						std::shared_ptr<Code> code,
 						std::string message,
 						Token mainToken,
-						std::initializer_list<CharRange> ranges) override;
+						std::vector<CharRange> ranges) override;
 	
 	virtual void report(MsgType type, std::string message) override;
 
