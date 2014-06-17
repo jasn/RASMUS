@@ -1316,6 +1316,24 @@ public:
 					  std::initializer_list<OpImpl<::Type, ::Type> > ops) {
 		return opImp(ops, node, node->lhs, node->rhs);
 	}
+
+	OpImpl<::Type, ::Type> dComp(::Type in, llvm::CmpInst::Predicate pred, Value * undef) {
+		return dOp(
+			[this, undef, pred](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) -> OwnedLLVMVal {
+				return builder.CreateSelect(
+					builder.CreateICmpEQ(lhs.value, undef),
+					int8(2),
+					builder.CreateSelect(
+						builder.CreateICmpEQ(rhs.value, undef),
+						int8(2),
+						builder.CreateSelect(
+							builder.CreateICmp(pred, lhs.value, rhs.value),
+							int8(3),
+							int8(0))));
+			},
+			TBool, in, in);
+	}
+	
 	
 	LLVMVal binopAddInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(
@@ -1357,67 +1375,6 @@ public:
 	LLVMVal binopConcat(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_concatText"), lhs.value, rhs.value));
 	}
-	
-	LLVMVal binopLessInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateICmpSLT(lhs.value, rhs.value));
-	}
-
-	LLVMVal binopLessBool(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateICmpULT(lhs.value, rhs.value));
-	}
-
-	LLVMVal binopLessEqualInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateICmpSLE(lhs.value, rhs.value));
-	}
-
-	LLVMVal binopLessEqualBool(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateICmpULE(lhs.value, rhs.value));
-	}
-
-	LLVMVal binopGreaterInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateICmpSGT(lhs.value, rhs.value));
-	}
-
-	LLVMVal binopGreaterBool(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateICmpUGT(lhs.value, rhs.value));
-	}
-
-	LLVMVal binopGreaterEqualInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateICmpSGE(lhs.value, rhs.value));
-	}
-
-	LLVMVal binopGreaterEqualBool(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateICmpUGE(lhs.value, rhs.value));
-	}
-
-	LLVMVal binopEqualInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(
-			builder.CreateSelect(
-				builder.CreateICmpEQ(lhs.value, undefInt),
-				int8(2),
-				builder.CreateSelect(
-					builder.CreateICmpEQ(rhs.value, undefInt),
-					int8(2),
-					builder.CreateSelect(
-						builder.CreateICmpEQ(lhs.value, rhs.value),
-						int8(3),
-						int8(0)))))
-;
-	}
-
-	LLVMVal binopEqualBool(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(
-			builder.CreateSelect(
-				builder.CreateICmpEQ(lhs.value, int8(2)),
-				int8(2),
-				builder.CreateSelect(
-					builder.CreateICmpEQ(rhs.value, int8(2)),
-					int8(2),
-					builder.CreateSelect(
-						builder.CreateICmpEQ(lhs.value, rhs.value),
-						int8(3),
-						int8(0)))));
-	}
 
 	LLVMVal binopEqualText(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_equalText"), lhs.value, rhs.value));
@@ -1429,36 +1386,6 @@ public:
 
 	LLVMVal binopEqualTup(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_equalTup"), lhs.value, rhs.value));
-	}
-
-
-	LLVMVal binopDifferentInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(
-			builder.CreateSelect(
-				builder.CreateICmpEQ(lhs.value, undefInt),
-				int8(2),
-				builder.CreateSelect(
-					builder.CreateICmpEQ(rhs.value, undefInt),
-					int8(2),
-					builder.CreateSelect(
-						builder.CreateICmpEQ(lhs.value, rhs.value),
-						int8(0),
-						int8(3)))))
-;
-	}
-
-	LLVMVal binopDifferentBool(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(
-			builder.CreateSelect(
-				builder.CreateICmpEQ(lhs.value, int8(2)),
-				int8(2),
-				builder.CreateSelect(
-					builder.CreateICmpEQ(rhs.value, int8(2)),
-					int8(2),
-					builder.CreateSelect(
-						builder.CreateICmpEQ(lhs.value, rhs.value),
-						int8(0),
-						int8(3)))));
 	}
 
 	LLVMVal binopDifferentText(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
@@ -1533,36 +1460,36 @@ public:
 			return binopImpl(node, { dOpM(&CodeGen::binopModInt, TInt, TInt, TInt) });
 		case TK_LESS:
 			return binopImpl(node, { 
-					dOpM(&CodeGen::binopLessInt, TBool, TInt, TInt) ,
-					dOpM(&CodeGen::binopLessBool, TBool, TBool, TBool) ,
-						});
+					dComp(TInt, llvm::CmpInst::ICMP_SLT, undefInt),
+					dComp(TBool, llvm::CmpInst::ICMP_SLT, int8(2))
+					});
 		case TK_LESSEQUAL:
 			return binopImpl(node, { 
-					dOpM(&CodeGen::binopLessEqualInt, TBool, TInt, TInt) ,
-					dOpM(&CodeGen::binopLessEqualBool, TBool, TBool, TBool) ,
+					dComp(TInt, llvm::CmpInst::ICMP_SLE, undefInt),
+					dComp(TBool, llvm::CmpInst::ICMP_SLE, int8(2))
 						});
 		case TK_GREATER:
 			return binopImpl(node, { 
-					dOpM(&CodeGen::binopGreaterInt, TBool,  TInt, TInt) ,
-					dOpM(&CodeGen::binopGreaterBool, TBool, TBool, TBool) ,
+					dComp(TInt, llvm::CmpInst::ICMP_SGT, undefInt),
+					dComp(TBool, llvm::CmpInst::ICMP_SGT, int8(2))
 						});
 		case TK_GREATEREQUAL:
 			return binopImpl(node, { 
-					dOpM(&CodeGen::binopGreaterEqualInt, TBool, TInt, TInt) ,
-					dOpM(&CodeGen::binopGreaterEqualBool, TBool, TBool, TBool) ,
+					dComp(TInt, llvm::CmpInst::ICMP_SGE, undefInt),
+					dComp(TBool, llvm::CmpInst::ICMP_SGE, int8(2))
 						});
 		case TK_EQUAL:
 			return binopImpl(node, { 
-					dOpM(&CodeGen::binopEqualInt, TBool, TInt, TInt) ,
-					dOpM(&CodeGen::binopEqualBool, TBool, TBool, TBool) ,
+					dComp(TInt, llvm::CmpInst::ICMP_EQ, undefInt),
+					dComp(TBool, llvm::CmpInst::ICMP_EQ, int8(2)),
 					dOpM(&CodeGen::binopEqualRel, TBool, TRel, TRel) ,
 					dOpM(&CodeGen::binopEqualTup, TBool, TTup, TTup) ,
 					dOpM(&CodeGen::binopEqualText, TBool, TText, TText) ,
 						});
 		case TK_DIFFERENT:
 			return binopImpl(node, { 
-					dOpM(&CodeGen::binopDifferentInt, TBool, TInt, TInt) ,
-					dOpM(&CodeGen::binopDifferentBool, TBool, TBool, TBool) ,
+					dComp(TInt, llvm::CmpInst::ICMP_NE, undefInt),
+					dComp(TBool, llvm::CmpInst::ICMP_NE, int8(2)),
 					dOpM(&CodeGen::binopDifferentRel, TBool, TRel, TRel) ,
 					dOpM(&CodeGen::binopDifferentTup, TBool, TTup, TTup) ,
 					dOpM(&CodeGen::binopDifferentText, TBool, TText, TText) ,

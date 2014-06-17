@@ -532,7 +532,8 @@ public:
         NodePtr n = parseSelectExp();
         if (currentToken.id == TK_EQUAL || currentToken.id == TK_DIFFERENT ||
 			currentToken.id == TK_LESS || currentToken.id == TK_GREATER ||
-			currentToken.id == TK_TILDE) {
+			currentToken.id == TK_TILDE || currentToken.id == TK_GREATEREQUAL ||
+			currentToken.id == TK_LESSEQUAL) {
 			Token t=consumeToken();
             n = std::make_shared<BinaryOpExp>(t, n, parseSelectExp());
 		}
