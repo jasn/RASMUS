@@ -219,6 +219,9 @@ public:
 	llvm::ConstantInt * int64(int64_t value) {return llvm::ConstantInt::get(int64Type, value);}
 
 	llvm::ConstantInt * undefInt = int64(std::numeric_limits<int64_t>::min());
+	llvm::ConstantInt * trueBool = int8(3);
+	llvm::ConstantInt * undefBool = int8(2);
+	llvm::ConstantInt * falseBool = int8(0);
 	
 	llvm::Value * typeRepr(::Type t) {
 		return int8(t);
@@ -371,7 +374,7 @@ public:
 		case TInt:
 			return BorrowedLLVMVal(undefInt);
 		case TBool:
-			return BorrowedLLVMVal(int8(2));
+			return BorrowedLLVMVal(undefBool);
 		case TAny:
 			return BorrowedLLVMVal(undefInt, typeRepr(TInt));
 		case TFunc:
@@ -576,14 +579,14 @@ public:
 				[this, undef, pred](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) -> OwnedLLVMVal {
 					return builder.CreateSelect(
 						builder.CreateICmpEQ(lhs.value, undef),
-						int8(2),
+						undefBool,
 						builder.CreateSelect(
 							builder.CreateICmpEQ(rhs.value, undef),
-							int8(2),
+							undefBool,
 							builder.CreateSelect(
 								builder.CreateICmp(pred, lhs.value, rhs.value),
-								int8(3),
-								int8(0))));
+								trueBool,
+								falseBool)));
 				}};
 	}
 
@@ -612,7 +615,6 @@ public:
 				   std::array<BorrowedLLVMVal, sizeof...(S)> & v) {
 		return func(v[S]...);
 	}
-
 	
 	template <typename oi_t,
 			  int N> 
@@ -878,7 +880,7 @@ public:
 			} else {
 				BasicBlock * b1 = newBlock();		
 				BasicBlock * b2 = newBlock();
-				builder.CreateCondBr(builder.CreateICmpEQ(cond.value, int8(3)), b1, b2);
+				builder.CreateCondBr(builder.CreateICmpEQ(cond.value, trueBool), b1, b2);
 				
 				builder.SetInsertPoint(b1);
 				LLVMVal v=takeOwnership(castVisit(choice->value, node->type), node->type);
@@ -1064,7 +1066,7 @@ public:
 			LLVMVal v=castVisit(node->args[0], TAny);
 			builder.CreateCall2(getStdlibFunc("rm_print"), v.type, v.value);
 			disown(v, TAny);
-			return OwnedLLVMVal(int8(1));
+			return OwnedLLVMVal(trueBool);
 		}
 		case TK_HAS:			
 			return opImp(
@@ -1143,9 +1145,9 @@ public:
 	LLVMVal visit(std::shared_ptr<ConstantExp> node) {
 		switch (node->valueToken.id) {
 		case TK_FALSE:
-			return OwnedLLVMVal(int8(0));
+			return OwnedLLVMVal(falseBool);
         case TK_TRUE:
-			return OwnedLLVMVal(int8(3));
+			return OwnedLLVMVal(trueBool);
         case TK_STDBOOL:
 			return getUndef(TBool);
 		case TK_INT:
@@ -1176,9 +1178,9 @@ public:
 			LLVMVal v=castVisit(node->exp, TBool);
 			LLVMVal r=cast(OwnedLLVMVal(
 							   builder.CreateSelect(
-								   builder.CreateICmpEQ(v.value, int8(2)),
-								   int8(2),
-								   builder.CreateSub(int8(3), v.value))), TBool, node->type, node);
+								   builder.CreateICmpEQ(v.value, undefBool),
+								   undefBool,
+								   builder.CreateSub(trueBool, v.value))), TBool, node->type, node);
 			disown(v, TBool);
 			return r;
 		}
@@ -1376,17 +1378,17 @@ public:
 
 	LLVMVal binopDifferentText(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(
-			builder.CreateSub(int8(3), builder.CreateCall2(getStdlibFunc("rm_equalText"), lhs.value, rhs.value)));
+			builder.CreateSub(trueBool, builder.CreateCall2(getStdlibFunc("rm_equalText"), lhs.value, rhs.value)));
 	}
 
 	LLVMVal binopDifferentRel(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(
-			builder.CreateSub(int8(3), builder.CreateCall2(getStdlibFunc("rm_equalRel"), lhs.value, rhs.value)));
+			builder.CreateSub(trueBool, builder.CreateCall2(getStdlibFunc("rm_equalRel"), lhs.value, rhs.value)));
 	}
 
 	LLVMVal binopDifferentTup(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(
-			builder.CreateSub(int8(3), builder.CreateCall2(getStdlibFunc("rm_equalTup"), lhs.value, rhs.value)));
+			builder.CreateSub(trueBool, builder.CreateCall2(getStdlibFunc("rm_equalTup"), lhs.value, rhs.value)));
 	}
 
 
@@ -1431,27 +1433,27 @@ public:
 		case TK_LESS:
 			return binopImpl(node, { 
 					dComp(TInt, llvm::CmpInst::ICMP_SLT, undefInt),
-					dComp(TBool, llvm::CmpInst::ICMP_SLT, int8(2))
+					dComp(TBool, llvm::CmpInst::ICMP_SLT, undefBool)
 					});
 		case TK_LESSEQUAL:
 			return binopImpl(node, { 
 					dComp(TInt, llvm::CmpInst::ICMP_SLE, undefInt),
-					dComp(TBool, llvm::CmpInst::ICMP_SLE, int8(2))
+					dComp(TBool, llvm::CmpInst::ICMP_SLE, undefBool)
 						});
 		case TK_GREATER:
 			return binopImpl(node, { 
 					dComp(TInt, llvm::CmpInst::ICMP_SGT, undefInt),
-					dComp(TBool, llvm::CmpInst::ICMP_SGT, int8(2))
+					dComp(TBool, llvm::CmpInst::ICMP_SGT, undefBool)
 						});
 		case TK_GREATEREQUAL:
 			return binopImpl(node, { 
 					dComp(TInt, llvm::CmpInst::ICMP_SGE, undefInt),
-					dComp(TBool, llvm::CmpInst::ICMP_SGE, int8(2))
+					dComp(TBool, llvm::CmpInst::ICMP_SGE, undefBool)
 						});
 		case TK_EQUAL:
 			return binopImpl(node, { 
 					dComp(TInt, llvm::CmpInst::ICMP_EQ, undefInt),
-					dComp(TBool, llvm::CmpInst::ICMP_EQ, int8(2)),
+					dComp(TBool, llvm::CmpInst::ICMP_EQ, undefBool),
 					dCall("rm_equalRel", TBool, TRel, TRel),
 					dCall("rm_equalTup", TBool, TTup, TTup),
 					dCall("rm_equalText", TBool, TText, TText),
@@ -1459,7 +1461,7 @@ public:
 		case TK_DIFFERENT:
 			return binopImpl(node, { 
 					dComp(TInt, llvm::CmpInst::ICMP_NE, undefInt),
-					dComp(TBool, llvm::CmpInst::ICMP_NE, int8(2)),
+					dComp(TBool, llvm::CmpInst::ICMP_NE, undefBool),
 					dOpM(&CodeGen::binopDifferentRel, TBool, TRel, TRel) ,
 					dOpM(&CodeGen::binopDifferentTup, TBool, TTup, TTup) ,
 					dOpM(&CodeGen::binopDifferentText, TBool, TText, TText) ,
