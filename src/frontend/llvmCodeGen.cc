@@ -321,8 +321,6 @@ public:
 		case TText:
 		case TTup:
 		{
-			
-			//TODO CHECK FOR NULLPTR
 			BasicBlock * b1 = newBlock();
 			BasicBlock * b2 = newBlock();
 			Value * v = builder.CreatePointerCast(value.value, pointerType(objectBaseType));
@@ -337,7 +335,6 @@ public:
 			break;
 		case TAny:
 		{
-			//TODO CHECK FOR NULLPTR
 			BasicBlock * b1 = newBlock();
 			BasicBlock * b2 = newBlock();
 			BasicBlock * b3 = newBlock();
@@ -569,10 +566,40 @@ public:
 		T... types) {
 		typedef OpImpl<typename th<T>::t...> rt; 
 		return rt{rtype, {types...}, 
-				[func,this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) -> LLVMVal {
-					return (this->*func)(lhs, rhs);
+				[func,this](typename bwh<T>::t... vals) -> LLVMVal {
+					return (this->*func)(vals...);
 				}};
 	}	
+
+	OpImpl<::Type, ::Type> dComp(::Type in, llvm::CmpInst::Predicate pred, Value * undef) {
+		return OpImpl<::Type, ::Type>{TBool, {in, in}, 
+				[this, undef, pred](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) -> OwnedLLVMVal {
+					return builder.CreateSelect(
+						builder.CreateICmpEQ(lhs.value, undef),
+						int8(2),
+						builder.CreateSelect(
+							builder.CreateICmpEQ(rhs.value, undef),
+							int8(2),
+							builder.CreateSelect(
+								builder.CreateICmp(pred, lhs.value, rhs.value),
+								int8(3),
+								int8(0))));
+				}};
+	}
+
+	template <typename ...T>
+	OpImpl<typename th<T>::t...> dCall(
+		const char * name, 
+		::Type rtype, 
+		T ... types) {
+		typedef OpImpl<typename th<T>::t...> rt;
+		return rt{rtype, {types...},
+				[name, this](typename bwh<T>::t... vals) -> OwnedLLVMVal {
+					return builder.CreateCall(
+						getStdlibFunc(name), 
+						std::vector<Value*>{vals.value...});
+				}};
+	}
 
 	template <int i>
 	struct bwi {
@@ -878,7 +905,7 @@ public:
 	}
 
 	LLVMVal visit(std::shared_ptr<ForallExp> node) {
-		ICE("ForallExp", node);
+		ICE("TODO ForallExp", node);
 	}
 
 
@@ -1109,7 +1136,7 @@ public:
 			return LLVMVal(std::move(r));
 		}
 		default:
-			ICE("BuildIn not implemented", node->nameToken.id, node->nameToken, node);
+			ICE("TODO BuildIn not implemented", node->nameToken.id, node->nameToken, node);
 		}
 	}
 
@@ -1280,7 +1307,7 @@ public:
 
 
 	LLVMVal visit(std::shared_ptr<AtExp> node) {
-		ICE("At", node);
+		ICE("TODO At", node);
 	}
 
 	LLVMVal visit(std::shared_ptr<ProjectExp> exp) {
@@ -1303,35 +1330,10 @@ public:
 		disown(rel, TRel);
 		return ret;
 	}
-
-	LLVMVal visit(std::shared_ptr<Choice> node) {ICE("Choice", node);}
-	LLVMVal visit(std::shared_ptr<FuncCaptureValue> node) {ICE("FuncCaptureValue", node);}
-	LLVMVal visit(std::shared_ptr<FuncArg> node) {ICE("FuncArg", node);}
-	LLVMVal visit(std::shared_ptr<TupItem> node) {ICE("TupItem", node);}
-	LLVMVal visit(std::shared_ptr<InvalidExp> node) {ICE("InvalidExp", node);}
-	LLVMVal visit(std::shared_ptr<Val> node) {ICE("Val", node);}
-	LLVMVal visit(std::shared_ptr<RenameItem> node) {ICE("RenameItem", node);}
 	
 	LLVMVal binopImpl(std::shared_ptr<BinaryOpExp> node, 
 					  std::initializer_list<OpImpl<::Type, ::Type> > ops) {
 		return opImp(ops, node, node->lhs, node->rhs);
-	}
-
-	OpImpl<::Type, ::Type> dComp(::Type in, llvm::CmpInst::Predicate pred, Value * undef) {
-		return dOp(
-			[this, undef, pred](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) -> OwnedLLVMVal {
-				return builder.CreateSelect(
-					builder.CreateICmpEQ(lhs.value, undef),
-					int8(2),
-					builder.CreateSelect(
-						builder.CreateICmpEQ(rhs.value, undef),
-						int8(2),
-						builder.CreateSelect(
-							builder.CreateICmp(pred, lhs.value, rhs.value),
-							int8(3),
-							int8(0))));
-			},
-			TBool, in, in);
 	}
 	
 	
@@ -1372,22 +1374,6 @@ public:
 																		   builder.CreateSRem(lhs.value, rhs.value)))));
 	}
 
-	LLVMVal binopConcat(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_concatText"), lhs.value, rhs.value));
-	}
-
-	LLVMVal binopEqualText(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_equalText"), lhs.value, rhs.value));
-	}
-
-	LLVMVal binopEqualRel(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_equalRel"), lhs.value, rhs.value));
-	}
-
-	LLVMVal binopEqualTup(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_equalTup"), lhs.value, rhs.value));
-	}
-
 	LLVMVal binopDifferentText(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(
 			builder.CreateSub(int8(3), builder.CreateCall2(getStdlibFunc("rm_equalText"), lhs.value, rhs.value)));
@@ -1412,47 +1398,31 @@ public:
 		return OwnedLLVMVal(builder.CreateOr(lhs.value, rhs.value));
 	}
 
-	LLVMVal binopUnionRel(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_unionRel"), lhs.value, rhs.value));
-	}
-
-	LLVMVal binopJoinRel(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_joinRel"), lhs.value, rhs.value));
-	}
-
-	LLVMVal binopDiffRel(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_diffRel"), lhs.value, rhs.value));
-	}
-
 	LLVMVal binopSelectRel(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_selectRel"), lhs.value, 
 												builder.CreatePointerCast(rhs.value, voidPtrType)));
-	}
-
-	LLVMVal binopExtendTup(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_extendTup"), lhs.value, rhs.value));
 	}
 	
 	LLVMVal visit(std::shared_ptr<BinaryOpExp> node) {
 		switch (node->opToken.id) {
 		case TK_CONCAT:
 			return binopImpl(node, { 
-					dOpM(&CodeGen::binopConcat, TText, TText, TText)
+					dCall("rm_concatText", TText, TText, TText)
 						});
 		case TK_PLUS:
 			return binopImpl(node, { 
 					dOpM(&CodeGen::binopAddInt, TInt, TInt, TInt),
-					dOpM(&CodeGen::binopUnionRel, TRel, TRel, TRel)
+					dCall("rm_unionRel", TRel, TRel, TRel)	
 						});
 		case TK_MUL:
 			return binopImpl(node, {
 					dOpM(&CodeGen::binopMulInt, TInt, TInt, TInt),
-					dOpM(&CodeGen::binopJoinRel, TRel, TRel, TRel)
-				});
+					dCall("rm_joinRel", TRel, TRel, TRel)
+						});
 		case TK_MINUS:
 			return binopImpl(node, {
 					dOpM(&CodeGen::binopMinusInt, TInt, TInt, TInt),
-					dOpM(&CodeGen::binopDiffRel, TRel, TRel, TRel)
+					dCall("rm_diffRel", TRel, TRel, TRel)
 				});
 		case TK_DIV:
 			return binopImpl(node, { dOpM(&CodeGen::binopDivInt, TInt, TInt, TInt) });
@@ -1482,9 +1452,9 @@ public:
 			return binopImpl(node, { 
 					dComp(TInt, llvm::CmpInst::ICMP_EQ, undefInt),
 					dComp(TBool, llvm::CmpInst::ICMP_EQ, int8(2)),
-					dOpM(&CodeGen::binopEqualRel, TBool, TRel, TRel) ,
-					dOpM(&CodeGen::binopEqualTup, TBool, TTup, TTup) ,
-					dOpM(&CodeGen::binopEqualText, TBool, TText, TText) ,
+					dCall("rm_equalRel", TBool, TRel, TRel),
+					dCall("rm_equalTup", TBool, TTup, TTup),
+					dCall("rm_equalText", TBool, TText, TText),
 						});
 		case TK_DIFFERENT:
 			return binopImpl(node, { 
@@ -1501,12 +1471,21 @@ public:
 		case TK_QUESTION:
 			return binopImpl(node, { dOpM(&CodeGen::binopSelectRel, TRel, TRel, TFunc) });
 		case TK_OPEXTEND:
-			return binopImpl(node, { dOpM(&CodeGen::binopExtendTup, TTup, TTup, TTup) });
+			return binopImpl(node, { dCall("rm_extendTup", TTup, TTup, TTup) });
 		default: 
 			ICE("Binop not implemented", node->opToken.id, node->opToken, node);
 		}
 	}
 	
+	LLVMVal visit(std::shared_ptr<Choice> node) {ICE("Choice", node);}
+	LLVMVal visit(std::shared_ptr<FuncCaptureValue> node) {ICE("FuncCaptureValue", node);}
+	LLVMVal visit(std::shared_ptr<FuncArg> node) {ICE("FuncArg", node);}
+	LLVMVal visit(std::shared_ptr<TupItem> node) {ICE("TupItem", node);}
+	LLVMVal visit(std::shared_ptr<InvalidExp> node) {ICE("InvalidExp", node);}
+	LLVMVal visit(std::shared_ptr<Val> node) {ICE("Val", node);}
+	LLVMVal visit(std::shared_ptr<RenameItem> node) {ICE("RenameItem", node);}
+
+
 	LLVMVal visit(std::shared_ptr<SequenceExp> node) {
 		::Type t=TInvalid;
 		LLVMVal x;
