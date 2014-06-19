@@ -768,6 +768,24 @@ public:
 	}
 
 	/**
+	 * \brief Declare a typed operation
+	 * \param func The function that exmits code for the operation
+	 * \param rtype The return type of the operation
+	 * \param types The argument types of the operation
+	 */
+	template <typename ...T>
+	OpImpl<T...> dBInv(OpImpl<T...> op) {
+		typedef OpImpl<T...> rt;
+		return rt{op.ret, op.types, [op,this](typename bwh<T>::t... vals) -> LLVMVal {
+				LLVMVal v=op.func(vals...);
+				LLVMVal r=OwnedLLVMVal(builder.CreateSub(trueBool, v.value));
+				disown(v, op.ret);
+				return r;
+			}};
+	}
+
+
+	/**
 	 * \brief template magic used by dOpImp
 	 * \internal
 	 */
@@ -1585,24 +1603,6 @@ public:
 																		   builder.CreateSRem(lhs.value, rhs.value)))));
 	}
 
-	/** \brief Check if two texts are different */
-	LLVMVal binopDifferentText(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(
-			builder.CreateSub(trueBool, builder.CreateCall2(getStdlibFunc("rm_equalText"), lhs.value, rhs.value)));
-	}
-
-	/** \brief Check if two relations are different */
-	LLVMVal binopDifferentRel(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(
-			builder.CreateSub(trueBool, builder.CreateCall2(getStdlibFunc("rm_equalRel"), lhs.value, rhs.value)));
-	}
-
-	/** \brief Check if two tupples are different */
-	LLVMVal binopDifferentTup(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(
-			builder.CreateSub(trueBool, builder.CreateCall2(getStdlibFunc("rm_equalTup"), lhs.value, rhs.value)));
-	}
-
 	/** \brief Logical and */
 	LLVMVal binopAndBool(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(builder.CreateAnd(lhs.value, rhs.value));
@@ -1677,9 +1677,9 @@ public:
 			return binopImpl(node, { 
 					dComp(TInt, llvm::CmpInst::ICMP_NE, undefInt),
 					dComp(TBool, llvm::CmpInst::ICMP_NE, undefBool),
-					dOpM(&CodeGen::binopDifferentRel, TBool, TRel, TRel) ,
-					dOpM(&CodeGen::binopDifferentTup, TBool, TTup, TTup) ,
-					dOpM(&CodeGen::binopDifferentText, TBool, TText, TText) ,
+					dBInv(dCall("rm_equalRel", TBool, TRel, TRel)),
+					dBInv(dCall("rm_equalTup", TBool, TTup, TTup)),
+					dBInv(dCall("rm_equalText", TBool, TText, TText)),
 						});
 		case TK_AND:
 			return binopImpl(node, { dOpM(&CodeGen::binopAndBool, TBool, TBool, TBool) });
