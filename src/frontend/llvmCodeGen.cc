@@ -43,29 +43,68 @@
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Analysis/Passes.h>
 
-
+/**
+ * \file llwmCodeGen.cc
+ * This file implements rasmus code generation using llvm
+ */
 namespace {
 using namespace llvm;
 using namespace rasmus::frontend;
 
+/**
+ * \brief template magic to construct an argument pack from an array
+ */
 template<int ...> struct seq {};
-	template<int N, int ...S> struct gens : gens<N-1, N-1, S...> {};
-	template<int ...S> struct gens<0, S...>{ typedef seq<S...> type; };
-	
+/**
+ * \brief template magic to construct an argument pack from an array
+ */
+template<int N, int ...S> struct gens : gens<N-1, N-1, S...> {};
+/**
+ * \brief template magic to construct an argument pack from an array
+ */
+template<int ...S> struct gens<0, S...>{ typedef seq<S...> type; };
 
+/**
+ * \brief Class representing a borrow value.
+ * When we dispose of this value we should not defer the values
+ */
 struct BorrowedLLVMVal {
 public:
-	llvm::Value * value;
+	/**
+	 * \brief The actual value, its type may vary depending on the static type
+	 */
+	llvm::Value * value; 
+
+	/**
+	 * \brief If the static type of this value is TAny, this will contain the runtime type
+	 */
 	llvm::Value * type;
+	
 	BorrowedLLVMVal(): value(nullptr), type(nullptr) {};
 	BorrowedLLVMVal(llvm::Value * value): value(value), type(nullptr) {}
 	BorrowedLLVMVal(llvm::Value * value, llvm::Value * type): value(value), type(type) {}
 };
 
+/**
+ * \Brief Class represetting an owned or borrowed llvm value
+ *
+ * If the value is destructed on an owned type an exception will be thrown
+ */
 struct LLVMVal {
 public:
+	/**
+	 * \brief The actual value, its type may vary depending on the static type
+	 */
 	llvm::Value * value;
+
+	/**
+	 * \brief If the static type of this value is TAny, this will contain the runtime type
+	 */
 	llvm::Value * type;
+	
+	/**
+	 * \brief Indicate if this value is owned (or borrowed
+	 */
 	bool owned;
 
 	LLVMVal(): value(nullptr), type(nullptr), owned(false) {}
@@ -92,7 +131,6 @@ public:
 		return *this;
 	}
 	
-	
 	LLVMVal(const LLVMVal & o) = delete;
 	LLVMVal & operator=(const LLVMVal & o) = delete;
 	
@@ -101,11 +139,18 @@ public:
 	}
 };
 
+/**
+ * \brief Main llvm codegenerator class
+ */
 class CodeGen: public LLVMCodeGen, public VisitorCRTP<CodeGen, LLVMVal> {
 public:
+	/**
+	 * \brief unique id used to generate various unique identifiers for the llvmir
+	 */
 	size_t uid=0;
 	std::shared_ptr<Error> error;
 	std::shared_ptr<Code> code;
+
 	Module * module;
 	IRBuilder<> builder;
 	FunctionPassManager fpm;
@@ -119,12 +164,18 @@ public:
 	llvm::IntegerType * int64Type = llvm::Type::getInt64Ty(getGlobalContext());
 	llvm::PointerType * pointerType(llvm::Type * t) {return PointerType::getUnqual(t);}
 	llvm::PointerType * voidPtrType = pointerType(int8Type);
-	
+
+	/**
+	 * \brief Simple wrapper to define an llvm struct type
+	 */
 	llvm::StructType * structType(std::string name, 
 								  std::initializer_list<llvm::Type *> types) {
 		return StructType::create(getGlobalContext(), ArrayRef<llvm::Type * >(types.begin(), types.end()), name);
 	}
 	
+	/**
+	 * \brief Simple wrapper to define a llvm function type
+	 */
 	llvm::FunctionType * functionType(llvm::Type * ret, std::initializer_list<llvm::Type *> args) {
 		return FunctionType::get(ret, ArrayRef<llvm::Type * >(args.begin(), args.end()), false);
 	}
@@ -150,6 +201,7 @@ public:
 		fpm.add(createCFGSimplificationPass());
 		fpm.doInitialization();
 
+		//Define all functions in the standard library
 		std::vector< std::pair<std::string, FunctionType *> > fs =
 		{
 			{"rm_print", functionType(voidType, {int8Type, int64Type})},
@@ -192,13 +244,19 @@ public:
 		for(auto p: fs)
 			stdlib[p.first] = Function::Create(p.second, Function::ExternalLinkage, p.first, module);
 	}
-	
+
+	/**
+	 * \brief Fetch an function from the standard library or throw an error if it does not exist
+	 */
 	Function * getStdlibFunc(std::string name) {
 		auto x=stdlib.find(name);
 		if (x == stdlib.end()) ICE("Unknow stdlib function", name);
 		return x->second;
 	}
 
+	/**
+	 * \brief Get the llvm type of a rasmus type
+	 */
 	llvm::Type * llvmType(::Type t) {
 		switch (t) {
 		case TBool: return int8Type;
@@ -223,10 +281,16 @@ public:
 	llvm::ConstantInt * undefBool = int8(2);
 	llvm::ConstantInt * falseBool = int8(0);
 	
+	/**
+	 * \Brief get the runtime type represetnation for a static type
+	 */
 	llvm::Value * typeRepr(::Type t) {
 		return int8(t);
 	}
 	
+	/**
+	 * \Brief get the function type of a rasmus function with argc arguments
+	 */
 	llvm::FunctionType * funcType(uint16_t argc) {
 		std::vector<llvm::Type *> t;
 		t.push_back(pointerType(funcBase));
@@ -238,40 +302,64 @@ public:
 		return llvm::FunctionType::get(voidType, t, false);
 	}
 
-
+	/**
+	 * \Brief get the current llvm function we are creating
+	 */
 	Function * getFunction() {
 		return builder.GetInsertBlock()->getParent();
 	}
 
+	/**
+	 * \Brief create a new block with a unique name
+	 */
 	BasicBlock * newBlock() {
 		std::stringstream ss;
 		ss << "b" << uid++;
 		return BasicBlock::Create(getGlobalContext(), ss.str(), getFunction());
 	}
 
+	/**
+	 * \Brief forget the ownership of a value, assuming it has been passed on to some external entity
+	 */
 	void forgetOwnership(LLVMVal & val) {
 		val.value=nullptr;
 		val.type=nullptr;
 		val.owned=false;
 	}
 
+	/**
+	 * \Brief forget the ownership of a value, assuming it has been passed on to some external entity
+	 */
 	void forgetOwnership(OwnedLLVMVal & val) {
 		val.value=nullptr;
 		val.type=nullptr;
 	}
 
+	/**
+	 * \Brief turn a borrowed value into an owned value without increffing it,
+	 * This assumes that the ownership was forgot earlier
+	 */
 	OwnedLLVMVal stealOwnership(BorrowedLLVMVal val) {
-		return OwnedLLVMVal(val.value, val.type);
+  		return OwnedLLVMVal(val.value, val.type);
 	}
 
+	/**
+	 * \Brief borrow a reference to a llvm value, the borrowee must be alive while the borrowed value lives
+	 */
 	BorrowedLLVMVal borrow(const LLVMVal & v) {
 		return BorrowedLLVMVal(v.value, v.type);
 	}
 
+	/**
+	 * \Brief borrow a reference to a llvm value, the borrowee must be alive while the borrowed value lives
+	 */
 	BorrowedLLVMVal borrow(const OwnedLLVMVal & v) {
 		return BorrowedLLVMVal(v.value, v.type);
 	}
 
+	/**
+	 * \Brief take ownership of a value of a given static type, increffing when needed
+	 */
 	OwnedLLVMVal takeOwnership(LLVMVal val, ::Type type) {
  		OwnedLLVMVal value(val.value, val.type);
 		bool owned=val.owned;
@@ -309,11 +397,17 @@ public:
 		}
 		return value;
 	}
-	
+
+	/**
+	 * \Brief take ownership of a value of a given static type, increffing when needed
+	 */
 	OwnedLLVMVal takeOwnership(BorrowedLLVMVal value, ::Type type) {
 		return takeOwnership(LLVMVal(value), type);
 	}
 
+	/**
+	 * \Brief drop ownership of a value of a given static type, decreffing when needed
+	 */
 	void disown(OwnedLLVMVal & value, ::Type type) {
 		switch (type) {
 		case TInt:
@@ -360,6 +454,9 @@ public:
 		forgetOwnership(value);
 	}
 
+	/**
+	 * \Brief drop ownership of a value of a given static type, decreffing when needed
+	 */
 	void disown(LLVMVal & value, ::Type type) {
 		if (value.owned) {
 			OwnedLLVMVal v(value.value, value.type);
@@ -368,7 +465,9 @@ public:
 		forgetOwnership(value);
 	}
 
-
+	/**
+	 * \Brief return the undefined value of a given static type
+	 */
 	BorrowedLLVMVal getUndef(::Type t) {
 		switch(t) {
 		case TInt:
@@ -388,6 +487,14 @@ public:
 		}
 	}
 
+	/**
+	 * \Brief cast a value a given static type to another.
+	 * In case of errors error messages report the error in the range of node
+	 * 
+	 * Currently we can only cast form a type to it self
+	 * from a TAny to anything else
+	 * and from anything to a TAny
+	 */
 	BorrowedLLVMVal cast(BorrowedLLVMVal value, ::Type tfrom, ::Type tto, NodePtr node) {
 		if (tfrom == tto) return BorrowedLLVMVal(value.value, value.type);
 		if (tto == TAny) {
@@ -433,7 +540,10 @@ public:
 		}
 		ICE("Unhandled type", tfrom, tto, node);
 	}
-	
+
+	/**
+	 * \brief Cast a llvmval
+	 */
 	LLVMVal cast(LLVMVal value, ::Type tfrom, ::Type tto, NodePtr node) {
 		BorrowedLLVMVal s=cast(borrow(value), tfrom, tto, node);
 		value.value = s.value;
@@ -441,6 +551,9 @@ public:
 		return value;
 	}
 
+	/**
+	 * \brief Cast an owned llvmcal
+	 */
 	OwnedLLVMVal cast(OwnedLLVMVal value, ::Type tfrom, ::Type tto, NodePtr node) {
 		BorrowedLLVMVal s=cast(borrow(value), tfrom, tto, node);
 		value.value = s.value;
@@ -448,11 +561,16 @@ public:
 		return value;
 	}
 
-	
+	/**
+	 * \brief Visit a child node, and cast the result to a given type
+	 */
 	LLVMVal castVisit(NodePtr node, ::Type tto) {
 		return cast(visitNode(node), node->type, tto, node);
 	}
-	
+
+	/**
+	 * \brief When we are done generating a function call the method to optimize and output debug info
+	 */
 	void finishFunction(Function * func) {
 		if (dumpRawFunctions) func->dump();
 		llvm::verifyFunction(*func);
@@ -460,6 +578,7 @@ public:
 		if (dumpOptFunctions) func->dump();
 	}
 
+	
 	BorrowedLLVMVal loadValue(Value * v, std::initializer_list<int> gep, ::Type type) {
 		std::vector<Value *> GEP;
 		for (int x: gep) GEP.push_back(int32(x));
@@ -511,6 +630,9 @@ public:
 		forgetOwnership(v);
 	}
 
+	/**
+	 * \Create a global string object
+	 */
 	Value * globalString(std::string s) {
 		Constant * c = ConstantDataArray::getString(getGlobalContext(), s);
 		GlobalVariable * gv = new GlobalVariable(*module,
@@ -520,11 +642,17 @@ public:
 												 c);
 		return builder.CreateConstGEP2_32(gv, 0, 0);
 	}
-	
+
+	/**
+	 * \Create a global string object
+	 */
 	Value * globalString(Token t) {
 		return globalString(t.getText(code));
 	}
-	
+
+	/**
+	 * \Create return a reference to a global external symbol
+	 */
 	BorrowedLLVMVal extGlobalObject(const char * name) {
 		if (module->getGlobalVariable(name)) return BorrowedLLVMVal(module->getGlobalVariable(name));
 		return BorrowedLLVMVal(new GlobalVariable(*module,
@@ -536,23 +664,44 @@ public:
 	}
 
 
+	/**
+	 * \brief template magic used by dOp and friends
+	 * \internal
+	 */
 	template <typename T>
 	struct bwh {
 		typedef BorrowedLLVMVal t;
 	};
 
+	/**
+	 * \brief template magic used by dOp and friends
+	 * \internal
+	 */
 	template <typename T>
 	struct th {
 		typedef ::Type t;
 	};
 
+
+	/**
+	 * \brief Defines a typed operation
+	 */
 	template <typename ...T>
 	struct OpImpl {
+		/** \brief The return type */
 		::Type ret;
+		/** \brief The argument types */
 		std::array<::Type, sizeof...(T)> types;
+		/** \brief The function to call to emit code for the operation */
 		std::function<LLVMVal(typename bwh<T>::t ...)> func;
 	};
 
+	/**
+	 * \brief Declare a typed operation
+	 * \param func The function that exmits code for the operation
+	 * \param rtype The return type of the operation
+	 * \param types The argument types of the operation
+	 */
 	template <typename F, typename ...T>
 	OpImpl<typename th<T>::t...> dOp(
 		F func, 
@@ -562,6 +711,10 @@ public:
 		return rt{rtype, {types...}, func};
 	}
 
+	/**
+	 * \brief Declare a typed operation which is a member method of this class.
+	 * See \ref{dOp}
+	 */
 	template <typename F, typename ...T>
 	OpImpl<typename th<T>::t...> dOpM(
 		F func, 
@@ -574,6 +727,12 @@ public:
 				}};
 	}	
 
+	/**
+	 * \brief Declare a typed operation which is a simple comparator
+	 * \parm in The type the comparator operates on
+	 * \param pred The predicate to use for comparison
+	 * \param undef The undefined value for the in type
+	 */
 	OpImpl<::Type, ::Type> dComp(::Type in, llvm::CmpInst::Predicate pred, Value * undef) {
 		return OpImpl<::Type, ::Type>{TBool, {in, in}, 
 				[this, undef, pred](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) -> OwnedLLVMVal {
@@ -590,6 +749,10 @@ public:
 				}};
 	}
 
+	/**
+	 * \brief Declare a typed operation which is a standard library call
+	 * See \ref{dOp}
+	 */
 	template <typename ...T>
 	OpImpl<typename th<T>::t...> dCall(
 		const char * name, 
@@ -604,18 +767,30 @@ public:
 				}};
 	}
 
+	/**
+	 * \brief template magic used by dOpImp
+	 * \internal
+	 */
 	template <int i>
 	struct bwi {
 		typedef BorrowedLLVMVal t;
 	};
 
+	/**
+	 * \brief template magic used by dOpImp
+	 * \internal
+	 */
 	template <int ...S>
 	LLVMVal doCall(seq<S...>, 
 				   std::function<LLVMVal(typename bwi<S>::t ...)> func,
 				   std::array<BorrowedLLVMVal, sizeof...(S)> & v) {
 		return func(v[S]...);
 	}
-	
+
+	/**
+	 * \brief template magic used by dOpImp
+	 * \internal
+	 */
 	template <typename oi_t,
 			  int N> 
 	LLVMVal opImp_(int i,
@@ -730,6 +905,17 @@ public:
 		}
 	}
 
+	/**
+	 * \brief Create codegen for a set of typed operations on the given nodes
+	 *
+	 * A number of operations will be given in the ops list, each of the child nodes
+	 * c of node, is codegened, and the appropriate operation is codegened depending on
+	 * the types, in case this cannot be figured out on compile time (too mary TAnys), 
+	 * the right operation is selected on runtime
+	 *
+	 * This is usefull for implementing type overloaded unary and binary operators, 
+	 * as well as type overloaded buildin functions
+	 */
 	template <typename ...T>
 	LLVMVal opImp(std::initializer_list<OpImpl<typename th<T>::t...> > ops,
 				  std::shared_ptr<Node> node,
@@ -758,7 +944,7 @@ public:
 		return  r;
 	}
 
-
+	/** \brief Codegen for a valiable */
 	LLVMVal visit(std::shared_ptr<VariableExp> node) {
 		if (NodePtr store = node->store.lock()) {
 			if (store->nodeType != NodeType::AssignmentExp) return borrow(store->llvmVal);
@@ -784,6 +970,7 @@ public:
 		}
 	} 
 	
+	/** \brief Codegen for an assignment */
 	LLVMVal visit(std::shared_ptr<AssignmentExp> node) {
 		LLVMVal val = castVisit(node->valueExp, node->type);
 		if (node->globalId == NOT_GLOBAL) {
@@ -833,8 +1020,8 @@ public:
 		return val;
 	}
 
+	/** \brief Codegen for if */
 	LLVMVal visit(std::shared_ptr<IfExp> node) {
-		// The following code is no good with ownership or anytype
 		Value * value=nullptr;
 		Value * type=nullptr;
 		switch (node->type) {
@@ -906,11 +1093,12 @@ public:
 		return OwnedLLVMVal(builder.CreateLoad(value), type?builder.CreateLoad(type):nullptr);
 	}
 
+	/** \brief Codegen for foctor */
 	LLVMVal visit(std::shared_ptr<ForallExp> node) {
 		ICE("TODO ForallExp", node);
 	}
 
-
+	/** \brief Codegen for function declaration */
 	LLVMVal visit(std::shared_ptr<FuncExp> node) {
 		// Create function type
 		FunctionType * ft = funcType(node->args.size());
@@ -1024,7 +1212,9 @@ public:
 
 		return OwnedLLVMVal(p);
 	}
-	
+
+
+	/** \brief Codegen for tuple creation */	
 	LLVMVal visit(std::shared_ptr<TupExp> exp) {
 		std::vector<LLVMVal> values;
 		Value * entries = builder.CreateAlloca(tupleEntryType, int32(exp->items.size()) );
@@ -1045,6 +1235,7 @@ public:
 		return LLVMVal(std::move(r));
 	}
 
+	/** \brief Codegen for a block */
 	LLVMVal visit(std::shared_ptr<BlockExp> node) {
 		for (auto v: node->vals)
 			v->exp->llvmVal = takeOwnership(visitNode(v->exp), v->exp->type);
@@ -1058,7 +1249,7 @@ public:
 		return LLVMVal(std::move(r));
 	}
 
-
+	/** \brief Codegen for buildins */
 	LLVMVal visit(std::shared_ptr<BuiltInExp> node) {
 		switch (node->nameToken.id) {
 		case TK_PRINT:
@@ -1142,6 +1333,7 @@ public:
 		}
 	}
 
+	/** \brief Codegen for constants */
 	LLVMVal visit(std::shared_ptr<ConstantExp> node) {
 		switch (node->valueToken.id) {
 		case TK_FALSE:
@@ -1171,7 +1363,8 @@ public:
 			break;		
 		}
 	}
-	
+
+	/** \brief Codegen for unary operations */
 	LLVMVal visit(std::shared_ptr<UnaryOpExp> node) {
 		switch (node->opToken.id) {
 		case TK_NOT: {
@@ -1196,6 +1389,7 @@ public:
 		}
 	}
 
+	/** \brief Codegen for relation creators */
 	LLVMVal visit(std::shared_ptr<RelExp> exp) {
 		LLVMVal v = castVisit(exp->exp, TTup);
 		LLVMVal v2 = OwnedLLVMVal(builder.CreateCall(getStdlibFunc("rm_createRel"), v.value));
@@ -1203,6 +1397,7 @@ public:
 		return v2;
 	}
 
+	/** \brief Codegen for length computation */
 	LLVMVal visit(std::shared_ptr<LenExp> exp) {
 		LLVMVal v=castVisit(exp->exp, TAny);
 		LLVMVal v2=OwnedLLVMVal(builder.CreateCall(
@@ -1213,6 +1408,7 @@ public:
 		return v2;
 	}
 
+	/** \brief Codegen for function invocation */
     LLVMVal visit(std::shared_ptr<FuncInvocationExp> node) {
         FunctionType * ft = funcType(node->args.size());
 		
@@ -1262,6 +1458,7 @@ public:
 							builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1)));
 	}
 
+	/** \brief Codegen for substring expressions */
 	LLVMVal visit(std::shared_ptr<SubstringExp> node) {
 		LLVMVal s = castVisit(node->stringExp, TText);
 		LLVMVal f = castVisit(node->fromExp, TInt);
@@ -1273,6 +1470,7 @@ public:
 		return r;;
 	}
 
+	/** \brief Codegen for relation rename */
 	LLVMVal visit(std::shared_ptr<RenameExp> exp) {
 		Value * names = builder.CreateAlloca(voidPtrType, int32(2*exp->renames.size()) );
 		for (size_t i=0; i < exp->renames.size(); ++i) {
@@ -1286,7 +1484,8 @@ public:
 		return ret;
 
 	}
-        
+
+	/** \brief Codegen for tuple lookup */
 	LLVMVal visit(std::shared_ptr<DotExp> node) {
 		LLVMVal tup=castVisit(node->lhs, TTup);
 		Value * rv = builder.CreateAlloca(anyRetType);
@@ -1299,6 +1498,7 @@ public:
 		return LLVMVal(std::move(r));
 	}
 
+	/** \brief Codegen for tuple removal */
 	LLVMVal visit(std::shared_ptr<TupMinus> node) {
 		LLVMVal tup=castVisit(node->lhs, TTup);
 
@@ -1307,11 +1507,12 @@ public:
 		return LLVMVal(std::move(ans));
 	}
 
-
+	/** \brief Codegen for ?? */
 	LLVMVal visit(std::shared_ptr<AtExp> node) {
 		ICE("TODO At", node);
 	}
 
+	/** \brief Codegen projections */
 	LLVMVal visit(std::shared_ptr<ProjectExp> exp) {
 		Value * names = builder.CreateAlloca(voidPtrType, int32(exp->names.size()) );
 		for (size_t i=0; i < exp->names.size(); ++i)
@@ -1333,12 +1534,16 @@ public:
 		return ret;
 	}
 	
+	/**
+	 * \brief Codegen a typed binary operation
+	 * \param ops The possible operations
+	 */
 	LLVMVal binopImpl(std::shared_ptr<BinaryOpExp> node, 
 					  std::initializer_list<OpImpl<::Type, ::Type> > ops) {
 		return opImp(ops, node, node->lhs, node->rhs);
 	}
 	
-	
+	/** \brief Add two integers taking care on undefined values */
 	LLVMVal binopAddInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(
 			builder.CreateSelect(builder.CreateICmpEQ(lhs.value, undefInt), undefInt,
@@ -1346,6 +1551,7 @@ public:
 													  builder.CreateAdd(lhs.value, rhs.value))));
 	}
 
+	/** \brief Substract two integers */
 	LLVMVal binopMinusInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(
 			builder.CreateSelect(builder.CreateICmpEQ(lhs.value, undefInt), undefInt,
@@ -1353,6 +1559,7 @@ public:
 													  builder.CreateSub(lhs.value, rhs.value))));
 	}
 
+	/** \brief Multiply two integers */
 	LLVMVal binopMulInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(
 			builder.CreateSelect(builder.CreateICmpEQ(lhs.value, undefInt), undefInt,
@@ -1360,6 +1567,7 @@ public:
 													  builder.CreateMul(lhs.value, rhs.value))));
 	}
 
+	/** \brief Devide two integers */
 	LLVMVal binopDivInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(
 			builder.CreateSelect(builder.CreateICmpEQ(lhs.value, undefInt), undefInt,
@@ -1368,6 +1576,7 @@ public:
 																		   builder.CreateSDiv(lhs.value, rhs.value)))));
 	}
 
+	/** \brief Mod two integers */
 	LLVMVal binopModInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(
 			builder.CreateSelect(builder.CreateICmpEQ(lhs.value, undefInt), undefInt,
@@ -1376,35 +1585,41 @@ public:
 																		   builder.CreateSRem(lhs.value, rhs.value)))));
 	}
 
+	/** \brief Check if two texts are different */
 	LLVMVal binopDifferentText(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(
 			builder.CreateSub(trueBool, builder.CreateCall2(getStdlibFunc("rm_equalText"), lhs.value, rhs.value)));
 	}
 
+	/** \brief Check if two relations are different */
 	LLVMVal binopDifferentRel(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(
 			builder.CreateSub(trueBool, builder.CreateCall2(getStdlibFunc("rm_equalRel"), lhs.value, rhs.value)));
 	}
 
+	/** \brief Check if two tupples are different */
 	LLVMVal binopDifferentTup(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(
 			builder.CreateSub(trueBool, builder.CreateCall2(getStdlibFunc("rm_equalTup"), lhs.value, rhs.value)));
 	}
 
-
+	/** \brief Logical and */
 	LLVMVal binopAndBool(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(builder.CreateAnd(lhs.value, rhs.value));
 	}
 
+	/** \brief Logical or */
 	LLVMVal binopOrBool(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(builder.CreateOr(lhs.value, rhs.value));
 	}
 
+	/** \brief Select a subset of a relation */
 	LLVMVal binopSelectRel(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
 		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_selectRel"), lhs.value, 
 												builder.CreatePointerCast(rhs.value, voidPtrType)));
 	}
 	
+	/** \brief Codegen a binary operation*/
 	LLVMVal visit(std::shared_ptr<BinaryOpExp> node) {
 		switch (node->opToken.id) {
 		case TK_CONCAT:
@@ -1478,16 +1693,9 @@ public:
 			ICE("Binop not implemented", node->opToken.id, node->opToken, node);
 		}
 	}
-	
-	LLVMVal visit(std::shared_ptr<Choice> node) {ICE("Choice", node);}
-	LLVMVal visit(std::shared_ptr<FuncCaptureValue> node) {ICE("FuncCaptureValue", node);}
-	LLVMVal visit(std::shared_ptr<FuncArg> node) {ICE("FuncArg", node);}
-	LLVMVal visit(std::shared_ptr<TupItem> node) {ICE("TupItem", node);}
-	LLVMVal visit(std::shared_ptr<InvalidExp> node) {ICE("InvalidExp", node);}
-	LLVMVal visit(std::shared_ptr<Val> node) {ICE("Val", node);}
-	LLVMVal visit(std::shared_ptr<RenameItem> node) {ICE("RenameItem", node);}
 
 
+	/** \brief Codegen a sequence */
 	LLVMVal visit(std::shared_ptr<SequenceExp> node) {
 		::Type t=TInvalid;
 		LLVMVal x;
@@ -1500,7 +1708,10 @@ public:
 		//to abandon any assignments
 		return x;
 	}
-	
+
+	/**
+	 * Create a function for a given ast
+	 */
 	llvm::Function * translate(NodePtr ast) override {
 		size_t id=uid++;
 		llvm::FunctionType * ft = FunctionType::get(llvm::Type::getVoidTy(getGlobalContext()), {}, false);
@@ -1515,6 +1726,14 @@ public:
 		finishFunction(function);
 		return function ;
 	}
+
+	LLVMVal visit(std::shared_ptr<Choice> node) {ICE("Choice", node);}
+	LLVMVal visit(std::shared_ptr<FuncCaptureValue> node) {ICE("FuncCaptureValue", node);}
+	LLVMVal visit(std::shared_ptr<FuncArg> node) {ICE("FuncArg", node);}
+	LLVMVal visit(std::shared_ptr<TupItem> node) {ICE("TupItem", node);}
+	LLVMVal visit(std::shared_ptr<InvalidExp> node) {ICE("InvalidExp", node);}
+	LLVMVal visit(std::shared_ptr<Val> node) {ICE("Val", node);}
+	LLVMVal visit(std::shared_ptr<RenameItem> node) {ICE("RenameItem", node);}
 };
 
 } //nameless namespace
