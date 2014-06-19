@@ -712,40 +712,44 @@ public:
 	}
 
 	/**
-	 * \brief Declare a typed operation which is a member method of this class.
-	 * See \ref{dOp}
-	 */
-	template <typename F, typename ...T>
-	OpImpl<typename th<T>::t...> dOpM(
-		F func, 
-		::Type rtype, 
-		T... types) {
-		typedef OpImpl<typename th<T>::t...> rt; 
-		return rt{rtype, {types...}, 
-				[func,this](typename bwh<T>::t... vals) -> LLVMVal {
-					return (this->*func)(vals...);
-				}};
-	}	
-
-	/**
 	 * \brief Declare a typed operation which is a simple comparator
 	 * \parm in The type the comparator operates on
 	 * \param pred The predicate to use for comparison
-	 * \param undef The undefined value for the in type
 	 */
-	OpImpl<::Type, ::Type> dComp(::Type in, llvm::CmpInst::Predicate pred, Value * undef) {
+	OpImpl<::Type, ::Type> dComp(::Type in, llvm::CmpInst::Predicate pred) {
 		return OpImpl<::Type, ::Type>{TBool, {in, in}, 
-				[this, undef, pred](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) -> OwnedLLVMVal {
+				[this, in, pred](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) -> OwnedLLVMVal {
 					return builder.CreateSelect(
-						builder.CreateICmpEQ(lhs.value, undef),
+						builder.CreateICmpEQ(lhs.value, getUndef(in).value),
 						undefBool,
 						builder.CreateSelect(
-							builder.CreateICmpEQ(rhs.value, undef),
+							builder.CreateICmpEQ(rhs.value, getUndef(in).value),
 							undefBool,
 							builder.CreateSelect(
 								builder.CreateICmp(pred, lhs.value, rhs.value),
 								trueBool,
 								falseBool)));
+				}};
+	}
+
+	/**
+	 * \brief Declare a typed operation which returns undef in any of the arguments are undef
+	 * See \ref{dOp}
+	 */
+	template <typename Func>
+	OpImpl<::Type, ::Type> dOpU(Func func, ::Type ret, ::Type tlhs, ::Type trhs) {
+		return OpImpl<::Type, ::Type>{ret, {tlhs, trhs}, 
+				[this, func, tlhs, trhs, ret](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) -> OwnedLLVMVal {
+					LLVMVal v=func(lhs, rhs);
+					OwnedLLVMVal r=builder.CreateSelect(
+						builder.CreateICmpEQ(lhs.value, getUndef(tlhs).value),
+						getUndef(ret).value,
+						builder.CreateSelect(
+							builder.CreateICmpEQ(rhs.value, getUndef(trhs).value),
+							getUndef(ret).value,
+							v.value));
+					disown(v, ret);
+					return r;
 				}};
 	}
 
@@ -1561,64 +1565,6 @@ public:
 		return opImp(ops, node, node->lhs, node->rhs);
 	}
 	
-	/** \brief Add two integers taking care on undefined values */
-	LLVMVal binopAddInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(
-			builder.CreateSelect(builder.CreateICmpEQ(lhs.value, undefInt), undefInt,
-								 builder.CreateSelect(builder.CreateICmpEQ(rhs.value, undefInt), undefInt,
-													  builder.CreateAdd(lhs.value, rhs.value))));
-	}
-
-	/** \brief Substract two integers */
-	LLVMVal binopMinusInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(
-			builder.CreateSelect(builder.CreateICmpEQ(lhs.value, undefInt), undefInt,
-								 builder.CreateSelect(builder.CreateICmpEQ(rhs.value, undefInt), undefInt,
-													  builder.CreateSub(lhs.value, rhs.value))));
-	}
-
-	/** \brief Multiply two integers */
-	LLVMVal binopMulInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(
-			builder.CreateSelect(builder.CreateICmpEQ(lhs.value, undefInt), undefInt,
-								 builder.CreateSelect(builder.CreateICmpEQ(rhs.value, undefInt), undefInt,
-													  builder.CreateMul(lhs.value, rhs.value))));
-	}
-
-	/** \brief Devide two integers */
-	LLVMVal binopDivInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(
-			builder.CreateSelect(builder.CreateICmpEQ(lhs.value, undefInt), undefInt,
-								 builder.CreateSelect(builder.CreateICmpEQ(rhs.value, undefInt), undefInt,
-													  builder.CreateSelect(builder.CreateICmpEQ(rhs.value, int64(0)), undefInt,
-																		   builder.CreateSDiv(lhs.value, rhs.value)))));
-	}
-
-	/** \brief Mod two integers */
-	LLVMVal binopModInt(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(
-			builder.CreateSelect(builder.CreateICmpEQ(lhs.value, undefInt), undefInt,
-								 builder.CreateSelect(builder.CreateICmpEQ(rhs.value, undefInt), undefInt,
-													  builder.CreateSelect(builder.CreateICmpEQ(rhs.value, int64(0)), undefInt,
-																		   builder.CreateSRem(lhs.value, rhs.value)))));
-	}
-
-	/** \brief Logical and */
-	LLVMVal binopAndBool(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateAnd(lhs.value, rhs.value));
-	}
-
-	/** \brief Logical or */
-	LLVMVal binopOrBool(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateOr(lhs.value, rhs.value));
-	}
-
-	/** \brief Select a subset of a relation */
-	LLVMVal binopSelectRel(BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) {
-		return OwnedLLVMVal(builder.CreateCall2(getStdlibFunc("rm_selectRel"), lhs.value, 
-												builder.CreatePointerCast(rhs.value, voidPtrType)));
-	}
-	
 	/** \brief Codegen a binary operation*/
 	LLVMVal visit(std::shared_ptr<BinaryOpExp> node) {
 		switch (node->opToken.id) {
@@ -1628,72 +1574,100 @@ public:
 						});
 		case TK_PLUS:
 			return binopImpl(node, { 
-					dOpM(&CodeGen::binopAddInt, TInt, TInt, TInt),
+					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+							return builder.CreateAdd(lhs.value, rhs.value);
+						}, TInt, TInt, TInt),
 					dCall("rm_unionRel", TRel, TRel, TRel)	
 						});
 		case TK_MUL:
 			return binopImpl(node, {
-					dOpM(&CodeGen::binopMulInt, TInt, TInt, TInt),
+					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+							return builder.CreateMul(lhs.value, rhs.value);
+						}, TInt, TInt, TInt),
 					dCall("rm_joinRel", TRel, TRel, TRel)
 						});
 		case TK_MINUS:
 			return binopImpl(node, {
-					dOpM(&CodeGen::binopMinusInt, TInt, TInt, TInt),
+					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+							return builder.CreateSub(lhs.value, rhs.value);
+						}, TInt, TInt, TInt),
 					dCall("rm_diffRel", TRel, TRel, TRel)
 				});
 		case TK_DIV:
-			return binopImpl(node, { dOpM(&CodeGen::binopDivInt, TInt, TInt, TInt) });
+			return binopImpl(node, {
+					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+							return builder.CreateSelect(builder.CreateICmpEQ(rhs.value, int64(0)), undefInt,
+														builder.CreateSDiv(lhs.value, rhs.value));
+						}, TInt, TInt, TInt)
+						});
 		case TK_MOD:
-			return binopImpl(node, { dOpM(&CodeGen::binopModInt, TInt, TInt, TInt) });
+			return binopImpl(node, {
+					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+							return builder.CreateSelect(builder.CreateICmpEQ(rhs.value, int64(0)), undefInt,
+														builder.CreateSRem(lhs.value, rhs.value));
+						}, TInt, TInt, TInt)
+						});
 		case TK_LESS:
 			return binopImpl(node, { 
-					dComp(TInt, llvm::CmpInst::ICMP_SLT, undefInt),
-					dComp(TBool, llvm::CmpInst::ICMP_SLT, undefBool)
+					dComp(TInt, llvm::CmpInst::ICMP_SLT),
+					dComp(TBool, llvm::CmpInst::ICMP_SLT)
 					});
 		case TK_LESSEQUAL:
 			return binopImpl(node, { 
-					dComp(TInt, llvm::CmpInst::ICMP_SLE, undefInt),
-					dComp(TBool, llvm::CmpInst::ICMP_SLE, undefBool)
+					dComp(TInt, llvm::CmpInst::ICMP_SLE),
+					dComp(TBool, llvm::CmpInst::ICMP_SLE)
 						});
 		case TK_GREATER:
 			return binopImpl(node, { 
-					dComp(TInt, llvm::CmpInst::ICMP_SGT, undefInt),
-					dComp(TBool, llvm::CmpInst::ICMP_SGT, undefBool)
+					dComp(TInt, llvm::CmpInst::ICMP_SGT),
+					dComp(TBool, llvm::CmpInst::ICMP_SGT)
 						});
 		case TK_GREATEREQUAL:
 			return binopImpl(node, { 
-					dComp(TInt, llvm::CmpInst::ICMP_SGE, undefInt),
-					dComp(TBool, llvm::CmpInst::ICMP_SGE, undefBool)
+					dComp(TInt, llvm::CmpInst::ICMP_SGE),
+					dComp(TBool, llvm::CmpInst::ICMP_SGE)
 						});
 		case TK_EQUAL:
 			return binopImpl(node, { 
-					dComp(TInt, llvm::CmpInst::ICMP_EQ, undefInt),
-					dComp(TBool, llvm::CmpInst::ICMP_EQ, undefBool),
+					dComp(TInt, llvm::CmpInst::ICMP_EQ),
+					dComp(TBool, llvm::CmpInst::ICMP_EQ),
 					dCall("rm_equalRel", TBool, TRel, TRel),
 					dCall("rm_equalTup", TBool, TTup, TTup),
 					dCall("rm_equalText", TBool, TText, TText),
 						});
 		case TK_DIFFERENT:
 			return binopImpl(node, { 
-					dComp(TInt, llvm::CmpInst::ICMP_NE, undefInt),
-					dComp(TBool, llvm::CmpInst::ICMP_NE, undefBool),
+					dComp(TInt, llvm::CmpInst::ICMP_NE),
+					dComp(TBool, llvm::CmpInst::ICMP_NE),
 					dBInv(dCall("rm_equalRel", TBool, TRel, TRel)),
 					dBInv(dCall("rm_equalTup", TBool, TTup, TTup)),
 					dBInv(dCall("rm_equalText", TBool, TText, TText)),
 						});
 		case TK_AND:
-			return binopImpl(node, { dOpM(&CodeGen::binopAndBool, TBool, TBool, TBool) });
+			return binopImpl(node, {
+					dOp([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+							return builder.CreateAnd(lhs.value, rhs.value);
+						}, TBool, TBool, TBool)
+						});
 		case TK_OR:
-			return binopImpl(node, { dOpM(&CodeGen::binopOrBool, TBool, TBool, TBool) });
+			return binopImpl(node, {
+					dOp([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+							return builder.CreateOr(lhs.value, rhs.value);
+						}, TBool, TBool, TBool)
+						});
 		case TK_QUESTION:
-			return binopImpl(node, { dOpM(&CodeGen::binopSelectRel, TRel, TRel, TFunc) });
+			return binopImpl(node, {
+					dOp([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+							return builder.CreateCall2(getStdlibFunc("rm_selectRel"), lhs.value, 
+													   builder.CreatePointerCast(rhs.value, voidPtrType));
+						}, TRel, TFunc, TRel)
+						});
 		case TK_OPEXTEND:
 			return binopImpl(node, { dCall("rm_extendTup", TTup, TTup, TTup) });
 		default: 
 			ICE("Binop not implemented", node->opToken.id, node->opToken, node);
 		}
 	}
-
 
 	/** \brief Codegen a sequence */
 	LLVMVal visit(std::shared_ptr<SequenceExp> node) {
