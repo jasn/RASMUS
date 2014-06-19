@@ -206,6 +206,21 @@ void bools(rasmus::teststream & ts) {
 	ts << "not 2" << result(it("not true", "false"));
 	ts << "not 2" << result(it("not false", "true"));
 	ts << "var" << result(it("x:=?-Bool\nx", "?-Bool"));
+
+	ts << "less0" << result(it("true < true", "false"));
+	ts << "less2" << result(it("false < true", "true"));
+	ts << "less3" << result(it("true < ?-Bool", "?-Bool"));
+	ts << "greater0" << result(it("true > true", "false"));
+	ts << "greater2" << result(it("true > false", "true"));
+	ts << "greater3" << result(it("true > ?-Bool", "?-Bool"));
+
+	ts << "less equal 0" << result(it("true <= false", "false"));
+	ts << "less equal 2" << result(it("true <= true", "true"));
+	ts << "less equal 3" << result(it("true <= ?-Bool", "?-Bool"));
+	ts << "greater equal 0" << result(it("false >= true", "false"));
+	ts << "greater equal 2" << result(it("true >= true", "true"));
+	ts << "greater equal 3" << result(it("true >= ?-Bool", "?-Bool"));
+
 }
 
 void tuple(rasmus::teststream & ts) {

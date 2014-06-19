@@ -522,7 +522,9 @@ public:
 		case TK_LESS:
 		case TK_GREATER:
 		case TK_GREATEREQUAL:
-			binopTypeCheck(node, { {TInt, TInt, TBool} });
+			binopTypeCheck(node, { 
+					{TInt, TInt, TBool},
+					{TBool, TBool, TBool} });
 			break;
 		case TK_EQUAL:
 		case TK_DIFFERENT:
