@@ -251,7 +251,7 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 				break;
 			}
 			case TBool:
-				tuple.getAs<Tuple>()->values.emplace_back(line != "false");
+				tuple.getAs<Tuple>()->values.emplace_back((line != "false") ? RM_TRUE : RM_FALSE);
 				break;
 			case TText:
 				tuple.getAs<Tuple>()->values.emplace_back(TText, RefPtr<rm_object>::steal(rm_getConstText(line.c_str())));
@@ -305,84 +305,173 @@ rm_object * rm_loadRel(const char * name) {
 	return callback->loadRelation(name);
 }
 
-
+/**
+ * \Brief Perform a natural join on lhs and rhs
+ * First we identify columns which are shared by lhs and rhs (e.g. by sorting)
+ * Then we sort lhs and rhs by the shared columns
+ * Then we scan through lhs and rhs and output the union of their shared columns
+ * \Note if no columns are shared, the full Carthesian product is returned
+ */
 rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs) {
 	//TODO
 	lhs->ref_cnt++;
 	return lhs;
 }
 
+
+/**
+ * \Brief return the union of lhs and rhs
+ * First check if lhs and rhs have the same schema
+ * If not, throw an error
+ * Otherwise return the union of the two relations
+ * \Note we need to remove duplicate rows
+ */
 rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
 	//TODO
 	lhs->ref_cnt++;
 	return lhs;
 }
 
+/**
+ * \Brief Return the difference of lhs and rhs
+ * Again assert that lhs and rhs have the same schema
+ * Then return the set difference of the rows in lhs and rhs (lhs - rhs)
+ */
 rm_object * rm_diffRel(rm_object * lhs, rm_object * rhs) {
 	//TODO
 	lhs->ref_cnt++;
 	return lhs;
 }
 
+/**
+ * Evaluate func on every tuple in rel
+ * If this evaluates to RM_TRUE, the tuple is included in the result
+ */
 rm_object * rm_selectRel(rm_object * rel, rm_object * func) {
 	//TODO
+	// Spørg Jakob hvordan funktion skal kaldes. 
+	// dette laves sent
 	rel->ref_cnt++;
 	return rel;
 }
 
+/**
+ * \Brief Projects rel onto the given set of names
+ * Iterate over all tuples, replacing them with new tuples
+ * according to the given list of names
+ * \Note duplicates must be removed
+ */
 rm_object * rm_projectPlusRel(rm_object * rel, uint32_t name_count, const char ** names) {
 	//TODO
 	rel->ref_cnt++;
 	return rel;
 }
 
+/** \Brief Projects rel into all names except the given set of names
+ */
 rm_object * rm_projectMinusRel(rm_object * rel, uint32_t name_count, const char ** names) {
 	//TODO
+	// Can be implemented as a call to rm_projectPlusRel
 	rel->ref_cnt++;
 	return rel;
 }
 
+/**
+ * \Brief Replace the schema of rel with one given by the set of names
+ * We require that the length of the list of names is as big as the schema of rel
+ */
 rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** names) {
 	//TODO
 	rel->ref_cnt++;
 	return rel;
 }
 
+/**
+ * \Brief Finds the maximum value for the given column
+ * \Note Ordering is not defined for text
+ */
 int64_t rm_maxRel(rm_object * lhs, const char * name) {
 	//TODO
 	return std::numeric_limits<int64_t>::min();
 }
 
+/**
+ * \Brief Finds the minimum value for the given column
+ */
 int64_t rm_minRel(rm_object * lhs, const char * name) {
 	//TODO
 	return std::numeric_limits<int64_t>::min();
 }
 
+/**
+ * \Brief Returns the sum of all values for the given column
+ */
 int64_t rm_addRel(rm_object * lhs, const char * name) {
 	//TODO
 	return std::numeric_limits<int64_t>::min();
 }
 
+/**
+ * \Brief Returns the product of all values for the given column
+ */
 int64_t rm_multRel(rm_object * lhs, const char * name) {
 	//TODO
 	return std::numeric_limits<int64_t>::min();
 }
 
+/**
+ * \Brief Return the number of unique entries in the given column
+ */
 int64_t rm_countRel(rm_object * lhs, const char * name) {
 	//TODO
 	return std::numeric_limits<int64_t>::min();
 }
 
 
-
+// TODO write comments
 rm_object * rm_createTup(uint32_t count, TupEntry * entries) {
-	//TODO IMPLEMENT ME
-	Tuple * t=new Tuple();
+	Tuple * t = new Tuple();
 	t->ref_cnt = 1;
 	registerAllocation(t);
+
+	Schema * schema = new Schema;
+	registerAllocation(schema);
+	t->schema = RefPtr<rm_object>(schema);
+
+	for(int i = 0; i < count; i++){
+		// add entry to the tuple's schema 
+		TupEntry te = entries[i];
+		Attribute attribute {
+			(Type) te.type, te.name
+		};
+		schema->attributes.push_back(attribute);
+
+		// add entry to the tuple's values
+		switch(te.type){
+		case TInt:
+			t->values.emplace_back(te.value);
+			break;
+		case TBool:
+			t->values.emplace_back(static_cast<int8_t>(te.value));
+			break;
+		case TText: 
+		{
+			TextBase * text = reinterpret_cast<TextBase *>(te.value);
+			RefPtr<rm_object> ref(text);
+			t->values.emplace_back((Type) te.type, std::move(ref));
+			break;
+		}
+		default:
+			ILE("bad object type while creating tuple", te.type);
+		}
+	}
+
 	return t;
 }
 
+/**
+ * \Brief Creates the relation containing a single tuple
+ */
 rm_object * rm_createRel(rm_object * tup) {
 	//TODO
 	Relation * r = new Relation();
@@ -391,39 +480,72 @@ rm_object * rm_createRel(rm_object * tup) {
 	return r;
 }
 
+/**
+ * \Brief Fetch the value given by name from the given tuple
+ * \Note the values is saved in ret
+ */
 void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret) {
 	//TODO fix me
 	ret->value=0;
 	ret->type=TInt;
 }
 
+/**
+ * \Brief returns the tuple which is the union of lhs and rhs
+ * \Note Shared values are taken from lhs, not rhs
+ */
 rm_object * rm_extendTup(rm_object * lhs, rm_object * rhs) {
 	//TODO fixme
 	lhs->ref_cnt++;
 	return lhs;
 }
 
+/**
+ * \Brief Creates a tuple whose schema does not contain name
+ */
 rm_object * rm_tupRemove(rm_object * tup, const char * name) {
 	//TODO fixme
 	tup->ref_cnt++;
 	return tup;
 }
 
+/**
+ * \Brief Checks whether or not the given tuple's schema contains the given name
+ */
 uint8_t rm_tupHasEntry(rm_object * tup, const char * name) {
-	//TODO fixme
-	return 0;
+	Tuple * tuple = static_cast<Tuple *>(tup);
+
+	for(auto attribute : tuple->schema.getAs<Schema>()->attributes){
+		if(name == attribute.name) return RM_TRUE;
+	}
+
+	return RM_FALSE;
 }
 
-uint8_t rm_relHasEntry(rm_object * tup, const char * name) {
-	//TODO fixme
-	return 0;
+/**
+ * \Brief Checks whether or not the given relation's schema contains the given name
+ */
+uint8_t rm_relHasEntry(rm_object * rel, const char * name) {
+	Relation * relation = static_cast<Relation *>(rel);
+
+	for(auto attribute : relation->schema.getAs<Schema>()->attributes){
+		if(name == attribute.name) return RM_TRUE; 
+	}
+
+	return RM_FALSE;
 }
 
+/**
+ * \Brief Checks if lhs and ehs are identical
+ * They must be completely identical; same schema, same number of tuples etc.
+ */
 uint8_t rm_equalRel(rm_object * lhs, rm_object * rhs) {
 	return 3; //TODO 
 }
 
-
+/**
+ * \Brief Checks if lhs and rhs are identical
+ */
 uint8_t rm_equalTup(rm_object * lhs, rm_object * rhs) {
 	return 3; //TODO 
 }

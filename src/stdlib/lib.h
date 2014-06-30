@@ -22,6 +22,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
+static const int8_t RM_TRUE = 3;
+static const int8_t RM_FALSE = 0;
+
 /**
  * This header contains the public C interface boundery between the stdlib and
  * the compiler (codegen)

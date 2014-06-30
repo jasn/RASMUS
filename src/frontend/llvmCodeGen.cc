@@ -195,12 +195,12 @@ public:
 									builder(getGlobalContext()), fpm(module), 
 									dumpRawFunctions(dumpRawFunctions),
 									dumpOptFunctions(dumpOptFunctions) {
-		fpm.add(new DataLayout(module));
-		fpm.add(createBasicAliasAnalysisPass());
-		fpm.add(createInstructionCombiningPass());
-		fpm.add(createReassociatePass());
+//		fpm.add(new DataLayout(module));
+//		fpm.add(createBasicAliasAnalysisPass());
+//		fpm.add(createInstructionCombiningPass());
+//		fpm.add(createReassociatePass());
 		//fpm.add(createGVNPass());
-		fpm.add(createCFGSimplificationPass());
+//		fpm.add(createCFGSimplificationPass());
 		fpm.doInitialization();
 
 		//Define all functions in the standard library

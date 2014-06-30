@@ -33,13 +33,13 @@ struct AnyValue {
 	Type type;
 	union {
 		int64_t intValue;
-		bool boolValue;
+		int8_t boolValue;
 		RefPtr<rm_object> objectValue;
 	};
 	
 	AnyValue(): type(TInvalid) {}
 	AnyValue(int64_t value): type(TInt), intValue(value) {}
-	AnyValue(bool value): type(TBool), boolValue(value) {}
+	AnyValue(int8_t value): type(TBool), boolValue(value) {}
 	AnyValue(Type type, RefPtr<rm_object> value): type(type), objectValue(value) {}
 
 	AnyValue(const AnyValue & other): type(other.type) {

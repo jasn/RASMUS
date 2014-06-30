@@ -56,7 +56,7 @@ void rm_saveGlobalAny(uint32_t id, int64_t value, int8_t type) {
 		globals[id] = AnyValue(value);
 		break;
 	case TBool:
-		globals[id] = AnyValue(bool(value));
+		globals[id] = AnyValue(static_cast<int8_t>(value));
 		break;
 	default:
 		globals[id] = AnyValue((Type)type, 
