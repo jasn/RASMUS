@@ -151,6 +151,8 @@ public:
 	std::shared_ptr<Error> error;
 	std::shared_ptr<Code> code;
 
+	std::unordered_map<std::string, llvm::Function *> stdlib;
+
 	Module * module;
 	IRBuilder<> builder;
 	FunctionPassManager fpm;

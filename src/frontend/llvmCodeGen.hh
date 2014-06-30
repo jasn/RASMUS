@@ -31,12 +31,29 @@
 namespace rasmus {
 namespace frontend {
 
+/**
+ * \brief intefrace of class for emmiting code using llvm
+ *
+ * The AST is trasformed into llvm using the standard llvm builder,
+ * since most object in rasmus special care is taken to ensure that we
+ * try to keep the number of incres and decrefs low this is done using
+ * the \ref anonymous_namespace{llvmCodeGen.cc}::BorrowedLLVMVal
+ * "BorrowedLLVMVal", \ref
+ * anonymous_namespace{llvmCodeGen.cc}::LLVMVal "LLVMVal" and \ref
+ * OwnedLLVMVal classes.
+ *
+ * The given AST is transformed into a single llvm function
+ * that when called will have the same semantics as the ast.
+ */
 class LLVMCodeGen {
 public:
 	virtual ~LLVMCodeGen() {};
 
-	std::unordered_map<std::string, llvm::Function *> stdlib;
-
+	/**
+	 * \brief Translate an ast tree into an llvm finction.
+	 * \note This may only be called once on a given instance of an
+	 * LLVMCodeGen
+	 */
 	virtual llvm::Function * translate(NodePtr node) = 0;
 };
 
