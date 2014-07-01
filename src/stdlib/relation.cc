@@ -377,117 +377,183 @@ rm_object * rm_projectMinusRel(rm_object * rel, uint32_t name_count, const char 
 }
 
 /**
- * \Brief Replace the schema of rel with one given by the set of names
- * We require that the length of the list of names is as big as the schema of rel
+ * \Brief Replace the names in the relation with a set of replacement names
+ * \Note "names" has twice the length of name_count; it holds both the old names and the new ones
  */
 rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** names) {
-	//TODO
-	rel->ref_cnt++;
-	return rel;
-}
+	// create a new, fixed schema for the relation
+  	Relation * relation = static_cast<Relation *>(rel);
+
+	 Schema * schema = relation->schema.getAs<Schema>();
+	 if(schema->attributes.size() < name_count)
+		 ILE("Wrong number of names given to rm_renameRel - name_count:", name_count, "schema size:", schema->attributes.size());
+
+	 for(uint32_t i = 0; i < name_count; i++){
+		 std::string old_name = names[i*2];
+		 std::string new_name = names[i*2 + 1];
+		 uint8_t found = 0;
+		 for(auto & attribute : schema->attributes){
+			 if(attribute.name == old_name){
+				 attribute.name = new_name;
+				 found = 1;
+				 break;
+			 }
+		 }
+		 if(!found) ILE("Schema has no such name", old_name);
+	 }
+
+	 // replace each tuple's schema
+	 // TODO Q can we assume that the schema is shared between tuples and relation? If so, this can be skipped
+	 for(auto & tuple : relation->tuples){
+		 tuple.getAs<Tuple>()->schema = relation->schema;
+	 }
+
+	 rel->ref_cnt++;
+	 return rel;	
+ }
+
+ /**
+  * \Brief Finds the maximum value for the given column
+  * \Note Ordering is not defined for text
+  */
+ int64_t rm_maxRel(rm_object * lhs, const char * name) {
+	 //TODO
+	 return std::numeric_limits<int64_t>::min();
+ }
+
+ /**
+  * \Brief Finds the minimum value for the given column
+  */
+ int64_t rm_minRel(rm_object * lhs, const char * name) {
+	 //TODO
+	 return std::numeric_limits<int64_t>::min();
+ }
+
+ /**
+  * \Brief Returns the sum of all values for the given column
+  */
+ int64_t rm_addRel(rm_object * lhs, const char * name) {
+	 //TODO
+	 return std::numeric_limits<int64_t>::min();
+ }
+
+ /**
+  * \Brief Returns the product of all values for the given column
+  */
+ int64_t rm_multRel(rm_object * lhs, const char * name) {
+	 //TODO
+	 return std::numeric_limits<int64_t>::min();
+ }
+
+ /**
+  * \Brief Return the number of unique entries in the given column
+  */
+ int64_t rm_countRel(rm_object * lhs, const char * name) {
+	 //TODO
+	 return std::numeric_limits<int64_t>::min();
+ }
+
+
+ /**
+  * \Brief Creates a tuple from the given entries
+  */
+ rm_object * rm_createTup(uint32_t count, TupEntry * entries) {
+	 Tuple * t = new Tuple();
+	 t->ref_cnt = 1;
+	 registerAllocation(t);
+
+	 Schema * schema = new Schema;
+	 registerAllocation(schema);
+	 t->schema = RefPtr<rm_object>(schema);
+
+	 for(uint32_t i = 0; i < count; i++){
+		 // add entry to the tuple's schema 
+		 TupEntry te = entries[i];
+		 Attribute attribute {
+			 (Type) te.type, te.name
+		 };
+		 schema->attributes.push_back(attribute);
+
+		 // add entry to the tuple's values
+		 switch(te.type){
+		 case TInt:
+			 t->values.emplace_back(te.value);
+			 break;
+		 case TBool:
+			 t->values.emplace_back(static_cast<int8_t>(te.value));
+			 break;
+		 case TText: 
+		 {
+			 TextBase * text = reinterpret_cast<TextBase *>(te.value);
+			 RefPtr<rm_object> ref(text);
+			 t->values.emplace_back((Type) te.type, std::move(ref));
+			 break;
+		 }
+		 default:
+			 ILE("bad object type while creating tuple", te.type);
+		 }
+	 }
+
+	 return t;
+ }
+
+ /**
+  * \Brief Creates the relation containing a single tuple
+  */
+ rm_object * rm_createRel(rm_object * tup) {
+
+	 Tuple * tuple = static_cast<Tuple *>(tup);
+
+	 if(!tuple) ILE("Null tuple in rm_createRel");
+	 if(!tuple->schema) ILE("Tuple has null schema in rm_createRel");
+
+	 Relation * rel = new Relation();
+	 rel->ref_cnt = 1;
+	 registerAllocation(rel);
+
+	 rel->schema = tuple->schema;
+	 rel->tuples.emplace_back(tuple);
+
+	 return rel;
+ }
 
 /**
- * \Brief Finds the maximum value for the given column
- * \Note Ordering is not defined for text
- */
-int64_t rm_maxRel(rm_object * lhs, const char * name) {
-	//TODO
-	return std::numeric_limits<int64_t>::min();
-}
-
-/**
- * \Brief Finds the minimum value for the given column
- */
-int64_t rm_minRel(rm_object * lhs, const char * name) {
-	//TODO
-	return std::numeric_limits<int64_t>::min();
-}
-
-/**
- * \Brief Returns the sum of all values for the given column
- */
-int64_t rm_addRel(rm_object * lhs, const char * name) {
-	//TODO
-	return std::numeric_limits<int64_t>::min();
-}
-
-/**
- * \Brief Returns the product of all values for the given column
- */
-int64_t rm_multRel(rm_object * lhs, const char * name) {
-	//TODO
-	return std::numeric_limits<int64_t>::min();
-}
-
-/**
- * \Brief Return the number of unique entries in the given column
- */
-int64_t rm_countRel(rm_object * lhs, const char * name) {
-	//TODO
-	return std::numeric_limits<int64_t>::min();
-}
-
-
-// TODO write comments
-rm_object * rm_createTup(uint32_t count, TupEntry * entries) {
-	Tuple * t = new Tuple();
-	t->ref_cnt = 1;
-	registerAllocation(t);
-
-	Schema * schema = new Schema;
-	registerAllocation(schema);
-	t->schema = RefPtr<rm_object>(schema);
-
-	for(int i = 0; i < count; i++){
-		// add entry to the tuple's schema 
-		TupEntry te = entries[i];
-		Attribute attribute {
-			(Type) te.type, te.name
-		};
-		schema->attributes.push_back(attribute);
-
-		// add entry to the tuple's values
-		switch(te.type){
-		case TInt:
-			t->values.emplace_back(te.value);
-			break;
-		case TBool:
-			t->values.emplace_back(static_cast<int8_t>(te.value));
-			break;
-		case TText: 
-		{
-			TextBase * text = reinterpret_cast<TextBase *>(te.value);
-			RefPtr<rm_object> ref(text);
-			t->values.emplace_back((Type) te.type, std::move(ref));
-			break;
-		}
-		default:
-			ILE("bad object type while creating tuple", te.type);
-		}
-	}
-
-	return t;
-}
-
-/**
- * \Brief Creates the relation containing a single tuple
- */
-rm_object * rm_createRel(rm_object * tup) {
-	//TODO
-	Relation * r = new Relation();
-	r->ref_cnt = 1;
-	registerAllocation(r);
-	return r;
-}
-
-/**
- * \Brief Fetch the value given by name from the given tuple
- * \Note the values is saved in ret
+ * \Brief Fetch the value given by name from tup
+ * \Note the value is saved in ret
  */
 void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret) {
-	//TODO fix me
-	ret->value=0;
-	ret->type=TInt;
+	Tuple * tuple = static_cast<Tuple *>(tup);
+	Schema * schema = tuple->schema.getAs<Schema>();
+	
+	uint8_t found = 0;
+	size_t i;
+	for(i = 0; i < schema->attributes.size(); i++){
+		if(schema->attributes[i].name == name){
+			found = 1;
+			break;
+		}
+	}
+	if(!found) ILE("Name", name, "was not found in the tuple's schema");
+	
+	AnyValue val = tuple->values[i];
+	ret->type = val.type;
+	switch(val.type){
+	case TInt:
+		ret->value = val.intValue;
+		break;
+	case TBool:
+		ret->value = val.boolValue;
+		break;
+	case TText:
+		// TODO Q is this correct?
+		ret->value = reinterpret_cast<uint64_t>(&val.objectValue);
+		break;
+	default:
+		// TODO Q same here
+		ret->value = 0;
+		break;
+	}
+	
 }
 
 /**
@@ -527,6 +593,8 @@ uint8_t rm_tupHasEntry(rm_object * tup, const char * name) {
  */
 uint8_t rm_relHasEntry(rm_object * rel, const char * name) {
 	Relation * relation = static_cast<Relation *>(rel);
+	if(!relation) ILE("Null relation passed to rm_relHasEntry");
+	if(!relation->schema) ILE("Null schema for relation passed to rm_relHasEntry");
 
 	for(auto attribute : relation->schema.getAs<Schema>()->attributes){
 		if(name == attribute.name) return RM_TRUE; 

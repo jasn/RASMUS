@@ -236,6 +236,8 @@ void tuple(rasmus::teststream & ts) {
 	ts << "has" << result(it("has(tup(abe: 4, kat: ?-Text), kat)", "true"));
 	ts << "has2" << result(it("has(tup(abe: 4, kat: ?-Text), baz)", "false"));
 	ts << "dot" << result(it("tup(abe: 4, kat: ?-Text).abe", "4"));
+	ts << "dot2" << result(it("tup(foo: true, kat: ?-Text).foo", "true"));
+	ts << "dot3" << result(it("tup(foo: true, bar: \"baz\", kat: ?-Text).bar", "baz"));
 	ts << "dot_err" << result(it("tup(abe: 4, kat: ?-Text).baz", "", true));
 	ts << "len" << result(it("|tup(abe: 4, kat: ?-Text)|", "2"));
 	// ts << "?union" << result(it("tup(abe: 4, kat: 5) << ?-Tup", "?-Tup"));
