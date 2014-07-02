@@ -72,6 +72,8 @@ rm_object * loadRelationFromStream(std::istream & inFile);
 void saveRelationToFile(rm_object * o, const char * name);
 rm_object * loadRelationFromFile(const char * name);
 
+void printTupleToStream(rm_object * ptr, std::ostream & out);
+
 } //namespace stdlib
 } //namespace rasmus
 

@@ -94,7 +94,7 @@ public:
 
 	void printTup(rm_object * o) override {
 		std::stringstream ss;
-		ss << "tup(" << o << ")";
+		rasmus::stdlib::printTupleToStream(o, ss);
 		cb->print(TTup, ss.str());
 	}
 

@@ -283,6 +283,40 @@ rm_object * loadRelationFromFile(const char * name) {
 	return loadRelationFromStream(file);
 }
 
+/**
+ * \Brief prints the given tuple to the out stream
+ */
+void printTupleToStream(rm_object * ptr, std::ostream & out) {
+	Tuple * tup = static_cast<Tuple *>(ptr);
+	Schema * schema = tup->schema.getAs<Schema>();
+
+	out << "(";
+	
+	for(size_t i = 0; i < schema->attributes.size(); i++){
+		out << schema->attributes[i].name;
+		out << ": ";
+		switch(schema->attributes[i].type){
+			case TInt:
+				out << tup->values[i].intValue;
+				break;
+			case TBool:
+				out << (tup->values[i].boolValue ? "true" : "false");
+				break;
+			case TText:
+				// TODO Q how do we handle quotation marks and backslashes in strings?
+				// TODO Q should we handle "?-Text" as a special case?
+				out << '"' << textToString(tup->values[i].objectValue.getAs<TextBase>()) << '"';
+				break;
+			default:
+				ILE("Unsupported type", schema->attributes[i].type);
+		}
+		if(i != schema->attributes.size() - 1) 
+			out << ", ";
+	}
+
+	out << ")";
+
+}
 
 } //namespace stdlib
 } //namespace rasmus
@@ -594,9 +628,30 @@ rm_object * rm_extendTup(rm_object * lhs, rm_object * rhs) {
  * \Brief Creates a tuple whose schema does not contain name
  */
 rm_object * rm_tupRemove(rm_object * tup, const char * name) {
-	//TODO fixme
-	tup->ref_cnt++;
-	return tup;
+
+	// TODO test this method
+	// TODO Q what should happen if the name is not in the schema?
+	// (currently we just remove nothing from the tuple, but according
+	//  to the tests this might be wrong)
+	
+	Tuple * old_tup = static_cast<Tuple *>(tup);
+	Schema * old_schema = old_tup->schema.getAs<Schema>();
+	
+	Tuple * new_tup = new Tuple();
+	new_tup->ref_cnt = 1;
+	registerAllocation(new_tup);
+
+	Schema * new_schema = new Schema();
+	registerAllocation(new_schema);
+	new_tup->schema = RefPtr<rm_object>(new_schema);
+	
+	for(size_t i = 0; i < old_schema->attributes.size(); i++){
+		if(old_schema->attributes[i].name == name) continue;
+		new_schema->attributes.push_back(old_schema->attributes[i]);
+		new_tup->values.push_back(old_tup->values[i]);
+	}
+
+	return new_tup;
 }
 
 /**
@@ -637,9 +692,70 @@ uint8_t rm_equalRel(rm_object * lhs, rm_object * rhs) {
 
 /**
  * \Brief Checks if lhs and rhs are identical
+ * First we check if their schema lengths are identical
+ * Then we sort their schemas for easy comparison
+ * Finally we check if both schema names and tuple values are equal
  */
 uint8_t rm_equalTup(rm_object * lhs, rm_object * rhs) {
-	return 3; //TODO 
+
+	// check sizes of schemas
+	Tuple * lt = static_cast<Tuple *>(lhs); // left tuple
+	Tuple * rt = static_cast<Tuple *>(rhs); // right tuple
+
+	Schema * lts = lt->schema.getAs<Schema>();
+	Schema * rts = rt->schema.getAs<Schema>();
+
+	if(lts->attributes.size() != rts->attributes.size())
+		return RM_FALSE;
+
+	// create a vector of pairs (schemaname, index) for each tuple
+	// these vectors will be sorted so that we can easily
+	// compare the tuples
+	std::vector<std::pair<std::string, size_t>> lt_indices;
+	std::vector<std::pair<std::string, size_t>> rt_indices;
+	
+	for(size_t i = 0; i < lts->attributes.size(); i++){
+		lt_indices.emplace_back(lts->attributes[i].name, i);
+		rt_indices.emplace_back(rts->attributes[i].name, i);
+	}
+
+	std::sort(lt_indices.begin(), lt_indices.end());
+	std::sort(rt_indices.begin(), rt_indices.end());
+
+	for(size_t i = 0; i < lts->attributes.size(); i++){
+		size_t left_index = lt_indices[i].second;
+		size_t right_index = rt_indices[i].second;
+
+		// different schemas?
+		if(lts->attributes[left_index].name
+		   != rts->attributes[right_index].name)
+			return RM_FALSE;
+
+		// different values?
+		// TODO Q implement this with == operator for AnyValues
+		AnyValue avl = lt->values[left_index];
+		AnyValue avr = rt->values[right_index];
+		
+		if(avl.type != avr.type) return RM_FALSE;
+		switch(avl.type){
+		case TInt:
+			if(avl.intValue != avr.intValue) return RM_FALSE;
+			break;
+		case TBool:
+			if(avl.boolValue != avr.boolValue) return RM_FALSE;
+			break;
+		case TText:
+			// TODO Q is this the right way to compare TextBase objects?
+			if(textToString(avl.objectValue.getAs<TextBase>()) != textToString(avr.objectValue.getAs<TextBase>()))
+				return RM_FALSE;
+			break;
+		default:
+			ILE("Comparing unsupported types");
+		}
+
+	}
+
+	return RM_TRUE;
 }
 
 } // extern "C"
