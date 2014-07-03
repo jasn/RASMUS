@@ -1370,9 +1370,20 @@ public:
 			return OwnedLLVMVal(int64(atol(node->valueToken.getText(code).c_str())));
 		case TK_TEXT: {
 			std::string text=node->valueToken.getText(code);
-			return OwnedLLVMVal( builder.CreateCall(
-									 getStdlibFunc("rm_getConstText"),
-									 globalString(text.substr(1, text.size()-2))));
+			std::string ans;
+			for (size_t i=1; i+1 < text.size(); ++i) {
+				if (text[i] == '\\') {
+					++i;
+					switch (text[i]) {
+					case 'r': ans.push_back('\r'); break;
+					case 'n': ans.push_back('\n'); break;
+					case 't': ans.push_back('\t'); break;
+					default: ans.push_back(text[i]);
+					}
+				} else
+					ans.push_back(text[i]);
+			}
+			return OwnedLLVMVal( builder.CreateCall(getStdlibFunc("rm_getConstText"), globalString(ans)));
 		}
 		case TK_STDTEXT:
 			return getUndef(TText);

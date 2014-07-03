@@ -210,6 +210,16 @@ Token Lexer::getNext() {
 	// check if it is a text
 	if (c[i] == '"') {
 		size_t j = 1;
+		
+		while (i + j < c.length() && c[i+j] != '"') {
+			if (c[i+j] == '\\') {
+				++j;
+				if (i + j == c.length())
+					return Token(TK_ERR, i, j);
+			}
+			++j;
+		}
+		
 		while (i + j < c.length() && c[i+j] != '"') ++j;
 		if (i+j == c.length()) {
 			index += j;

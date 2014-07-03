@@ -22,6 +22,16 @@
 using namespace rasmus;
 using namespace rasmus::frontend;
 
+template <typename T>
+void print(std::ostream & o, T begin, T end) {
+	o << "[";
+	for (T i=begin; i != end; ++i) {
+		if (i != end) o << ", ";
+		o << *i;
+	}
+	o << "]";
+}
+
 bool lt(const char * txt, std::initializer_list<TokenId> exp) {
 	std::shared_ptr<Code> code = std::make_shared<Code>(txt, "monkey");
 	Lexer l(code, 0);
@@ -32,6 +42,13 @@ bool lt(const char * txt, std::initializer_list<TokenId> exp) {
 		if (t.id == TK_EOF) break;;
 		lst.push_back(t.id);
 	}
+	if (lst!=std::vector<TokenId>(exp)) {
+		print(log_error(), lst.begin(), lst.end());
+		log_error() << " != ";
+		print(log_error(), exp.begin(), exp.end());
+		log_error() << std::endl;
+	}
+
 	return lst==std::vector<TokenId>(exp);
 }
 
@@ -55,6 +72,7 @@ void base(rasmus::teststream & ts) {
     ts << "colon" << result(lt(":", {TK_COLON}));
     ts << "int" << result(lt("1234", {TK_INT}));
     ts << "text" << result(lt("\"hello\"", {TK_TEXT}));
+    ts << "text2" << result(lt("\"hel\\\"lo\"", {TK_TEXT}));
     ts << "zero" << result(lt("zero", {TK_ZERO}));
     ts << "one" << result(lt("one", {TK_ONE}));
     ts << "stdbool" << result(lt("?-Bool", {TK_STDBOOL}));
