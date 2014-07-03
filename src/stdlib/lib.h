@@ -80,7 +80,18 @@ rm_object * rm_substrText(rm_object * str, int64_t start, int64_t end);
 /**
  * Check if the two strings are equal
  */
-uint8_t rm_equalText(rm_object *lhs, rm_object *rhs);
+int8_t rm_equalText(rm_object *lhs, rm_object *rhs);
+
+/**
+ * Check if lhs <= rhs, if either are ?-Text ?-Bool is returned
+ */
+int8_t rm_textLte(rm_object * lhs, rm_object * rhs);
+
+/**
+ * Check if lhs < rhs, if either are ?-Text ?-Bool is returned
+ */
+int8_t rm_textLe(rm_object * lhs, rm_object * rhs);
+
 
 extern rm_object undef_text;
 

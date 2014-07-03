@@ -216,6 +216,15 @@ std::string textToString(TextBase * ptr) {
 	return text;
 }
 
+bool strongTextComp(TextBase* lhs, TextBase * rhs) {
+	if (lhs == &undef_text) return true;
+	if (rhs == &undef_text) return false;
+	const char * lhst = canonizeText(toTextBase(lhs));
+	const char * rhst = canonizeText(toTextBase(rhs));
+	return strcmp(lhst, rhst) < 0;
+}
+
+
 } //stdlib
 } //rasmus
 
@@ -230,7 +239,7 @@ rm_object * rm_getConstText(const char *cptr) {
 	return o;
 }
 
-uint8_t rm_equalText(rm_object *lhs, rm_object *rhs) {
+int8_t rm_equalText(rm_object *lhs, rm_object *rhs) {
 	if (lhs == &undef_text || rhs == &undef_text) return RM_NULLBOOL;
 
 	const char * lhst = canonizeText(toTextBase(lhs));
@@ -284,6 +293,22 @@ int8_t rm_substringSearch(rm_object *lhs, rm_object *rhs) {
 	return dummy.find(lhst, length(lhs)) != std::string::npos;
 }	
 
+int8_t rm_textLte(rm_object * lhs, rm_object * rhs) {
+	if (lhs == &undef_text) return RM_NULLBOOL;
+	if (rhs == &undef_text) return RM_NULLBOOL;
+	const char * lhst = canonizeText(toTextBase(lhs));
+	const char * rhst = canonizeText(toTextBase(rhs));
+	return (strcmp(lhst, rhst) <= 0)?RM_TRUE:RM_FALSE;
+}
+
+
+int8_t rm_textLe(rm_object * lhs, rm_object * rhs) {
+	if (lhs == &undef_text) return RM_NULLBOOL;
+	if (rhs == &undef_text) return RM_NULLBOOL;
+	const char * lhst = canonizeText(toTextBase(lhs));
+	const char * rhst = canonizeText(toTextBase(rhs));
+	return (strcmp(lhst, rhst) < 0)?RM_TRUE:RM_FALSE;
+}
 
 
 } // extern "C"
