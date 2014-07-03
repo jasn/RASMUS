@@ -83,14 +83,6 @@ void printTextToStream(TextBase * text, std::ostream & out);
  */
 void printQuoteTextToStream(TextBase * ptr, std::ostream & stream);
 
-/**
- * \Brief test if lhs is less then rhs
- *
- * In this strong version ?-Text compares less then any other text
- */
-bool strongTextComp(const TextBase* lhs, const TextBase * rhs);
-bool strongTextEqual(const TextBase* lhs, const TextBase * rhs);
-
 } //namespace rasmus
 } //namespace stdlib
 #endif //__TEXT_HH__

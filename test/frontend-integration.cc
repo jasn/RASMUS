@@ -114,10 +114,10 @@ void text(rasmus::teststream & ts) {
     ts << "string" << result(it("\"abe\"", "abe"));
 	ts << "equal1" << result(it("\"monkey\" = \"monkey\"", "true"));
 	ts << "equal2" << result(it("\"monkey\" = \"mankey\"", "false"));
-	ts << "equal3" << result(it("\"monkey\" = ?-Text", "?-Bool"));
+	ts << "equal3" << result(it("\"monkey\" = ?-Text", "false"));
 	ts << "diferent1" << result(it("\"monkey\" <> \"monkey\"", "false"));
 	ts << "diferent2" << result(it("\"monkey\" <> \"mankey\"", "true"));
-	ts << "diferent3" << result(it("\"monkey\" <> ?-Text", "?-Bool"));
+	ts << "diferent3" << result(it("\"monkey\" <> ?-Text", "true"));
 	ts << "global" << result(it("y:=\"abe\"\ny", "abe"));
     ts << "concat" << result(it("\"abe\"++\"bea\"", "abebea"));
 	ts << "substr" << result(it("\"minime\"(1..4)", "ini"));
@@ -242,8 +242,8 @@ void tuple(rasmus::teststream & ts) {
 	ts << "equality9" << result(it("tup(kat: \"foo\") = tup(kat: \"foo\")", "true"));
 	ts << "equality10" << result(it("tup(kat: \"foo\") = tup(kat: \"bar\")", "false"));
 	ts << "equality11" << result(it("tup(hat: \"foo\") = tup(kat: \"foo\")", "false"));
-	ts << "equality12" << result(it("tup(kat: ?-Int) = tup(kat: 123)", "?-Bool"));
-	ts << "equality13" << result(it("tup(hat: ?-Bool) = tup(hat: true)", "?-Bool"));
+	ts << "equality12" << result(it("tup(kat: ?-Int) = tup(kat: 123)", "false"));
+	ts << "equality13" << result(it("tup(hat: ?-Bool) = tup(hat: true)", "false"));
 	ts << "inequality1" << result(it("tup() <> tup()", "false"));
 	ts << "inequality2" << result(it("tup() <> tup(abe: 4)", "true"));
 	ts << "inequality3" << result(it("tup(foo: true) <> tup(foo: true)", "false"));

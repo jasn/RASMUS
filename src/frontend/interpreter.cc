@@ -61,23 +61,14 @@ public:
 
 	void printInt(int64_t v) override {
 		std::stringstream ss;
-		if (v == std::numeric_limits<int64_t>::min()) ss << "?-Int";
-		else ss << v;
+		rasmus::stdlib::printIntToStream(v, ss);
 		cb->print(TInt, ss.str());
 	}
 
 	void printBool(int8_t v) override {
-		switch (v) {
-		case 0:
-			cb->print(TBool, "false");
-			break;
-		case 3:
-			cb->print(TBool, "true");
-			break;
-		default:
-			cb->print(TBool, "?-Bool");
-			break;
-		}
+		std::stringstream ss;
+		rasmus::stdlib::printBoolToStream(v, ss);
+		cb->print(TBool, ss.str());
 	}
 	
 	void printText(rm_object * o) override {

@@ -216,23 +216,18 @@ std::string textToString(TextBase * ptr) {
 	return text;
 }
 
-bool strongTextComp(const TextBase* lhs, const TextBase * rhs) {
-	if (lhs == &undef_text) return true;
-	if (rhs == &undef_text) return false;
-	const char * lhst = canonizeText(const_cast<TextBase *>(lhs));
-	const char * rhst = canonizeText(const_cast<TextBase *>(rhs));
-	return strcmp(lhst, rhst) < 0;
+template <typename C>
+int8_t textCompImpl(const rm_object * lhs, const rm_object * rhs, C c) {
+	if (lhs == &undef_text) 
+		return (rhs == &undef_text)
+			?(c(0, 0)?RM_TRUE:RM_FALSE)
+			:(c(0, 1)?RM_TRUE:RM_FALSE);
+	if (rhs == &undef_text) 
+		return c(1, 0)?RM_TRUE:RM_FALSE;
+	const char * lhst = canonizeText(toTextBase(const_cast<rm_object *>(lhs)));
+	const char * rhst = canonizeText(toTextBase(const_cast<rm_object *>(rhs)));
+	return c(strcmp(lhst, rhst), 0)?RM_TRUE:RM_FALSE;
 }
-
-bool strongTextEqual(const TextBase* lhs, const TextBase * rhs) {
-	if (lhs == &undef_text) return rhs == &undef_text;	
-	if (rhs == &undef_text) return false;
-	const char * lhst = canonizeText(const_cast<TextBase *>(lhs));
-	const char * rhst = canonizeText(const_cast<TextBase *>(rhs));
-	return strcmp(lhst, rhst) == 0;
-}
-
-
 
 } //stdlib
 } //rasmus
@@ -248,12 +243,8 @@ rm_object * rm_getConstText(const char *cptr) {
 	return o;
 }
 
-int8_t rm_equalText(rm_object *lhs, rm_object *rhs) {
-	if (lhs == &undef_text || rhs == &undef_text) return RM_NULLBOOL;
-
-	const char * lhst = canonizeText(toTextBase(lhs));
-	const char * rhst = canonizeText(toTextBase(rhs));
-	return strcmp(lhst, rhst) ? RM_FALSE: RM_TRUE;
+int8_t rm_equalText(const rm_object *lhs, const rm_object *rhs) {
+	return textCompImpl(lhs, rhs, std::equal_to<int>());
 }
 
 rm_object * rm_concatText(rm_object *lhs_, rm_object *rhs_) {
@@ -302,23 +293,13 @@ int8_t rm_substringSearch(rm_object *lhs, rm_object *rhs) {
 	return dummy.find(lhst, length(lhs)) != std::string::npos;
 }	
 
-int8_t rm_textLte(rm_object * lhs, rm_object * rhs) {
-	if (lhs == &undef_text) return RM_NULLBOOL;
-	if (rhs == &undef_text) return RM_NULLBOOL;
-	const char * lhst = canonizeText(toTextBase(lhs));
-	const char * rhst = canonizeText(toTextBase(rhs));
-	return (strcmp(lhst, rhst) <= 0)?RM_TRUE:RM_FALSE;
+int8_t rm_textLe(const rm_object * lhs, const rm_object * rhs) {
+	return textCompImpl(lhs, rhs, std::less_equal<int>());
 }
 
-
-int8_t rm_textLe(rm_object * lhs, rm_object * rhs) {
-	if (lhs == &undef_text) return RM_NULLBOOL;
-	if (rhs == &undef_text) return RM_NULLBOOL;
-	const char * lhst = canonizeText(toTextBase(lhs));
-	const char * rhst = canonizeText(toTextBase(rhs));
-	return (strcmp(lhst, rhst) < 0)?RM_TRUE:RM_FALSE;
+int8_t rm_textLt(const rm_object * lhs, const rm_object * rhs) {
+	return textCompImpl(lhs, rhs, std::less<int>());
 }
-
 
 } // extern "C"
 

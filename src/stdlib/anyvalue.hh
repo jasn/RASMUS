@@ -97,7 +97,7 @@ struct AnyValue {
 		case TBool:
 			return boolValue == other.boolValue;
 		case TText:
-			return strongTextEqual(objectValue.getAs<TextBase>(), other.objectValue.getAs<TextBase>());
+			return rm_equalText(objectValue.getAs<TextBase>(), other.objectValue.getAs<TextBase>()) == RM_TRUE;
 		default:
 			ILE("Comparing unsupported types");
 		}
@@ -111,7 +111,7 @@ struct AnyValue {
 		case TBool:
 			return boolValue < other.boolValue; 
 		case TText:
-			return strongTextComp(objectValue.getAs<TextBase>(), other.objectValue.getAs<TextBase>());
+			return rm_textLt(objectValue.getAs<TextBase>(), other.objectValue.getAs<TextBase>()) == RM_TRUE;
 		default:
 			ILE("Unsupported types");
 		}

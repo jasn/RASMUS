@@ -52,6 +52,28 @@ public:
 	RefPtr<Schema> schema;
 	std::vector<AnyValue> values;
 	Tuple(): rm_object(LType::tuple) {};
+
+	/**
+	 * \brief Check if two tuples are identical
+	 * \note We assume that the schemas are identical
+	 */
+	friend bool operator == (const Tuple & l, const Tuple & r) {
+		return l.values == r.values;
+	}
+
+	/**
+	 * \brief Check if l is less then r
+	 * \note We assume that the schemas are identical
+	 */
+	friend bool operator < (const Tuple & l, const Tuple & r) {
+		if(l.values.size() != r.values.size())
+			return l.values.size() < r.values.size();
+		
+		for(size_t i = 0; i < l.values.size(); i++)
+			if (!(l.values[i] < r.values[i]))
+				return false;
+		return true;
+	}
 };
 
 /* a relation has a schema and some amount of tuples; 
@@ -73,6 +95,9 @@ void saveRelationToFile(rm_object * o, const char * name);
 rm_object * loadRelationFromFile(const char * name);
 
 void printTupleToStream(rm_object * ptr, std::ostream & out);
+void printBoolToStream(int8_t val, std::ostream & out);
+void printIntToStream(int64_t val, std::ostream & out);
+
 
 } //namespace stdlib
 } //namespace rasmus

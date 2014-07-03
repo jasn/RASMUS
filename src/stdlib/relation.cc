@@ -46,45 +46,6 @@ int rm_itemWidth(AnyValue av){
 	}
 }
 
-int8_t rm_intEquals(int64_t l, int64_t r){
-	if(l == RM_NULLINT || r == RM_NULLINT) return RM_NULLBOOL;
-	return l == r ? RM_TRUE : RM_FALSE;
-}
-
-int8_t rm_boolEquals(int8_t l, int8_t r){
-	if(l == RM_NULLBOOL || r == RM_NULLBOOL) return RM_NULLBOOL;
-	return l == r ? RM_TRUE : RM_FALSE;
-}
-
-uint8_t rm_anyValueEquals(AnyValue & avl, AnyValue & avr){
-
-	if(avl.type != avr.type) return RM_FALSE;
-	switch(avl.type){
-	case TInt:
-		return rm_intEquals(avl.intValue, avr.intValue);
-	case TBool:
-		return rm_boolEquals(avl.boolValue, avr.boolValue);
-	case TText:
-		return rm_equalText(avl.objectValue.getAs<TextBase>(),
-							avr.objectValue.getAs<TextBase>());
-	default:
-		ILE("Comparing unsupported types");
-	}
-	return RM_TRUE;
-}
-
-// return true iff l < r
-bool rm_tupleCompare(const Tuple & l, const Tuple & r){
-	if(l.values.size() != r.values.size())
-		return l.values.size() < r.values.size();
-
-	for(size_t i = 0; i < l.values.size(); i++){
-		if(l.values[i] < r.values[i]) continue;
-		else return false;
-	}
-	return true;
-}
-
 } // nameless namespace
 
 namespace rasmus {
@@ -136,13 +97,16 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
 		for(auto & value : tuple->values){
 			switch(value.type){
 			case TInt:
-				out << ' ' << std::right << std::setw(widths[i]) << value.intValue;
+				out << ' ' << std::right << std::setw(widths[i]);
+				printIntToStream(value.intValue, out);
 				break;
 			case TBool:
-				out << ' ' << std::left << std::setw(widths[i]) << (value.boolValue ? "true" : "false");
+				out << ' ' << std::left << std::setw(widths[i]);
+				printBoolToStream(value.boolValue, out);
 				break;
 			case TText:
-				out << ' ' << std::left << std::setw(widths[i]) << textToString(value.objectValue.getAs<TextBase>()); 
+				out << ' ' << std::left << std::setw(widths[i]);
+				printTextToStream(value.objectValue.getAs<TextBase>(), out);
 				break;
 			default:
 				ILE("Unhandled type", value.type);
@@ -324,22 +288,23 @@ rm_object * loadRelationFromFile(const char * name) {
  * \Brief Prints an integer to a stream
  * Handles the special case where the integer is ?-Int
  */
-void printIntToStream(AnyValue & val, std::ostream & out){
-	if(val.intValue == RM_NULLINT)
+void printIntToStream(int64_t val, std::ostream & out){
+	if(val == RM_NULLINT)
 		out << "?-Int";
 	else
-		out << val.intValue;
+		out << val;
 }
 
 /**
  * \Brief Prints a boolean to a stream
  * Handles the special case where the boolean is ?-Bool
  */
-void printBoolToStream(AnyValue & val, std::ostream & out){
-	if(val.boolValue == RM_NULLBOOL)
-		out << "?-Bool";
-	else
-		out << (val.boolValue ? "true" : "false");
+void printBoolToStream(int8_t val, std::ostream & out){
+	switch (val) {
+	case RM_TRUE: out << "true"; break;
+	case RM_FALSE: out << "false"; break;
+	default: out << "?-Bool"; break;
+	}
 }
 
 /**
@@ -356,10 +321,10 @@ void printTupleToStream(rm_object * ptr, std::ostream & out) {
 		out << ": ";
 		switch(schema->attributes[i].type){
 			case TInt:
-				printIntToStream(tup->values[i], out);
+				printIntToStream(tup->values[i].intValue, out);
 				break;
 			case TBool:
-				printBoolToStream(tup->values[i], out);
+				printBoolToStream(tup->values[i].boolValue, out);
 				break;
 			case TText:
 				printQuoteTextToStream(tup->values[i].objectValue.getAs<TextBase>(), out);
@@ -478,7 +443,7 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
 	std::sort(rel->tuples.begin(), rel->tuples.end(),
 			  [](const RefPtr<Tuple> & l,
 				 const RefPtr<Tuple> & r)->bool{
-				  return rm_tupleCompare(*l, *r);
+				  return *l < *r;
 			  });
 
 	// remove duplicates
@@ -851,7 +816,7 @@ uint8_t rm_equalTup(rm_object * lhs, rm_object * rhs) {
 
 	std::sort(lt_indices.begin(), lt_indices.end());
 	std::sort(rt_indices.begin(), rt_indices.end());
-
+	
 	for(size_t i = 0; i < lts->attributes.size(); i++){
 		size_t left_index = lt_indices[i].second;
 		size_t right_index = rt_indices[i].second;
@@ -864,9 +829,7 @@ uint8_t rm_equalTup(rm_object * lhs, rm_object * rhs) {
 		// different values?
 		AnyValue avl = lt->values[left_index];
 		AnyValue avr = rt->values[right_index];
-		uint8_t ans = rm_anyValueEquals(avl, avr);
-		if(ans != RM_TRUE) return ans;
-
+		if (!(avl == avr)) return RM_FALSE;
 	}
 
 	return RM_TRUE;
