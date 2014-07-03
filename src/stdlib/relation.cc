@@ -653,7 +653,7 @@ void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret) {
 		break;
 	case TText:
 		val.objectValue->incref();
-		ret->value = reinterpret_cast<uint64_t>(&val.objectValue);
+		ret->value = reinterpret_cast<uint64_t>(val.objectValue.get());
 		break;
 	default:
 		ILE("Unhandled type in rm_tupEntry");
