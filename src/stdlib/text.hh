@@ -78,6 +78,11 @@ std::string textToString(TextBase * text);
  */
 void printTextToStream(TextBase * text, std::ostream & out);
 
+/**
+ * Tests two TextBase texts for string equality
+ */
+uint8_t rm_equalText(rm_object *lhs, rm_object *rhs);
+
 
 } //namespace rasmus
 } //namespace stdlib

@@ -21,9 +21,15 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <limits>
 
 static const int8_t RM_TRUE = 3;
 static const int8_t RM_FALSE = 0;
+
+// TODO Q what should we call these constants?
+static const int64_t RM_NULLINT = std::numeric_limits<int64_t>::min();
+static const int8_t RM_NULLBOOL = 2;
+
 
 /**
  * This header contains the public C interface boundery between the stdlib and

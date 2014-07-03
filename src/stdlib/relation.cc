@@ -284,6 +284,41 @@ rm_object * loadRelationFromFile(const char * name) {
 }
 
 /**
+ * \Brief Prints an integer to a stream
+ * Handles the special case where the integer is ?-Int
+ */
+void printIntToStream(AnyValue & val, std::ostream & out){
+	if(val.intValue == RM_NULLINT)
+		out << "?-Int";
+	else
+		out << val.intValue;
+}
+
+/**
+ * \Brief Prints a boolean to a stream
+ * Handles the special case where the boolean is ?-Bool
+ */
+void printBoolToStream(AnyValue & val, std::ostream & out){
+	if(val.boolValue == RM_NULLBOOL)
+		out << "?-Bool";
+	else
+		out << (val.boolValue ? "true" : "false");
+}
+
+/**
+ * \Brief Prints an anyvalue of type TText to a stream
+ * Handles the special case where the text is ?-Text
+ */
+void printTextToStream(AnyValue & val, std::ostream & out){
+	// TODO we currently do not handle quotation marks and backslashes in strings
+	std::string str = textToString(val.objectValue.getAs<TextBase>());
+	if(str == "?-Text")
+		out << "?-Text";
+	else
+		out << '"' << str << '"';
+}
+
+/**
  * \Brief prints the given tuple to the out stream
  */
 void printTupleToStream(rm_object * ptr, std::ostream & out) {
@@ -297,15 +332,13 @@ void printTupleToStream(rm_object * ptr, std::ostream & out) {
 		out << ": ";
 		switch(schema->attributes[i].type){
 			case TInt:
-				out << tup->values[i].intValue;
+				printIntToStream(tup->values[i], out);
 				break;
 			case TBool:
-				out << (tup->values[i].boolValue ? "true" : "false");
+				printBoolToStream(tup->values[i], out);
 				break;
 			case TText:
-				// TODO Q how do we handle quotation marks and backslashes in strings?
-				// TODO Q should we handle "?-Text" as a special case?
-				out << '"' << textToString(tup->values[i].objectValue.getAs<TextBase>()) << '"';
+				printTextToStream(tup->values[i], out);
 				break;
 			default:
 				ILE("Unsupported type", schema->attributes[i].type);
@@ -626,14 +659,10 @@ rm_object * rm_extendTup(rm_object * lhs, rm_object * rhs) {
 
 /**
  * \Brief Creates a tuple whose schema does not contain name
+ * If the original tuple's schema does not contain name, we error out
  */
 rm_object * rm_tupRemove(rm_object * tup, const char * name) {
 
-	// TODO test this method
-	// TODO Q what should happen if the name is not in the schema?
-	// (currently we just remove nothing from the tuple, but according
-	//  to the tests this might be wrong)
-	
 	Tuple * old_tup = static_cast<Tuple *>(tup);
 	Schema * old_schema = old_tup->schema.getAs<Schema>();
 	
@@ -644,12 +673,18 @@ rm_object * rm_tupRemove(rm_object * tup, const char * name) {
 	Schema * new_schema = new Schema();
 	registerAllocation(new_schema);
 	new_tup->schema = RefPtr<rm_object>(new_schema);
-	
+
+	bool found_name = 0;
 	for(size_t i = 0; i < old_schema->attributes.size(); i++){
-		if(old_schema->attributes[i].name == name) continue;
+		if(old_schema->attributes[i].name == name){
+			found_name = 1;
+			continue;
+		}
 		new_schema->attributes.push_back(old_schema->attributes[i]);
 		new_tup->values.push_back(old_tup->values[i]);
 	}
+
+	if(!found_name) ILE("Name", name, "was not found in the tuple's schema");
 
 	return new_tup;
 }
@@ -746,7 +781,8 @@ uint8_t rm_equalTup(rm_object * lhs, rm_object * rhs) {
 			break;
 		case TText:
 			// TODO Q is this the right way to compare TextBase objects?
-			if(textToString(avl.objectValue.getAs<TextBase>()) != textToString(avr.objectValue.getAs<TextBase>()))
+			if(textToString(avl.objectValue.getAs<TextBase>()) 
+			   != textToString(avr.objectValue.getAs<TextBase>()))
 				return RM_FALSE;
 			break;
 		default:
