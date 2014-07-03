@@ -278,7 +278,7 @@ void relation(rasmus::teststream & ts) {
 	ts << "has" << result(it("has(rel(tup(abe: 4, kat: ?-Text)), kat)", "true"));
 	ts << "has2" << result(it("has(rel(tup(abe: 4, kat: ?-Text)), baz)", "false"));
 	ts << "union" << result(it("|rel(tup(abe: 4, kat: ?-Text))+rel(tup(abe: 5, kat: ?-Text))|", "2"));
-	ts << "union2" << result(it("rel(tup(abe: 4, kat: \"bar\"))+rel(tup(abe: 4, kat: \"bar\")) = rel(tup(abe: 4, kat: \"bar\")", "true"));
+	ts << "union2" << result(it("rel(tup(abe: 4, kat: \"bar\"))+rel(tup(abe: 4, kat: \"bar\")) = rel(tup(abe: 4, kat: \"bar\"))", "true"));
 	ts << "diff" << result(it("|rel(tup(abe: 4, kat: ?-Text))-rel(tup(abe: 4, kat: ?-Text))|", "0"));
 	ts << "join" << result(it("rel(tup(abe: 4, kat: 5)) * rel(tup(kat: 5, bar: 6)) = rel(tup(abe: 4, kat: 5, bar: 6))", "true"));
 	ts << "select" << result(it("|rel(tup(abe: 4, kat:5))?(#.kat=5)|", "1"));

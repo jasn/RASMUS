@@ -351,6 +351,23 @@ Relation zero_rel;
 Relation one_rel;
 
 
+class __init{
+public:
+	__init(){
+		RefPtr<Schema> zero_schema = makeRef<Schema>();
+		zero_rel.schema = zero_schema;
+		one_rel.schema = zero_schema;
+
+		RefPtr<Tuple> empty_tuple = makeRef<Tuple>();
+		empty_tuple->schema = zero_schema;
+		one_rel.tuples.push_back(std::move(empty_tuple));
+
+		zero_rel.ref_cnt = 1;
+		one_rel.ref_cnt = 1;
+	}
+};
+__init foo;
+
 /* wrapper function */
 void rm_saveRel(rm_object * o, const char * name) {
 	callback->saveRelation(o, name);
@@ -363,10 +380,39 @@ rm_object * rm_loadRel(const char * name) {
 
 /**
  * \Brief Perform a natural join on lhs and rhs
- * First we identify columns which are shared by lhs and rhs (e.g. by sorting)
- * Then we sort lhs and rhs by the shared columns
- * Then we scan through lhs and rhs and output the union of their shared columns
- * \Note if no columns are shared, the full Carthesian product is returned
+
+ * First we define a shared schema as all columns which
+ * are in both lhs and rhs
+
+ * Then we define the restriction of a tuple as 
+ * projecting the tuple onto the shared schema
+ * For example, we define lhs := tup(a: 1, b: 2)
+ * and rhs:= tup(b: 2, c: 3) then the shared schema
+ * is (b) and the restriction of both lhs and rhs 
+ * is (b: 2)
+
+ * Two restricted tuples are compared just as normal tuples
+
+ * Now we are ready to describe the algorithm
+
+ * First we compute the shared schema
+
+ * Then we sort lhs and rhs individually on the 
+ * restriction of their tuples (so row 1 in lhs is
+ * now smaller than any other row, with respect to its
+ * restriction, etc.)
+
+ * We maintain two pointers i and j pointing to rows
+ * in lhs and rhs, respectively
+ * While we are not at the end of both relations, 
+ * we do the following
+ 
+ * We find the smallest restriction of a pointed-to tuple
+ * Then we find the interval of rows in lhs and rhs whose
+ * restricted tuples are equal to the current one. For all possible
+ * combinations of rows lhs and rhs which are in the interval, we add
+ * their union to the result-relation
+
  */
 rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs) {
 	//TODO
@@ -394,31 +440,28 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
 		l = r;
 		r = tmp;
 	}
-
+	
 	// ensure schema equality
-	Schema * ls = l->schema.get();
-	Schema * rs = r->schema.get();
-
-	if(ls->attributes.size() != rs->attributes.size()) 
-		ILE("Union on relations with different schemas");
+	if(l->schema->attributes.size() != r->schema->attributes.size()) 
+		ILE("The given schemas are not equal!");
 
 	std::vector<std::pair<std::string, size_t>> l_indices;
 	std::vector<std::pair<std::string, size_t>> r_indices;
 	
-	for(size_t i = 0; i < ls->attributes.size(); i++){
-		l_indices.emplace_back(ls->attributes[i].name, i);
-		r_indices.emplace_back(rs->attributes[i].name, i);
+	for(size_t i = 0; i < l->schema->attributes.size(); i++){
+		l_indices.emplace_back(l->schema->attributes[i].name, i);
+		r_indices.emplace_back(r->schema->attributes[i].name, i);
 	}
 
 	std::sort(l_indices.begin(), l_indices.end());
 	std::sort(r_indices.begin(), r_indices.end());
 
-	for(size_t i = 0; i < ls->attributes.size(); i++){
+	for(size_t i = 0; i < l->schema->attributes.size(); i++){
 		size_t left_index = l_indices[i].second;
 		size_t right_index = r_indices[i].second;
-		if(ls->attributes[left_index].name
-		   != rs->attributes[right_index].name)
-			ILE("Union on relations with different schemas");
+		if(l->schema->attributes[left_index].name
+		   != r->schema->attributes[right_index].name)
+			ILE("The given schemas are not equal!");
 	}
 	
 	// build a new relation from lhs
@@ -431,7 +474,7 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
 	for(auto & old_tup : r->tuples){
 		RefPtr<Tuple> new_tup = makeRef<Tuple>();
 		new_tup->schema = rel->schema;
-		for(size_t i = 0; i < ls->attributes.size(); i++){
+		for(size_t i = 0; i < l->schema->attributes.size(); i++){
 			size_t index = r_indices[i].second;
 			AnyValue val = old_tup->values[index];
 			new_tup->values.push_back(val);
@@ -450,15 +493,10 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
 	rel->tuples.erase(
 		std::unique(
 			rel->tuples.begin(), 
-			rel->tuples.end(), 
+			rel->tuples.end(),
 			[](const RefPtr<Tuple> & l,
 			   const RefPtr<Tuple> & r)->bool{
-				for(size_t i = 0; i < l->values.size(); i++){
-					if(l->values[i] == r->values[i])
-						continue;
-					else return false;
-				}
-				return true;
+				return *l == *r;
 			}),
 		rel->tuples.end());
 	
@@ -470,6 +508,8 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
  * \Brief Return the difference of lhs and rhs
  * Again assert that lhs and rhs have the same schema
  * Then return the set difference of the rows in lhs and rhs (lhs - rhs)
+ * Should be implemented as union but with std::set_difference 
+ * (output iterator can push_back to a new vector)
  */
 rm_object * rm_diffRel(rm_object * lhs, rm_object * rhs) {
 	//TODO
@@ -591,7 +631,8 @@ int64_t rm_multRel(rm_object * lhs, const char * name) {
 }
 
 /**
- * \Brief Return the number of unique entries in the given column
+ * \Brief Return the number of non-null entries in the given column
+ * 
  */
 int64_t rm_countRel(rm_object * lhs, const char * name) {
 	//TODO
@@ -782,7 +823,43 @@ uint8_t rm_relHasEntry(rm_object * rel, const char * name) {
  * They must be completely identical; same schema, same number of tuples etc.
  */
 uint8_t rm_equalRel(rm_object * lhs, rm_object * rhs) {
-	return 3; //TODO 
+	Relation * l = static_cast<Relation *>(lhs);
+	Relation * r = static_cast<Relation *>(rhs);
+
+	if(l->schema->attributes.size() != r->schema->attributes.size()) return RM_FALSE;
+	if(l->tuples.size() != r->tuples.size()) return RM_FALSE;
+
+	// ensure schema equality
+	std::vector<std::pair<std::string, size_t>> l_indices;
+	std::vector<std::pair<std::string, size_t>> r_indices;
+	
+	for(size_t i = 0; i < l->schema->attributes.size(); i++){
+		l_indices.emplace_back(l->schema->attributes[i].name, i);
+		r_indices.emplace_back(r->schema->attributes[i].name, i);
+	}
+
+	std::sort(l_indices.begin(), l_indices.end());
+	std::sort(r_indices.begin(), r_indices.end());
+
+	for(size_t i = 0; i < l->schema->attributes.size(); i++){
+		size_t left_index = l_indices[i].second;
+		size_t right_index = r_indices[i].second;
+		if(l->schema->attributes[left_index].name
+		   != r->schema->attributes[right_index].name)
+			return RM_FALSE;
+	}
+
+	// ensure tuple equality
+	for(size_t i = 0; i < l->tuples.size(); i++){	
+		for(size_t j = 0; j < l->schema->attributes.size(); j++){
+			size_t left_index = l_indices[j].second;
+			size_t right_index = r_indices[j].second;
+			if(! (l->tuples[i]->values[left_index] == r->tuples[i]->values[right_index]))
+				return RM_FALSE;
+		}
+	}
+	
+	return RM_TRUE;
 }
 
 /**
