@@ -222,7 +222,7 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 		exit(EXIT_FAILURE);
 	}
 
-	schema = RefPtr<Schema>(new Schema());
+	schema = makeRef<Schema>();
 	
 	for(size_t i = 0; i < num_columns; i++){
 		char type;
@@ -260,14 +260,14 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 		getline(inFile, _);
 	}
 
-	RefPtr<Relation> relations(new Relation());
+	RefPtr<Relation> relations = makeRef<Relation>();
 	relations->schema = schema;
 
 	bool done = false;
 
 	while(!done){
 		
-		RefPtr<Tuple> tuple(new Tuple());
+		RefPtr<Tuple> tuple = makeRef<Tuple>();
 		tuple->schema = schema;
 
 		for(auto & attribute : schema->attributes){
@@ -457,24 +457,21 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
 	}
 	
 	// build a new relation from lhs
-	Relation * rel = new Relation();
-	rel->ref_cnt = 1;
-	registerAllocation(rel);
+	RefPtr<Relation> rel = makeRef<Relation>();
 
 	rel->schema = l->schema;
 	rel->tuples = l->tuples;
 
 	// add all entries from rhs to the relation
 	for(auto & old_tup : r->tuples){
-		Tuple * new_tup = new Tuple();
-		registerAllocation(new_tup);
+		RefPtr<Tuple> new_tup = makeRef<Tuple>();
 		new_tup->schema = rel->schema;
 		for(size_t i = 0; i < ls->attributes.size(); i++){
 			size_t index = r_indices[i].second;
 			AnyValue val = old_tup->values[index];
 			new_tup->values.push_back(val);
 		}
-		rel->tuples.push_back(RefPtr<Tuple>(new_tup));
+		rel->tuples.push_back(std::move(new_tup));
 	}
 
 	// sort the relation
@@ -501,7 +498,7 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
 		rel->tuples.end());
 	
 	// return the relation
-	return rel;
+	return rel.unbox();
 }
 
 /**
@@ -556,35 +553,20 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
 
 	Relation * old_rel = static_cast<Relation *>(rel);
 
-	Relation * relation = new Relation();
-	relation->ref_cnt = 1;
-	registerAllocation(relation);
+	RefPtr<Relation> relation = makeRef<Relation>();
 		
 	for(auto & old_tup : old_rel->tuples){
-		Tuple * new_tup = new Tuple();
-		registerAllocation(new_tup);
+		RefPtr<Tuple> new_tup = makeRef<Tuple>();
 		new_tup->values = old_tup->values;
 		// tuple's schema will be updated later
-		relation->tuples.push_back(RefPtr<Tuple>(new_tup));
+		relation->tuples.push_back(std::move(new_tup));
 	}
-
-	Schema * schema;
-
-	// no-one else is using the relation's schema
-	if(old_rel->schema->ref_cnt == 1){
-		schema = old_rel->schema.get();
-		relation->schema = old_rel->schema;
 
 	// construct a new schema, copying the old one
-	}else{
+	RefPtr<Schema> schema = makeRef<Schema>();
+	relation->schema = schema;
 
-		schema = new Schema;
-		registerAllocation(schema);
-		relation->schema = RefPtr<Schema>(schema);
-
-		schema->attributes = old_rel->schema->attributes;
-		
-	}
+	schema->attributes = old_rel->schema->attributes;
 
 	if(schema->attributes.size() < name_count)
 		ILE("Wrong number of names given to rm_renameRel - name_count:", name_count, "schema size:", schema->attributes.size());
@@ -606,7 +588,7 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
 	for(auto & tuple : relation->tuples)
 		tuple->schema = relation->schema;
 
-	return relation;
+	return relation.unbox();
 
 }
 
@@ -656,13 +638,10 @@ int64_t rm_countRel(rm_object * lhs, const char * name) {
  * \Brief Creates a tuple from the given entries
  */
 rm_object * rm_createTup(uint32_t count, TupEntry * entries) {
-	Tuple * t = new Tuple();
-	t->ref_cnt = 1;
-	registerAllocation(t);
+	RefPtr<Tuple> t = makeRef<Tuple>();
 	
-	Schema * schema = new Schema;
-	registerAllocation(schema);
-	t->schema = RefPtr<Schema>(schema);
+	RefPtr<Schema> schema = makeRef<Schema>();
+	t->schema = schema;
 	
 	for(uint32_t i = 0; i < count; i++){
 		// add entry to the tuple's schema 
@@ -692,7 +671,7 @@ rm_object * rm_createTup(uint32_t count, TupEntry * entries) {
 		}
 	}
 
-	return t;
+	return t.unbox();
 }
 
 /**
@@ -705,14 +684,12 @@ rm_object * rm_createRel(rm_object * tup) {
 	if(!tuple) ILE("Null tuple in rm_createRel");
 	if(!tuple->schema) ILE("Tuple has null schema in rm_createRel");
 
-	Relation * rel = new Relation();
-	rel->ref_cnt = 1;
-	registerAllocation(rel);
+	RefPtr<Relation> rel = makeRef<Relation>();
 
 	rel->schema = tuple->schema;
 	rel->tuples.push_back(RefPtr<Tuple>(tuple));
 
-	return rel;
+	return rel.unbox();
 }
 
 /**
@@ -757,7 +734,7 @@ rm_object * rm_extendTup(rm_object * lhs_, rm_object * rhs_) {
 	Tuple * lhs = static_cast<Tuple *>(lhs_);
 	Tuple * rhs = static_cast<Tuple *>(rhs_);
 
-	Tuple * ret = makeRefObject<Tuple>();
+	RefPtr<Tuple> ret = makeRef<Tuple>();
 	RefPtr<Schema> schema = makeRef<Schema>();
 	ret->schema = schema;
 	
@@ -776,7 +753,7 @@ rm_object * rm_extendTup(rm_object * lhs_, rm_object * rhs_) {
 		ret->values.push_back(rhs->values[i]);
 	}
 
-	return ret;
+	return ret.unbox();
 }
 
 /**
@@ -788,13 +765,9 @@ rm_object * rm_tupRemove(rm_object * tup, const char * name) {
 	Tuple * old_tup = static_cast<Tuple *>(tup);
 	Schema * old_schema = old_tup->schema.get();
 	
-	Tuple * new_tup = new Tuple();
-	new_tup->ref_cnt = 1;
-	registerAllocation(new_tup);
-
-	Schema * new_schema = new Schema();
-	registerAllocation(new_schema);
-	new_tup->schema = RefPtr<Schema>(new_schema);
+	RefPtr<Tuple> new_tup = makeRef<Tuple>();
+	RefPtr<Schema> new_schema = makeRef<Schema>();
+	new_tup->schema = new_schema;
 
 	bool found_name = 0;
 	for(size_t i = 0; i < old_schema->attributes.size(); i++){
@@ -808,7 +781,7 @@ rm_object * rm_tupRemove(rm_object * tup, const char * name) {
 
 	if(!found_name) ILE("Name", name, "was not found in the tuple's schema");
 
-	return new_tup;
+	return new_tup.unbox();
 }
 
 /**

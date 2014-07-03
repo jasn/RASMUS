@@ -60,22 +60,10 @@ inline void registerDeallocation(rm_object * ptr) {
 }
 
 template <typename T, typename ...TT>
-T * makeObject(TT && ... tt) {
+RefPtr<T> makeRef(TT && ... tt) {
 	T * ret = new T(std::forward(tt)...);
 	registerAllocation(ret);
-	return ret;
-}
-
-template <typename T, typename ...TT>
-T * makeRefObject(TT && ... tt) {
-	T * ret = makeObject<T>(std::forward(tt)...);
-	ret->ref_cnt = 1;
-	return ret;
-}
-
-template <typename T, typename ...TT>
-RefPtr<T> makeRef(TT && ... tt) {
-	return RefPtr<T>(makeObject<T>(std::forward(tt)...));
+	return RefPtr<T>(ret);
 }
 
 
