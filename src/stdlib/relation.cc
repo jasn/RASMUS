@@ -34,7 +34,6 @@ namespace {
 using namespace rasmus::stdlib;
 
 int rm_itemWidth(AnyValue av){
-	// TODO implement this method properly
 	switch(av.type){
 	case TBool:
 		return 5; // strlen("false")
@@ -47,12 +46,12 @@ int rm_itemWidth(AnyValue av){
 	}
 }
 
-uint8_t rm_intEquals(uint64_t l, uint64_t r){
+int8_t rm_intEquals(int64_t l, int64_t r){
 	if(l == RM_NULLINT || r == RM_NULLINT) return RM_NULLBOOL;
 	return l == r ? RM_TRUE : RM_FALSE;
 }
 
-uint8_t rm_boolEquals(uint8_t l, uint8_t r){
+int8_t rm_boolEquals(int8_t l, int8_t r){
 	if(l == RM_NULLBOOL || r == RM_NULLBOOL) return RM_NULLBOOL;
 	return l == r ? RM_TRUE : RM_FALSE;
 }
@@ -74,6 +73,17 @@ uint8_t rm_anyValueEquals(AnyValue & avl, AnyValue & avr){
 	return RM_TRUE;
 }
 
+// return true iff l < r
+bool rm_tupleCompare(const Tuple & l, const Tuple & r){
+	if(l.values.size() != r.values.size())
+		return l.values.size() < r.values.size();
+
+	for(size_t i = 0; i < l.values.size(); i++){
+		if(l.values[i] < r.values[i]) continue;
+		else return false;
+	}
+	return true;
+}
 
 } // nameless namespace
 
@@ -408,9 +418,94 @@ rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs) {
  * \Note we need to remove duplicate rows
  */
 rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
-	//TODO
-	lhs->ref_cnt++;
-	return lhs;
+
+	Relation * l = static_cast<Relation *>(lhs);
+	Relation * r = static_cast<Relation *>(rhs);
+
+	// ensure the left relation is never the smaller one
+	// this will make things more efficient later
+	if(l->tuples.size() < r->tuples.size()){
+		Relation * tmp = l;
+		l = r;
+		r = tmp;
+	}
+
+	// ensure schema equality
+	Schema * ls = l->schema.getAs<Schema>();
+	Schema * rs = r->schema.getAs<Schema>();
+
+	if(ls->attributes.size() != rs->attributes.size()) 
+		ILE("Union on relations with different schemas");
+
+	std::vector<std::pair<std::string, size_t>> l_indices;
+	std::vector<std::pair<std::string, size_t>> r_indices;
+	
+	for(size_t i = 0; i < ls->attributes.size(); i++){
+		l_indices.emplace_back(ls->attributes[i].name, i);
+		r_indices.emplace_back(rs->attributes[i].name, i);
+	}
+
+	std::sort(l_indices.begin(), l_indices.end());
+	std::sort(r_indices.begin(), r_indices.end());
+
+	for(size_t i = 0; i < ls->attributes.size(); i++){
+		size_t left_index = l_indices[i].second;
+		size_t right_index = r_indices[i].second;
+		if(ls->attributes[left_index].name
+		   != rs->attributes[right_index].name)
+			ILE("Union on relations with different schemas");
+	}
+	
+	// build a new relation from lhs
+	Relation * rel = new Relation();
+	rel->ref_cnt = 1;
+	registerAllocation(rel);
+
+	rel->schema = l->schema;
+
+	for(auto & tuple : l->tuples)
+		rel->tuples.push_back(tuple);
+
+	// add all entries from rhs to the relation
+	for(auto & old_tup : r->tuples){
+		Tuple * new_tup = new Tuple();
+		registerAllocation(new_tup);
+		new_tup->schema = rel->schema;
+		for(size_t i = 0; i < ls->attributes.size(); i++){
+			size_t index = r_indices[i].second;
+			AnyValue val = old_tup.getAs<Tuple>()->values[index];
+			new_tup->values.push_back(val);
+		}
+	}
+
+	// sort the relation
+	std::sort(rel->tuples.begin(), rel->tuples.end(),
+			  [](const RefPtr<rm_object> & l,
+				 const RefPtr<rm_object> & r)->bool{
+				  return rm_tupleCompare(
+					  *l.getAs<Tuple>(),
+					  *r.getAs<Tuple>());
+			  });
+
+	// remove duplicates
+	rel->tuples.erase(
+		std::unique(
+			rel->tuples.begin(), 
+			rel->tuples.end(), 
+			[](const RefPtr<rm_object> & l,
+			   const RefPtr<rm_object> & r)->bool{
+				for(size_t i = 0; i < l.getAs<Tuple>()->values.size(); i++){
+					if(l.getAs<Tuple>()->values[i]
+					   == r.getAs<Tuple>()->values[i])
+						continue;
+					else return false;
+				}
+				return true;
+			}),
+		rel->tuples.end());
+	
+	// return the relation
+	return rel;
 }
 
 /**
@@ -512,8 +607,6 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
 		if(!found) ILE("Schema has no such name", old_name);
 	}
 	
-	// replace each tuple's schema
-	// TODO Q can we assume that the schema is shared between tuples and relation? If so, this can be skipped
 	for(auto & tuple : relation->tuples){
 		tuple.getAs<Tuple>()->schema = relation->schema;
 	}

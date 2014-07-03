@@ -22,6 +22,8 @@
 #include <shared/type.hh>
 #include <stdlib/refptr.hh>
 #include <stdlib/rm_object.hh>
+#include <stdlib/ile.hh>
+#include <stdlib/text.hh>
 
 namespace rasmus {
 namespace stdlib {
@@ -85,6 +87,34 @@ struct AnyValue {
 		this->~AnyValue();
 		new (this) AnyValue(std::move(other));
 		return *this;
+	}
+
+	bool operator== (const AnyValue & other) const {
+		if(type != other.type) return false;
+		switch(type){
+		case TInt:
+			return intValue == other.intValue;
+		case TBool:
+			return boolValue == other.boolValue;
+		case TText:
+			return strongTextEqual(objectValue.getAs<TextBase>(), other.objectValue.getAs<TextBase>());
+		default:
+			ILE("Comparing unsupported types");
+		}
+	}
+
+	bool operator< (const AnyValue & other) const {
+		if(type != other.type) ILE("Comparing different types");
+		switch(type){
+		case TInt:
+			return intValue < other.intValue;
+		case TBool:
+			return boolValue < other.boolValue; 
+		case TText:
+			return strongTextComp(objectValue.getAs<TextBase>(), other.objectValue.getAs<TextBase>());
+		default:
+			ILE("Unsupported types");
+		}
 	}
 
 	~AnyValue() {

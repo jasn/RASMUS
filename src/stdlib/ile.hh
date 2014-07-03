@@ -16,6 +16,9 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
+#ifndef __ILE_HH__
+#define __ILE_HH__
+
 #include <stdlib/callback.hh>
 #include <sstream>
 
@@ -47,4 +50,5 @@ inline void ile [[noreturn]] (const char * file,
 } //namespace stdlib
 } //namespace rasmus
 
+#endif //__ILE_HH__
 

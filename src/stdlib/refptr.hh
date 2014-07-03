@@ -50,6 +50,9 @@ public:
 	template<typename TT>
 	TT * getAs(){return static_cast<TT *>(ptr);}
 
+	template<typename TT>
+	const TT * getAs() const {return static_cast<const TT *>(ptr);}
+
 	bool operator <(const RefPtr & o) const {return ptr < o.ptr;}
 	bool operator >(const RefPtr & o) const {return ptr > o.ptr;}
 	bool operator <=(const RefPtr & o) const {return ptr <= o.ptr;}

@@ -88,7 +88,8 @@ void printQuoteTextToStream(TextBase * ptr, std::ostream & stream);
  *
  * In this strong version ?-Text compares less then any other text
  */
-bool strongTextComp(TextBase* lhs, TextBase * rhs);
+bool strongTextComp(const TextBase* lhs, const TextBase * rhs);
+bool strongTextEqual(const TextBase* lhs, const TextBase * rhs);
 
 } //namespace rasmus
 } //namespace stdlib

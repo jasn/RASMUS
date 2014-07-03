@@ -216,13 +216,22 @@ std::string textToString(TextBase * ptr) {
 	return text;
 }
 
-bool strongTextComp(TextBase* lhs, TextBase * rhs) {
+bool strongTextComp(const TextBase* lhs, const TextBase * rhs) {
 	if (lhs == &undef_text) return true;
 	if (rhs == &undef_text) return false;
-	const char * lhst = canonizeText(toTextBase(lhs));
-	const char * rhst = canonizeText(toTextBase(rhs));
+	const char * lhst = canonizeText(const_cast<TextBase *>(lhs));
+	const char * rhst = canonizeText(const_cast<TextBase *>(rhs));
 	return strcmp(lhst, rhst) < 0;
 }
+
+bool strongTextEqual(const TextBase* lhs, const TextBase * rhs) {
+	if (lhs == &undef_text) return rhs == &undef_text;	
+	if (rhs == &undef_text) return false;
+	const char * lhst = canonizeText(const_cast<TextBase *>(lhs));
+	const char * rhst = canonizeText(const_cast<TextBase *>(rhs));
+	return strcmp(lhst, rhst) == 0;
+}
+
 
 
 } //stdlib
