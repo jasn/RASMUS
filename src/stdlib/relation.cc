@@ -665,10 +665,30 @@ void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret) {
  * \Brief returns the tuple which is the union of lhs and rhs
  * \Note Shared values are taken from lhs, not rhs
  */
-rm_object * rm_extendTup(rm_object * lhs, rm_object * rhs) {
-	//TODO fixme
-	lhs->ref_cnt++;
-	return lhs;
+rm_object * rm_extendTup(rm_object * lhs_, rm_object * rhs_) {
+	Tuple * lhs = static_cast<Tuple *>(lhs_);
+	Tuple * rhs = static_cast<Tuple *>(rhs_);
+
+	Tuple * ret = makeRefObject<Tuple>();
+	RefPtr<Schema> schema = makeRef<Schema>();
+	ret->schema = schema;
+	
+	std::vector<std::string> there;
+	ret->values = lhs->values;
+	schema->attributes = lhs->schema.getAs<Schema>()->attributes;
+	for (auto & a: lhs->schema.getAs<Schema>()->attributes) 
+		there.push_back(a.name);
+	std::sort(there.begin(), there.end());
+	
+	for (size_t i=0; i < rhs->values.size(); ++i) {
+		if (std::binary_search(
+				there.begin(), there.end(),
+				rhs->schema.getAs<Schema>()->attributes[i].name)) continue;
+		schema->attributes.push_back(rhs->schema.getAs<Schema>()->attributes[i]);
+		ret->values.push_back(rhs->values[i]);
+	}
+
+	return ret;
 }
 
 /**
