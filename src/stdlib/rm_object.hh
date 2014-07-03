@@ -21,6 +21,7 @@
 #include "lib.h"
 #include <cstdint>
 #include <shared/type.hh>
+#include "refptr.hh"
 
 extern "C" {
 
@@ -56,6 +57,25 @@ inline void registerAllocation(rm_object * ptr) {
 inline void registerDeallocation(rm_object * ptr) {
 	--objectCount;
 	if (debugAllocations) reportDeallocation(ptr);
+}
+
+template <typename T, typename ...TT>
+T * makeObject(TT && ... tt) {
+	T * ret = new T(std::forward(tt)...);
+	registerAllocation(ret);
+	return ret;
+}
+
+template <typename T, typename ...TT>
+T * makeRefObject(TT && ... tt) {
+	T * ret = makeObject<T>(std::forward(tt)...);
+	ret->ref_cnt = 1;
+	return ret;
+}
+
+template <typename T, typename ...TT>
+RefPtr<T> makeRef(TT && ... tt) {
+	return RefPtr<T>(makeObject<T>(std::forward(tt)...));
 }
 
 
