@@ -25,17 +25,24 @@ namespace stdlib {
 template <typename T>
 class RefPtr {
 public:
-	explicit RefPtr(T * p=0): ptr(0) {reset(p);}
-	RefPtr(const RefPtr & p): ptr(0) {reset(p.get());}
-	RefPtr(RefPtr && p): ptr(p.ptr) {p.ptr=nullptr;}
-	~RefPtr() {reset(0);}
-	RefPtr & operator=(const RefPtr & p)  {reset(p.get());	return *this; }
-	RefPtr & operator=(RefPtr && p)  {
+
+	explicit RefPtr(T * p=0): ptr(nullptr) {reset(p);}
+
+	RefPtr(const RefPtr<T> & p): ptr(nullptr) {reset(p.get());}
+
+	RefPtr(RefPtr<T> && p): ptr(p.ptr) {p.ptr=nullptr;}
+	~RefPtr() {reset(nullptr);}
+
+
+	RefPtr & operator=(const RefPtr<T> & p)  {reset(p.get());	return *this; }
+	
+	RefPtr & operator=(RefPtr<T> && p)  {
 		if (ptr) ptr->decref();
 		ptr = p.ptr;
 		p.ptr = nullptr;
 		return *this;
 	}
+
 	T & operator*() const {return *ptr;}
 	T * operator->() const {return ptr;}
 	T * get() const  {return ptr;}
@@ -67,6 +74,23 @@ public:
 		RefPtr r(p);
 		p->decref();
 		return r;
+	}
+
+	template <typename TT>
+	RefPtr(const RefPtr<TT> & p): ptr(nullptr) {reset(p.get());}
+
+	template <typename TT>
+	RefPtr(RefPtr<TT> && p): ptr(p.ptr) {p.ptr=nullptr;}
+
+	template <typename TT>
+	RefPtr & operator=(const RefPtr<TT> & p)  {reset(p.get());	return *this; }
+
+	template <typename TT>
+	RefPtr & operator=(RefPtr<TT> && p)  {
+		if (ptr) ptr->decref();
+		ptr = p.ptr;
+		p.ptr = nullptr;
+		return *this;
 	}
 private:
 	T * ptr;
