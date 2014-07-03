@@ -86,7 +86,7 @@ struct AnyValue {
 		new (this) AnyValue(std::move(other));
 		return *this;
 	}
-	
+
 	~AnyValue() {
 		switch (type) {
 		case TInt:

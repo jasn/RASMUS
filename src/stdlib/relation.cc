@@ -47,6 +47,33 @@ int rm_itemWidth(AnyValue av){
 	}
 }
 
+uint8_t rm_intEquals(uint64_t l, uint64_t r){
+	if(l == RM_NULLINT || r == RM_NULLINT) return RM_NULLBOOL;
+	return l == r ? RM_TRUE : RM_FALSE;
+}
+
+uint8_t rm_boolEquals(uint8_t l, uint8_t r){
+	if(l == RM_NULLBOOL || r == RM_NULLBOOL) return RM_NULLBOOL;
+	return l == r ? RM_TRUE : RM_FALSE;
+}
+
+uint8_t rm_anyValueEquals(AnyValue & avl, AnyValue & avr){
+
+	if(avl.type != avr.type) return RM_FALSE;
+	switch(avl.type){
+	case TInt:
+		return rm_intEquals(avl.intValue, avr.intValue);
+	case TBool:
+		return rm_boolEquals(avl.boolValue, avr.boolValue);
+	case TText:
+		return rm_equalText(avl.objectValue.getAs<TextBase>(),
+							avr.objectValue.getAs<TextBase>());
+	default:
+		ILE("Comparing unsupported types");
+	}
+	return RM_TRUE;
+}
+
 
 } // nameless namespace
 
@@ -754,29 +781,10 @@ uint8_t rm_equalTup(rm_object * lhs, rm_object * rhs) {
 			return RM_FALSE;
 
 		// different values?
-		// TODO Q implement this with == operator for AnyValues
 		AnyValue avl = lt->values[left_index];
 		AnyValue avr = rt->values[right_index];
-		
-		if(avl.type != avr.type) return RM_FALSE;
-		switch(avl.type){
-		case TInt:
-			if(avl.intValue != avr.intValue) return RM_FALSE;
-			break;
-		case TBool:
-			if(avl.boolValue != avr.boolValue) return RM_FALSE;
-			break;
-		case TText:
-		{
-			int8_t ans = rm_equalText(avl.objectValue.getAs<TextBase>(),
-									  avr.objectValue.getAs<TextBase>());
-			if (ans != RM_TRUE) 
-				return ans;
-			break;
-		}
-		default:
-			ILE("Comparing unsupported types");
-		}
+		uint8_t ans = rm_anyValueEquals(avl, avr);
+		if(ans != RM_TRUE) return ans;
 
 	}
 

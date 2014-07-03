@@ -230,7 +230,7 @@ void tuple(rasmus::teststream & ts) {
 	ts << "construct4" << result(it("tup(boo: false)", "(boo: false)"));
 	ts << "construct5" << result(it("tup(boo: true)", "(boo: true)"));
 	ts << "construct6" << result(it("tup(foo: \"bar\")", "(foo: \"bar\")"));
-	ts << "construct7" << result(it("tup(foo: 1, bar: true, baz: \"\\o/\")", "(foo: 1, bar: true, baz: \"\\o/\")"));
+	ts << "construct7" << result(it("tup(foo: 1, bar: true, baz: \"bax\")", "(foo: 1, bar: true, baz: \"bax\")"));
 	ts << "equality1" << result(it("tup() = tup()", "true"));
 	ts << "equality2" << result(it("tup() = tup(abe: 4)", "false"));
 	ts << "equality3" << result(it("tup(kat: 1) = tup(abe: 4)", "false"));
@@ -242,6 +242,8 @@ void tuple(rasmus::teststream & ts) {
 	ts << "equality9" << result(it("tup(kat: \"foo\") = tup(kat: \"foo\")", "true"));
 	ts << "equality10" << result(it("tup(kat: \"foo\") = tup(kat: \"bar\")", "false"));
 	ts << "equality11" << result(it("tup(hat: \"foo\") = tup(kat: \"foo\")", "false"));
+	ts << "equality12" << result(it("tup(kat: ?-Int) = tup(kat: 123)", "?-Bool"));
+	ts << "equality13" << result(it("tup(hat: ?-Bool) = tup(hat: true)", "?-Bool"));
 	ts << "inequality1" << result(it("tup() <> tup()", "false"));
 	ts << "inequality2" << result(it("tup() <> tup(abe: 4)", "true"));
 	ts << "inequality3" << result(it("tup(foo: true) <> tup(foo: true)", "false"));
