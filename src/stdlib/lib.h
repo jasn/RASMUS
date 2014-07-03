@@ -77,6 +77,11 @@ rm_object * rm_concatText(rm_object * p1, rm_object * p2);
  */
 rm_object * rm_substrText(rm_object * str, int64_t start, int64_t end);
 
+/**
+ * Check if the two strings are equal
+ */
+uint8_t rm_equalText(rm_object *lhs, rm_object *rhs);
+
 extern rm_object undef_text;
 
 /////////////////////////////////////////////////////////////////////////////////////

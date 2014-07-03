@@ -78,6 +78,36 @@ struct OStreamBuilder {
 	std::ostream & o;
 };
 
+struct OStreamQuoteBuilder {
+	OStreamQuoteBuilder(std::ostream & o): o(o) {}
+	void operator()(char * part, size_t length) const {
+		for (size_t i=0; i < length; ++i) {
+			switch(part[i]) {
+			case '\\':
+			case '"':
+				o.put('\\');
+				o.put(part[i]);
+				break;
+			case '\r':
+				o.put('\\');
+				o.put('r');
+				break;
+			case '\n':
+				o.put('\\');
+				o.put('n');
+				break;
+			case '\t':
+				o.put('\\');
+				o.put('t');
+				break;
+			default:
+				o.put(part[i]);
+			}
+		}
+	}
+	std::ostream & o;
+};
+
 /**
  * Turn a text object into a canonical text
  */
@@ -154,6 +184,17 @@ TextBase * toTextBase(rm_object * o) {
 namespace rasmus {
 namespace stdlib {
 
+void printQuoteTextToStream(TextBase * ptr, std::ostream & stream) {
+	if (ptr == &undef_text) {
+		stream << "?-Text";
+		return;
+	}
+	stream.put('"');
+	OStreamQuoteBuilder b(stream);
+	buildText(ptr, b, 0, length(ptr) );
+	stream.put('"');
+	
+}
 
 void printTextToStream(TextBase * ptr, std::ostream & stream) {
 	if (ptr == &undef_text) {
@@ -187,11 +228,11 @@ rm_object * rm_getConstText(const char *cptr) {
 }
 
 uint8_t rm_equalText(rm_object *lhs, rm_object *rhs) {
-	if (lhs == &undef_text || rhs == &undef_text) return 2;
+	if (lhs == &undef_text || rhs == &undef_text) return RM_NULLBOOL;
 
 	const char * lhst = canonizeText(toTextBase(lhs));
 	const char * rhst = canonizeText(toTextBase(rhs));
-	return strcmp(lhst, rhst) ? 0: 3;
+	return strcmp(lhst, rhst) ? RM_FALSE: RM_TRUE;
 }
 
 rm_object * rm_concatText(rm_object *lhs_, rm_object *rhs_) {

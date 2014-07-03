@@ -79,10 +79,9 @@ std::string textToString(TextBase * text);
 void printTextToStream(TextBase * text, std::ostream & out);
 
 /**
- * Tests two TextBase texts for string equality
+ * Print a text to a stream if it is not ?-Text it will be wrapped in "",s and quoted
  */
-uint8_t rm_equalText(rm_object *lhs, rm_object *rhs);
-
+void printQuoteTextToStream(TextBase * ptr, std::ostream & stream);
 
 } //namespace rasmus
 } //namespace stdlib

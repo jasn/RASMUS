@@ -306,19 +306,6 @@ void printBoolToStream(AnyValue & val, std::ostream & out){
 }
 
 /**
- * \Brief Prints an anyvalue of type TText to a stream
- * Handles the special case where the text is ?-Text
- */
-void printTextToStream(AnyValue & val, std::ostream & out){
-	// TODO we currently do not handle quotation marks and backslashes in strings
-	std::string str = textToString(val.objectValue.getAs<TextBase>());
-	if(str == "?-Text")
-		out << "?-Text";
-	else
-		out << '"' << str << '"';
-}
-
-/**
  * \Brief prints the given tuple to the out stream
  */
 void printTupleToStream(rm_object * ptr, std::ostream & out) {
@@ -338,7 +325,7 @@ void printTupleToStream(rm_object * ptr, std::ostream & out) {
 				printBoolToStream(tup->values[i], out);
 				break;
 			case TText:
-				printTextToStream(tup->values[i], out);
+				printQuoteTextToStream(tup->values[i].objectValue.getAs<TextBase>(), out);
 				break;
 			default:
 				ILE("Unsupported type", schema->attributes[i].type);
@@ -780,12 +767,13 @@ uint8_t rm_equalTup(rm_object * lhs, rm_object * rhs) {
 			if(avl.boolValue != avr.boolValue) return RM_FALSE;
 			break;
 		case TText:
-			// TODO Q is this the right way to compare TextBase objects?
-//			return rm_equalText(avl.objectValue.get(), avr.objectValue.get());
-			if(textToString(avl.objectValue.getAs<TextBase>()) 
-			   != textToString(avr.objectValue.getAs<TextBase>()))
-				return RM_FALSE;
+		{
+			int8_t ans = rm_equalText(avl.objectValue.getAs<TextBase>(),
+									  avr.objectValue.getAs<TextBase>());
+			if (ans != RM_TRUE) 
+				return ans;
 			break;
+		}
 		default:
 			ILE("Comparing unsupported types");
 		}
