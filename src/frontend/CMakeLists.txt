@@ -19,8 +19,8 @@ add_library(frontend
   error.hh
   firstParse.cc
   firstParse.hh
-  interperter.cc
-  interperter.hh
+  interpreter.cc
+  interpreter.hh
   lexer.cc
   lexer.hh
   llvmCodeGen.cc

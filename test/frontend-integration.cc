@@ -17,7 +17,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #include "common.hh"
-#include <frontend/interperter.hh>
+#include <frontend/interpreter.hh>
 #include <stdlib/callback.hh>
 #include <stdlib/relation.hh>
 using namespace rasmus;

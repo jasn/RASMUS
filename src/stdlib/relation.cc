@@ -781,6 +781,7 @@ uint8_t rm_equalTup(rm_object * lhs, rm_object * rhs) {
 			break;
 		case TText:
 			// TODO Q is this the right way to compare TextBase objects?
+//			return rm_equalText(avl.objectValue.get(), avr.objectValue.get());
 			if(textToString(avl.objectValue.getAs<TextBase>()) 
 			   != textToString(avr.objectValue.getAs<TextBase>()))
 				return RM_FALSE;
