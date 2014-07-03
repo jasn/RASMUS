@@ -15,7 +15,7 @@
 // License for more details.
 // 
 // You should have received a copy of the GNU Lesser General Public License
-// along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
+// along with pyRASMUS.  If not, see <http://www.gnu.org/licensgges/>
 
 #include <iostream>
 #include <vector>
@@ -93,14 +93,14 @@ namespace stdlib {
 void printRelationToStream(rm_object * ptr, std::ostream & out) {
 	Relation * relation = static_cast<Relation *>(ptr);
 	// calculate widths
-	Schema * schema = relation->schema.getAs<Schema>();
+	Schema * schema = relation->schema.get();
 	size_t num_attributes = schema->attributes.size();
 	std::vector<int> widths(num_attributes, 0);
 
 	// widths for tuples
 	for(auto & tuple : relation->tuples){
 		int i = 0;		
-		for(auto & item : tuple.getAs<Tuple>()->values){
+		for(auto & item : tuple->values){
 			widths[i] = std::max(widths[i], rm_itemWidth(item));
 			i++;
 		}
@@ -108,7 +108,7 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
 
 	// width for schema names
 	int i = 0;
-	for(auto & attribute : relation->schema.getAs<Schema>()->attributes){
+	for(auto & attribute : relation->schema->attributes){
 		widths[i] = std::max<int>(widths[i], attribute.name.size());
 		i++;
 	}
@@ -133,7 +133,7 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
 	for(auto & tuple : relation->tuples){
 		i = 0;
 		out << '|';
-		for(auto & value : tuple.getAs<Tuple>()->values){
+		for(auto & value : tuple->values){
 			switch(value.type){
 			case TInt:
 				out << ' ' << std::right << std::setw(widths[i]) << value.intValue;
@@ -166,8 +166,8 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
  */
 void saveRelationToStream(rm_object * o, std::ostream & outFile){
 	Relation * relation = static_cast<Relation *>(o);
-	outFile << relation->schema.getAs<Schema>()->attributes.size() << std::endl;
-	for(auto & attribute : relation->schema.getAs<Schema>()->attributes){
+	outFile << relation->schema->attributes.size() << std::endl;
+	for(auto & attribute : relation->schema->attributes){
 		switch(attribute.type){
 		case TInt:
 			outFile << "I ";
@@ -186,7 +186,7 @@ void saveRelationToStream(rm_object * o, std::ostream & outFile){
 	}
 
 	for(auto & tuple : relation->tuples){
-		for(auto & value : tuple.getAs<Tuple>()->values){
+		for(auto & value : tuple->values){
 			switch(value.type){
 			case TInt:
 				outFile << value.intValue << std::endl;
@@ -215,14 +215,14 @@ void saveRelationToStream(rm_object * o, std::ostream & outFile){
 rm_object * loadRelationFromStream(std::istream & inFile){
 
 	size_t num_columns;
-	RefPtr<rm_object> schema;
+	RefPtr<Schema> schema;
 
 	if(!(inFile >> num_columns)){
 		std::cerr << "could not read number of attributes from file "  << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-	schema = RefPtr<rm_object>(new Schema());
+	schema = RefPtr<Schema>(new Schema());
 	
 	for(size_t i = 0; i < num_columns; i++){
 		char type;
@@ -251,7 +251,7 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 			exit(EXIT_FAILURE);			
 		}
 
-		schema.getAs<Schema>()->attributes.push_back(std::move(attribute));
+		schema->attributes.push_back(std::move(attribute));
 
 	}
 
@@ -260,17 +260,17 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 		getline(inFile, _);
 	}
 
-	RefPtr<rm_object> relations(new Relation());
-	relations.getAs<Relation>()->schema = schema;
+	RefPtr<Relation> relations(new Relation());
+	relations->schema = schema;
 
 	bool done = false;
 
 	while(!done){
 		
-		RefPtr<rm_object> tuple(new Tuple());
-		tuple.getAs<Tuple>()->schema = schema;
+		RefPtr<Tuple> tuple(new Tuple());
+		tuple->schema = schema;
 
-		for(auto & attribute : schema.getAs<Schema>()->attributes){
+		for(auto & attribute : schema->attributes){
 			
 			std::string line;
 			if(!getline(inFile, line)){
@@ -284,14 +284,14 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 				std::stringstream ss(line);
 				int64_t value;
 				ss >> value;
-				tuple.getAs<Tuple>()->values.emplace_back(value);
+				tuple->values.emplace_back(value);
 				break;
 			}
 			case TBool:
-				tuple.getAs<Tuple>()->values.emplace_back((line != "false") ? RM_TRUE : RM_FALSE);
+				tuple->values.emplace_back((line != "false") ? RM_TRUE : RM_FALSE);
 				break;
 			case TText:
-				tuple.getAs<Tuple>()->values.emplace_back(TText, RefPtr<rm_object>::steal(rm_getConstText(line.c_str())));
+				tuple->values.emplace_back(TText, RefPtr<rm_object>::steal(rm_getConstText(line.c_str())));
 				break;
 			default:
 				std::cerr << "internal library error" << std::endl;
@@ -303,7 +303,7 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 
 		if(done) break;
 		
-		relations.getAs<Relation>()->tuples.push_back(std::move(tuple));
+		relations->tuples.push_back(std::move(tuple));
 
 	}
 	
@@ -347,7 +347,7 @@ void printBoolToStream(AnyValue & val, std::ostream & out){
  */
 void printTupleToStream(rm_object * ptr, std::ostream & out) {
 	Tuple * tup = static_cast<Tuple *>(ptr);
-	Schema * schema = tup->schema.getAs<Schema>();
+	Schema * schema = tup->schema.get();
 
 	out << "(";
 	
@@ -431,8 +431,8 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
 	}
 
 	// ensure schema equality
-	Schema * ls = l->schema.getAs<Schema>();
-	Schema * rs = r->schema.getAs<Schema>();
+	Schema * ls = l->schema.get();
+	Schema * rs = r->schema.get();
 
 	if(ls->attributes.size() != rs->attributes.size()) 
 		ILE("Union on relations with different schemas");
@@ -462,9 +462,7 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
 	registerAllocation(rel);
 
 	rel->schema = l->schema;
-
-	for(auto & tuple : l->tuples)
-		rel->tuples.push_back(tuple);
+	rel->tuples = l->tuples;
 
 	// add all entries from rhs to the relation
 	for(auto & old_tup : r->tuples){
@@ -473,18 +471,17 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
 		new_tup->schema = rel->schema;
 		for(size_t i = 0; i < ls->attributes.size(); i++){
 			size_t index = r_indices[i].second;
-			AnyValue val = old_tup.getAs<Tuple>()->values[index];
+			AnyValue val = old_tup->values[index];
 			new_tup->values.push_back(val);
 		}
+		rel->tuples.push_back(RefPtr<Tuple>(new_tup));
 	}
 
 	// sort the relation
 	std::sort(rel->tuples.begin(), rel->tuples.end(),
-			  [](const RefPtr<rm_object> & l,
-				 const RefPtr<rm_object> & r)->bool{
-				  return rm_tupleCompare(
-					  *l.getAs<Tuple>(),
-					  *r.getAs<Tuple>());
+			  [](const RefPtr<Tuple> & l,
+				 const RefPtr<Tuple> & r)->bool{
+				  return rm_tupleCompare(*l, *r);
 			  });
 
 	// remove duplicates
@@ -492,11 +489,10 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
 		std::unique(
 			rel->tuples.begin(), 
 			rel->tuples.end(), 
-			[](const RefPtr<rm_object> & l,
-			   const RefPtr<rm_object> & r)->bool{
-				for(size_t i = 0; i < l.getAs<Tuple>()->values.size(); i++){
-					if(l.getAs<Tuple>()->values[i]
-					   == r.getAs<Tuple>()->values[i])
+			[](const RefPtr<Tuple> & l,
+			   const RefPtr<Tuple> & r)->bool{
+				for(size_t i = 0; i < l->values.size(); i++){
+					if(l->values[i] == r->values[i])
 						continue;
 					else return false;
 				}
@@ -567,16 +563,16 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
 	for(auto & old_tup : old_rel->tuples){
 		Tuple * new_tup = new Tuple();
 		registerAllocation(new_tup);
-		new_tup->values = old_tup.getAs<Tuple>()->values;
+		new_tup->values = old_tup->values;
 		// tuple's schema will be updated later
-		relation->tuples.push_back(RefPtr<rm_object>(new_tup));
+		relation->tuples.push_back(RefPtr<Tuple>(new_tup));
 	}
 
 	Schema * schema;
 
 	// no-one else is using the relation's schema
 	if(old_rel->schema->ref_cnt == 1){
-		schema = old_rel->schema.getAs<Schema>();
+		schema = old_rel->schema.get();
 		relation->schema = old_rel->schema;
 
 	// construct a new schema, copying the old one
@@ -584,9 +580,9 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
 
 		schema = new Schema;
 		registerAllocation(schema);
-		relation->schema = RefPtr<rm_object>(schema);
+		relation->schema = RefPtr<Schema>(schema);
 
-		schema->attributes = old_rel->schema.getAs<Schema>()->attributes;
+		schema->attributes = old_rel->schema->attributes;
 		
 	}
 
@@ -607,9 +603,8 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
 		if(!found) ILE("Schema has no such name", old_name);
 	}
 	
-	for(auto & tuple : relation->tuples){
-		tuple.getAs<Tuple>()->schema = relation->schema;
-	}
+	for(auto & tuple : relation->tuples)
+		tuple->schema = relation->schema;
 
 	return relation;
 
@@ -667,7 +662,7 @@ rm_object * rm_createTup(uint32_t count, TupEntry * entries) {
 	
 	Schema * schema = new Schema;
 	registerAllocation(schema);
-	t->schema = RefPtr<rm_object>(schema);
+	t->schema = RefPtr<Schema>(schema);
 	
 	for(uint32_t i = 0; i < count; i++){
 		// add entry to the tuple's schema 
@@ -715,7 +710,7 @@ rm_object * rm_createRel(rm_object * tup) {
 	registerAllocation(rel);
 
 	rel->schema = tuple->schema;
-	rel->tuples.push_back(RefPtr<rm_object>(tup));
+	rel->tuples.push_back(RefPtr<Tuple>(tuple));
 
 	return rel;
 }
@@ -726,7 +721,7 @@ rm_object * rm_createRel(rm_object * tup) {
  */
 void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret) {
 	Tuple * tuple = static_cast<Tuple *>(tup);
-	Schema * schema = tuple->schema.getAs<Schema>();
+	Schema * schema = tuple->schema.get();
 
 	size_t i;
 	for(i = 0; i < schema->attributes.size(); i++)
@@ -768,16 +763,16 @@ rm_object * rm_extendTup(rm_object * lhs_, rm_object * rhs_) {
 	
 	std::vector<std::string> there;
 	ret->values = lhs->values;
-	schema->attributes = lhs->schema.getAs<Schema>()->attributes;
-	for (auto & a: lhs->schema.getAs<Schema>()->attributes) 
+	schema->attributes = lhs->schema->attributes;
+	for (auto & a: lhs->schema->attributes) 
 		there.push_back(a.name);
 	std::sort(there.begin(), there.end());
 	
 	for (size_t i=0; i < rhs->values.size(); ++i) {
 		if (std::binary_search(
 				there.begin(), there.end(),
-				rhs->schema.getAs<Schema>()->attributes[i].name)) continue;
-		schema->attributes.push_back(rhs->schema.getAs<Schema>()->attributes[i]);
+				rhs->schema->attributes[i].name)) continue;
+		schema->attributes.push_back(rhs->schema->attributes[i]);
 		ret->values.push_back(rhs->values[i]);
 	}
 
@@ -791,7 +786,7 @@ rm_object * rm_extendTup(rm_object * lhs_, rm_object * rhs_) {
 rm_object * rm_tupRemove(rm_object * tup, const char * name) {
 
 	Tuple * old_tup = static_cast<Tuple *>(tup);
-	Schema * old_schema = old_tup->schema.getAs<Schema>();
+	Schema * old_schema = old_tup->schema.get();
 	
 	Tuple * new_tup = new Tuple();
 	new_tup->ref_cnt = 1;
@@ -799,7 +794,7 @@ rm_object * rm_tupRemove(rm_object * tup, const char * name) {
 
 	Schema * new_schema = new Schema();
 	registerAllocation(new_schema);
-	new_tup->schema = RefPtr<rm_object>(new_schema);
+	new_tup->schema = RefPtr<Schema>(new_schema);
 
 	bool found_name = 0;
 	for(size_t i = 0; i < old_schema->attributes.size(); i++){
@@ -822,7 +817,7 @@ rm_object * rm_tupRemove(rm_object * tup, const char * name) {
 uint8_t rm_tupHasEntry(rm_object * tup, const char * name) {
 	Tuple * tuple = static_cast<Tuple *>(tup);
 
-	for(auto attribute : tuple->schema.getAs<Schema>()->attributes){
+	for(auto attribute : tuple->schema->attributes){
 		if(name == attribute.name) return RM_TRUE;
 	}
 
@@ -837,7 +832,7 @@ uint8_t rm_relHasEntry(rm_object * rel, const char * name) {
 	if(!relation) ILE("Null relation passed to rm_relHasEntry");
 	if(!relation->schema) ILE("Null schema for relation passed to rm_relHasEntry");
 
-	for(auto attribute : relation->schema.getAs<Schema>()->attributes){
+	for(auto attribute : relation->schema->attributes){
 		if(name == attribute.name) return RM_TRUE; 
 	}
 
@@ -864,8 +859,8 @@ uint8_t rm_equalTup(rm_object * lhs, rm_object * rhs) {
 	Tuple * lt = static_cast<Tuple *>(lhs); // left tuple
 	Tuple * rt = static_cast<Tuple *>(rhs); // right tuple
 
-	Schema * lts = lt->schema.getAs<Schema>();
-	Schema * rts = rt->schema.getAs<Schema>();
+	Schema * lts = lt->schema.get();
+	Schema * rts = rt->schema.get();
 
 	if(lts->attributes.size() != rts->attributes.size())
 		return RM_FALSE;

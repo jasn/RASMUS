@@ -49,7 +49,7 @@ public:
  */
 class Tuple: public rm_object {
 public:
-	RefPtr<rm_object> schema;
+	RefPtr<Schema> schema;
 	std::vector<AnyValue> values;
 	Tuple(): rm_object(LType::tuple) {};
 };
@@ -59,8 +59,8 @@ public:
  */
 class Relation: public rm_object {
 public:
-	std::vector<RefPtr<rm_object>> tuples;
-	RefPtr<rm_object> schema;
+	std::vector<RefPtr<Tuple>> tuples;
+	RefPtr<Schema> schema;
 	Relation(): rm_object(LType::relation) {};
 };
 
