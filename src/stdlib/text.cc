@@ -121,9 +121,10 @@ const char * canonizeText(TextBase * o) {
 	{
 		registerDeallocation(o);
 		size_t length=o->length;
-		char * data=new char[length];
+		char * data=new char[length+1];
 		MemcpyBuilder builder(data);
 		buildText(o, builder, 0, length);
+		data[length] = '\0';
 		uint32_t rc=o->ref_cnt;
 		static_cast<ConcatText*>(o)->~ConcatText();
 		new(o) CanonicalText(length, data);
@@ -135,9 +136,10 @@ const char * canonizeText(TextBase * o) {
 	{
 		registerDeallocation(o);
 		size_t length=o->length;
-		char * data=new char[length];
+		char * data=new char[length+1];
 		MemcpyBuilder builder(data);
 		buildText(o, builder, 0, length);
+		data[length] = '\0';
 		uint32_t rc=o->ref_cnt;
 		static_cast<ConcatText*>(o)->~ConcatText();
 		new(o) CanonicalText(length, data);
@@ -161,8 +163,9 @@ T * makeText(TS &&... ts) {
 }
 
 SmallText * makeSmallText(size_t len) {
-	void * m=operator new(sizeof(SmallText)+ len);
+	void * m=operator new(sizeof(SmallText)+ len+1);
 	SmallText * o = reinterpret_cast<SmallText*>(m);
+	o->data[len] = '\0';
 	new(o) SmallText(len);
 	registerAllocation(o);
 	o->incref();
