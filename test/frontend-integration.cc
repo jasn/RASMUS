@@ -279,17 +279,23 @@ void relation(rasmus::teststream & ts) {
 	ts << "has2" << result(it("has(rel(tup(abe: 4, kat: ?-Text)), baz)", "false"));
 	ts << "union" << result(it("|rel(tup(abe: 4, kat: ?-Text))+rel(tup(abe: 5, kat: ?-Text))|", "2"));
 	ts << "union2" << result(it("rel(tup(abe: 4, kat: \"bar\"))+rel(tup(abe: 4, kat: \"bar\")) = rel(tup(abe: 4, kat: \"bar\"))", "true"));
+	ts << "union3" << result(it("|rel(tup(a:1, b:2)) + rel(tup(a:9, b:2)) + rel(tup(a:1, b:2))|", "2"));
 	ts << "diff" << result(it("|rel(tup(abe: 4, kat: ?-Text))-rel(tup(abe: 4, kat: ?-Text))|", "0"));
 	ts << "join" << result(it("rel(tup(abe: 4, kat: 5)) * rel(tup(kat: 5, bar: 6)) = rel(tup(abe: 4, kat: 5, bar: 6))", "true"));
 	ts << "select" << result(it("|rel(tup(abe: 4, kat:5))?(#.kat=5)|", "1"));
-	ts << "project1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |+ abe,baz = rel(tup(abe: 4, baz:2))", "true"));
-	ts << "project2" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |- abe,baz = rel(tup(kat: 5))", "true"));
+	ts << "pos_project1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |+ abe,baz = rel(tup(abe: 4, baz:2))", "true"));
+	ts << "pos_project2" << result(it("(rel(tup(abe: 4, kat:5, baz:2)) + rel(tup(abe:4, kat:5, baz:3))) |+ abe,kat = rel(tup(abe: 4, kat:5))", "true"));
+	ts << "neg_project1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |- abe,baz = rel(tup(kat: 5))", "true"));
 	ts << "rename" << result(it("rel(tup(abe: 4, kat:5, baz:2)) [abe<-foo, kat<-taz] = rel(tup(foo: 4, taz:5, baz:2))", "true"));
 	ts << "min" << result(it("min(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "4"));
 	ts << "max" << result(it("max(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "5"));
 	ts << "add" << result(it("add(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "9"));
 	ts << "mult" << result(it("mult(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "20"));
 	ts << "count" << result(it("count(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "2"));
+	ts << "count2" << result(it("count(rel(tup(abe: ?-Int)) + rel(tup(abe: 5)), abe)", "1"));
+	ts << "count3" << result(it("count(rel(tup(abe: ?-Text)) + rel(tup(abe: \"foo\")), abe)", "1"));
+	ts << "count4" << result(it("count(rel(tup(abe: ?-Text)), abe)", "0"));
+	ts << "count_err" << result(it("count(rel(tup()), abe)", "", true));
 	//TODO factor
 }
 

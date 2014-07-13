@@ -340,6 +340,45 @@ void printTupleToStream(rm_object * ptr, std::ostream & out) {
 
 }
 
+/**
+ * \Brief find the index of the column with name 'name'
+ */
+size_t getColumnIndex(Relation * rel, const char * name){
+	size_t i;
+	for(i = 0; i < rel->schema->attributes.size(); i++)
+		if(name == rel->schema->attributes[i].name)
+			break;
+
+	if(i == rel->schema->attributes.size())
+		ILE("A column with name", name, "does not exist in the given relation");
+
+	return i;
+}
+
+/**
+ * \Brief Removes duplicate rows in a relation
+ * This is done by sorting the relation's tuples, and then doing
+ * a linear sweep through them to remove any duplicates
+ */
+void removeDuplicateRows(Relation * rel){
+	std::sort(rel->tuples.begin(), rel->tuples.end(),
+			  [](const RefPtr<Tuple> & l,
+				 const RefPtr<Tuple> & r)->bool{
+				  return *l < *r;
+			  });
+
+	rel->tuples.erase(
+		std::unique(
+			rel->tuples.begin(), 
+			rel->tuples.end(),
+			[](const RefPtr<Tuple> & l,
+			   const RefPtr<Tuple> & r)->bool{
+				return *l == *r;
+			}),
+		rel->tuples.end());
+}
+
+
 } //namespace stdlib
 } //namespace rasmus
 
@@ -474,33 +513,18 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
 	for(auto & old_tup : r->tuples){
 		RefPtr<Tuple> new_tup = makeRef<Tuple>();
 		new_tup->schema = rel->schema;
+		new_tup->values.resize(l->schema->attributes.size());
 		for(size_t i = 0; i < l->schema->attributes.size(); i++){
-			size_t index = r_indices[i].second;
-			AnyValue val = old_tup->values[index];
-			new_tup->values.push_back(val);
+			size_t key_index = l_indices[i].second;
+			size_t val_index = r_indices[i].second;
+			AnyValue val = old_tup->values[val_index];
+			new_tup->values[key_index] = val;
 		}
 		rel->tuples.push_back(std::move(new_tup));
 	}
 
-	// sort the relation
-	std::sort(rel->tuples.begin(), rel->tuples.end(),
-			  [](const RefPtr<Tuple> & l,
-				 const RefPtr<Tuple> & r)->bool{
-				  return *l < *r;
-			  });
-
-	// remove duplicates
-	rel->tuples.erase(
-		std::unique(
-			rel->tuples.begin(), 
-			rel->tuples.end(),
-			[](const RefPtr<Tuple> & l,
-			   const RefPtr<Tuple> & r)->bool{
-				return *l == *r;
-			}),
-		rel->tuples.end());
+	removeDuplicateRows(rel.get());
 	
-	// return the relation
 	return rel.unbox();
 }
 
@@ -535,10 +559,56 @@ rm_object * rm_selectRel(rm_object * rel, rm_object * func) {
  * according to the given list of names
  * \Note duplicates must be removed
  */
-rm_object * rm_projectPlusRel(rm_object * rel, uint32_t name_count, const char ** names) {
-	//TODO
-	rel->ref_cnt++;
-	return rel;
+rm_object * rm_projectPlusRel(rm_object * rel_, uint32_t name_count, const char ** names) {
+	
+	Relation * rel = static_cast<Relation *>(rel_);
+
+	// find the indices of the names we want to keep
+	// by creating a sorted vector of the input names
+	// and a sorted vector of pairs of schema names and indices.
+	// Then do a linear sweep and add the matching indices to a new vector
+	std::vector<std::string> inputNames;
+	std::vector<std::pair<std::string, size_t>> schemaNames;
+	for(uint32_t i = 0; i < name_count; i++)
+		inputNames.push_back(names[i]);
+	for(size_t i = 0; i < rel->schema->attributes.size(); i++)
+		schemaNames.emplace_back(rel->schema->attributes[i].name, i);
+	std::sort(inputNames.begin(), inputNames.end());
+	std::sort(schemaNames.begin(), schemaNames.end());
+	
+	std::vector<size_t> indices;
+	if(inputNames.size() > schemaNames.size())
+		ILE("The relation does not have that many columns!");
+
+	for(size_t i = 0, j = 0; i < schemaNames.size() && j < inputNames.size(); i++){
+		if(schemaNames[i].first == inputNames[j]){
+			indices.push_back(schemaNames[i].second);
+			j++;
+		}
+	}
+	if(indices.size() != inputNames.size())
+		ILE("The relation does not contain all the given columns");
+
+	// prepare the new relation
+	RefPtr<Relation> ret = makeRef<Relation>();
+	RefPtr<Schema> schema = makeRef<Schema>();
+	for(size_t index : indices)
+		schema->attributes.push_back(rel->schema->attributes[index]);
+	ret->schema = schema;
+
+	// create new tuples and add them to the new relation
+	for(auto old_tuple : rel->tuples){
+		RefPtr<Tuple> new_tuple = makeRef<Tuple>();
+		new_tuple->schema = schema;
+		for(size_t index : indices)
+			new_tuple->values.push_back(old_tuple->values[index]);
+		ret->tuples.push_back(std::move(new_tuple));
+	}
+
+	removeDuplicateRows(ret.get());
+
+	return ret.unbox();
+
 }
 
 /** \Brief Projects rel into all names except the given set of names
@@ -602,41 +672,149 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
  * \Note Ordering is not defined for text
  */
 int64_t rm_maxRel(rm_object * lhs, const char * name) {
-	//TODO
-	return std::numeric_limits<int64_t>::min();
+
+	Relation * rel = static_cast<Relation *>(lhs);
+	if(rel->tuples.size() == 0)
+		return RM_NULLINT;
+
+	size_t index = getColumnIndex(rel, name);
+
+	AnyValue max;
+	max.type = rel->schema->attributes[index].type;
+	switch(max.type){
+	case TInt:
+		max.intValue = std::numeric_limits<int64_t>::min();
+		break;
+	case TBool:
+		max.boolValue = std::numeric_limits<int8_t>::min();
+		break;
+	// TODO should we handle text? If so, how do we report back 
+	// that what we have found is a pointer to text, not an integer?
+	default:
+		ILE("Unknown type of column", name);
+	}
+	
+	for(auto tup : rel->tuples)
+		if(max < tup->values[index])
+			max = tup->values[index];
+
+	switch(max.type){
+	case TInt:
+		return max.intValue;
+	case TBool:
+		return max.boolValue;
+	default:
+		ILE("Unknown type of column", name);
+	}	
+
 }
 
 /**
  * \Brief Finds the minimum value for the given column
  */
 int64_t rm_minRel(rm_object * lhs, const char * name) {
-	//TODO
-	return std::numeric_limits<int64_t>::min();
+
+	Relation * rel = static_cast<Relation *>(lhs);
+	if(rel->tuples.size() == 0)
+		return RM_NULLINT;
+
+	size_t index = getColumnIndex(rel, name);
+
+	AnyValue min;
+	min.type = rel->schema->attributes[index].type;
+	switch(min.type){
+	case TInt:
+		min.intValue = std::numeric_limits<int64_t>::max();
+		break;
+	case TBool:
+		min.boolValue = std::numeric_limits<int8_t>::max();
+		break;
+	// TODO should we handle text? If so, how do we report back 
+	// that what we have found is a pointer to text, not an integer?
+	default:
+		ILE("Unknown type of column", name);
+	}
+	
+	for(auto tup : rel->tuples)
+		if(tup->values[index] < min)
+			min = tup->values[index];
+
+	switch(min.type){
+	case TInt:
+		return min.intValue;
+	case TBool:
+		return min.boolValue;
+	default:
+		ILE("Unknown type of column", name);
+	}
 }
 
 /**
  * \Brief Returns the sum of all values for the given column
  */
 int64_t rm_addRel(rm_object * lhs, const char * name) {
-	//TODO
-	return std::numeric_limits<int64_t>::min();
+
+	Relation * rel = static_cast<Relation *>(lhs);
+	size_t index = getColumnIndex(rel, name);
+
+	if(rel->schema->attributes[index].type != TInt)
+		ILE("Addition is not supported for the type of column", name);
+
+	int64_t ret = 0;
+	for(auto tup : rel->tuples)
+		ret += tup->values[index].intValue;
+	
+	return ret;
 }
 
 /**
  * \Brief Returns the product of all values for the given column
  */
 int64_t rm_multRel(rm_object * lhs, const char * name) {
-	//TODO
-	return std::numeric_limits<int64_t>::min();
+	Relation * rel = static_cast<Relation *>(lhs);
+	size_t index = getColumnIndex(rel, name);
+
+	if(rel->schema->attributes[index].type != TInt)
+		ILE("Multiplication is not supported for the type of column", name);
+
+	int64_t ret = 1;
+	for(auto tup : rel->tuples)
+		ret *= tup->values[index].intValue;
+	
+	return ret;
 }
 
 /**
  * \Brief Return the number of non-null entries in the given column
- * 
  */
 int64_t rm_countRel(rm_object * lhs, const char * name) {
-	//TODO
-	return std::numeric_limits<int64_t>::min();
+
+	Relation * rel = static_cast<Relation *>(lhs);
+
+	size_t index = getColumnIndex(rel, name);
+	int64_t count = 0;
+
+	switch(rel->schema->attributes[index].type){
+	case TInt:
+		for(auto tup : rel->tuples)
+			if(tup->values[index].intValue != RM_NULLINT)
+				count++;
+		break;
+	case TBool:
+		for(auto tup : rel->tuples)
+			if(tup->values[index].boolValue != RM_NULLBOOL)
+				count++;
+		break;
+	case TText:
+		for(auto tup : rel->tuples)
+			if(tup->values[index].objectValue.getAs<TextBase>() != &undef_text)
+				count++;
+		break;
+	default:
+		ILE("Unknown type of column", name);
+	}
+
+	return count;
 }
 
 

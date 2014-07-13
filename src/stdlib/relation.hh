@@ -68,11 +68,11 @@ public:
 	friend bool operator < (const Tuple & l, const Tuple & r) {
 		if(l.values.size() != r.values.size())
 			return l.values.size() < r.values.size();
-		
+
 		for(size_t i = 0; i < l.values.size(); i++)
-			if (!(l.values[i] < r.values[i]))
-				return false;
-		return true;
+			if (l.values[i] < r.values[i])
+				return true;
+		return false;
 	}
 };
 
