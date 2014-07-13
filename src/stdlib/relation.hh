@@ -70,8 +70,9 @@ public:
 			return l.values.size() < r.values.size();
 
 		for(size_t i = 0; i < l.values.size(); i++)
-			if (l.values[i] < r.values[i])
-				return true;
+			if (!(l.values[i] == r.values[i]))
+				return l.values[i] < r.values[i];
+
 		return false;
 	}
 };
