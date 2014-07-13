@@ -23,6 +23,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iomanip>
+#include <set>
 #include <stdlib/refptr.hh>
 #include <stdlib/text.hh>
 #include <stdlib/relation.hh>
@@ -53,8 +54,21 @@ namespace stdlib {
 
 void printRelationToStream(rm_object * ptr, std::ostream & out) {
 	Relation * relation = static_cast<Relation *>(ptr);
-	// calculate widths
 	Schema * schema = relation->schema.get();
+
+	// handle special case where number of columns is zero
+	const char * EMPTY_MSG = "(empty)";
+	Schema alt_schema;
+	bool empty_schema = schema->attributes.size() == 0;
+	if(empty_schema){
+		Attribute alt_attribute {
+			TText, EMPTY_MSG
+		};
+		alt_schema.attributes.push_back(std::move(alt_attribute));
+		schema = &alt_schema;
+	}
+
+	// calculate widths
 	size_t num_attributes = schema->attributes.size();
 	std::vector<int> widths(num_attributes, 0);
 
@@ -67,16 +81,16 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
 		}
 	}
 
-	// width for schema names
+	// widths for schema names
 	int i = 0;
-	for(auto & attribute : relation->schema->attributes){
+	for(auto & attribute : schema->attributes){
 		widths[i] = std::max<int>(widths[i], attribute.name.size());
 		i++;
 	}
 	
 	size_t total_width = std::accumulate(begin(widths), end(widths), 0);
 	total_width += 1 + widths.size() * 3; 
-    // 1 for beginning |, 3 per field for 2 spaces and a |
+    // 1 for beginning |, 3 per field for ' | ' (space, bar, space)
 
 	// print header
 	out << std::string(total_width, '-') << std::endl;
@@ -89,33 +103,42 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
 	}
 	
 	out << std::endl;
+
 	// print body
 	out << std::string(total_width, '-') << std::endl;
-	for(auto & tuple : relation->tuples){
-		i = 0;
-		out << '|';
-		for(auto & value : tuple->values){
-			switch(value.type){
-			case TInt:
-				out << ' ' << std::right << std::setw(widths[i]);
-				printIntToStream(value.intValue, out);
-				break;
-			case TBool:
-				out << ' ' << std::left << std::setw(widths[i]);
-				printBoolToStream(value.boolValue, out);
-				break;
-			case TText:
-				out << ' ' << std::left << std::setw(widths[i]);
-				printTextToStream(value.objectValue.getAs<TextBase>(), out);
-				break;
-			default:
-				ILE("Unhandled type", value.type);
+
+	if(empty_schema){
+		for(size_t i = 0; i < relation->tuples.size(); i++)
+			out << "| " << EMPTY_MSG << " |" << std::endl;
+
+	} else {
+		for(auto & tuple : relation->tuples){
+			i = 0;
+			out << '|';
+			for(auto & value : tuple->values){
+				switch(value.type){
+				case TInt:
+					out << ' ' << std::right << std::setw(widths[i]);
+					printIntToStream(value.intValue, out);
+					break;
+				case TBool:
+					out << ' ' << std::left << std::setw(widths[i]);
+					printBoolToStream(value.boolValue, out);
+					break;
+				case TText:
+					out << ' ' << std::left << std::setw(widths[i]);
+					printTextToStream(value.objectValue.getAs<TextBase>(), out);
+					break;
+				default:
+					ILE("Unhandled type", value.type);
+				}
+				out << " |";
+				i++;
 			}
-			out << " |";
-			i++;
+			out << std::endl;
 		}
-		out << std::endl;
 	}
+
 	out << std::string(total_width, '-') << std::endl;
 } 
 
@@ -644,8 +667,8 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
 	schema->attributes = old_rel->schema->attributes;
 
 	if(schema->attributes.size() < name_count)
-		ILE("Wrong number of names given to rm_renameRel - name_count:", name_count, "schema size:", schema->attributes.size());
-	
+		ILE("Attempt to change", name_count, "names, but the relation only contains", schema->attributes.size(), "names");
+
 	for(uint32_t i = 0; i < name_count; i++){
 		std::string old_name = names[i*2];
 		std::string new_name = names[i*2 + 1];
@@ -659,9 +682,16 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
 		}
 		if(!found) ILE("Schema has no such name", old_name);
 	}
+
+	// check if we have produced a schema with duplicate names
+	std::set<std::string> schema_names;
+	for(auto attribute : schema->attributes)
+		schema_names.insert(attribute.name);
+	if(schema_names.size() != schema->attributes.size())
+		ILE("The rename operation caused the schema to have duplicate names");
 	
 	for(auto & tuple : relation->tuples)
-		tuple->schema = relation->schema;
+		tuple->schema = schema;
 
 	return relation.unbox();
 
@@ -674,10 +704,11 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
 int64_t rm_maxRel(rm_object * lhs, const char * name) {
 
 	Relation * rel = static_cast<Relation *>(lhs);
-	if(rel->tuples.size() == 0)
-		return RM_NULLINT;
 
 	size_t index = getColumnIndex(rel, name);
+
+	if(rel->tuples.size() == 0)
+		return RM_NULLINT;
 
 	AnyValue max;
 	max.type = rel->schema->attributes[index].type;
@@ -715,10 +746,11 @@ int64_t rm_maxRel(rm_object * lhs, const char * name) {
 int64_t rm_minRel(rm_object * lhs, const char * name) {
 
 	Relation * rel = static_cast<Relation *>(lhs);
-	if(rel->tuples.size() == 0)
-		return RM_NULLINT;
 
 	size_t index = getColumnIndex(rel, name);
+
+	if(rel->tuples.size() == 0)
+		return RM_NULLINT;
 
 	AnyValue min;
 	min.type = rel->schema->attributes[index].type;
