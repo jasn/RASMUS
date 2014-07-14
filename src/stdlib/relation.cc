@@ -401,6 +401,30 @@ void removeDuplicateRows(Relation * rel){
 		rel->tuples.end());
 }
 
+/**
+ * \Brief Projects a relation onto the columns numbered in 'indices'
+ */
+RefPtr<Relation> projectByIndices(Relation * rel, std::vector<size_t> indices){
+
+	RefPtr<Relation> ret = makeRef<Relation>();
+	RefPtr<Schema> schema = makeRef<Schema>();
+
+	for(size_t index : indices)
+		schema->attributes.push_back(rel->schema->attributes[index]);
+	ret->schema = schema;
+
+	// create new tuples and add them to the new relation
+	for(auto old_tuple : rel->tuples){
+		RefPtr<Tuple> new_tuple = makeRef<Tuple>();
+		new_tuple->schema = schema;
+		for(size_t index : indices)
+			new_tuple->values.push_back(old_tuple->values[index]);
+		ret->tuples.push_back(std::move(new_tuple));
+	}
+
+	return ret;
+}
+
 
 } //namespace stdlib
 } //namespace rasmus
@@ -598,7 +622,7 @@ rm_object * rm_projectPlusRel(rm_object * rel_, uint32_t name_count, const char 
 		schemaNames.emplace_back(rel->schema->attributes[i].name, i);
 	std::sort(inputNames.begin(), inputNames.end());
 	std::sort(schemaNames.begin(), schemaNames.end());
-	
+
 	std::vector<size_t> indices;
 	if(inputNames.size() > schemaNames.size())
 		ILE("The relation does not have that many columns!");
@@ -612,22 +636,8 @@ rm_object * rm_projectPlusRel(rm_object * rel_, uint32_t name_count, const char 
 	if(indices.size() != inputNames.size())
 		ILE("The relation does not contain all the given columns");
 
-	// prepare the new relation
-	RefPtr<Relation> ret = makeRef<Relation>();
-	RefPtr<Schema> schema = makeRef<Schema>();
-	for(size_t index : indices)
-		schema->attributes.push_back(rel->schema->attributes[index]);
-	ret->schema = schema;
-
-	// create new tuples and add them to the new relation
-	for(auto old_tuple : rel->tuples){
-		RefPtr<Tuple> new_tuple = makeRef<Tuple>();
-		new_tuple->schema = schema;
-		for(size_t index : indices)
-			new_tuple->values.push_back(old_tuple->values[index]);
-		ret->tuples.push_back(std::move(new_tuple));
-	}
-
+	// project the relation onto the found indices
+	RefPtr<Relation> ret = projectByIndices(rel, indices);
 	removeDuplicateRows(ret.get());
 
 	return ret.unbox();
@@ -636,11 +646,34 @@ rm_object * rm_projectPlusRel(rm_object * rel_, uint32_t name_count, const char 
 
 /** \Brief Projects rel into all names except the given set of names
  */
-rm_object * rm_projectMinusRel(rm_object * rel, uint32_t name_count, const char ** names) {
-	//TODO
-	// Can be implemented as a call to rm_projectPlusRel
-	rel->ref_cnt++;
-	return rel;
+rm_object * rm_projectMinusRel(rm_object * rel_, uint32_t name_count, const char ** names) {
+
+	Relation * rel = static_cast<Relation *>(rel_);
+
+	// find the indices of the names we want to keep
+	std::vector<std::string> inputNames;
+	std::vector<std::pair<std::string, size_t>> schemaNames;
+	for(uint32_t i = 0; i < name_count; i++)
+		inputNames.push_back(names[i]);
+	for(size_t i = 0; i < rel->schema->attributes.size(); i++)
+		schemaNames.emplace_back(rel->schema->attributes[i].name, i);
+	std::sort(inputNames.begin(), inputNames.end());
+	std::sort(schemaNames.begin(), schemaNames.end());
+
+	std::vector<size_t> indices;
+
+	for(size_t i = 0, j = 0; i < schemaNames.size(); i++){
+		if(j < inputNames.size() && schemaNames[i].first == inputNames[j])
+			j++;
+		else
+			indices.push_back(schemaNames[i].second);
+	}
+
+	// project the relation onto the found indices
+	RefPtr<Relation> ret = projectByIndices(rel, indices);
+	removeDuplicateRows(ret.get());
+
+	return ret.unbox();
 }
 
 /**

@@ -297,6 +297,10 @@ void relation(rasmus::teststream & ts) {
 	ts << "pos_project_error1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |+ boo", "", true));
 	ts << "pos_project_error2" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |+ abe, kat, baz, boo", "", true));
 	ts << "neg_project1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |- abe,baz = rel(tup(kat: 5))", "true"));
+	ts << "neg_project2" << result(it("(rel(tup(a:1, b:1)) + rel(tup(a:1, b:2))) |- b = rel(tup(a: 1))", "true"));
+	ts << "neg_project3" << result(it("|(rel(tup(a:1, b:1)) + rel(tup(a:1, b:2))) |- a| = 2", "true"));
+	ts << "neg_project4" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |- abe,baz,kat = one", "true"));
+	ts << "neg_project5" << result(it("one |- a,b,c,d,e = one", "true"));
 	ts << "rename1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) [abe<-foo, kat<-taz] = rel(tup(foo: 4, taz:5, baz:2))", "true"));
 	ts << "rename2" << result(it("rel(tup(abe: 4, kat:5)) [kat<-foo, abe<-bar] = rel(tup(foo: 5, bar:4))", "true"));
 	ts << "rename_error1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) [foo<-bar]", "", true));
