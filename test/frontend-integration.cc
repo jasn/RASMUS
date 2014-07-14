@@ -289,7 +289,11 @@ void relation(rasmus::teststream & ts) {
 	ts << "union3" << result(it("|rel(tup(a:1, b:2)) + rel(tup(a:9, b:2)) + rel(tup(a:1, b:2))|", "2"));
 	ts << "union4" << result(it("(rel(tup(a:1, b:2)) + rel(tup(a:1, b:2)) + rel(tup(a:1, b:2))) = rel(tup(a:1, b:2))", "true"));
 	ts << "union_error" << result(it("rel(tup(a:1, b:2)) + rel(tup(a:1, c:2))", "", true));
-	ts << "diff" << result(it("|rel(tup(abe: 4, kat: ?-Text))-rel(tup(abe: 4, kat: ?-Text))|", "0"));
+	ts << "diff1" << result(it("|rel(tup(abe: 4, kat: ?-Text))-rel(tup(abe: 4, kat: ?-Text))|", "0"));
+	ts << "diff2" << result(it("rel(tup(a:1)) - rel(tup(a:2)) = rel(tup(a:1))", "true"));
+	ts << "diff3" << result(it("(rel(tup(a:1, b:\"foo\", c:true)) + rel(tup(a:1, b:\"bar\", c:true))) - rel(tup(a:1, b:\"foo\", c:true)) = rel(tup(a:1, b:\"bar\", c:true))", "true"));
+	ts << "diff_error" << result(it("rel(tup(a:1)) - rel(tup(b:1))", "", true));
+
 	ts << "join" << result(it("rel(tup(abe: 4, kat: 5)) * rel(tup(kat: 5, bar: 6)) = rel(tup(abe: 4, kat: 5, bar: 6))", "true"));
 	ts << "select" << result(it("|rel(tup(abe: 4, kat:5))?(#.kat=5)|", "1"));
 	ts << "pos_project1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |+ abe,baz = rel(tup(abe: 4, baz:2))", "true"));

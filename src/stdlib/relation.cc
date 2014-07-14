@@ -37,9 +37,11 @@ using namespace rasmus::stdlib;
 int rm_itemWidth(AnyValue av){
 	switch(av.type){
 	case TBool:
-		return 5; // strlen("false")
+		if(av.boolValue == RM_NULLBOOL) return 6; // strlen("?-Bool")
+		else return 5; // strlen("false")
 	case TInt:
-		return std::to_string(av.intValue).size();
+		if(av.intValue == RM_NULLINT) return 5; // strlen("?-Int")
+		else return std::to_string(av.intValue).size();
 	case TText:
 		return av.objectValue.getAs<TextBase>()->length;
 	default:
@@ -425,6 +427,10 @@ RefPtr<Relation> projectByIndices(Relation * rel, std::vector<size_t> indices){
 	return ret;
 }
 
+bool cmpTupPtrs(const RefPtr<Tuple> l, const RefPtr<Tuple> r){
+	return *l < *r;
+}
+
 
 } //namespace stdlib
 } //namespace rasmus
@@ -512,7 +518,6 @@ rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs) {
  * First check if lhs and rhs have the same schema
  * If not, throw an error
  * Otherwise return the union of the two relations
- * \Note we need to remove duplicate rows
  */
 rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
 
@@ -545,8 +550,10 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
 	for(size_t i = 0; i < l->schema->attributes.size(); i++){
 		size_t left_index = l_indices[i].second;
 		size_t right_index = r_indices[i].second;
-		if(l->schema->attributes[left_index].name
-		   != r->schema->attributes[right_index].name)
+		if(l->schema->attributes[left_index].name != 
+		   r->schema->attributes[right_index].name || 
+		   l->schema->attributes[left_index].type !=
+		   r->schema->attributes[right_index].type)
 			ILE("The given schemas are not equal!");
 	}
 	
@@ -577,15 +584,52 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
 
 /**
  * \Brief Return the difference of lhs and rhs
- * Again assert that lhs and rhs have the same schema
- * Then return the set difference of the rows in lhs and rhs (lhs - rhs)
- * Should be implemented as union but with std::set_difference 
- * (output iterator can push_back to a new vector)
+ * This is done by first asserting schema equality.
+ * Then two sets are created, and their difference
+ * is returned.
  */
 rm_object * rm_diffRel(rm_object * lhs, rm_object * rhs) {
-	//TODO
-	lhs->ref_cnt++;
-	return lhs;
+
+	Relation * l = static_cast<Relation *>(lhs);
+	Relation * r = static_cast<Relation *>(rhs);
+
+	// ensure schema equality
+	if(l->schema->attributes.size() != r->schema->attributes.size()) 
+		ILE("The given schemas are not equal!");
+
+	std::vector<std::pair<std::string, size_t>> l_indices;
+	std::vector<std::pair<std::string, size_t>> r_indices;
+	
+	for(size_t i = 0; i < l->schema->attributes.size(); i++){
+		l_indices.emplace_back(l->schema->attributes[i].name, i);
+		r_indices.emplace_back(r->schema->attributes[i].name, i);
+	}
+
+	std::sort(l_indices.begin(), l_indices.end());
+	std::sort(r_indices.begin(), r_indices.end());
+
+	for(size_t i = 0; i < l->schema->attributes.size(); i++){
+		size_t left_index = l_indices[i].second;
+		size_t right_index = r_indices[i].second;
+		if(l->schema->attributes[left_index].name != 
+		   r->schema->attributes[right_index].name || 
+		   l->schema->attributes[left_index].type !=
+		   r->schema->attributes[right_index].type)
+			ILE("The given schemas are not equal!");
+	}
+	
+	// find the set difference between the tuples in lhs and rhs
+	std::set<RefPtr<Tuple>> ls(l->tuples.begin(), l->tuples.end());
+	std::set<RefPtr<Tuple>> rs(r->tuples.begin(), r->tuples.end());
+
+	RefPtr<Relation> ret = makeRef<Relation>();
+	ret->schema = l->schema;
+
+	std::set_difference(ls.begin(), ls.end(), rs.begin(), rs.end(),
+						std::inserter(ret->tuples, ret->tuples.end()),
+						cmpTupPtrs);
+
+	return ret.unbox();
 }
 
 /**
@@ -1087,8 +1131,10 @@ uint8_t rm_equalRel(rm_object * lhs, rm_object * rhs) {
 	for(size_t i = 0; i < l->schema->attributes.size(); i++){
 		size_t left_index = l_indices[i].second;
 		size_t right_index = r_indices[i].second;
-		if(l->schema->attributes[left_index].name
-		   != r->schema->attributes[right_index].name)
+		if(l->schema->attributes[left_index].name != 
+		   r->schema->attributes[right_index].name || 
+		   l->schema->attributes[left_index].type !=
+		   r->schema->attributes[right_index].type)
 			return RM_FALSE;
 	}
 
@@ -1142,8 +1188,10 @@ uint8_t rm_equalTup(rm_object * lhs, rm_object * rhs) {
 		size_t right_index = rt_indices[i].second;
 
 		// different schemas?
-		if(lts->attributes[left_index].name
-		   != rts->attributes[right_index].name)
+		if(lts->attributes[left_index].name != 
+		   rts->attributes[right_index].name ||
+		   lts->attributes[left_index].type !=
+		   rts->attributes[right_index].type)
 			return RM_FALSE;
 
 		// different values?
