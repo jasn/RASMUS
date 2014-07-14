@@ -431,6 +431,27 @@ bool cmpTupPtrs(const RefPtr<Tuple> l, const RefPtr<Tuple> r){
 	return *l < *r;
 }
 
+/**
+ * \Brief Restricts a tuple according to the values in 'indices'
+ * \Note The schema of the resulting tuple is not set for efficiency reasons
+ */
+Tuple restrict(const RefPtr<Tuple> & orig, const std::vector<size_t> indices){
+	Tuple ret;
+	for(size_t index : indices)
+		ret.values.push_back(orig->values[index]);
+	return ret;
+}
+
+/**
+ * \Brief Returns the tuple which is a union of 'left' and 'right
+ * lsi and rsi contain the indices of the columns in the left and 
+ * right tuple which are shared
+ */
+RefPtr<Tuple> rowUnion(RefPtr<Tuple> left, RefPtr<Tuple> right, 
+					   std::vector<size_t> lsi, std::vector<size_t> rsi){
+	// TODO implement me!!
+}
+
 
 } //namespace stdlib
 } //namespace rasmus
@@ -507,9 +528,90 @@ rm_object * rm_loadRel(const char * name) {
 
  */
 rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs) {
-	//TODO
-	lhs->ref_cnt++;
-	return lhs;
+
+	Relation * l = static_cast<Relation *>(lhs);
+	Relation * r = static_cast<Relation *>(rhs);
+
+	// compute the shared schema
+	std::vector<std::pair<std::string, size_t>> l_indices;
+	std::vector<std::pair<std::string, size_t>> r_indices;
+	
+	for(size_t i = 0; i < l->schema->attributes.size(); i++){
+		l_indices.emplace_back(l->schema->attributes[i].name, i);
+		r_indices.emplace_back(r->schema->attributes[i].name, i);
+	}
+
+	std::sort(l_indices.begin(), l_indices.end());
+	std::sort(r_indices.begin(), r_indices.end());
+
+	// left and right shared-schema indices
+	// these will be used to restrict tuples
+	std::vector<size_t> lsi; 
+	std::vector<size_t> rsi;
+
+	for(size_t i = 0, j = 0; i < l->schema->attributes.size() 
+			&& j < r->schema->attributes.size(); ){
+		if(l->schema->attributes[i].name == 
+		   r->schema->attributes[j].name){
+			lsi.push_back(i++);
+			rsi.push_back(j++);
+		} else if (l->schema->attributes[i].name <
+				   r->schema->attributes[j].name)
+			i++;
+		else
+			j++;
+	}
+
+	// sort lhs and rhs, respectively, by their restricted tuples
+	std::sort(l->tuples.begin(), l->tuples.end(),
+			  [&](const RefPtr<Tuple> & left,
+				  const RefPtr<Tuple> & right)->bool{
+				  return restrict(left, lsi) <
+					  restrict(right, rsi);
+			  });
+	std::sort(r->tuples.begin(), r->tuples.end(),
+			  [&](const RefPtr<Tuple> & left,
+				  const RefPtr<Tuple> & right)->bool{
+				  return restrict(left, lsi) <
+					  restrict(right, rsi);
+			  });
+
+	// create the relation to be returned
+	RefPtr<Relation> ret = makeRef<Relation>();
+	for(size_t i = 0; i < lsi.size(); i++){
+		size_t schema_index = lsi[i];
+		ret->schema->attributes.push_back(l->schema->attributes[schema_index]);
+	}
+
+	// perform the natural join on lhs and rhs, adding tuples to 'ret'
+	for(size_t l_start = 0, r_start = 0; 
+		l_start < l->tuples.size() && r_start < r->tuples.size(); ){
+		
+		// find the smallest restriction of a pointed-to tuple
+		Tuple smallest = std::min(restrict(l->tuples[l_start], lsi), 
+								  restrict(r->tuples[r_start], rsi));
+
+		// find the intervals of rows with restricted rows
+		// equal to the smallest one
+		size_t l_end = l_start, r_end = r_start;
+		while(*l->tuples[l_end] == smallest) l_end++;
+		while(*r->tuples[r_end] == smallest) r_end++;
+
+		// for all combinations of rows in the interval,
+		// add their union to the result
+		for(size_t i = l_start; i < l_end; i++){
+			for(size_t j = r_start; j < r_end; j++){
+				RefPtr<Tuple> tup = rowUnion(l->tuples[i], r->tuples[j], lsi, rsi);
+				ret->tuples.push_back(std::move(tup));
+			}
+		}
+
+		l_start = l_end;
+		r_start = r_end;
+
+	}
+
+	return ret.unbox();
 }
 
 
