@@ -294,7 +294,20 @@ void relation(rasmus::teststream & ts) {
 	ts << "diff3" << result(it("(rel(tup(a:1, b:\"foo\", c:true)) + rel(tup(a:1, b:\"bar\", c:true))) - rel(tup(a:1, b:\"foo\", c:true)) = rel(tup(a:1, b:\"bar\", c:true))", "true"));
 	ts << "diff_error" << result(it("rel(tup(a:1)) - rel(tup(b:1))", "", true));
 
-	ts << "join" << result(it("rel(tup(abe: 4, kat: 5)) * rel(tup(kat: 5, bar: 6)) = rel(tup(abe: 4, kat: 5, bar: 6))", "true"));
+	ts << "join1" << result(it("rel(tup(abe: 4, kat: 5)) * rel(tup(kat: 5, bar: 6)) = rel(tup(abe: 4, kat: 5, bar: 6))", "true"));
+	ts << "join2" << result(it("rel(tup(a:1)) * rel(tup(a:1)) = rel(tup(a:1))", "true"));
+	ts << "join3" << result(it("|rel(tup(b:1)) * rel(tup(a:1))| = 1", "true"));
+	ts << "join4" << result(it("a := rel(tup(a:1,b:2)) + rel(tup(a:3,b:4)); |a*a|=2", "true"));
+	ts << "join5" << result(it("a := rel(tup(a:1,b:2)) + rel(tup(a:3,b:4)); |a * a[a<-c,b<-d]|=4", "true"));
+	ts << "join6" << result(it("a := rel(tup(a:1,b:2)) + rel(tup(a:3,b:4)); |a * a[a<-c,b<-d] * a[a<-e,b<-f]|=8", "true"));
+	ts << "join7" << result(it("|rel(tup(a:1, b:2)) * (rel(tup(c:true, d:\"foo\")) + rel(tup(c:false, d:\"bar\")))|=2", "true"));
+	ts << "join8" << result(it("|zero * rel(tup(a:true))| = 0", "true"));
+	ts << "join9" << result(it("|one * rel(tup(a:true))| = 1", "true"));
+	ts << "join10" << result(it("|rel(tup(a:1, b:2)) * rel(tup(a:3, b:4))| = 0", "true"));
+	ts << "join11" << result(it("|(rel(tup(a:1, b:2)) + rel(tup(a:3, b:4))) * rel(tup(c:3, d:4))| = 2", "true"));
+	ts << "join12" << result(it("a:=(rel(tup(a:1,b:true,c:\"d\")) * rel(tup(d:1,e:\"1\",f:?-Int))); a |+ a,b,c,d,e,f = a", "true"));
+	ts << "join_error1" << result(it("rel(tup(a:1, b:2)) * rel(tup(a:true, d:\"foo\"))", "", true));
+	ts << "join_error2" << result(it("rel(tup(a:true)) * rel(tup(a:\"foo\"))", "", true));
 	ts << "select" << result(it("|rel(tup(abe: 4, kat:5))?(#.kat=5)|", "1"));
 	ts << "pos_project1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |+ abe,baz = rel(tup(abe: 4, baz:2))", "true"));
 	ts << "pos_project2" << result(it("(rel(tup(abe: 4, kat:5, baz:2)) + rel(tup(abe:4, kat:5, baz:3))) |+ abe,kat = rel(tup(abe: 4, kat:5))", "true"));

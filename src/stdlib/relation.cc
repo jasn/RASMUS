@@ -439,17 +439,39 @@ Tuple restrict(const RefPtr<Tuple> & orig, const std::vector<size_t> indices){
 	Tuple ret;
 	for(size_t index : indices)
 		ret.values.push_back(orig->values[index]);
+	
 	return ret;
 }
 
 /**
- * \Brief Returns the tuple which is a union of 'left' and 'right
+ * \Brief Returns the tuple which is a union of 'left' and 'right'.
  * lsi and rsi contain the indices of the columns in the left and 
  * right tuple which are shared
  */
 RefPtr<Tuple> rowUnion(RefPtr<Tuple> left, RefPtr<Tuple> right, 
 					   std::vector<size_t> lsi, std::vector<size_t> rsi){
-	// TODO implement me!!
+
+	// make 'ret' a copy of 'left' and expand it later
+	RefPtr<Tuple> ret = makeRef<Tuple>();
+	RefPtr<Schema> schema = makeRef<Schema>();
+	schema->attributes = left->schema->attributes;
+	ret->schema = schema;
+	ret->values = left->values;
+
+	// no columns from rsi should be added; they would be duplicates
+	std::vector<bool> add_column(right->values.size(), 1);
+	for(size_t col : rsi)
+		add_column[col] = 0;
+
+	// add values and names from 'right' to 'ret'
+	for(size_t i = 0; i < right->values.size(); i++){
+		if(add_column[i]){
+			ret->schema->attributes.push_back(right->schema->attributes[i]);
+			ret->values.push_back(right->values[i]);
+		}
+	}
+	
+	return ret;
 }
 
 
@@ -536,10 +558,10 @@ rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs) {
 	std::vector<std::pair<std::string, size_t>> l_indices;
 	std::vector<std::pair<std::string, size_t>> r_indices;
 	
-	for(size_t i = 0; i < l->schema->attributes.size(); i++){
+	for(size_t i = 0; i < l->schema->attributes.size(); i++)
 		l_indices.emplace_back(l->schema->attributes[i].name, i);
-		r_indices.emplace_back(r->schema->attributes[i].name, i);
-	}
+	for(size_t j = 0; j < r->schema->attributes.size(); j++)
+		r_indices.emplace_back(r->schema->attributes[j].name, j);
 
 	std::sort(l_indices.begin(), l_indices.end());
 	std::sort(r_indices.begin(), r_indices.end());
@@ -549,14 +571,23 @@ rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs) {
 	std::vector<size_t> lsi; 
 	std::vector<size_t> rsi;
 
-	for(size_t i = 0, j = 0; i < l->schema->attributes.size() 
+	for(size_t i = 0, j = 0; i < l->schema->attributes.size()
 			&& j < r->schema->attributes.size(); ){
-		if(l->schema->attributes[i].name == 
-		   r->schema->attributes[j].name){
-			lsi.push_back(i++);
-			rsi.push_back(j++);
-		} else if (l->schema->attributes[i].name <
-				   r->schema->attributes[j].name)
+		size_t l_index = l_indices[i].second;
+		size_t r_index = r_indices[j].second;
+
+		if(l->schema->attributes[l_index].name ==
+		   r->schema->attributes[r_index].name){
+			if(l->schema->attributes[l_index].type !=
+			   r->schema->attributes[r_index].type)
+				// TODO Q is this the right way to handle a type collision?
+				ILE("The column", l->schema->attributes[l_index].name, "has different types in each relation!");
+			lsi.push_back(l_index);
+			rsi.push_back(r_index);
+			i++;
+			j++;
+		} else if (l->schema->attributes[l_index].name <
+				   r->schema->attributes[r_index].name)
 			i++;
 		else
 			j++;
@@ -564,24 +595,32 @@ rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs) {
 
 	// sort lhs and rhs, respectively, by their restricted tuples
 	std::sort(l->tuples.begin(), l->tuples.end(),
-			  [&](const RefPtr<Tuple> & left,
-				  const RefPtr<Tuple> & right)->bool{
-				  return restrict(left, lsi) <
-					  restrict(right, rsi);
+			  [&](const RefPtr<Tuple> & a,
+				  const RefPtr<Tuple> & b)->bool{
+				  return restrict(a, lsi) <
+					  restrict(b, lsi);
 			  });
+	
 	std::sort(r->tuples.begin(), r->tuples.end(),
-			  [&](const RefPtr<Tuple> & left,
-				  const RefPtr<Tuple> & right)->bool{
-				  return restrict(left, lsi) <
-					  restrict(right, rsi);
+			  [&](const RefPtr<Tuple> & a,
+				  const RefPtr<Tuple> & b)->bool{
+				  return restrict(a, rsi) <
+					  restrict(b, rsi);
 			  });
 
-	// create the relation to be returned
+	// create the relation to be returned and compute its schema
 	RefPtr<Relation> ret = makeRef<Relation>();
-	for(size_t i = 0; i < lsi.size(); i++){
-		size_t schema_index = lsi[i];
-		ret->schema->attributes.push_back(l->schema->attributes[schema_index]);
-	}
+	RefPtr<Schema> schema = makeRef<Schema>();
+	schema->attributes = l->schema->attributes;
+	ret->schema = schema;
+
+	// no columns from rsi should be added; they would be duplicates
+	std::vector<bool> add_column(r->schema->attributes.size(), 1);
+	for(size_t col : rsi)
+		add_column[col] = 0;
+	for(size_t i = 0; i < r->schema->attributes.size(); i++)
+		if(add_column[i])
+			ret->schema->attributes.push_back(r->schema->attributes[i]);
 
 	// perform the natural join on lhs and rhs, adding tuples to 'ret'
 	for(size_t l_start = 0, r_start = 0; 
@@ -594,8 +633,10 @@ rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs) {
 		// find the intervals of rows with restricted rows
 		// equal to the smallest one
 		size_t l_end = l_start, r_end = r_start;
-		while(*l->tuples[l_end] == smallest) l_end++;
-		while(*r->tuples[r_end] == smallest) r_end++;
+		while(l_end < l->tuples.size() && restrict(l->tuples[l_end], lsi) == smallest) 
+			l_end++;
+		while(r_end < r->tuples.size() && restrict(r->tuples[r_end], rsi) == smallest) 
+			r_end++;
 
 		// for all combinations of rows in the interval,
 		// add their union to the result
