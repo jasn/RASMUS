@@ -185,6 +185,9 @@ public:
 	llvm::FunctionType * dtorType = functionType(voidType, {voidPtrType});;
 	llvm::StructType * anyRetType = structType("AnyRet", {int64Type, int8Type});
 	llvm::StructType * tupleEntryType = structType("TupleEntry", {pointerType(int8Type), int64Type, int8Type});
+
+	// refcnt, type, argc, dtorptr, funcptr
+	// arguments to the function given by funcptr are: FuncBase *, anyRetType *, (uint64_t value, uint8_t type) zero or more times
 	llvm::StructType * funcBase = structType("FuncBase", {int32Type, int16Type, int16Type, voidPtrType, voidPtrType} );;
 	llvm::StructType * objectBaseType = structType("ObjectBase", {int32Type, int16Type});
 
@@ -240,7 +243,8 @@ public:
 			{"rm_equalText", functionType(int8Type, {voidPtrType, voidPtrType})},
 			{"rm_equalRel", functionType(int8Type, {voidPtrType, voidPtrType})},
 			{"rm_equalTup", functionType(int8Type, {voidPtrType, voidPtrType})},
-			{"rm_createRel", functionType(voidPtrType, {voidPtrType})}
+			{"rm_createRel", functionType(voidPtrType, {voidPtrType})},
+			{"rm_factorRel", functionType(voidPtrType, {int32Type, pointerType(pointerType(int8Type)), int32Type, pointerType(voidPtrType), voidPtrType})}
 		};
 
 		for(auto p: fs)
@@ -1117,9 +1121,28 @@ public:
 		return OwnedLLVMVal(builder.CreateLoad(value), type?builder.CreateLoad(type):nullptr);
 	}
 
-	/** \brief Codegen for foctor */
+	/** \brief Codegen for factor */
 	LLVMVal visit(std::shared_ptr<ForallExp> node) {
-		ICE("TODO ForallExp", node);
+		Value * names = builder.CreateAlloca(voidPtrType, int32(node->names.size()) );
+		for (size_t i=0; i < node->names.size(); ++i)
+			builder.CreateStore(globalString(node->names[i]), builder.CreateConstGEP1_32(names, i));
+
+		Value * relations = builder.CreateAlloca(voidPtrType, int32(node->listExps.size()) );
+		std::vector<LLVMVal> possibly_owned_relations;
+		for (size_t i=0; i < node->listExps.size(); ++i){
+			possibly_owned_relations.push_back(castVisit(node->listExps[i], TRel));
+			builder.CreateStore(possibly_owned_relations.back().value, builder.CreateConstGEP1_32(relations, i));
+		}
+
+		LLVMVal func = castVisit(node->exp, TFunc);
+		LLVMVal ret = OwnedLLVMVal(builder.CreateCall5(getStdlibFunc("rm_factorRel"), int32(node->names.size()), names, int32(node->listExps.size()), relations, builder.CreatePointerCast(func.value, voidPtrType)));
+
+
+		disown(func, TFunc);
+		for(auto & rel : possibly_owned_relations)
+			disown(rel, TRel);
+		
+		return ret;
 	}
 
 	/** \brief Codegen for function declaration */
@@ -1673,7 +1696,7 @@ public:
 					dOp([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateCall2(getStdlibFunc("rm_selectRel"), lhs.value, 
 													   builder.CreatePointerCast(rhs.value, voidPtrType));
-						}, TRel, TFunc, TRel)
+						}, TRel, TRel, TFunc)
 						});
 		case TK_OPEXTEND:
 			return binopImpl(node, { dCall("rm_extendTup", TTup, TTup, TTup) });

@@ -25,7 +25,6 @@ using namespace rasmus::frontend;
 
 const std::vector<std::pair<TokenId, std::string> > operators = {
     {TK_ASSIGN, ":="},
-    {TK_AT, "@"},
     {TK_BANG, "!"},
     {TK_BANGGT, "!>"},
     {TK_BANGLT, "!<"},
@@ -214,8 +213,10 @@ Token Lexer::getNext() {
 		while (i + j < c.length() && c[i+j] != '"') {
 			if (c[i+j] == '\\') {
 				++j;
-				if (i + j == c.length())
+				if (i + j == c.length()){
+					index += j;
 					return Token(TK_ERR, i, j);
+				}
 			}
 			++j;
 		}
@@ -227,6 +228,22 @@ Token Lexer::getNext() {
 		}
 		index += j+1;
 		return Token(TK_TEXT, i, j+1);
+	}
+
+	if(c[i] == '@'){
+		size_t j = i+1;
+		if(c[j] != '('){
+			index = j;
+			return Token(TK_ERR, i, j-i);
+		}
+		j++;
+		while(isdigit(c[j])) j++;
+		if(c[j] != ')'){
+			index = j;
+			return Token(TK_ERR, i, j-i);
+		}
+		index = j+1;
+		return Token(TK_AT, i, j+1-i);
 	}
     
 	// skip invalid token

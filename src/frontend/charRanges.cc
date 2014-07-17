@@ -145,8 +145,7 @@ public:
     void visit(std::shared_ptr<InvalidExp>) {}
 
     void visit(std::shared_ptr<AtExp> node) {
-		visitNode(node->exp);
-		node->charRange = u(r(node->atToken), r(node->rparenToken));
+		node->charRange = r(node->atToken);
 	}
 
 	void visit(std::shared_ptr<Choice>) {}

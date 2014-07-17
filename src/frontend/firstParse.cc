@@ -200,10 +200,15 @@ public:
 		}
 	}
 	
-    void visit(std::shared_ptr<ForallExp> node) {
+    void visit(std::shared_ptr<ForallExp> node) {		
 		visitAll(node->listExps);
+		for(auto exp : node->listExps){
+			typeCheck(node->typeToken, exp, {TRel});
+		}
 		visitNode(node->exp);
-		ICE("Not implemented");
+		typeCheck(node->colonToken, node->exp, {TFunc});
+		node->type = TRel;
+
 	}
 
     void visit(std::shared_ptr<FuncExp> node) {

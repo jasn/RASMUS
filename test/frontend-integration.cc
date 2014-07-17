@@ -250,7 +250,7 @@ void tuple(rasmus::teststream & ts) {
 	ts << "inequality4" << result(it("tup(foo: true) <> tup(foo: false)", "true"));
 	ts << "inequality5" << result(it("tup(bar: \"foo\") <> tup(bar: \"foo\")", "false"));
 	ts << "inequality6" << result(it("tup(bar: \"baz\") <> tup(bar: \"foo\")", "true"));
-	ts << "union" << result(it("tup(abe: 4, kat: 5) << tup(kat: ?-Text, baz: 2)", "(abe: 4, kat: 5, baz: 2)"));
+	ts << "union" << result(it("tup(abe: 4, kat: 5) << tup(kat: ?-Text, baz: 2)", "(abe: 4, kat: ?-Text, baz: 2)"));
 	ts << "rem" << result(it("tup(abe: 4, kat: ?-Text)\\abe", "(kat: ?-Text)"));
 	ts << "rem2" << result(it("tup(abe: 4, kat: ?-Text)\\baz", "", true));
 	ts << "has" << result(it("has(tup(abe: 4, kat: ?-Text), kat)", "true"));
@@ -341,7 +341,13 @@ void relation(rasmus::teststream & ts) {
 	ts << "count3" << result(it("count(rel(tup(abe: ?-Text)) + rel(tup(abe: \"foo\")), abe)", "1"));
 	ts << "count4" << result(it("count(rel(tup(abe: ?-Text)), abe)", "0"));
 	ts << "count_err" << result(it("count(rel(tup()), abe)", "", true));
-	//TODO factor
+	ts << "factor1" << result(it(""
+"X := rel(tup(a: 1, b:1)) + rel(tup(a: 2, b:3)) + rel(tup(a: 2, b:4)) + rel(tup(a: 7, b:2)); "
+"Y := rel(tup(a: 1, c:4)) + rel(tup(a: 2, c:2)) + rel(tup(a: 2, c:7)) + rel(tup(a: 3, c:9));"
+"Z := rel(tup(a: 1, b: 1, c: 4)) + rel(tup(a: 2, b: 7, c: 9)) + rel(tup(a: 3, b: 0, c: 9)) + rel(tup(a: 7, b: 2, c: 0));"
+"!(X, Y)|a : rel(# << tup(b: add(@(1), b), c: add(@(2), c))) = Z"
+"", "true"));
+
 }
 
 

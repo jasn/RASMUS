@@ -168,9 +168,21 @@ public:
 	}
 	
     void visit(std::shared_ptr<ForallExp> node) {
+		*s << start(node, "forall")
+		   << lstart("names");
+
+		for (auto name: node->names) {
+			if (stack.back().first) stack.back().first=false;
+			else *s << ", ";
+			*s << name.getText(code);
+		}
+		
+		*s << lend();
+		*s << lstart("relations");
         visitAll(node->listExps);
-        visitNode(node->exp);
-		//TODO
+		*s << lend();
+		*s << p("function", node->exp);
+		*s << end();
 	}
 
     void visit(std::shared_ptr<FuncExp> node) {
@@ -295,7 +307,7 @@ public:
 	}
 
     void visit(std::shared_ptr<AtExp> node) {
-		*s << start(node, "at") << p("exp", node->exp) << end();
+		*s << start(node, "at") << p("atToken", node->atToken) << end();
 	}
 
 	void visit(std::shared_ptr<Choice>) {}

@@ -24,6 +24,8 @@
 namespace {
 using namespace rasmus::frontend;
 
+std::vector<const char *> at_names;
+
 class RecoverException: public std::exception {
 public:
 	const TokenId id;
@@ -158,6 +160,7 @@ public:
 		return n;
 	}
   
+
 	NodePtr parseForallExp() {
 		Token t1=consumeToken();
 		std::shared_ptr<ForallExp> n = std::make_shared<ForallExp>(t1, assertTokenConsume(TK_LPAREN));
@@ -180,6 +183,39 @@ public:
 		}
 		n->colonToken = assertTokenConsume(TK_COLON);
 		n->exp = parseExp();
+
+
+
+		std::shared_ptr<FuncExp> f = std::make_shared<FuncExp>(
+			Token(TK_FUNC, "func"),
+			Token(TK_LPAREN, "("));
+			
+		f->args.push_back(std::make_shared<FuncArg>(
+							  Token(TK_NAME, "#"),
+							  Token(TK_COLON, ":"),
+							  Token(TK_TYPE_TUP, "Tup")));
+		for(size_t i = 0; i < n->listExps.size(); i++){
+
+			if(at_names.size() <= i){
+				char * name = new char[24];
+				sprintf(name, "@(%zd)", i+1);
+				at_names.push_back(name);
+			}
+			f->args.push_back(std::make_shared<FuncArg>(
+								  Token(TK_NAME, at_names[i]),
+								  Token(TK_COLON, ":"),
+								  Token(TK_TYPE_REL, "Rel")));		 
+		}
+		f->rparenToken = Token(TK_RPAREN, ")");
+		f->arrowToken = Token(TK_RIGHTARROW, "->");
+		f->lparen2Token = Token(TK_LPAREN, "(");
+		f->returnTypeToken = Token(TK_TYPE_REL, "Rel");
+		f->rparen2Token = Token(TK_RPAREN, ")");
+		f->body = n->exp;
+		f->endToken = Token(TK_END, "end");
+		
+		n->exp = f;
+	
 		return n;
 	}
 
@@ -294,12 +330,7 @@ public:
 
     NodePtr parseAtExp() {
 		Token t=consumeToken();
-		std::shared_ptr<AtExp> n = std::make_shared<AtExp>(t, assertTokenConsume(TK_LPAREN));
-		recover(TK_RPAREN, [&]() {
-            n->exp = parseExp();
-            assertToken(TK_RPAREN);
-		});
-        n->rparenToken = consumeToken();
+		std::shared_ptr<VariableExp> n = std::make_shared<VariableExp>(t);
         return n;
 	}
 

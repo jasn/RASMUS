@@ -167,7 +167,7 @@ public:
 	}
 
     void visit(std::shared_ptr<AtExp> node) {
-		ss << "(@ " << v(node->exp) << ")";
+		ss << t(node->atToken);
 	}
 
 	void visit(std::shared_ptr<Choice>) {}
@@ -229,7 +229,7 @@ void base(rasmus::teststream & ts) {
     ts << "block1" << result(pt("(+ in 42 +)", "(block 42)"));
     ts << "block2" << result(pt("(+ val a = 1 val b = 2 in 42 +)", "(block a 1 b 2 42)"));
     ts << "rel" << result(pt("rel(x)", "(rel x)"));
-    ts << "at" << result(pt("@(4)", "(@ 4)"));
+    ts << "at" << result(pt("@(4)", "@(4)"));
     ts << "len" << result(pt("|\"hat\"|", "(len \"hat\")"));
     ts << "minus" << result(pt("-4", "(- 4)"));
     ts << "zero" << result(pt("zero", "zero"));

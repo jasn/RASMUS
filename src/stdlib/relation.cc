@@ -775,14 +775,34 @@ rm_object * rm_diffRel(rm_object * lhs, rm_object * rhs) {
 	return ret.unbox();
 }
 
+struct FuncBase : rm_object {
+	// from rm_object:
+	// uint32_t refcnt;
+	// uint16_t type;
+	uint16_t args;
+	void * dtor;
+	void * func;
+	// captured variables here
+};
+
+typedef	void (* selectFunc) (FuncBase *, AnyRet *, int64_t, int8_t);
+
+
 /**
  * Evaluate func on every tuple in rel
  * If this evaluates to RM_TRUE, the tuple is included in the result
  */
-rm_object * rm_selectRel(rm_object * rel, rm_object * func) {
+rm_object * rm_selectRel(rm_object * rel_, rm_object * func) {
 	//TODO
 	// Spørg Jakob hvordan funktion skal kaldes. 
 	// dette laves sent
+	Relation * rel = static_cast<Relation *>(rel_);
+	FuncBase * f = (FuncBase *) func;
+	AnyRet ret;
+
+	((selectFunc)(f->func))(f, &ret, reinterpret_cast<int64_t>(rel->tuples[0].get()), TTup);
+	std::cout << ret.value << std::endl;
+
 	rel->ref_cnt++;
 	return rel;
 }
@@ -1345,5 +1365,15 @@ uint8_t rm_equalTup(rm_object * lhs, rm_object * rhs) {
 
 	return RM_TRUE;
 }
+
+/**
+ * \Note if num_names is 0, factorRel acts as a forall (optimize this?)
+ */
+rm_object * rm_factorRel(uint32_t num_names, char ** names, uint32_t num_relations, rm_object ** relations, rm_object * func){
+	return relations[0];
+	// TODO
+}
+
+
 
 } // extern "C"
