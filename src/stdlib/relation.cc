@@ -129,7 +129,7 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
 					break;
 				case TText:
 					out << ' ' << std::left << std::setw(widths[i]);
-					printTextToStream(value.objectValue.getAs<TextBase>(), out);
+					out << textToString(value.objectValue.getAs<TextBase>());
 					break;
 				default:
 					ILE("Unhandled type", value.type);
@@ -796,15 +796,35 @@ rm_object * rm_selectRel(rm_object * rel_, rm_object * func) {
 	//TODO
 	// Spørg Jakob hvordan funktion skal kaldes. 
 	// dette laves sent
+/*
 	Relation * rel = static_cast<Relation *>(rel_);
 	FuncBase * f = (FuncBase *) func;
 	AnyRet ret;
 
 	((selectFunc)(f->func))(f, &ret, reinterpret_cast<int64_t>(rel->tuples[0].get()), TTup);
 	std::cout << ret.value << std::endl;
+*/
+	Relation * rel = static_cast<Relation *>(rel_);
+	FuncBase * base = (FuncBase *) func;
+	selectFunc f = (selectFunc) base->func;
+	AnyRet retval;
 
-	rel->ref_cnt++;
-	return rel;
+	RefPtr<Relation> ret = makeRef<Relation>();
+	RefPtr<Schema> schema = makeRef<Schema>();
+	schema->attributes = rel->schema->attributes;
+	ret->schema = schema;
+
+	for(size_t i = 0; i < rel->tuples.size(); i++){
+		f(base, &retval, reinterpret_cast<int64_t>(rel->tuples[i].get()), TTup);
+		if(retval.value == RM_TRUE){
+			RefPtr<Tuple> tup = makeRef<Tuple>();
+			tup->schema = schema;
+			tup->values = rel->tuples[i]->values;
+			ret->tuples.push_back(tup);
+		}
+	}
+	
+	return ret.unbox();
 }
 
 /**
@@ -1127,6 +1147,13 @@ rm_object * rm_createTup(uint32_t count, TupEntry * entries) {
 		}
 	}
 
+	// check if we have produced a schema with duplicate names
+	std::set<std::string> schema_names;
+	for(auto attribute : schema->attributes)
+		schema_names.insert(attribute.name);
+	if(schema_names.size() != schema->attributes.size())
+		ILE("A tuple's schema cannot contain duplicate names");
+
 	return t.unbox();
 }
 
@@ -1184,11 +1211,15 @@ void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret) {
 
 /**
  * \Brief returns the tuple which is the union of lhs and rhs
- * \Note Shared values are taken from lhs, not rhs
+ * \Note Shared values are taken from rhs, not lhs
  */
 rm_object * rm_extendTup(rm_object * lhs_, rm_object * rhs_) {
-	Tuple * lhs = static_cast<Tuple *>(lhs_);
-	Tuple * rhs = static_cast<Tuple *>(rhs_);
+
+	// note, we intentionally swap lhs_ and rhs_ 
+	// to ensure that shared values are taken 
+	// from rhs, not lhs
+	Tuple * lhs = static_cast<Tuple *>(rhs_);
+	Tuple * rhs = static_cast<Tuple *>(lhs_);
 
 	RefPtr<Tuple> ret = makeRef<Tuple>();
 	RefPtr<Schema> schema = makeRef<Schema>();
@@ -1370,6 +1401,14 @@ uint8_t rm_equalTup(rm_object * lhs, rm_object * rhs) {
  * \Note if num_names is 0, factorRel acts as a forall (optimize this?)
  */
 rm_object * rm_factorRel(uint32_t num_names, char ** names, uint32_t num_relations, rm_object ** relations, rm_object * func){
+
+/*
+  
+
+
+ */
+
+
 	return relations[0];
 	// TODO
 }

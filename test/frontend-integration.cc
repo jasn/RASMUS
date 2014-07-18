@@ -231,6 +231,7 @@ void tuple(rasmus::teststream & ts) {
 	ts << "construct5" << result(it("tup(boo: true)", "(boo: true)"));
 	ts << "construct6" << result(it("tup(foo: \"bar\")", "(foo: \"bar\")"));
 	ts << "construct7" << result(it("tup(foo: 1, bar: true, baz: \"bax\")", "(foo: 1, bar: true, baz: \"bax\")"));
+	ts << "construct_err1" << result(it("tup(a:1, a:2)", "", true));
 	ts << "equality1" << result(it("tup() = tup()", "true"));
 	ts << "equality2" << result(it("tup() = tup(abe: 4)", "false"));
 	ts << "equality3" << result(it("tup(kat: 1) = tup(abe: 4)", "false"));
@@ -250,7 +251,7 @@ void tuple(rasmus::teststream & ts) {
 	ts << "inequality4" << result(it("tup(foo: true) <> tup(foo: false)", "true"));
 	ts << "inequality5" << result(it("tup(bar: \"foo\") <> tup(bar: \"foo\")", "false"));
 	ts << "inequality6" << result(it("tup(bar: \"baz\") <> tup(bar: \"foo\")", "true"));
-	ts << "union" << result(it("tup(abe: 4, kat: 5) << tup(kat: ?-Text, baz: 2)", "(abe: 4, kat: ?-Text, baz: 2)"));
+	ts << "union" << result(it("(tup(abe: 4, kat: 5) << tup(kat: ?-Text, baz: 2)) = tup(abe:4, kat: ?-Text, baz: 2)", "true"));
 	ts << "rem" << result(it("tup(abe: 4, kat: ?-Text)\\abe", "(kat: ?-Text)"));
 	ts << "rem2" << result(it("tup(abe: 4, kat: ?-Text)\\baz", "", true));
 	ts << "has" << result(it("has(tup(abe: 4, kat: ?-Text), kat)", "true"));
@@ -308,7 +309,19 @@ void relation(rasmus::teststream & ts) {
 	ts << "join12" << result(it("a:=(rel(tup(a:1,b:true,c:\"d\")) * rel(tup(d:1,e:\"1\",f:?-Int))); a |+ a,b,c,d,e,f = a", "true"));
 	ts << "join_error1" << result(it("rel(tup(a:1, b:2)) * rel(tup(a:true, d:\"foo\"))", "", true));
 	ts << "join_error2" << result(it("rel(tup(a:true)) * rel(tup(a:\"foo\"))", "", true));
-	ts << "select" << result(it("|rel(tup(abe: 4, kat:5))?(#.kat=5)|", "1"));
+	ts << "select1" << result(it("|rel(tup(abe: 4, kat:5)) ? (#.kat=5)|", "1"));
+	ts << "select2" << result(it("|rel(tup(abe: 4, kat:5)) ? (#.kat=4)|", "0"));
+	ts << "select3" << result(it("(one ? true) = one", "true"));
+	ts << "select4" << result(it("(one ? false) = zero", "true"));
+	ts << "select5" << result(it("|rel(tup(a:1, b:2)) ? (#.a < #.b)|", "1"));
+	ts << "select6" << result(it("|rel(tup(a:1, b:2)) ? (#.a > #.b)|", "0"));
+	ts << "select7" << result(it("|rel(tup(a:\"foo\", b:\"foo\")) ? (#.a = #.b)|", "1"));
+	ts << "select8" << result(it("|rel(tup(a:\"foo\", b:\"bar\")) ? (#.a = #.b)|", "0"));
+	ts << "select9" << result(it("|rel(tup(a:true, b:true)) ? (#.a = #.b)|", "1"));
+	ts << "select10" << result(it("|rel(tup(a:true, b:false)) ? (#.a = #.b)|", "0"));
+	ts << "select_err1" << result(it("rel(tup(a:1)) ? (#.b = 1)", "", true));
+	ts << "select_err2" << result(it("rel(tup(a:1, b:\"foo\")) ? (#.b = #.a)", "", true));
+	ts << "select_err3" << result(it("rel(tup(a:true, b:2)) ? (#.a > #.b)", "", true));
 	ts << "pos_project1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |+ abe,baz = rel(tup(abe: 4, baz:2))", "true"));
 	ts << "pos_project2" << result(it("(rel(tup(abe: 4, kat:5, baz:2)) + rel(tup(abe:4, kat:5, baz:3))) |+ abe,kat = rel(tup(abe: 4, kat:5))", "true"));
 	ts << "pos_project_error1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |+ boo", "", true));
