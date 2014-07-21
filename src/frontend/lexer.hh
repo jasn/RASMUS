@@ -22,10 +22,12 @@
 #include <functional>
 #include <memory>
 #include "code.hh"
+#include "tokenizer.hh"
 
 namespace rasmus {
 namespace frontend {
 
+  /*
 enum TokenId {
   TK_ADD,
   TK_AFTER,
@@ -124,16 +126,16 @@ enum TokenId {
   TK_ZERO,
   TK_INVALID
 };
-
+  */
 class Token {
 public:
-	Token(TokenId id, const char * txt): id(id), start(0), length(0), txt(txt) {}
-	Token(TokenId id, uint32_t start, uint32_t length): id(id), start(start), length(length), txt(nullptr) {}
-	Token(): id(TK_INVALID), start(0), length(0), txt(nullptr) {}
+  Token(lexer::TokenType id, const char * txt): id(id), start(0), length(0), txt(txt) {}
+  Token(lexer::TokenType id, uint32_t start, uint32_t length): id(id), start(start), length(length), txt(nullptr) {}
+  Token(): id(lexer::TokenType::INVALID), start(0), length(0), txt(nullptr) {}
 		
-	operator bool() {return id != TK_INVALID;}
+	operator bool() {return id != lexer::TokenType::INVALID;}
 	
-	TokenId id;
+	lexer::TokenType id;
 	uint32_t start;
 	uint32_t length;
 	const char * txt;
@@ -145,14 +147,28 @@ public:
 };
 
 
-const std::string getTokenName(TokenId id);
+const std::string getTokenName(lexer::TokenType id);
 
 class Lexer {
+
 public:
-	std::shared_ptr<Code> code;
-	size_t index;
-	Lexer(std::shared_ptr<Code> code, size_t start=0): code(code), index(start) {}
-	Token getNext();
+
+  std::shared_ptr<Code> code;
+  size_t index;
+  lexer::Tokenizer tknizer;
+private:
+
+
+
+public:
+
+  Lexer(std::shared_ptr<Code> code, size_t start=0) : 
+    code(code), index(start), tknizer(((code->code).data())) {
+  }
+
+  Token getNext();
+
+
 };
 
 } //namespace frontend
@@ -160,8 +176,8 @@ public:
 
 namespace std {
   template <>
-  struct hash<rasmus::frontend::TokenId>: public unary_function<rasmus::frontend::TokenId, size_t> {
-	  size_t operator()(rasmus::frontend::TokenId c) const {return size_t(c);}
+  struct hash<lexer::TokenType>: public unary_function<lexer::TokenType, size_t> {
+    size_t operator()(lexer::TokenType c) const {return size_t(static_cast<size_t>(c));}
   };
 }
 

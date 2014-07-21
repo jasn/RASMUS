@@ -17,6 +17,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #include "lexer.hh"
+#include "tokenizer.hh"
 #include <frontend/AST.hh>
 #include "code.hh"
 #include "error.hh"
@@ -25,6 +26,8 @@
 #include <iostream>
 #include <frontend/visitor.hh>
 #include <frontend/firstParse.hh>
+
+using lexer::TokenType;
 
 namespace {
 using namespace rasmus::frontend;
@@ -113,14 +116,14 @@ public:
 
 	Type tokenToType(Token token) {
 		switch(token.id) {
-		case TK_TYPE_ANY: return TAny;
-		case TK_TYPE_ATOM: return TAtom;
-        case TK_TYPE_BOOL: return TBool;
-		case TK_TYPE_FUNC: return TFunc;
-		case TK_TYPE_INT: return TInt;
-		case TK_TYPE_REL: return TRel;
-		case TK_TYPE_TEXT: return TText;
-		case TK_TYPE_TUP: return TTup;
+		case TokenType::TK_TYPE_ANY: return TAny;
+		case TokenType::TK_TYPE_ATOM: return TAtom;
+        case TokenType::TK_TYPE_BOOL: return TBool;
+		case TokenType::TK_TYPE_FUNC: return TFunc;
+		case TokenType::TK_TYPE_INT: return TInt;
+		case TokenType::TK_TYPE_REL: return TRel;
+		case TokenType::TK_TYPE_TEXT: return TText;
+		case TokenType::TK_TYPE_TUP: return TTup;
 		default:
 			internalError(token, "Invalid call to tokenToType");
 			return TAny;
@@ -244,67 +247,67 @@ public:
 		Type returnType=TInvalid;
 		std::vector<std::vector<Type> > argumentTypes;
 		switch (node->nameToken.id) {
-		case TK_ISATOM:
-		case TK_ISTUP:
-		case TK_ISREL:
-		case TK_ISFUNC:
-		case TK_ISANY:
+		case TokenType::TK_ISATOM:
+		case TokenType::TK_ISTUP:
+		case TokenType::TK_ISREL:
+		case TokenType::TK_ISFUNC:
+		case TokenType::TK_ISANY:
             returnType = TBool;
             argumentTypes.push_back({TAny});
 			break;
-        case TK_ISBOOL:
-		case TK_ISINT:
-		case TK_ISTEXT:
+        case TokenType::TK_ISBOOL:
+		case TokenType::TK_ISINT:
+		case TokenType::TK_ISTEXT:
             returnType = TBool;
 			argumentTypes.push_back({TAny});
             if (node->args.size() >= 2) argumentTypes.push_back({TNAMEQ});
 			break;
-        case TK_SYSTEM:
+        case TokenType::TK_SYSTEM:
             returnType = TInt;
             argumentTypes.push_back({TText});
 			break;
-        case TK_OPEN:
-		case TK_WRITE:
+        case TokenType::TK_OPEN:
+		case TokenType::TK_WRITE:
             returnType = TBool;
             argumentTypes.push_back({TText});
 			break;
-        case TK_CLOSE:
+        case TokenType::TK_CLOSE:
             returnType = TBool;
 			break;
-        case TK_HAS:
+        case TokenType::TK_HAS:
             returnType = TBool;
             argumentTypes.push_back({TTup, TRel});
 			argumentTypes.push_back({TNAMEQ});
 			break;
-		case TK_MAX:
-		case TK_MIN:
-		case TK_COUNT:
-		case TK_ADD:
-		case TK_MULT:
+		case TokenType::TK_MAX:
+		case TokenType::TK_MIN:
+		case TokenType::TK_COUNT:
+		case TokenType::TK_ADD:
+		case TokenType::TK_MULT:
             returnType = TInt;
 			argumentTypes.push_back({TRel});
 			argumentTypes.push_back({TNAMEQ});
 			break;
-		case TK_DAYS:
+		case TokenType::TK_DAYS:
             returnType = TInt;
             argumentTypes.push_back({TText});
 			argumentTypes.push_back({TText});
 			break;
-		case TK_BEFORE:
-		case TK_AFTER:
+		case TokenType::TK_BEFORE:
+		case TokenType::TK_AFTER:
             returnType = TText;
             argumentTypes.push_back({TText});
 			argumentTypes.push_back({TText});
 			break;
-		case TK_DATE:
+		case TokenType::TK_DATE:
             returnType = TText;
             argumentTypes.push_back({TText});
 			argumentTypes.push_back({TInt});
 			break;
-        case TK_TODAY:
+        case TokenType::TK_TODAY:
             returnType = TText;
 			break;
-		case TK_PRINT:
+		case TokenType::TK_PRINT:
             returnType = TBool;
             argumentTypes.push_back({TAny});
 			break;
@@ -339,23 +342,23 @@ public:
 
     void visit(std::shared_ptr<ConstantExp> node) {
 		switch (node->valueToken.id) {
-		case TK_FALSE:
-        case TK_TRUE:
-        case TK_STDBOOL:
+		case TokenType::TK_FALSE:
+        case TokenType::TK_TRUE:
+        case TokenType::TK_STDBOOL:
             node->type = TBool;
 			break;
-		case TK_TEXT:
-        case TK_STDTEXT:
+		case TokenType::TK_TEXT:
+        case TokenType::TK_STDTEXT:
 			node->type = TText;
 			break;
-        case TK_ZERO:
-        case TK_ONE:
+        case TokenType::TK_ZERO:
+        case TokenType::TK_ONE:
 			node->type = TRel;
 			break;
-        case TK_STDINT:
+        case TokenType::TK_STDINT:
 			node->type = TInt;
 			break;
-		case TK_INT:
+		case TokenType::TK_INT:
 			//TODO Validate the integer and check its range
             //atoi(code->code.substr(node->valueToken.start, node->valueToken.length).c_str());
 			node->type = TInt;
@@ -370,11 +373,11 @@ public:
     void visit(std::shared_ptr<UnaryOpExp> node) {
         visitNode(node->exp);
 		switch (node->opToken.id) {
-		case TK_NOT:
+		case TokenType::TK_NOT:
 			typeCheck(node->opToken, node->exp, {TBool});
 			node->type = TBool;
 			break;
-		case TK_MINUS:
+		case TokenType::TK_MINUS:
             typeCheck(node->opToken, node->exp, {TInt});
             node->type = TInt;
 		default:
@@ -504,35 +507,35 @@ public:
 	
     void visit(std::shared_ptr<BinaryOpExp> node) {
 		switch(node->opToken.id) {
-		case TK_PLUS:
-		case TK_MUL:
-		case TK_MINUS:
+		case TokenType::TK_PLUS:
+		case TokenType::TK_MUL:
+		case TokenType::TK_MINUS:
 			binopTypeCheck(node, {
 					{TInt, TInt, TInt},
 					{TRel, TRel, TRel}
 				});
 			break;
-		case TK_DIV:
-		case TK_MOD:
+		case TokenType::TK_DIV:
+		case TokenType::TK_MOD:
 			binopTypeCheck(node, { {TInt, TInt, TInt} });
 			break;
-		case TK_AND:
-		case TK_OR:
+		case TokenType::TK_AND:
+		case TokenType::TK_OR:
 			binopTypeCheck(node, { {TBool, TBool, TBool} });
 			break;
-        case TK_CONCAT:
+        case TokenType::TK_CONCAT:
 			binopTypeCheck(node, { {TText, TText, TText} });
 			break;
-		case TK_LESSEQUAL:
-		case TK_LESS:
-		case TK_GREATER:
-		case TK_GREATEREQUAL:
+		case TokenType::TK_LESSEQUAL:
+		case TokenType::TK_LESS:
+		case TokenType::TK_GREATER:
+		case TokenType::TK_GREATEREQUAL:
 			binopTypeCheck(node, { 
 					{TInt, TInt, TBool},
 					{TBool, TBool, TBool} });
 			break;
-		case TK_EQUAL:
-		case TK_DIFFERENT:
+		case TokenType::TK_EQUAL:
+		case TokenType::TK_DIFFERENT:
 			binopTypeCheck(node, { 
 					{TInt, TInt, TBool},
 					{TBool, TBool, TBool},
@@ -541,13 +544,13 @@ public:
 					{TTup, TTup, TBool},
 					{TRel, TRel, TBool}});
 			break;
-		case TK_TILDE:
+		case TokenType::TK_TILDE:
 			binopTypeCheck(node, { {TText, TText, TBool} });
 			break;
-		case TK_QUESTION:
+		case TokenType::TK_QUESTION:
 			binopTypeCheck(node, { {TRel, TFunc, TRel} });
 			break;
-		case TK_OPEXTEND:
+		case TokenType::TK_OPEXTEND:
 			binopTypeCheck(node, { {TTup, TTup, TTup} });
 			break;
 		default:

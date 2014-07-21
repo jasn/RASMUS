@@ -49,6 +49,8 @@ struct ice_help {
 
 inline void ice_append(std::ostream &, ice_help &) {}
 
+
+
 template <typename T, typename ... TT>
 inline void ice_append(std::ostream & o, ice_help & h, const T & t, const TT & ... tt) {
 	o << " " << t;

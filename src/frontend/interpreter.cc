@@ -43,8 +43,11 @@
 #include <frontend/charRanges.hh>
 #include <frontend/firstParse.hh>
 #include <frontend/astPrinter.hh>
+#include <frontend/tokenizer.hh>
 #include <sstream>
 #include <stdlib/lib.h>
+
+using lexer::TokenType;
 
 namespace {
 using namespace rasmus::frontend;
@@ -163,12 +166,13 @@ public:
 	bool runLine(const std::string & line) override {
 		lexer->index = theCode.size();
 		code->set(theCode + incomplete + line);
+		lexer->tknizer = lexer::Tokenizer(code->code.data()+lexer->index);
 		try {
 			size_t errorsPrior = error->count();
 			NodePtr r=parser->parse();
 			if (r->nodeType == NodeType::InvalidExp) return false;
 			
-			std::shared_ptr<BuiltInExp> t = std::make_shared<BuiltInExp>(Token(TK_PRINT, "print"), Token(TK_RPAREN, ")")); 
+			std::shared_ptr<BuiltInExp> t = std::make_shared<BuiltInExp>(Token(TokenType::TK_PRINT, "print"), Token(TokenType::TK_RPAREN, ")")); 
 			t->args.push_back(r);
 			charRanges->run(t);
 			firstParse->run(t);

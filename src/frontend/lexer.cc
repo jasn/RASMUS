@@ -17,117 +17,119 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #include "lexer.hh"
+#include "tokenizer.hh"
+
 #include <unordered_map>
 #include <cctype>
 
 namespace {
 using namespace rasmus::frontend;
 
-const std::vector<std::pair<TokenId, std::string> > operators = {
-    {TK_ASSIGN, ":="},
-    {TK_BANG, "!"},
-    {TK_BANGGT, "!>"},
-    {TK_BANGLT, "!<"},
-    {TK_BLOCKEND, "+)"}, 
-    {TK_BLOCKSTART, "(+"},
-    {TK_CHOICE, "&"},
-    {TK_COLON, ":"},
-    {TK_COMMA, ","},
-	{TK_COMMENT, "//"},
-    {TK_CONCAT, "++"},
-    {TK_DIFFERENT, "<>"},
-    {TK_DIV, "/"},
-    {TK_EQUAL, "="},
-    {TK_GREATER, ">"},
-    {TK_GREATEREQUAL, ">="},
-    {TK_ISANY, "is-Any"},
-    {TK_ISATOM, "is-Atom"},
-    {TK_ISBOOL, "is-Bool"},
-    {TK_ISFUNC, "is-Func"},
-    {TK_ISINT, "is-Int"},
-    {TK_ISREL, "is-Rel"},
-    {TK_ISTEXT, "is-Text"},
-    {TK_ISTUP, "is-Tup"},
-    {TK_LBRACKET, "["},
-    {TK_LEFT_ARROW, "<-"},
-    {TK_LESS, "<"},
-    {TK_LESSEQUAL, "<="},
-    {TK_LPAREN, "("}, 
-    {TK_MINUS, "-"},
-    {TK_MUL, "*"},
-    {TK_ONE_DOT, "."},
-    {TK_OPEXTEND, "<<"},
-    {TK_PIPE, "|"},
-    {TK_PLUS, "+"},
-    {TK_PROJECT_MINUS, "|-"},
-    {TK_PROJECT_PLUS, "|+"},
-    {TK_QUESTION, "?"},
-    {TK_RBRACKET, "]"},
-    {TK_RIGHTARROW, "->"},
-    {TK_RPAREN, ")"}, 
-    {TK_SEMICOLON, ";"},
-    {TK_SET_MINUS, "\\"},
-    {TK_SHARP, "#"},
-    {TK_STDBOOL, "?-Bool"},
-    {TK_STDINT, "?-Int"},
-    {TK_STDTEXT, "?-Text"},
-    {TK_TILDE, "~"},
-    {TK_TWO_DOTS, ".."}
+const std::vector<std::pair<lexer::TokenType, std::string> > operators = {
+    {lexer::TokenType::TK_ASSIGN, ":="},
+    {lexer::TokenType::TK_BANG, "!"},
+    {lexer::TokenType::TK_BANGGT, "!>"},
+    {lexer::TokenType::TK_BANGLT, "!<"},
+    {lexer::TokenType::TK_BLOCKEND, "+)"}, 
+    {lexer::TokenType::TK_BLOCKSTART, "(+"},
+    {lexer::TokenType::TK_CHOICE, "&"},
+    {lexer::TokenType::TK_COLON, ":"},
+    {lexer::TokenType::TK_COMMA, ","},
+    {lexer::TokenType::_TK_COMMENT, "//"},
+    {lexer::TokenType::TK_CONCAT, "++"},
+    {lexer::TokenType::TK_DIFFERENT, "<>"},
+    {lexer::TokenType::TK_DIV, "/"},
+    {lexer::TokenType::TK_EQUAL, "="},
+    {lexer::TokenType::TK_GREATER, ">"},
+    {lexer::TokenType::TK_GREATEREQUAL, ">="},
+    {lexer::TokenType::TK_ISANY, "is-Any"},
+    {lexer::TokenType::TK_ISATOM, "is-Atom"},
+    {lexer::TokenType::TK_ISBOOL, "is-Bool"},
+    {lexer::TokenType::TK_ISFUNC, "is-Func"},
+    {lexer::TokenType::TK_ISINT, "is-Int"},
+    {lexer::TokenType::TK_ISREL, "is-Rel"},
+    {lexer::TokenType::TK_ISTEXT, "is-Text"},
+    {lexer::TokenType::TK_ISTUP, "is-Tup"},
+    {lexer::TokenType::TK_LBRACKET, "["},
+    {lexer::TokenType::TK_LEFT_ARROW, "<-"},
+    {lexer::TokenType::TK_LESS, "<"},
+    {lexer::TokenType::TK_LESSEQUAL, "<="},
+    {lexer::TokenType::TK_LPAREN, "("}, 
+    {lexer::TokenType::TK_MINUS, "-"},
+    {lexer::TokenType::TK_MUL, "*"},
+    {lexer::TokenType::TK_ONE_DOT, "."},
+    {lexer::TokenType::TK_OPEXTEND, "<<"},
+    {lexer::TokenType::TK_PIPE, "|"},
+    {lexer::TokenType::TK_PLUS, "+"},
+    {lexer::TokenType::TK_PROJECT_MINUS, "|-"},
+    {lexer::TokenType::TK_PROJECT_PLUS, "|+"},
+    {lexer::TokenType::TK_QUESTION, "?"},
+    {lexer::TokenType::TK_RBRACKET, "]"},
+    {lexer::TokenType::TK_RIGHTARROW, "->"},
+    {lexer::TokenType::TK_RPAREN, ")"}, 
+    {lexer::TokenType::TK_SEMICOLON, ";"},
+    {lexer::TokenType::TK_SET_MINUS, "\\"},
+    {lexer::TokenType::TK_SHARP, "#"},
+    {lexer::TokenType::TK_STDBOOL, "?-Bool"},
+    {lexer::TokenType::TK_STDINT, "?-Int"},
+    {lexer::TokenType::TK_STDTEXT, "?-Text"},
+    {lexer::TokenType::TK_TILDE, "~"},
+    {lexer::TokenType::TK_TWO_DOTS, ".."}
 };
 
-const std::vector<std::pair<TokenId, std::string> > keywords = {
-    {TK_ADD, "add"},
-    {TK_AFTER, "after"},
-    {TK_AND, "and"},
-    {TK_BEFORE, "before"},
-    {TK_CLOSE, "close"},
-    {TK_COUNT, "count"},
-    {TK_DATE, "date"},
-    {TK_DAYS, "days"},
-    {TK_END, "end"},
-    {TK_FALSE, "false"}, 
-    {TK_FI, "fi"},
-    {TK_FUNC, "func"},
-    {TK_HAS, "has"},
-    {TK_IF, "if"},
-    {TK_IN, "in"},
-    {TK_MAX, "max"},
-    {TK_MIN, "min"},
-    {TK_MOD, "mod"},
-    {TK_MULT, "mult"},
-    {TK_NOT, "not"},
-    {TK_ONE, "one"},
-    {TK_OPEN, "open"},
-    {TK_OR, "or"},
-    {TK_REL, "rel"},
-    {TK_SYSTEM, "system"},
-    {TK_TODAY, "today"},
-    {TK_TRUE, "true"},
-    {TK_TUP, "tup"}, 
-    {TK_TYPE_ANY, "Any"},
-    {TK_TYPE_ATOM, "Atom"},
-    {TK_TYPE_BOOL, "Bool"},
-    {TK_TYPE_FUNC, "Func"},
-    {TK_TYPE_INT, "Int"},
-    {TK_TYPE_REL, "Rel"},
-    {TK_TYPE_TEXT, "Text"},
-    {TK_TYPE_TUP, "Tup"},
-    {TK_VAL, "val"},
-    {TK_WRITE, "write"},
-    {TK_ZERO, "zero"},
-    {TK_PRINT, "print"}
+const std::vector<std::pair<lexer::TokenType, std::string> > keywords = {
+    {lexer::TokenType::TK_ADD, "add"},
+    {lexer::TokenType::TK_AFTER, "after"},
+    {lexer::TokenType::TK_AND, "and"},
+    {lexer::TokenType::TK_BEFORE, "before"},
+    {lexer::TokenType::TK_CLOSE, "close"},
+    {lexer::TokenType::TK_COUNT, "count"},
+    {lexer::TokenType::TK_DATE, "date"},
+    {lexer::TokenType::TK_DAYS, "days"},
+    {lexer::TokenType::TK_END, "end"},
+    {lexer::TokenType::TK_FALSE, "false"}, 
+    {lexer::TokenType::TK_FI, "fi"},
+    {lexer::TokenType::TK_FUNC, "func"},
+    {lexer::TokenType::TK_HAS, "has"},
+    {lexer::TokenType::TK_IF, "if"},
+    {lexer::TokenType::TK_IN, "in"},
+    {lexer::TokenType::TK_MAX, "max"},
+    {lexer::TokenType::TK_MIN, "min"},
+    {lexer::TokenType::TK_MOD, "mod"},
+    {lexer::TokenType::TK_MULT, "mult"},
+    {lexer::TokenType::TK_NOT, "not"},
+    {lexer::TokenType::TK_ONE, "one"},
+    {lexer::TokenType::TK_OPEN, "open"},
+    {lexer::TokenType::TK_OR, "or"},
+    {lexer::TokenType::TK_REL, "rel"},
+    {lexer::TokenType::TK_SYSTEM, "system"},
+    {lexer::TokenType::TK_TODAY, "today"},
+    {lexer::TokenType::TK_TRUE, "true"},
+    {lexer::TokenType::TK_TUP, "tup"}, 
+    {lexer::TokenType::TK_TYPE_ANY, "Any"},
+    {lexer::TokenType::TK_TYPE_ATOM, "Atom"},
+    {lexer::TokenType::TK_TYPE_BOOL, "Bool"},
+    {lexer::TokenType::TK_TYPE_FUNC, "Func"},
+    {lexer::TokenType::TK_TYPE_INT, "Int"},
+    {lexer::TokenType::TK_TYPE_REL, "Rel"},
+    {lexer::TokenType::TK_TYPE_TEXT, "Text"},
+    {lexer::TokenType::TK_TYPE_TUP, "Tup"},
+    {lexer::TokenType::TK_VAL, "val"},
+    {lexer::TokenType::TK_WRITE, "write"},
+    {lexer::TokenType::TK_ZERO, "zero"},
+    {lexer::TokenType::TK_PRINT, "print"}
 };
 
 
-std::unordered_map<TokenId, std::string> tokenNames {
-    {TK_EOF, "End of file"},
-	{TK_ERR, "Bad token"},
-	{TK_NAME, "Name"},
-	{TK_INT,  "Int"},
-	{TK_TEXT, "Text"}};
-
-std::vector<std::unordered_map<std::string, TokenId> > operatorMap;
-std::unordered_map<std::string, TokenId> keywordMap;
+std::unordered_map<lexer::TokenType, std::string> tokenNames {
+  {lexer::TokenType::END_OF_FILE, "End of file"},
+    //{lexer::TokenType::TK_ERR, "Bad token"},
+  {lexer::TokenType::TK_NAME, "Name"},
+  {lexer::TokenType::TK_INT,  "Int"},
+  {lexer::TokenType::TK_TEXT, "Text"}};
+  
+std::vector<std::unordered_map<std::string, lexer::TokenType> > operatorMap;
+std::unordered_map<std::string, lexer::TokenType> keywordMap;
 
 struct InitLexer {
   InitLexer() {
@@ -148,110 +150,27 @@ InitLexer initLexer;
 namespace rasmus {
 namespace frontend {
 
-const std::string getTokenName(TokenId id) {
+const std::string getTokenName(lexer::TokenType id) {
 	return tokenNames[id];
 }
 
 Token Lexer::getNext() {
-	const std::string & c=code->code;
-	size_t i=index;
+  const char *prev = this->tknizer.str;
+  size_t prev_index = this->index;
 
-	bool moreComments = true;
-	while (moreComments) {
-		moreComments = false;
-		while (i < c.length() && isspace(c[i]))
-			++i;
-		
-		if (i + 1 < c.length() && c[i] == '/' && c[i+1] == '/') {
-			while (i < c.length() && c[i] != '\n') {
-				++i;
-			}
-			++i; // skip the '\n'
-			moreComments = true;
-		}
-	}
-	
-	index=i;
+  lexer::Token tk = this->tknizer.getNextToken();
 
-	if (i == c.length())
-		return Token(TK_EOF, i, 0);
+  size_t diff = tk.curr - prev;
+  size_t curr_index = prev_index + diff;
 
-	// check if is operator
-	for (size_t l=operatorMap.size()-1; l != 0; --l) {
-		auto p=operatorMap[l].find(c.substr(i, l));
-		if (p == operatorMap[l].end()) continue;
-		index += l;
-		return Token(p->second, i, l);
-	}
+  size_t token_length = tk.curr - tk.start;
 
-	// check if is Name or keyword
-	if (isalpha(c[i])) {
-		size_t j = 1;
-		while (i+j < c.length() && isalnum(c[i+j]))
-			++j;
-		index += j;
-		//check if is keyword
-		auto p=keywordMap.find(c.substr(i, j));
-		if (p != keywordMap.end())
-			return Token(p->second, i, j);
-		return Token(TK_NAME, i, j);
-	}
-       
-	// check if it is an int
-	if (isdigit(c[i])) {
-		size_t j = 0;
-		while (i+j < c.length() && isdigit(c[i+j]))
-			++j;
-		index += j;
-		return Token(TK_INT, i, j);
-	}
+  size_t start_index = curr_index - token_length;
 
-	// check if it is a text
-	if (c[i] == '"') {
-		size_t j = 1;
-		
-		while (i + j < c.length() && c[i+j] != '"') {
-			if (c[i+j] == '\\') {
-				++j;
-				if (i + j == c.length()){
-					index += j;
-					return Token(TK_ERR, i, j);
-				}
-			}
-			++j;
-		}
-		
-		while (i + j < c.length() && c[i+j] != '"') ++j;
-		if (i+j == c.length()) {
-			index += j;
-			return Token(TK_ERR, i, j);
-		}
-		index += j+1;
-		return Token(TK_TEXT, i, j+1);
-	}
+  this->index = curr_index;
 
-	if(c[i] == '@'){
-		size_t j = i+1;
-		if(c[j] != '('){
-			index = j;
-			return Token(TK_ERR, i, j-i);
-		}
-		j++;
-		while(isdigit(c[j])) j++;
-		if(c[j] != ')'){
-			index = j;
-			return Token(TK_ERR, i, j-i);
-		}
-		index = j+1;
-		return Token(TK_AT, i, j+1-i);
-	}
-    
-	// skip invalid token
-	size_t j = 0;
-	while (i+j < c.length() && !isspace(c[i+j])) 
-		++j;
-	index += j;
-	return Token(TK_ERR, i, j);
+  return Token(tk.tkn, start_index, token_length);
+
 }
 
 } //namespace frontend

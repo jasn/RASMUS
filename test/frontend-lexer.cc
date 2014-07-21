@@ -22,6 +22,8 @@
 using namespace rasmus;
 using namespace rasmus::frontend;
 
+using namespace lexer;
+
 template <typename T>
 void print(std::ostream & o, T begin, T end) {
 	o << "[";
@@ -32,80 +34,81 @@ void print(std::ostream & o, T begin, T end) {
 	o << "]";
 }
 
-bool lt(const char * txt, std::initializer_list<TokenId> exp) {
+bool lt(const char * txt, std::initializer_list<TokenType> exp) {
 	std::shared_ptr<Code> code = std::make_shared<Code>(txt, "monkey");
 	Lexer l(code, 0);
 	
-	std::vector<TokenId> lst;
+	std::vector<TokenType> lst;
 	while (true) {
-		Token t = l.getNext();
-		if (t.id == TK_EOF) break;;
+		rasmus::frontend::Token t = l.getNext();
+		if (t.id == TokenType::END_OF_FILE) break;;
 		lst.push_back(t.id);
 	}
-	if (lst!=std::vector<TokenId>(exp)) {
+	if (lst!=std::vector<TokenType>(exp)) {
 		print(log_error(), lst.begin(), lst.end());
 		log_error() << " != ";
 		print(log_error(), exp.begin(), exp.end());
 		log_error() << std::endl;
 	}
 
-	return lst==std::vector<TokenId>(exp);
+	return lst==std::vector<TokenType>(exp);
 }
 
 
 void base(rasmus::teststream & ts) {
-    ts << "tup" << result(lt("tup", {TK_TUP}));
-    ts << "rel" << result(lt("rel", {TK_REL}));
-    ts << "func" << result(lt("func", {TK_FUNC}));
-    ts << "end" << result(lt("end", {TK_END}));
-    ts << "at" << result(lt("@", {TK_AT}));
-    ts << "sharp" << result(lt("#", {TK_SHARP}));
-    ts << "not" << result(lt("not nott", {TK_NOT, TK_NAME}));
-    ts << "minus" << result(lt("-", {TK_MINUS}));
-    ts << "and" << result(lt("and", {TK_AND}));
-    ts << "or" << result(lt("or", {TK_OR}));
-    ts << "truefalse" << result(lt("false-true truee", {TK_FALSE, TK_MINUS, TK_TRUE, TK_NAME}));
-    ts << "paren" << result(lt("((++ )+)", {TK_LPAREN, TK_BLOCKSTART, TK_PLUS, TK_RPAREN, TK_BLOCKEND}));
-    ts << "val" << result(lt("val", {TK_VAL}));
-    ts << "in" << result(lt("in", {TK_IN}));
-    ts << "name" << result(lt("namee", {TK_NAME}));
-    ts << "colon" << result(lt(":", {TK_COLON}));
-    ts << "int" << result(lt("1234", {TK_INT}));
-    ts << "text" << result(lt("\"hello\"", {TK_TEXT}));
-    ts << "text2" << result(lt("\"hel\\\"lo\"", {TK_TEXT}));
-    ts << "zero" << result(lt("zero", {TK_ZERO}));
-    ts << "one" << result(lt("one", {TK_ONE}));
-    ts << "stdbool" << result(lt("?-Bool", {TK_STDBOOL}));
-    ts << "stdint" << result(lt("?-Int", {TK_STDINT}));
-    ts << "stdtext" << result(lt("?-Text", {TK_STDTEXT}));
-    ts << "comma" << result(lt(",", {TK_COMMA}));
-    ts << "arrow" << result(lt("--> <-", {TK_MINUS, TK_RIGHTARROW, TK_LEFT_ARROW}));
-    ts << "type_bool" << result(lt("Bool", {TK_TYPE_BOOL}));
-    ts << "type_int" << result(lt("Int", {TK_TYPE_INT}));
-    ts << "type_text" << result(lt("Text", {TK_TYPE_TEXT}));
-    ts << "type_atom" << result(lt("Atom", {TK_TYPE_ATOM}));
-    ts << "type_tup" << result(lt("Tup", {TK_TYPE_TUP}));
-    ts << "type_rel" << result(lt("Rel", {TK_TYPE_REL}));
-    ts << "type_func" << result(lt("Func", {TK_TYPE_FUNC}));
-    ts << "type_any" << result(lt("Any", {TK_TYPE_ANY}));
-    ts << "operators" << result(lt("+*/++-\\", {TK_PLUS, TK_MUL, TK_DIV, TK_CONCAT, TK_MINUS, TK_SET_MINUS}));
-    ts << "mod" << result(lt("mod", {TK_MOD}));
-    ts << "comp" << result(lt("< <> <= >= = >", {TK_LESS, TK_DIFFERENT, TK_LESSEQUAL, TK_GREATEREQUAL, TK_EQUAL, TK_GREATER}));
-    ts << "semicolon" << result(lt(";", {TK_SEMICOLON}));
-    ts << "pipe" << result(lt("|", {TK_PIPE}));
-    ts << "dot" << result(lt("...", {TK_TWO_DOTS, TK_ONE_DOT}));
-    ts << "question" << result(lt("?", {TK_QUESTION}));
-    ts << "project" << result(lt("||+|--", {TK_PIPE, TK_PROJECT_PLUS, TK_PROJECT_MINUS, TK_MINUS}));
-    ts << "bracket" << result(lt("[]", {TK_LBRACKET, TK_RBRACKET}));
-    ts << "buildin" << result(lt("max min count add mult days before after today date open close write system has", {TK_MAX, TK_MIN, TK_COUNT, TK_ADD, TK_MULT, TK_DAYS, TK_BEFORE, TK_AFTER, TK_TODAY, TK_DATE, TK_OPEN, TK_CLOSE, TK_WRITE, TK_SYSTEM, TK_HAS}));
-    ts << "if" << result(lt("if iff fi", {TK_IF, TK_NAME, TK_FI}));
-    ts << "choice" << result(lt("&", {TK_CHOICE}));
-    ts << "bang" << result(lt("!!<<!>", {TK_BANG, TK_BANGLT, TK_LESS, TK_BANGGT}));
-    ts << "tilde" << result(lt("~", {TK_TILDE}));
-	ts << "remove" << result(lt("abe\\baz", {TK_NAME, TK_SET_MINUS, TK_NAME}));
-    ts << "is" << result(lt("is-Booll is-Int is-Text is-Atom is-Tup is-Rel is-Func is-Any",
-							{TK_ISBOOL, TK_NAME, TK_ISINT, TK_ISTEXT, TK_ISATOM, TK_ISTUP, TK_ISREL, TK_ISFUNC, TK_ISANY}));
-    ts << "error" << result(lt("hat %%Kat hat", {TK_NAME, TK_ERR, TK_NAME}));
+    ts << "tup" << result(lt("tup", {TokenType::TK_TUP}));
+    ts << "rel" << result(lt("rel", {TokenType::TK_REL}));
+    ts << "func" << result(lt("func", {TokenType::TK_FUNC}));
+    ts << "end" << result(lt("end", {TokenType::TK_END}));
+    ts << "at" << result(lt("@(2)", {TokenType::TK_AT}));
+    ts << "at2" << result(lt("@(31)", {TokenType::TK_AT}));
+    ts << "sharp" << result(lt("#", {TokenType::TK_SHARP}));
+    ts << "not" << result(lt("not nott", {TokenType::TK_NOT, TokenType::TK_NAME}));
+    ts << "minus" << result(lt("-", {TokenType::TK_MINUS}));
+    ts << "and" << result(lt("and", {TokenType::TK_AND}));
+    ts << "or" << result(lt("or", {TokenType::TK_OR}));
+    ts << "truefalse" << result(lt("false-true truee", {TokenType::TK_FALSE, TokenType::TK_MINUS, TokenType::TK_TRUE, TokenType::TK_NAME}));
+    ts << "paren" << result(lt("((++ )+)", {TokenType::TK_LPAREN, TokenType::TK_BLOCKSTART, TokenType::TK_PLUS, TokenType::TK_RPAREN, TokenType::TK_BLOCKEND}));
+    ts << "val" << result(lt("val", {TokenType::TK_VAL}));
+    ts << "in" << result(lt("in", {TokenType::TK_IN}));
+    ts << "name" << result(lt("namee", {TokenType::TK_NAME}));
+    ts << "colon" << result(lt(":", {TokenType::TK_COLON}));
+    ts << "int" << result(lt("1234", {TokenType::TK_INT}));
+    ts << "text" << result(lt("\"hello\"", {TokenType::TK_TEXT}));
+    ts << "text2" << result(lt("\"hel\\\"lo\"", {TokenType::TK_TEXT}));
+    ts << "zero" << result(lt("zero", {TokenType::TK_ZERO}));
+    ts << "one" << result(lt("one", {TokenType::TK_ONE}));
+    ts << "stdbool" << result(lt("?-Bool", {TokenType::TK_STDBOOL}));
+    ts << "stdint" << result(lt("?-Int", {TokenType::TK_STDINT}));
+    ts << "stdtext" << result(lt("?-Text", {TokenType::TK_STDTEXT}));
+    ts << "comma" << result(lt(",", {TokenType::TK_COMMA}));
+    ts << "arrow" << result(lt("--> <-", {TokenType::TK_MINUS, TokenType::TK_RIGHTARROW, TokenType::TK_LEFT_ARROW}));
+    ts << "type_bool" << result(lt("Bool", {TokenType::TK_TYPE_BOOL}));
+    ts << "type_int" << result(lt("Int", {TokenType::TK_TYPE_INT}));
+    ts << "type_text" << result(lt("Text", {TokenType::TK_TYPE_TEXT}));
+    ts << "type_atom" << result(lt("Atom", {TokenType::TK_TYPE_ATOM}));
+    ts << "type_tup" << result(lt("Tup", {TokenType::TK_TYPE_TUP}));
+    ts << "type_rel" << result(lt("Rel", {TokenType::TK_TYPE_REL}));
+    ts << "type_func" << result(lt("Func", {TokenType::TK_TYPE_FUNC}));
+    ts << "type_any" << result(lt("Any", {TokenType::TK_TYPE_ANY}));
+    ts << "operators" << result(lt("+*/++-\\", {TokenType::TK_PLUS, TokenType::TK_MUL, TokenType::TK_DIV, TokenType::TK_CONCAT, TokenType::TK_MINUS, TokenType::TK_SET_MINUS}));
+    ts << "mod" << result(lt("mod", {TokenType::TK_MOD}));
+    ts << "comp" << result(lt("< <> <= >= = >", {TokenType::TK_LESS, TokenType::TK_DIFFERENT, TokenType::TK_LESSEQUAL, TokenType::TK_GREATEREQUAL, TokenType::TK_EQUAL, TokenType::TK_GREATER}));
+    ts << "semicolon" << result(lt(";", {TokenType::TK_SEMICOLON}));
+    ts << "pipe" << result(lt("|", {TokenType::TK_PIPE}));
+    ts << "dot" << result(lt("...", {TokenType::TK_TWO_DOTS, TokenType::TK_ONE_DOT}));
+    ts << "question" << result(lt("?", {TokenType::TK_QUESTION}));
+    ts << "project" << result(lt("||+|--", {TokenType::TK_PIPE, TokenType::TK_PROJECT_PLUS, TokenType::TK_PROJECT_MINUS, TokenType::TK_MINUS}));
+    ts << "bracket" << result(lt("[]", {TokenType::TK_LBRACKET, TokenType::TK_RBRACKET}));
+    ts << "buildin" << result(lt("max min count add mult days before after today date open close write system has", {TokenType::TK_MAX, TokenType::TK_MIN, TokenType::TK_COUNT, TokenType::TK_ADD, TokenType::TK_MULT, TokenType::TK_DAYS, TokenType::TK_BEFORE, TokenType::TK_AFTER, TokenType::TK_TODAY, TokenType::TK_DATE, TokenType::TK_OPEN, TokenType::TK_CLOSE, TokenType::TK_WRITE, TokenType::TK_SYSTEM, TokenType::TK_HAS}));
+    ts << "if" << result(lt("if iff fi", {TokenType::TK_IF, TokenType::TK_NAME, TokenType::TK_FI}));
+    ts << "choice" << result(lt("&", {TokenType::TK_CHOICE}));
+    ts << "bang" << result(lt("!!<<!>", {TokenType::TK_BANG, TokenType::TK_BANGLT, TokenType::TK_LESS, TokenType::TK_BANGGT}));
+    ts << "tilde" << result(lt("~", {TokenType::TK_TILDE}));
+	ts << "remove" << result(lt("abe\\baz", {TokenType::TK_NAME, TokenType::TK_SET_MINUS, TokenType::TK_NAME}));
+    ts << "is" << result(lt("is-Bool is-Int is-Text is-Atom is-Tup is-Rel is-Func is-Any",
+							{TokenType::TK_ISBOOL, TokenType::TK_ISINT, TokenType::TK_ISTEXT, TokenType::TK_ISATOM, TokenType::TK_ISTUP, TokenType::TK_ISREL, TokenType::TK_ISFUNC, TokenType::TK_ISANY}));
+    ts << "error" << result(lt("hat %%Kat hat", {TokenType::TK_NAME, TokenType::INVALID, TokenType::INVALID, TokenType::TK_NAME, TokenType::TK_NAME}));
 }
 
 

@@ -27,6 +27,8 @@
 #include <memory>
 #include <unordered_map>
 
+#include <frontend/tokenizer.hh>
+
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/LLVMContext.h>
@@ -42,6 +44,8 @@
 
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Analysis/Passes.h>
+
+using lexer::TokenType;
 
 /**
  * \file llwmCodeGen.cc
@@ -1298,14 +1302,14 @@ public:
 	/** \brief Codegen for buildins */
 	LLVMVal visit(std::shared_ptr<BuiltInExp> node) {
 		switch (node->nameToken.id) {
-		case TK_PRINT:
+		case TokenType::TK_PRINT:
 		{
 			LLVMVal v=castVisit(node->args[0], TAny);
 			builder.CreateCall2(getStdlibFunc("rm_print"), v.type, v.value);
 			disown(v, TAny);
 			return OwnedLLVMVal(trueBool);
 		}
-		case TK_HAS:			
+		case TokenType::TK_HAS:			
 			return opImp(
 				{
 					dOp([this, node](BorrowedLLVMVal v) -> OwnedLLVMVal {
@@ -1324,7 +1328,7 @@ public:
 				node,
 				node->args[0]);
 			break;
-		case TK_MAX:
+		case TokenType::TK_MAX:
 		{	
 			LLVMVal v=castVisit(node->args[0], TRel);
 			OwnedLLVMVal r(builder.CreateCall2(
@@ -1334,7 +1338,7 @@ public:
 			disown(v, TRel);
 			return LLVMVal(std::move(r));
 		}
-		case TK_MIN:
+		case TokenType::TK_MIN:
 		{	
 			LLVMVal v=castVisit(node->args[0], TRel);
 			OwnedLLVMVal r(builder.CreateCall2(
@@ -1344,7 +1348,7 @@ public:
 			disown(v, TRel);
 			return LLVMVal(std::move(r));
 		}
-		case TK_ADD:
+		case TokenType::TK_ADD:
 		{	
 			LLVMVal v=castVisit(node->args[0], TRel);
 			OwnedLLVMVal r(builder.CreateCall2(
@@ -1354,7 +1358,7 @@ public:
 			disown(v, TRel);
 			return LLVMVal(std::move(r));
 		}
-		case TK_MULT:
+		case TokenType::TK_MULT:
 		{	
 			LLVMVal v=castVisit(node->args[0], TRel);
 			OwnedLLVMVal r(builder.CreateCall2(
@@ -1364,7 +1368,7 @@ public:
 			disown(v, TRel);
 			return LLVMVal(std::move(r));
 		}
-		case TK_COUNT:
+		case TokenType::TK_COUNT:
 		{	
 			LLVMVal v=castVisit(node->args[0], TRel);
 			OwnedLLVMVal r(builder.CreateCall2(
@@ -1382,15 +1386,15 @@ public:
 	/** \brief Codegen for constants */
 	LLVMVal visit(std::shared_ptr<ConstantExp> node) {
 		switch (node->valueToken.id) {
-		case TK_FALSE:
+		case TokenType::TK_FALSE:
 			return OwnedLLVMVal(falseBool);
-        case TK_TRUE:
+        case TokenType::TK_TRUE:
 			return OwnedLLVMVal(trueBool);
-        case TK_STDBOOL:
+        case TokenType::TK_STDBOOL:
 			return getUndef(TBool);
-		case TK_INT:
+		case TokenType::TK_INT:
 			return OwnedLLVMVal(int64(atol(node->valueToken.getText(code).c_str())));
-		case TK_TEXT: {
+		case TokenType::TK_TEXT: {
 			std::string text=node->valueToken.getText(code);
 			std::string ans;
 			for (size_t i=1; i+1 < text.size(); ++i) {
@@ -1407,13 +1411,13 @@ public:
 			}
 			return OwnedLLVMVal( builder.CreateCall(getStdlibFunc("rm_getConstText"), globalString(ans)));
 		}
-		case TK_STDTEXT:
+		case TokenType::TK_STDTEXT:
 			return getUndef(TText);
-        case TK_STDINT:
+        case TokenType::TK_STDINT:
 			return getUndef(TInt);
-        case TK_ZERO:
+        case TokenType::TK_ZERO:
 			return extGlobalObject("zero_rel");
-		case TK_ONE:
+		case TokenType::TK_ONE:
 			return extGlobalObject("one_rel");
 		default:
 			ICE("No codegen for", node->valueToken.id, node);
@@ -1424,7 +1428,7 @@ public:
 	/** \brief Codegen for unary operations */
 	LLVMVal visit(std::shared_ptr<UnaryOpExp> node) {
 		switch (node->opToken.id) {
-		case TK_NOT: {
+		case TokenType::TK_NOT: {
 			LLVMVal v=castVisit(node->exp, TBool);
 			LLVMVal r=cast(OwnedLLVMVal(
 							   builder.CreateSelect(
@@ -1434,7 +1438,7 @@ public:
 			disown(v, TBool);
 			return r;
 		}
-		case TK_MINUS:
+		case TokenType::TK_MINUS:
 		{
 			LLVMVal v=castVisit(node->exp, TInt);
 			LLVMVal r=cast(OwnedLLVMVal(builder.CreateNeg(v.value)), TInt, node->type, node);
@@ -1578,10 +1582,10 @@ public:
 		LLVMVal rel=castVisit(exp->lhs, TRel);
 		LLVMVal ret;
 		switch (exp->projectionToken.id) {
-		case TK_PROJECT_MINUS:
+		case TokenType::TK_PROJECT_MINUS:
 			ret=OwnedLLVMVal(builder.CreateCall3(getStdlibFunc("rm_projectMinusRel"), rel.value, int32(exp->names.size()), names));
 			break;
-		case TK_PROJECT_PLUS:
+		case TokenType::TK_PROJECT_PLUS:
 			ret=OwnedLLVMVal(builder.CreateCall3(getStdlibFunc("rm_projectPlusRel"), rel.value, int32(exp->names.size()), names));
 			break;
 		default:
@@ -1603,66 +1607,66 @@ public:
 	/** \brief Codegen a binary operation*/
 	LLVMVal visit(std::shared_ptr<BinaryOpExp> node) {
 		switch (node->opToken.id) {
-		case TK_CONCAT:
+		case TokenType::TK_CONCAT:
 			return binopImpl(node, { 
 					dCall("rm_concatText", TText, TText, TText)
 						});
-		case TK_PLUS:
+		case TokenType::TK_PLUS:
 			return binopImpl(node, { 
 					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateAdd(lhs.value, rhs.value);
 						}, TInt, TInt, TInt),
 					dCall("rm_unionRel", TRel, TRel, TRel)	
 						});
-		case TK_MUL:
+		case TokenType::TK_MUL:
 			return binopImpl(node, {
 					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateMul(lhs.value, rhs.value);
 						}, TInt, TInt, TInt),
 					dCall("rm_joinRel", TRel, TRel, TRel)
 						});
-		case TK_MINUS:
+		case TokenType::TK_MINUS:
 			return binopImpl(node, {
 					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateSub(lhs.value, rhs.value);
 						}, TInt, TInt, TInt),
 					dCall("rm_diffRel", TRel, TRel, TRel)
 				});
-		case TK_DIV:
+		case TokenType::TK_DIV:
 			return binopImpl(node, {
 					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateSelect(builder.CreateICmpEQ(rhs.value, int64(0)), undefInt,
 														builder.CreateSDiv(lhs.value, rhs.value));
 						}, TInt, TInt, TInt)
 						});
-		case TK_MOD:
+		case TokenType::TK_MOD:
 			return binopImpl(node, {
 					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateSelect(builder.CreateICmpEQ(rhs.value, int64(0)), undefInt,
 														builder.CreateSRem(lhs.value, rhs.value));
 						}, TInt, TInt, TInt)
 						});
-		case TK_LESS:
+		case TokenType::TK_LESS:
 			return binopImpl(node, { 
 					dComp(TInt, llvm::CmpInst::ICMP_SLT),
 					dComp(TBool, llvm::CmpInst::ICMP_SLT)
 					});
-		case TK_LESSEQUAL:
+		case TokenType::TK_LESSEQUAL:
 			return binopImpl(node, { 
 					dComp(TInt, llvm::CmpInst::ICMP_SLE),
 					dComp(TBool, llvm::CmpInst::ICMP_SLE)
 						});
-		case TK_GREATER:
+		case TokenType::TK_GREATER:
 			return binopImpl(node, { 
 					dComp(TInt, llvm::CmpInst::ICMP_SGT),
 					dComp(TBool, llvm::CmpInst::ICMP_SGT)
 						});
-		case TK_GREATEREQUAL:
+		case TokenType::TK_GREATEREQUAL:
 			return binopImpl(node, { 
 					dComp(TInt, llvm::CmpInst::ICMP_SGE),
 					dComp(TBool, llvm::CmpInst::ICMP_SGE)
 						});
-		case TK_EQUAL:
+		case TokenType::TK_EQUAL:
 			return binopImpl(node, { 
 					dComp(TInt, llvm::CmpInst::ICMP_EQ),
 					dComp(TBool, llvm::CmpInst::ICMP_EQ),
@@ -1670,7 +1674,7 @@ public:
 					dCall("rm_equalTup", TBool, TTup, TTup),
 					dCall("rm_equalText", TBool, TText, TText),
 						});
-		case TK_DIFFERENT:
+		case TokenType::TK_DIFFERENT:
 			return binopImpl(node, { 
 					dComp(TInt, llvm::CmpInst::ICMP_NE),
 					dComp(TBool, llvm::CmpInst::ICMP_NE),
@@ -1678,26 +1682,26 @@ public:
 					dBInv(dCall("rm_equalTup", TBool, TTup, TTup)),
 					dBInv(dCall("rm_equalText", TBool, TText, TText)),
 						});
-		case TK_AND:
+		case TokenType::TK_AND:
 			return binopImpl(node, {
 					dOp([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateAnd(lhs.value, rhs.value);
 						}, TBool, TBool, TBool)
 						});
-		case TK_OR:
+		case TokenType::TK_OR:
 			return binopImpl(node, {
 					dOp([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateOr(lhs.value, rhs.value);
 						}, TBool, TBool, TBool)
 						});
-		case TK_QUESTION:
+		case TokenType::TK_QUESTION:
 			return binopImpl(node, {
 					dOp([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateCall2(getStdlibFunc("rm_selectRel"), lhs.value, 
 													   builder.CreatePointerCast(rhs.value, voidPtrType));
 						}, TRel, TRel, TFunc)
 						});
-		case TK_OPEXTEND:
+		case TokenType::TK_OPEXTEND:
 			return binopImpl(node, { dCall("rm_extendTup", TTup, TTup, TTup) });
 		default: 
 			ICE("Binop not implemented", node->opToken.id, node->opToken, node);

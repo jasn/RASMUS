@@ -29,6 +29,8 @@ add_library(frontend
   parser.hh
   astPrinter.hh
   astPrinter.cc
+  tokenizer.hh
+  tokenizer.cc
 )
 
 target_link_libraries(frontend ${LLVM_LFLAGS} ${LLVM_MODULE_LIBS} -lncurses stdlib)
