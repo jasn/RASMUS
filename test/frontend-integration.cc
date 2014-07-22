@@ -84,7 +84,7 @@ bool it(std::string txt, const char * exp, bool error=false) {
 		start = end+1;
 	}
 	if (cb->printText != exp) {
-		log_error() << "\"" << txt << "\": gave " << cb->printText << " expected " << exp << std::endl;
+		log_error() << "\"" << txt << "\": gave " << cb->printText << " expected '" << exp << "'" << std::endl;
 		return false;
 	}
 	if ((cb->errors > 0) != error)
@@ -92,7 +92,7 @@ bool it(std::string txt, const char * exp, bool error=false) {
 	interperter->freeGlobals();
 	size_t oc=interperter->objectCount();
 	if (oc != 0 && (cb->errors == 0)) {
-		log_error() << oc << " objects where not freed" << std::endl;
+		log_error() << oc << " objects were not freed" << std::endl;
 		return false;
 	}
 	return true;
@@ -276,6 +276,10 @@ void relation(rasmus::teststream & ts) {
 	ts << "equality3" << result(it("rel(tup(a:1, b:2)) = rel(tup(a:1, b:2))", "true"));
 	ts << "equality4" << result(it("rel(tup(a:1, b:2)) = rel(tup(a:1, b:3))", "false"));
 	ts << "equality5" << result(it("rel(tup(a:1, b:2)) = rel(tup(a:1, c:2))", "false"));
+	ts << "equality6" << result(it(""
+"T := rel(tup(a:1,b:1,c:4)) + rel(tup(a:2,b:7,c:9)) + rel(tup(a:3,b:0,c:9)) + rel(tup(a:7,b:2,c:0)); "
+"S := rel(tup(b:0,c:9,a:3)) + rel(tup(b:1,c:4,a:1)) + rel(tup(b:2,c:0,a:7)) + rel(tup(b:7,c:9,a:2)); "
+"S = T", "true"));
 	ts << "inequality1" << result(it("zero <> zero", "false"));
 	ts << "inequality2" << result(it("zero <> one", "true"));
 	ts << "inequality3" << result(it("rel(tup(a:1, b:2)) <> rel(tup(a:1, b:2))", "false"));
@@ -358,9 +362,26 @@ void relation(rasmus::teststream & ts) {
 "X := rel(tup(a: 1, b:1)) + rel(tup(a: 2, b:3)) + rel(tup(a: 2, b:4)) + rel(tup(a: 7, b:2)); "
 "Y := rel(tup(a: 1, c:4)) + rel(tup(a: 2, c:2)) + rel(tup(a: 2, c:7)) + rel(tup(a: 3, c:9));"
 "Z := rel(tup(a: 1, b: 1, c: 4)) + rel(tup(a: 2, b: 7, c: 9)) + rel(tup(a: 3, b: 0, c: 9)) + rel(tup(a: 7, b: 2, c: 0));"
-"!(X, Y)|a : rel(# << tup(b: add(@(1), b), c: add(@(2), c))) = Z"
+"(!(X, Y)|a : rel(# << tup(b: add(@(1), b), c: add(@(2), c)))) = Z"
 "", "true"));
-
+	ts << "factor2" << result(it(""
+"X := rel(tup(a:1, b:2)) + rel(tup(a:2, b:3)) + rel(tup(a:2, b:1)) + rel(tup(a:3, b:4));"
+"Y := rel(tup(a:1, b:2)) + rel(tup(a:1, b:3)) + rel(tup(a:2, b:3)) + rel(tup(a:7, b:3));"
+"Z := rel(tup(a:7, c:11)) + rel(tup(a:9, c:2));"
+"R := rel(tup(a:1, m:2, n:5, o: 0)) + rel(tup(a:2, m:4, n:3, o: 0)) + rel(tup(a:3, m:4, n:0, o: 0)) + rel(tup(a:7, m:0, n:3, o: 11)) + rel(tup(a:9, m:0, n:0, o: 2));"
+"(!(X, Y, Z)|a : rel(# << tup(m: add(@(1), b), n: add(@(2), b), o: add(@(3), c)))) = R"
+								 "", "true"));
+	ts << "factor3" << result(it(""
+"X :=  rel(tup(a:1,b:2,c:1)) + rel(tup(a:1,b:3,c:2));"
+"Y :=  rel(tup(c:1,b:1,a:1)) + rel(tup(c:2,b:3,a:1));"
+"Z :=  rel(tup(a:1,b:2,c:1)) ? false;"
+"R :=  rel(tup(a:1,b:1,p:0,q:1)) + rel(tup(a:1,b:2,p:1,q:0)) + rel(tup(a:1,b:3,p:2,q:2));"
+"(!(X,Y,Z)|b,a : rel(# << tup(p: add(@(1), c), q:add(@(2), c)))) = R"
+								 "", "true"));
+	ts << "factor4" << result(it("(!(rel(tup(a:1)))|a : one) = one", "true"));
+	ts << "factor5" << result(it(""
+								 "X := rel(tup(a: 1, b:1)) + rel(tup(a: 2, b:3)) + rel(tup(a: 2, b:4)) + rel(tup(a: 7, b:2));"
+								 "(!(X)|a : one) = one", "true"));
 }
 
 

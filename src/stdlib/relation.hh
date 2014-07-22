@@ -53,6 +53,12 @@ public:
 	std::vector<AnyValue> values;
 	Tuple(): rm_object(LType::tuple) {};
 
+	Tuple & operator= (const Tuple & other){
+		this->schema = other.schema;
+		this->values = other.values;
+		return *this;
+	}
+
 	/**
 	 * \brief Check if two tuples are identical
 	 * \note We assume that the schemas are identical
