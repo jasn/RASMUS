@@ -1137,11 +1137,10 @@ public:
 		LLVMVal func = castVisit(node->exp, TFunc);
 		LLVMVal ret = OwnedLLVMVal(builder.CreateCall5(getStdlibFunc("rm_factorRel"), int32(node->names.size()), names, int32(node->listExps.size()), relations, builder.CreatePointerCast(func.value, voidPtrType)));
 
-
 		disown(func, TFunc);
 		for(auto & rel : possibly_owned_relations)
 			disown(rel, TRel);
-		
+
 		return ret;
 	}
 

@@ -382,6 +382,15 @@ void relation(rasmus::teststream & ts) {
 	ts << "factor5" << result(it(""
 								 "X := rel(tup(a: 1, b:1)) + rel(tup(a: 2, b:3)) + rel(tup(a: 2, b:4)) + rel(tup(a: 7, b:2));"
 								 "(!(X)|a : one) = one", "true"));
+
+	ts << "factor6" << result(it("boo := rel(tup(a:1)) ? false; (!(boo)|a : rel(tup(a:1))) = zero", "true"));
+	ts << "factor7" << result(it("empty := rel(tup(a:0, b:0)) ? false; (!(empty, empty, rel(tup(a:1, b:2)), empty, rel(tup(a:1, c:4, b:2)), empty)|a,b : rel(tup(q:#.a))) = rel(tup(q:1))", "true"));
+	ts << "factor_error1" << result(it("!(rel(tup(a:1)))|a,b : rel(tup())", "", true));
+	ts << "factor_error3" << result(it("!(rel(tup(a:1, b:2)))|b,b : rel(tup())", "", true));
+	ts << "factor_error4" << result(it("!(rel(tup(a:1, b:2)), rel(tup(a:2)))|a,b : rel(tup())", "", true));
+	ts << "factor_error5" << result(it("!(rel(tup(a:1, b:2)), rel(tup(a:2)))|b : rel(tup())", "", true));
+	ts << "factor_error6" << result(it("!(rel(tup(a:1, b:2)), rel(tup(a:2)))|b,a : rel(tup())", "", true));
+
 }
 
 

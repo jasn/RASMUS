@@ -1590,6 +1590,8 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 	bool ret_initialized = 0;
 	RefPtr<Relation> ret = makeRef<Relation>();
 
+	ret->schema = makeRef<Schema>();
+
 	// maintain start- and end-pointers to intervals in each relation
 	std::vector<size_t> row_indices(num_relations, 0);
 	
@@ -1670,7 +1672,6 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 		if(retval.type != TRel) ILE("Should not happen");
 
 		if(!ret_initialized){
-			ret->schema = makeRef<Schema>();
 			ret->schema->attributes = result->schema->attributes;
 			ret_initialized = 1;
 		}
@@ -1680,13 +1681,17 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 		// things by conditionally returning relations with different schemas.
 		// But how can we avoid doing this big check for every call of func()?
 
-		for(auto tuple : result->tuples)
-			ret->tuples.push_back(std::move(tuple));
+		for(auto & tuple : result->tuples){
+			RefPtr<Tuple> new_tup = makeRef<Tuple>();
+			new_tup->values = tuple->values;
+			new_tup->schema = ret->schema;
+			ret->tuples.push_back(std::move(new_tup));
+		}
 
-		result->decref(); // TODO Q: Is this really the responsibility of factor ?
-		                  // it seems like a bad idea because if func() causes an error and exits,
-		                  // some things will never get freed
 	}
+
+	// TODO Q: if there are no rows to process, the relation we
+	// return will *always* be equal to the zero relation. Is this correct?
 
 	removeDuplicateRows(ret.get());	
 	return ret.unbox();
