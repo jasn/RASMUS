@@ -207,7 +207,7 @@ public:
 				callback->report(MsgType::error, e.what());
 			return false;
 		} catch (IncompleteInputException) {
-			incomplete = line + "\n";
+			incomplete = incomplete+line + "\n";
 		}
 		return true;
 	}
