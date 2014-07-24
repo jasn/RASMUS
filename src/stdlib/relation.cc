@@ -520,6 +520,37 @@ void * run(void * base, void * ret, void * func, int64_t tup, std::vector<int64_
 	}
 }
 
+
+bool schemaEquals(Schema * l, Schema * r){
+	if(l->attributes.size() != r->attributes.size()) 
+		return false;
+
+	std::vector<std::pair<std::string, size_t>> l_indices;
+	std::vector<std::pair<std::string, size_t>> r_indices;
+	
+	for(size_t i = 0; i < l->attributes.size(); i++){
+		l_indices.emplace_back(l->attributes[i].name, i);
+		r_indices.emplace_back(r->attributes[i].name, i);
+	}
+
+	std::sort(l_indices.begin(), l_indices.end());
+	std::sort(r_indices.begin(), r_indices.end());
+
+	for(size_t i = 0; i < l->attributes.size(); i++){
+		size_t left_index = l_indices[i].second;
+		size_t right_index = r_indices[i].second;
+		if(l->attributes[left_index].name != 
+		   r->attributes[right_index].name || 
+		   l->attributes[left_index].type !=
+		   r->attributes[right_index].type)
+			return false;
+	}
+
+	return true;
+
+}
+
+
 } //namespace stdlib
 } //namespace rasmus
 
@@ -963,11 +994,11 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
 	for(uint32_t i = 0; i < name_count; i++){
 		std::string old_name = names[i*2];
 		std::string new_name = names[i*2 + 1];
-		uint8_t found = 0;
+		bool found = false;
 		for(auto & attribute : schema->attributes){
 			if(attribute.name == old_name){
 				attribute.name = new_name;
-				found = 1;
+				found = true;
 				break;
 			}
 		}
@@ -1287,10 +1318,10 @@ rm_object * rm_tupRemove(rm_object * tup, const char * name) {
 	RefPtr<Schema> new_schema = makeRef<Schema>();
 	new_tup->schema = new_schema;
 
-	bool found_name = 0;
+	bool found_name = false;
 	for(size_t i = 0; i < old_schema->attributes.size(); i++){
 		if(old_schema->attributes[i].name == name){
-			found_name = 1;
+			found_name = true;
 			continue;
 		}
 		new_schema->attributes.push_back(old_schema->attributes[i]);
@@ -1457,13 +1488,57 @@ uint8_t rm_equalTup(rm_object * lhs, rm_object * rhs) {
 }
 
 /**
+ * \Brief runs 'func' on each tuple in 'rel_' and returns a relation which is the union of the results
+ */
+rm_object * rm_forAll(rm_object * rel_, rm_object * func){
+
+	Relation * rel = static_cast<Relation *>(rel_);
+	RefPtr<Relation> ret = makeRef<Relation>();
+	ret->schema = makeRef<Schema>();
+
+	RefPtr<Relation> arg_rel = makeRef<Relation>();
+	arg_rel->schema = makeRef<Schema>();
+	
+	bool ret_initialized = false;
+	
+	for(size_t i = 0; i < rel->tuples.size(); i++){
+
+		Tuple * tup = rel->tuples[i].get();
+		int64_t arg_tup = reinterpret_cast<int64_t>(tup);
+		int64_t arg_rel_as_int = reinterpret_cast<int64_t>(arg_rel.get());
+
+		AnyRet retval;
+		FuncBase * base = (FuncBase *) func;
+		typedef void * (*t0)(FuncBase *, AnyRet *, int64_t, int8_t, int64_t, int8_t);
+
+		((t0) base->func)(base, &retval, arg_tup, TTup, arg_rel_as_int, TRel);
+
+		if(retval.type != TRel) ILE("Should not happen");
+		Relation * _result = reinterpret_cast<Relation *>(retval.value);
+		RefPtr<Relation> result = RefPtr<Relation>::steal(_result);
+
+		if(!ret_initialized){
+			ret->schema->attributes = result->schema->attributes;
+			ret_initialized = true;
+		}else if(!schemaEquals(ret->schema.get(), result->schema.get()))
+			ILE("The relations returned must all have identical schemas");
+
+		for(auto & tuple : result->tuples)
+			ret->tuples.push_back(tuple);
+	}
+
+	removeDuplicateRows(ret.get());
+	return ret.unbox();
+}
+
+/**
  * \Brief Factors 'relations' on 'col_names' using 'func'
  * First we do some sanity checks on the input
  * Next, we confirm that each name in 'col_names' exists in each given relation, and that all such columns have equal types
  * Then we sort all relations on their tuples restricted to 'col_names'
  * We keep a pointer into each relation. At first it points to the first row.
  * We find the smallest restricted tuple currently pointed to by our relation-pointers
- * Then we find the interval in every relation which has equal restriction tuples to the minimal one.
+ * Then we find the interval in every relation which has restricted tuples equal to the minimal one.
  * For each relation, using this interval, we create a relation which will be an argument to 'func'
  * Once we have calculated all arguments from all relations, we call 'func' and union the resulting relation into our return-relation
  * Finally, we remove duplicates and return the return-relation
@@ -1472,8 +1547,16 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 
 	// preliminary checks
 	
-	if(num_col_names == 0)
-		ILE("This case is not handled yet"); // TODO implement this special case
+	// when factor is given no columns, it should implicitly use all of them;
+	// this is equivalent to a forall
+	if(num_col_names == 0){
+		if(num_relations != 1)
+			ILE("The forall operator only supports exactly one relation");
+
+		return rm_forAll(relations[0], func);
+	}
+
+	if(num_relations < 1) ILE("No relations were given to factor");
 	
 	if(num_relations > 16) 
 		ILE("It is not possible to factor more than 16 relations at once"); // TODO increase number with the code generator
@@ -1587,68 +1670,65 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 	// of evaluating func to the return relation.
 
 	// this will be returned in the end
-	bool ret_initialized = 0;
+	bool ret_initialized = false;
 	RefPtr<Relation> ret = makeRef<Relation>();
-
 	ret->schema = makeRef<Schema>();
 
 	// maintain start- and end-pointers to intervals in each relation
 	std::vector<size_t> row_indices(num_relations, 0);
 	
 	while(1){
-		
+
 		// loop condition: are there rows left to process?
-		bool proceed = 0;
+		bool proceed = false;
 		for(size_t i = 0; i < num_relations; i++){
 			Relation * rel = static_cast<Relation *>(relations[i]);
 			if(row_indices[i] < rel->tuples.size()){
-				proceed = 1;
+				proceed = true;
 				break;
 			}
 		}
 		if(!proceed) break;
 
 		// find the minimal restriction currently pointed to
-		Tuple min_restriction;
-		bool initialized = 0;
+		RefPtr<Tuple> min_restriction = makeRef<Tuple>();
+		bool initialized = false;
 		for(size_t i = 0; i < num_relations; i++){
 			Relation * rel = static_cast<Relation *>(relations[i]);
 			size_t cur_tup_index = row_indices[i];
 			if(cur_tup_index == rel->tuples.size()) continue;
 			RefPtr<Tuple> cur_tup = rel->tuples[cur_tup_index];
 			Tuple restriction = restrict(cur_tup, rel_indices[i]);
-			if(!initialized || restriction < min_restriction){
-				min_restriction = restriction;
-				initialized = 1;
+			if(!initialized || restriction < *min_restriction){
+				min_restriction->values = restriction.values;
+				initialized = true;
 			}
 		}
 		if(!initialized) ILE("Should not happen");		
-		min_restriction.schema = min_restriction_schema;
+		min_restriction->schema = min_restriction_schema;
 
 		// for each relation, compute the smaller relation
 		// which will be an argument to func later
 		
-		std::vector<Relation> args;
+		std::vector< RefPtr<Relation> > args;
 		for(size_t i = 0; i < num_relations; i++){
 
 			Relation * cur_rel = static_cast<Relation *>(relations[i]);
-			Relation arg_rel;
-			arg_rel.schema = arg_schemas[i];
+			RefPtr<Relation> arg_rel = makeRef<Relation>();
+			arg_rel->schema = arg_schemas[i];
 
 			size_t row_index;
 			for(row_index = row_indices[i]; row_index < cur_rel->tuples.size()
-					&& restrict(cur_rel->tuples[row_index], rel_indices[i]) == min_restriction;
+					&& restrict(cur_rel->tuples[row_index], rel_indices[i]) == *min_restriction;
 				row_index++){
 				RefPtr<Tuple> tup = makeRef<Tuple>();
 				tup->schema = arg_schemas[i];
 				tup->values = restrict(cur_rel->tuples[row_index], rel_nonname_indices[i]).values;
-				arg_rel.tuples.push_back(std::move(tup));
+				arg_rel->tuples.push_back(std::move(tup));
 			}
 
 			args.push_back(std::move(arg_rel));
-
 			row_indices[i] = row_index;
-
 		}
 
 		// now we have the arguments; call func
@@ -1661,41 +1741,33 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 		std::vector<int64_t> args_as_ints;
 
 		for(size_t i = 0; i < args.size(); i++)
-			args_as_ints.push_back(reinterpret_cast<int64_t>(&args[i]));
+			args_as_ints.push_back(reinterpret_cast<int64_t>(args[i].get()));
+
 		if(args_as_ints.size() != num_relations)
 			ILE("Should not happen");
 
-		int64_t tuple = reinterpret_cast<int64_t>(&min_restriction);
+		int64_t tuple = reinterpret_cast<int64_t>(min_restriction.get());
 
 		run(base, &retval, base->func, tuple, args_as_ints);
-		Relation * result = reinterpret_cast<Relation *>(retval.value);
 		if(retval.type != TRel) ILE("Should not happen");
+
+		Relation * _result = reinterpret_cast<Relation *>(retval.value);
+		RefPtr<Relation> result = RefPtr<Relation>::steal(_result);
 
 		if(!ret_initialized){
 			ret->schema->attributes = result->schema->attributes;
-			ret_initialized = 1;
-		}
+			ret_initialized = true;
+		}else if(!schemaEquals(ret->schema.get(), result->schema.get()))
+			ILE("The relations returned must all have identical schemas");
 
-		// TODO: We should ensure that the relation returned by func()
-		// really has the same schema as ret; otherwise someone can break
-		// things by conditionally returning relations with different schemas.
-		// But how can we avoid doing this big check for every call of func()?
-
-		for(auto & tuple : result->tuples){
-			RefPtr<Tuple> new_tup = makeRef<Tuple>();
-			new_tup->values = tuple->values;
-			new_tup->schema = ret->schema;
-			ret->tuples.push_back(std::move(new_tup));
-		}
-
+		for(auto & tuple : result->tuples)
+			ret->tuples.push_back(tuple);
 	}
 
-	// TODO Q: if there are no rows to process, the relation we
-	// return will *always* be equal to the zero relation. Is this correct?
+	// TODO Q: if there are no rows to process, we return the zero relation. Is this correct?
 
 	removeDuplicateRows(ret.get());	
 	return ret.unbox();
-
 }
 
 

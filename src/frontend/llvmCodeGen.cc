@@ -1139,7 +1139,7 @@ public:
 
 		disown(func, TFunc);
 		for(auto & rel : possibly_owned_relations)
-			disown(rel, TRel);
+		    disown(rel, TRel); 
 
 		return ret;
 	}

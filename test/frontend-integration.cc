@@ -382,15 +382,47 @@ void relation(rasmus::teststream & ts) {
 	ts << "factor5" << result(it(""
 								 "X := rel(tup(a: 1, b:1)) + rel(tup(a: 2, b:3)) + rel(tup(a: 2, b:4)) + rel(tup(a: 7, b:2));"
 								 "(!(X)|a : one) = one", "true"));
-
 	ts << "factor6" << result(it("boo := rel(tup(a:1)) ? false; (!(boo)|a : rel(tup(a:1))) = zero", "true"));
 	ts << "factor7" << result(it("empty := rel(tup(a:0, b:0)) ? false; (!(empty, empty, rel(tup(a:1, b:2)), empty, rel(tup(a:1, c:4, b:2)), empty)|a,b : rel(tup(q:#.a))) = rel(tup(q:1))", "true"));
+	ts << "factor8" << result(it("(!(rel(tup(a:2)))|a : @(1) ) = one", "true"));
+	ts << "factor9" << result(it(""
+"empty := rel(tup(a:1, b:2)) ? false;"
+"(R := !(empty, empty, rel(tup(a:1, b:2)), empty, rel(tup(a:1, c:4, b:3)), empty)|a,b : @(1));"
+"R = zero"
+								"", "true"));
+	ts << "factor10" << result(it(""
+"empty := rel(tup(a:1, b:2)) ? false;"
+"(R := !(empty, empty, rel(tup(a:1, b:2)), empty, rel(tup(a:1, c:4, b:3)), empty)|a : @(3));"
+"R = rel(tup(b:2))"
+								"", "true"));
+	ts << "factor11" << result(it(""
+"empty := rel(tup(a:1, b:2)) ? false;"
+"(R := !(empty, empty, rel(tup(a:1, b:2)), empty, rel(tup(a:1, c:4, b:3)), empty)|a : rel(#));"
+"R = rel(tup(a:1))"
+								"", "true"));
+	ts << "factor12" << result(it(""
+"empty := rel(tup(a:1, b:2)) ? false;"
+"(R := !(empty, empty, rel(tup(a:1, b:2)), empty, rel(tup(a:1, c:4, b:3)), empty)|a,b : rel(#));"
+"R = rel(tup(a:1, b:2)) + rel(tup(a:1, b:3))"
+								"", "true"));
+	ts << "factor13" << result(it(""
+"(X := rel(tup(a:\"foo\", b: true)) + rel(tup(a:\"bar\", b:true)));"
+"(Y := rel(tup(a:\"bar\", b: true)) + rel(tup(a:\"bar\", b:false)));"
+"(R := !(X, Y)|a,b : rel(#));"
+"|R| = 3"
+								"", "true"));
 	ts << "factor_error1" << result(it("!(rel(tup(a:1)))|a,b : rel(tup())", "", true));
-	ts << "factor_error3" << result(it("!(rel(tup(a:1, b:2)))|b,b : rel(tup())", "", true));
-	ts << "factor_error4" << result(it("!(rel(tup(a:1, b:2)), rel(tup(a:2)))|a,b : rel(tup())", "", true));
-	ts << "factor_error5" << result(it("!(rel(tup(a:1, b:2)), rel(tup(a:2)))|b : rel(tup())", "", true));
-	ts << "factor_error6" << result(it("!(rel(tup(a:1, b:2)), rel(tup(a:2)))|b,a : rel(tup())", "", true));
-
+	ts << "factor_error2" << result(it("!(rel(tup(a:1, b:2)))|b,b : rel(tup())", "", true));
+	ts << "factor_error3" << result(it("!(rel(tup(a:1, b:2)), rel(tup(a:2)))|a,b : rel(tup())", "", true));
+	ts << "factor_error4" << result(it("!(rel(tup(a:1, b:2)), rel(tup(a:2)))|b : rel(tup())", "", true));
+	ts << "factor_error5" << result(it("!(rel(tup(a:1, b:2)), rel(tup(a:2)))|b,a : rel(tup())", "", true));
+	ts << "forall1" << result(it("|!(rel(tup(a:1)) + rel(tup(a:2)) + rel(tup(a:3)) + rel(tup(a:4)) ) : rel(#)| = 4", "true"));
+	ts << "forall2" << result(it("(!(rel(tup())) : rel(tup())) = one", "true"));
+	ts << "forall3" << result(it(""
+"X := rel(tup(a:1, b:2)) + rel(tup(a:2, b:2)) + rel(tup(a:0, b:3)); "
+"( !(X) : rel(tup(p: 2*#.a + #.b)) ) = rel(tup(p:3)) + rel(tup(p:4)) + rel(tup(p:6))"
+								 "", "true"));
+	ts << "forall_error1" << result(it("!(rel(tup(a:1)), rel(tup(a:2))) : rel(tup())", "", true));
 }
 
 
