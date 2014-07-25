@@ -827,6 +827,8 @@ rm_object * rm_diffRel(rm_object * lhs, rm_object * rhs) {
 	std::sort(l_indices.begin(), l_indices.end());
 	std::sort(r_indices.begin(), r_indices.end());
 
+	RefPtr<Schema> common_schema = makeRef<Schema>();
+
 	for(size_t i = 0; i < l->schema->attributes.size(); i++){
 		size_t left_index = l_indices[i].second;
 		size_t right_index = r_indices[i].second;
@@ -835,14 +837,46 @@ rm_object * rm_diffRel(rm_object * lhs, rm_object * rhs) {
 		   l->schema->attributes[left_index].type !=
 		   r->schema->attributes[right_index].type)
 			ILE("The given schemas are not equal!");
+		common_schema->attributes.push_back(l->schema->attributes[left_index]);
 	}
+
+	// create new vectors containing tuples, all of which have identical schemas
+	std::vector< RefPtr<Tuple> > ls;
+	std::vector< RefPtr<Tuple> > rs;
 	
-	// find the set difference between the tuples in lhs and rhs
-	std::set<RefPtr<Tuple>> ls(l->tuples.begin(), l->tuples.end());
-	std::set<RefPtr<Tuple>> rs(r->tuples.begin(), r->tuples.end());
+	for(auto & tuple : l->tuples){
+		RefPtr<Tuple> new_tup = makeRef<Tuple>();
+		new_tup->schema = common_schema;
+		for(size_t j = 0; j < common_schema->attributes.size(); j++){
+			size_t index = l_indices[j].second;
+			new_tup->values.push_back(tuple->values[index]);
+		}
+		ls.push_back(std::move(new_tup));
+	}
+
+	for(auto & tuple : r->tuples){
+		RefPtr<Tuple> new_tup = makeRef<Tuple>();
+		new_tup->schema = common_schema;
+		for(size_t j = 0; j < common_schema->attributes.size(); j++){
+			size_t index = r_indices[j].second;
+			new_tup->values.push_back(tuple->values[index]);
+		}
+		rs.push_back(std::move(new_tup));
+	}
+
+	std::sort(ls.begin(), ls.end(),
+			  [](const RefPtr<Tuple> & l,
+				 const RefPtr<Tuple> & r)->bool{
+				  return *l < *r;
+			  });
+	std::sort(rs.begin(), rs.end(),
+			  [](const RefPtr<Tuple> & l,
+				 const RefPtr<Tuple> & r)->bool{
+				  return *l < *r;
+			  });
 
 	RefPtr<Relation> ret = makeRef<Relation>();
-	ret->schema = l->schema;
+	ret->schema = common_schema;
 
 	std::set_difference(ls.begin(), ls.end(), rs.begin(), rs.end(),
 						std::inserter(ret->tuples, ret->tuples.end()),
