@@ -24,7 +24,7 @@
 
 void usage(std::ostream & out) {
 	out << "Usage: rm [OPTIONS] [FILE]" << std::endl
-		<< "Run rasmus interperter, if FILE is given run on that file" << std::endl
+		<< "Run rasmus interpreter, if FILE is given run on that file" << std::endl
 		<< "otherwise read commands from stdin" << std::endl
 		<< std::endl
 		<< "Options:" << std::endl
@@ -131,7 +131,7 @@ int main(int /*argc*/, char ** argv) {
 
 	std::shared_ptr<rasmus::frontend::Callback> callback = std::make_shared<rasmus::frontend::TerminalCallback>();
 	std::shared_ptr<rasmus::frontend::Interperter> interperter=rasmus::frontend::makeInterperter(callback);
-	interperter->setup(options, file.empty()?std::string("Interperted"):file);
+	interperter->setup(options, file.empty()?std::string("Interpreter"):file);
 	if (!file.empty()) {
 		std::ifstream is(file);
 		if (is.fail()) {

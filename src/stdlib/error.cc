@@ -27,7 +27,7 @@ using namespace rasmus::stdlib;
 
 void rm_emitTypeError [[noreturn]] (uint32_t start, uint32_t end, uint8_t got, uint8_t expect) {
 	std::stringstream ss;
-	ss << "Excepted type " << Type(expect) << " but got " << Type(got);
+	ss << "Expected type " << Type(expect) << " but got " << Type(got);
 	callback->reportError(start, end, ss.str());
 	__builtin_unreachable();
 }

@@ -30,7 +30,6 @@
 #include <stdlib/callback.hh>
 #include <stdlib/anyvalue.hh>
 #include <stdlib/ile.hh>
-#include <locale>
 
 namespace {
 using namespace rasmus::stdlib;
@@ -1359,6 +1358,11 @@ void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret) {
  * \Note Shared values are taken from rhs, not lhs
  */
 rm_object * rm_extendTup(rm_object * lhs_, rm_object * rhs_) {
+
+	// TODO Q: The manual says that if a column appears in both lhs and rhs,
+	// but has different types in each, an error should occur. But this is not
+	// what currently happens. However, this behavior seems limiting; should we
+	// really change the function?
 
 	// note, we intentionally swap lhs_ and rhs_ 
 	// to ensure that shared values are taken 
