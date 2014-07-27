@@ -497,8 +497,56 @@ void relation(rasmus::teststream & ts) {
 	ts << "join10" << result(it("|rel(tup(a:1, b:2)) * rel(tup(a:3, b:4))| = 0", "true"));
 	ts << "join11" << result(it("|(rel(tup(a:1, b:2)) + rel(tup(a:3, b:4))) * rel(tup(c:3, d:4))| = 2", "true"));
 	ts << "join12" << result(it("a:=(rel(tup(a:1,b:true,c:\"d\")) * rel(tup(d:1,e:\"1\",f:?-Int))); a |+ a,b,c,d,e,f = a", "true"));
+	ts << "join13" << result(it("a := rel(tup(a:1,b:2)) + rel(tup(a:3,b:4)); b := rel(tup(b:2, c:1)) + rel(tup(b:2, c:3)); a * b = rel(tup(a:1,b:2,c:1)) + rel(tup(a:1,b:2,c:3))", "true"));
+	ts << "join14" << result(it("a := rel(tup(a:1,b:2)) + rel(tup(a:3,b:4)); b := rel(tup(b:2, c:1)) + rel(tup(b:2, c:3)); (a*b) = (b*a)", "true"));
+	ts << "join15" << result(it("a := rel(tup(a:1,b:2)) + rel(tup(a:3,b:4)) + rel(tup(a:5,b:999)) + rel(tup(a:6,b:12121)); b := rel(tup(b:2, c:1)) + rel(tup(b:2, c:3)); a * b = rel(tup(a:1,b:2,c:1)) + rel(tup(a:1,b:2,c:3))", "true"));
+	ts << "join16" << result(it("a := rel(tup(b:2,a:1)) + rel(tup(b:4,a:3)); b := rel(tup(b:2, c:1)) + rel(tup(b:2, c:3)); a * b = rel(tup(a:1,b:2,c:1)) + rel(tup(a:1,b:2,c:3))", "true"));
+	ts << "join17" << result(it("a := rel(tup(b:2,a:1)) + rel(tup(b:4,a:3)); b := rel(tup(c:1, b:2)) + rel(tup(c:3, b:2)); a * b = rel(tup(b:2,a:1,c:3)) + rel(tup(c:1,b:2,a:1))", "true"));
+	ts << "join18" << result(it(""
+"X := rel(tup(d:5,e:1,b:1,a:1,c:5)) + rel(tup(d:0,e:0,b:0,a:99,c:0)) + rel(tup(d:2,e:42,b:42,a:42,c:8)) + rel(tup(d:9,e:42,b:0,a:0,c:0)) + rel(tup(d:99,e:99,b:99,a:78,c:99));"
+"Y := rel(tup(d:2,f:1,c:8)) + rel(tup(d:9,f:783,c:0)) + rel(tup(d:2,f:0,c:8)) + rel(tup(d:5,f:17,c:5)) + rel(tup(d:99,f:99,c:78));"
+"R := rel(tup(a:0,b:0,c:0,d:9,e:42,f:783)) + rel(tup(a:1,b:1,c:5,d:5,e:1,f:17)) + rel(tup(a:42,b:42,c:8,d:2,e:42,f:0)) + rel(tup(a:42,b:42,c:8,d:2,e:42,f:1));"
+"X * Y = R"
+"", "true"));
 	ts << "join_error1" << result(it("rel(tup(a:1, b:2)) * rel(tup(a:true, d:\"foo\"))", "", true));
 	ts << "join_error2" << result(it("rel(tup(a:true)) * rel(tup(a:\"foo\"))", "", true));
+	ts << "join_error3" << result(it(""
+"X := rel(tup(c:1, a:true, b:\"foo\")) + rel(tup(c:2, a:false, b:\"bar\"));"
+"Y := rel(tup(c:2, a:true, b:true));"
+"X * Y", "", true));
+	ts << "join_error4" << result(it(""
+"X := rel(tup(c:1, a:true, b:\"foo\")) + rel(tup(c:2, a:false, b:\"bar\"));"
+"Y := rel(tup(c:2, a:1, b:\"foo\"));"
+"X * Y", "", true));
+	ts << "join_error5" << result(it(""
+"X := rel(tup(c:1, a:true, b:\"foo\")) + rel(tup(c:2, a:false, b:\"bar\"));"
+"Y := rel(tup(c:true, a:true, b:\"foo\"));"
+"X * Y"
+"", "", true));
+	ts << "join_error6" << result(it(""
+"X := rel(tup(c:1, a:true, b:\"foo\")) + rel(tup(c:2, a:false, b:\"bar\"));"
+"Y := (rel(tup(c:true, a:true, b:\"foo\")) ? false);"
+"X * Y", "", true));
+	ts << "join_error7" << result(it(""
+"X := rel(tup(c:1, a:1, b:\"foo\")) + rel(tup(c:2, a:2, b:\"bar\"));"
+"Y := rel(tup(c:2, a:true, b:\"foo\"));"
+"X * Y", "", true));
+	ts << "join_error8" << result(it(""
+"X := rel(tup(c:true, a:true, b:\"foo\")) + rel(tup(c:false, a:false, b:\"bar\"));"
+"Y := rel(tup(c:2, a:true, b:\"foo\"));"
+"X * Y", "", true));
+	ts << "join_error9" << result(it(""
+"X := rel(tup(q:1,c:1, a:true, b:\"foo\")) + rel(tup(c:2, a:false,q:2, b:\"bar\"));"
+"Y := rel(tup(c:2, q:\"text\",a:true, b:\"foo\"));"
+"X * Y", "", true));
+	ts << "join_error10" << result(it(""
+"X := rel(tup(d:\"foo\", c:1, a:true, b:\"foo\")) + rel(tup(d:\"bar\", c:2, a:false, b:\"bar\"));"
+"Y := rel(tup(c:2, a:true, b:\"foo\", d:99));"
+"X * Y", "", true));
+	ts << "join_error11" << result(it(""
+"X := rel(tup(c:1, a:true, b:\"foo\", d:111)) + rel(tup(c:2, a:false, b:\"bar\", d:234));"
+"Y := rel(tup(d:true, c:2, a:true, b:\"foo\"));"
+"X * Y", "", true));
 	ts << "select1" << result(it("|rel(tup(abe: 4, kat:5)) ? (#.kat=5)|", "1"));
 	ts << "select2" << result(it("|rel(tup(abe: 4, kat:5)) ? (#.kat=4)|", "0"));
 	ts << "select3" << result(it("(one ? true) = one", "true"));
@@ -509,41 +557,228 @@ void relation(rasmus::teststream & ts) {
 	ts << "select8" << result(it("|rel(tup(a:\"foo\", b:\"bar\")) ? (#.a = #.b)|", "0"));
 	ts << "select9" << result(it("|rel(tup(a:true, b:true)) ? (#.a = #.b)|", "1"));
 	ts << "select10" << result(it("|rel(tup(a:true, b:false)) ? (#.a = #.b)|", "0"));
+	ts << "select11" << result(it("X := rel(tup(a:1,b:2,c:3)) + rel(tup(a:1,b:2,c:4)) + rel(tup(a:0,b:2,c:3)) + rel(tup(a:8,b:1,c:3)) + rel(tup(a:5,b:3,c:2));"
+"|X ? (#.a = 1)| = 2", "true"));
+	ts << "select12" << result(it("X := rel(tup(a:1,b:2,c:3)) + rel(tup(a:1,b:2,c:4)) + rel(tup(a:0,b:2,c:3)) + rel(tup(a:8,b:1,c:3)) + rel(tup(a:5,b:3,c:2));"
+"|X ? (#.a > #.b)| = 2", "true"));
+	ts << "select13" << result(it("X := rel(tup(a:1,b:2,c:3)) + rel(tup(a:1,b:2,c:4)) + rel(tup(a:0,b:2,c:3)) + rel(tup(a:8,b:1,c:3)) + rel(tup(a:5,b:3,c:2));"
+"|X ? (rel(#) = rel(tup(a:8,b:1,c:3)))| = 1", "true"));
+	ts << "select14" << result(it("X := rel(tup(a:1,b:2,c:3)) + rel(tup(a:1,b:2,c:4)) + rel(tup(a:0,b:2,c:3)) + rel(tup(a:8,b:1,c:3)) + rel(tup(a:5,b:3,c:2));"
+"|X ? (#.b + #.a*2 = 4)| = 2", "true"));
+	ts << "select15" << result(it("X := rel(tup(a:1,b:2,c:3)) + rel(tup(a:1,b:2,c:4)) + rel(tup(a:0,b:2,c:3)) + rel(tup(a:8,b:1,c:3)) + rel(tup(a:5,b:3,c:2));"
+								 "|X ? (tup(z: #.a) = tup(z:1))| = 2", "true"));
+	ts << "select16" << result(it("X := rel(tup(a:1,b:2,c:3)) + rel(tup(a:1,b:2,c:4)) + rel(tup(a:0,b:2,c:3)) + rel(tup(a:8,b:1,c:3)) + rel(tup(a:5,b:3,c:2));"
+"|X ? (min(rel(#), a) = 1)| = 2", "true"));
+/*
+  These are disabled for now as they cause segfaults
+	ts << "select17" << result(it("X := rel(tup(a:1,b:2,c:3)) + rel(tup(a:1,b:2,c:4)) + rel(tup(a:0,b:2,c:3)) + rel(tup(a:8,b:1,c:3)) + rel(tup(a:5,b:3,c:2));"
+								  "|X ? (# << # = #)| = 5", "true"));
+	ts << "select18" << result(it("X := one; ( X ? (X = one) ) = one", "true"));
+*/
 	ts << "select_err1" << result(it("rel(tup(a:1)) ? (#.b = 1)", "", true));
 	ts << "select_err2" << result(it("rel(tup(a:1, b:\"foo\")) ? (#.b = #.a)", "", true));
 	ts << "select_err3" << result(it("rel(tup(a:true, b:2)) ? (#.a > #.b)", "", true));
+	ts << "select_err4" << result(it("rel(tup(a:true, b:2)) ? (#.c = 1)", "", true));
+	ts << "select_err5" << result(it("rel(tup(a:true, b:2)) ? (#.a = #.no)", "", true));
+	ts << "select_err6" << result(it("rel(tup(a:true, b:2)) ? (rel(tup()))", "", true));
+	ts << "select_err7" << result(it("rel(tup(a:true, b:2)) ? \"foo\"", "", true));
+	ts << "select_err8" << result(it("rel(tup(a:true, b:2)) ? (tup(#) = tup())", "", true));
+	ts << "select_err9" << result(it("rel(tup(a:true, b:2)) ? (# = true)", "", true));
+	ts << "select_err10" << result(it("rel(tup(a:true, b:2)) ? (# + # = true)", "", true));
+	ts << "select_err11" << result(it("rel(tup(a:true, b:2)) ? (rel(#) + rel(tup(q:1,z:3)) = rel(tup()) )", "", true));
+	ts << "select_err12" << result(it("rel(tup(a:true, b:2)) ? (rel(#) + rel(tup()) = rel(tup()))", "", true));
+	ts << "select_err13" << result(it("rel(tup(a:true, b:2)) ? (rel(#) + rel(tup(a:true, b:2, c:1)) = rel(tup()) )", "", true));
+	ts << "select_err14" << result(it("|rel(tup(abe: 4, kat:5)) ? (#.kat=true)|", "", true));
+	ts << "select_err15" << result(it("|rel(tup(abe: 4, kat:5)) ? (#.kat=\"5\")|", "", true));
+	ts << "select_err16" << result(it("|rel(tup(abe: 4, kat:5)) ? (#.kat='5')|", "", true));
+	ts << "select_err17" << result(it("|rel(tup(abe: 4, kat:5)) ? (#.hat)|", "", true));
+	ts << "select_err18" << result(it("|rel(tup(abe: 4, kat:5)) ? #|", "", true));
+	ts << "select_err19" << result(it("X := rel(tup(a:1,b:2,c:3)) + rel(tup(a:1,b:2,c:4)) + rel(tup(a:0,b:2,c:3)) + rel(tup(a:8,b:1,c:3)) + rel(tup(a:5,b:3,c:2));"
+									 "|X ? (#.b = true)| = 5", "", true));
+	ts << "select_err20" << result(it("X := rel(tup(a:1,b:2,c:3)) + rel(tup(a:1,b:2,c:4)) + rel(tup(a:0,b:2,c:3)) + rel(tup(a:8,b:1,c:3)) + rel(tup(a:5,b:3,c:2));"
+									 "|X ? (# + tup(q:1) = tup())| = 5", "", true));
+	ts << "select_err21" << result(it("X := rel(tup(a:1,b:2,c:3)) + rel(tup(a:1,b:2,c:4)) + rel(tup(a:0,b:2,c:3)) + rel(tup(a:8,b:1,c:3)) + rel(tup(a:5,b:3,c:2));"
+									 "|X ? (X ? (X ? (1)))| = 5", "", true));
+	ts << "select_err22" << result(it("X := rel(tup(a:1,b:2,c:3)) + rel(tup(a:1,b:2,c:4)) + rel(tup(a:0,b:2,c:3)) + rel(tup(a:8,b:1,c:3)) + rel(tup(a:5,b:3,c:2));"
+									 "|X ? (# # #)| = 5", "", true));
+
+
+
+
 	ts << "pos_project1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |+ abe,baz = rel(tup(abe: 4, baz:2))", "true"));
 	ts << "pos_project2" << result(it("(rel(tup(abe: 4, kat:5, baz:2)) + rel(tup(abe:4, kat:5, baz:3))) |+ abe,kat = rel(tup(abe: 4, kat:5))", "true"));
+	ts << "pos_project3" << result(it("rel(tup(a:1,b:2,c:3,d:true,e:\"\",f:1)) |+ a = rel(tup(a:1))", "true"));
+	ts << "pos_project4" << result(it("rel(tup(a:1,b:2,c:3,d:true,e:\"\",f:1)) |+ b,a = rel(tup(a:1,b:2))", "true"));
+	ts << "pos_project5" << result(it("rel(tup(a:1,b:2,c:3,d:true,e:\"\",f:1)) |+ e,a,f = rel(tup(a:1,e:\"\",f:1))", "true"));
+	ts << "pos_project6" << result(it("rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)) |+ b,c,a = rel(tup(a:true,b:1,c:\"\"))", "true"));
+	ts << "pos_project7" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ a,b,c,d,e,f) = X", "true"));
+	ts << "pos_project8" << result(it(""
+"X := rel(tup(b:16, a:true, c:\"\", d:42)) + rel(tup(b:16, a:true, c:\"\", d:43));"
+"|X |+ a| = 1", "true"));
+	ts << "pos_project9" << result(it(""
+"X := rel(tup(b:16, a:true, c:\"\", d:42)) + rel(tup(b:16, a:true, c:\"\", d:43));"
+"|X |+ b,a| = 1", "true"));
+	ts << "pos_project10" << result(it(""
+"X := rel(tup(b:16, a:true, c:\"\", d:42)) + rel(tup(b:16, a:true, c:\"\", d:43));"
+"(X |+ a,b) = (X |+ b,a)", "true"));
+	ts << "pos_project11" << result(it(""
+"X := rel(tup(b:16, a:true, c:\"\", d:42)) + rel(tup(b:16, a:true, c:\"\", d:43));"
+"|X |+ a,b,c| = 1", "true"));
+	ts << "pos_project12" << result(it(""
+"X := rel(tup(b:16, a:true, c:\"\", d:42)) + rel(tup(b:16, a:true, c:\"\", d:43));"
+"|X |+ d,a| = 2", "true"));
 	ts << "pos_project_error1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |+ boo", "", true));
 	ts << "pos_project_error2" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |+ abe, kat, baz, boo", "", true));
+	ts << "pos_project_error3" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ a,b,z,c,d) = X", "", true));
+	ts << "pos_project_error4" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ f,g) = X", "", true));
+	ts << "pos_project_error5" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ a,b,c,d,d,e) = X", "", true));
+	ts << "pos_project_error6" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ f,e,d,c,b,b) = X", "", true));
+	ts << "pos_project_error7" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ true) = X", "", true));
+	ts << "pos_project_error8" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ \"a\") = X", "", true));
+	ts << "pos_project_error9" << result(it("X := rel(tup()); (X |+ a) = X", "", true));
+	ts << "pos_project_error10" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ rel(tup())) = X", "", true));
+	ts << "pos_project_error11" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ tup()) = X", "", true));
+	ts << "pos_project_error12" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ 1) = X", "", true));
+	ts << "pos_project_error13" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ \"a\") = X", "", true));
 	ts << "neg_project1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |- abe,baz = rel(tup(kat: 5))", "true"));
 	ts << "neg_project2" << result(it("(rel(tup(a:1, b:1)) + rel(tup(a:1, b:2))) |- b = rel(tup(a: 1))", "true"));
 	ts << "neg_project3" << result(it("|(rel(tup(a:1, b:1)) + rel(tup(a:1, b:2))) |- a| = 2", "true"));
 	ts << "neg_project4" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |- abe,baz,kat = one", "true"));
 	ts << "neg_project5" << result(it("one |- a,b,c,d,e = one", "true"));
+	ts << "neg_project6" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1));"
+"(X |- a,b,c,d,e,f) = one", "true"));
+	ts << "neg_project7" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1));"
+"(X |- a,b,e,f) = (X |+ c,d)", "true"));
+	ts << "neg_project8" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1));"
+"(X |- a,b,c) = (X |+ f,e,d)", "true"));
+	ts << "neg_project9" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1));"
+"(X |- f,a,c,e) = (X |- c,a,f,e)", "true"));
+	ts << "neg_project10" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1));"
+"(X |- f,a,c,e,q,w) = (X |- c,a,f,e)", "true"));
+	ts << "neg_project11" << result(it("X := rel(tup(a:1,b:1,c:2,d:3,f:4));"
+"X |- a,b,a = rel(tup(c:2,d:3,f:4))", "true"));
+	ts << "neg_project12" << result(it("X := rel(tup(a:1,b:1,c:2,d:3,f:4));"
+"X |- a,b,a,c,a,d = rel(tup(f:4))", "true"));
+	ts << "neg_project13" << result(it("X := rel(tup(a:1,b:1,c:2,d:3,f:4));"
+"X |- a,a,a,a,a = rel(tup(b:1,c:2,d:3,f:4))", "true"));
+	ts << "neg_project14" << result(it("X := rel(tup(a:1,b:1,c:2,d:3,f:4));"
+"X |- b,b,b,b,a,b = rel(tup(c:2,d:3,f:4))", "true"));
+	ts << "neg_project15" << result(it("X := rel(tup(a:3,b:\"\",c:true)) + rel(tup(a:1,b:\"\",c:true)) + rel(tup(a:2, b:\"\", c:true));"
+"| X |- b,c | = 3", "true"));
+	ts << "neg_project16" << result(it("X := rel(tup(a:3,b:\"\",c:true)) + rel(tup(a:1,b:\"\",c:true)) + rel(tup(a:2, b:\"\", c:true));"
+"| X |- a | = 1", "true"));
+	ts << "neg_project17" << result(it("X := rel(tup(a:3,b:\"\",c:true)) + rel(tup(a:1,b:\"\",c:true)) + rel(tup(a:2, b:\"\", c:true));"
+"| X |- b,c,a,b,a,c,q | = 1", "true"));
+	ts << "neg_project18" << result(it("X := rel(tup(a:3,b:\"\",c:true)) + rel(tup(a:1,b:\"\",c:true)) + rel(tup(a:2, b:\"\", c:true));"
+"| X |- c,a | = 1", "true"));
 	ts << "rename1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) [abe<-foo, kat<-taz] = rel(tup(foo: 4, taz:5, baz:2))", "true"));
 	ts << "rename2" << result(it("rel(tup(abe: 4, kat:5)) [kat<-foo, abe<-bar] = rel(tup(foo: 5, bar:4))", "true"));
+	ts << "rename3" << result(it(""
+"X := rel(tup(e:2,a:1,b:true,c:\"\",d:1,aa:true)) + rel(tup(e:2,a:2,b:true,c:\"\",d:1,aa:true));"
+"Y := rel(tup(e:2,foo:1,bar:true,c:\"\",d:1,aa:true)) + rel(tup(e:2,foo:2,bar:true,c:\"\",d:1,aa:true));"
+"X[a<-foo, b<-bar] = Y", "true"));
+	ts << "rename4" << result(it(""
+"X := rel(tup(e:2,a:1,b:true,c:\"\",d:1,aa:true)) + rel(tup(e:2,a:2,b:true,c:\"\",d:1,aa:true));"
+"X[a<-a] = X", "true"));
+	ts << "rename5" << result(it(""
+"X := rel(tup(e:2,a:1,b:true,c:\"\",d:1,aa:true)) + rel(tup(e:2,a:2,b:true,c:\"\",d:1,aa:true));"
+"(X[a<-foo])[foo<-a] = X", "true"));
+	ts << "rename6" << result(it(""
+"X := rel(tup(e:2,a:1,b:true,c:\"\",d:1,aa:true)) + rel(tup(e:2,a:2,b:true,c:\"\",d:1,aa:true));"
+"((X[e<-foo, a<-bar])[foo<-e])[bar<-a] = X", "true"));
 	ts << "rename_error1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) [foo<-bar]", "", true));
 	ts << "rename_error2" << result(it("rel(tup(abe: 4, kat:5, baz:2)) [kat<-abe]", "", true));
+	ts << "rename_error3" << result(it("rel(tup(abe: 4, kat:5, baz:2)) [abe<-foo, baz<-foo, kat<-taz]", "", true));
+	ts << "rename_error4" << result(it("rel(tup(abe: 4, kat:5, baz:2)) [nope<-no]", "", true));
+	ts << "rename_error5" << result(it("rel(tup(abe: 4, kat:5, baz:2)) [nope<-abe]", "", true));
+	ts << "rename_error6" << result(it("rel(tup(abe: 4, kat:5, baz:2)) [abe<-nope, nope<-kat]", "", true));
+	ts << "rename_error7" << result(it("rel(tup(abe: 4, kat:5, baz:2)) [abe<-true]", "", true));
+	ts << "rename_error8" << result(it("rel(tup(abe: 4, kat:5, baz:2)) [abe<-kat]", "", true));
+	ts << "rename_error9" << result(it("(rel(tup(abe: 4, kat:5, baz:2)) [abe<-foo])[foo<-kat]", "", true));
+
+	ts << "rename_error10" << result(it(""
+"X := rel(tup(e:2,a:1,b:true,c:\"\",d:1,aa:true)) + rel(tup(e:2,a:2,b:true,c:\"\",d:1,aa:true));"
+"X[a<-e]", "", true));
+	ts << "rename_error11" << result(it(""
+"X := rel(tup(e:2,a:1,b:true,c:\"\",d:1,aa:true)) + rel(tup(e:2,a:2,b:true,c:\"\",d:1,aa:true));"
+"X[e<-a]", "", true));
+	ts << "rename_error12" << result(it(""
+"X := rel(tup(e:2,a:1,b:true,c:\"\",d:1,aa:true)) + rel(tup(e:2,a:2,b:true,c:\"\",d:1,aa:true));"
+"X[e<-1234]", "", true));
+	ts << "rename_error13" << result(it(""
+"X := rel(tup(e:2,a:1,b:true,c:\"\",d:1,aa:true)) + rel(tup(e:2,a:2,b:true,c:\"\",d:1,aa:true));"
+"X[a<-true]", "", true));
+	ts << "rename_error14" << result(it(""
+"X := rel(tup(e:2,a:1,b:true,c:\"\",d:1,aa:true)) + rel(tup(e:2,a:2,b:true,c:\"\",d:1,aa:true));"
+"X[a<-\"foo\"]", "", true));
+	ts << "rename_error15" << result(it(""
+"X := rel(tup(e:2,a:1,b:true,c:\"\",d:1,aa:true)) + rel(tup(e:2,a:2,b:true,c:\"\",d:1,aa:true));"
+"X[a<-q,e<-q]", "", true));
+	ts << "rename_error16" << result(it(""
+"X := rel(tup(e:2,a:1,b:true,c:\"\",d:1,aa:true)) + rel(tup(e:2,a:2,b:true,c:\"\",d:1,aa:true));"
+"X[a<-foo,b<-foo]", "", true));
+	ts << "rename_error17" << result(it(""
+"X := rel(tup(e:2,a:1,b:true,c:\"\",d:1,aa:true)) + rel(tup(e:2,a:2,b:true,c:\"\",d:1,aa:true));"
+"X[c<-bla,a<-good,b<-goodtoo,d<-yes,c<-blaz]", "", true));
+	ts << "rename_error18" << result(it("rel(tup(a:1,b:2,c:3))[a<-aa,b<-bb,c<-cc,d<-dd]", "", true));
+	ts << "rename_error19" << result(it("rel(tup(a:1,b:2,c:3))[b<-aa,a<-bb,c<-cc,d<-dd]", "", true));
+	ts << "rename_error20" << result(it("rel(tup(a:1,b:2,c:3))[a<-aa,b<-bb,c<-cc,a<-ee]", "", true));
 	ts << "min1" << result(it("min(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "4"));
 	ts << "min2" << result(it("min(rel(tup(abe: 4)) + rel(tup(abe: 0)), abe)", "0"));
 	ts << "min3" << result(it("min(rel(tup(abe:4))-rel(tup(abe:4)), abe)", "?-Int"));
+	ts << "min4" << result(it("X := rel(tup(a:1,b:3)) + rel(tup(a:1,b:4)) + rel(tup(a:0,b:5)) + rel(tup(a:1, b:5)) + rel(tup(a:0,b:10)) + rel(tup(a:99,b:99)) + rel(tup(a:0,b:0));"
+"min(X, a)", "0"));
+	ts << "min5" << result(it("X := rel(tup(a:1,b:3)) + rel(tup(a:1,b:4)) + rel(tup(a:0,b:5)) + rel(tup(a:1, b:5)) + rel(tup(a:0,b:10)) + rel(tup(a:99,b:99)) + rel(tup(a:0,b:13));"
+"min(X, b)", "3"));
+	ts << "min6" << result(it("min(rel(tup(abe: ?-Int)) + rel(tup(abe: 5)), abe)", "5"));
+	ts << "min7" << result(it("min(rel(tup(abe: ?-Int)), abe)", "?-Int"));
 	ts << "min_error1" << result(it("min(zero, kat)", "", true));
 	ts << "min_error2" << result(it("min(rel(tup(foo:1)), kat)", "", true));
-	ts << "max" << result(it("max(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "5"));
+	ts << "min_error3" << result(it("X := rel(tup(a:1,b:3)) + rel(tup(a:1,b:4)) + rel(tup(a:0,b:5)) + rel(tup(a:1, b:5)) + rel(tup(a:0,b:10)) + rel(tup(a:99,b:99)) + rel(tup(a:0,b:0));"
+									"min(X, c)", "", true));
+	ts << "min_error4" << result(it("min(rel(tup(a:\"fo\")), a)", "", true));
+	ts << "max1" << result(it("max(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "5"));
+	ts << "max2" << result(it("X := rel(tup(a:1,b:3)) + rel(tup(a:1,b:4)) + rel(tup(a:0,b:5)) + rel(tup(a:1, b:5)) + rel(tup(a:0,b:10)) + rel(tup(a:99,b:99)) + rel(tup(a:0,b:0));"
+"max(X, a)", "99"));
+	ts << "max3" << result(it("X := rel(tup(a:1,b:3)) + rel(tup(a:1,b:4)) + rel(tup(a:0,b:5)) + rel(tup(a:1, b:5)) + rel(tup(a:0,b:10)) + rel(tup(a:99,b:99)) + rel(tup(a:0,b:0));"
+"max(X, b)", "99"));
+	ts << "max4" << result(it("max(rel(tup(abe: ?-Int)) + rel(tup(abe: 5)), abe)", "5"));
+	ts << "max5" << result(it("max(rel(tup(abe: ?-Int)), abe)", "?-Int"));
+	ts << "max6" << result(it("max(rel(tup(abe: ?-Int)) + rel(tup(abe: 0)), abe)", "0"));
 	ts << "max_error1" << result(it("max(zero, kat)", "", true));
 	ts << "max_error2" << result(it("max(rel(tup(foo:1)), kat)", "", true));
-	ts << "add" << result(it("add(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "9"));
+	ts << "add1" << result(it("add(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "9"));
+	ts << "add2" << result(it("X := rel(tup(a:1,b:3)) + rel(tup(a:1,b:4)) + rel(tup(a:0,b:5)) + rel(tup(a:1, b:5)) + rel(tup(a:0,b:10)) + rel(tup(a:99,b:99)) + rel(tup(a:0,b:0));"
+"add(X, a)", "102"));
 	ts << "add_error1" << result(it("add(zero, kat)", "", true));
 	ts << "add_error2" << result(it("add(rel(tup(foo:1)), kat)", "", true));
-	ts << "mult" << result(it("mult(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "20"));
+	ts << "add_error3" << result(it("add(rel(tup(foo:\"2\")), foo)", "", true));
+	ts << "add_error4" << result(it("add(rel(tup(foo:true)), foo)", "", true));
+	ts << "mult1" << result(it("mult(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "20"));
+	ts << "mult2" << result(it("mult(rel(tup(abe: 0)) + rel(tup(abe: 5)), abe)", "0"));
+	ts << "mult3" << result(it("X := rel(tup(a:1,b:1)) + rel(tup(a:1,b:2)) + rel(tup(a:0,b:3)) + rel(tup(a:1, b:4)) + rel(tup(a:0,b:5)) + rel(tup(a:99,b:6)) + rel(tup(a:0,b:7));"
+"mult(X, b)", "5040"));
 	ts << "mult_error1" << result(it("mult(zero, kat)", "", true));
 	ts << "mult_error2" << result(it("mult(rel(tup(foo:1)), kat)", "", true));
-	ts << "count" << result(it("count(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "2"));
+	ts << "mult_error3" << result(it("mult(rel(tup(foo:true)), foo)", "", true));
+	ts << "mult_error4" << result(it("mult(rel(tup(foo:\"\")), foo)", "", true));
+	ts << "count1" << result(it("count(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "2"));
 	ts << "count2" << result(it("count(rel(tup(abe: ?-Int)) + rel(tup(abe: 5)), abe)", "1"));
 	ts << "count3" << result(it("count(rel(tup(abe: ?-Text)) + rel(tup(abe: \"foo\")), abe)", "1"));
 	ts << "count4" << result(it("count(rel(tup(abe: ?-Text)), abe)", "0"));
-	ts << "count_err" << result(it("count(rel(tup()), abe)", "", true));
+	ts << "count5" << result(it("X := rel(tup(a:1,b:1)) + rel(tup(a:1,b:2)) + rel(tup(a:0,b:3)) + rel(tup(a:1, b:4)) + rel(tup(a:0,b:5)) + rel(tup(a:99,b:6)) + rel(tup(a:0,b:7));"
+"count(X, a)", "7"));
+	ts << "count6" << result(it(""
+"X := rel(tup(b:1,a:2,c:3)) + rel(tup(b:0,a:2,c:5)) + rel(tup(b:99,a:2,c:3)) + rel(tup(b:0,a:1,c:1));"
+"count(X, a)", "4"));
+	ts << "count7" << result(it(""
+"X := rel(tup(b:1,a:2,c:3)) + rel(tup(b:0,a:2,c:5)) + rel(tup(b:99,a:2,c:3)) + rel(tup(b:0,a:1,c:1));"
+"count(X, a)", "4"));
+	ts << "count8" << result(it(""
+"X := rel(tup(b:1,a:2,c:3)) + rel(tup(b:0,a:?-Int,c:5)) + rel(tup(b:99,a:?-Int,c:3)) + rel(tup(b:0,a:1,c:1));"
+"count(X, a)", "2"));
+	ts << "count_err1" << result(it("count(rel(tup()), abe)", "", true));
+	ts << "count_err2" << result(it("count(rel(tup(c:1,a:2,b:3)), d)", "", true));
 	ts << "factor1" << result(it(""
 "X := rel(tup(a: 1, b:1)) + rel(tup(a: 2, b:3)) + rel(tup(a: 2, b:4)) + rel(tup(a: 7, b:2)); "
 "Y := rel(tup(a: 1, c:4)) + rel(tup(a: 2, c:2)) + rel(tup(a: 2, c:7)) + rel(tup(a: 3, c:9));"
@@ -602,13 +837,35 @@ void relation(rasmus::teststream & ts) {
 	ts << "factor_error3" << result(it("!(rel(tup(a:1, b:2)), rel(tup(a:2)))|a,b : rel(tup())", "", true));
 	ts << "factor_error4" << result(it("!(rel(tup(a:1, b:2)), rel(tup(a:2)))|b : rel(tup())", "", true));
 	ts << "factor_error5" << result(it("!(rel(tup(a:1, b:2)), rel(tup(a:2)))|b,a : rel(tup())", "", true));
+	ts << "factor_error6" << result(it("!(rel(tup(a:1, b:2)), rel(tup(a:2)))|a,a : rel(tup())", "", true));
+	ts << "factor_error7" << result(it("!(rel(tup(a:1,b:2,c:3)))|1 : rel(tup())", "", true));
+	ts << "factor_error8" << result(it("!(rel(tup(a:1)))|c,b,d : rel(tup())", "", true));
+	ts << "factor_error9" << result(it("!(rel(tup(b:2,c:3,a:1)))|b,c,a,o : rel(tup())", "", true));
+	ts << "factor_error10" << result(it("!(rel(tup()))|a : rel(tup())", "", true));
+	ts << "factor_error11" << result(it("!(rel(tup(a:1,b:2,c:3)))|a,b,c,b : rel(tup())", "", true));
+	ts << "factor_error12" << result(it("!(rel(tup(a:1,b:2,c:3)))|b,a,b : rel(tup())", "", true));
+	ts << "factor_error13" << result(it("!(rel(tup(a:1,b:2,c:3)))|true : rel(tup())", "", true));
+	ts << "factor_error14" << result(it("!(rel(tup(a:1,b:2,c:3)))|\"a\" : rel(tup())", "", true));
+	ts << "factor_error15" << result(it("!(rel(tup(a:1,b:2,c:3)))|rel(tup()) : rel(tup())", "", true));
 	ts << "forall1" << result(it("|!(rel(tup(a:1)) + rel(tup(a:2)) + rel(tup(a:3)) + rel(tup(a:4)) ) : rel(#)| = 4", "true"));
 	ts << "forall2" << result(it("(!(rel(tup())) : rel(tup())) = one", "true"));
 	ts << "forall3" << result(it(""
 "X := rel(tup(a:1, b:2)) + rel(tup(a:2, b:2)) + rel(tup(a:0, b:3)); "
 "( !(X) : rel(tup(p: 2*#.a + #.b)) ) = rel(tup(p:3)) + rel(tup(p:4)) + rel(tup(p:6))"
 								 "", "true"));
+	ts << "forall4" << result(it("X := rel(tup(a:1, b:2)) + rel(tup(a:2, b:2)) + rel(tup(a:0, b:3)); "
+								 "( !(X) : rel(#) ) = X", "true"));
+/*	Disabled because of core dumping
+	ts << "forall5" << result(it("(!(rel(tup(b:1,c:0))) : rel(tup(a:#.b/#.c))) = rel(tup(a:?-Int))", "true")); */
 	ts << "forall_error1" << result(it("!(rel(tup(a:1)), rel(tup(a:2))) : rel(tup())", "", true));
+	ts << "forall_error2" << result(it("!() : rel(tup())", "", true));
+	ts << "forall_error3" << result(it("!(true) : rel(tup())", "", true));
+	ts << "forall_error4" << result(it("!(1) : rel(tup())", "", true));
+	ts << "forall_error5" << result(it("!(\"foo\") : rel(tup())", "", true));
+	ts << "forall_error6" << result(it("!(rel(tup(a:1))) : rel(tup(b:#.b))", "", true));
+	ts << "forall_error7" << result(it("!(rel(tup(a:1))) : true", "", true));
+	ts << "forall_error8" << result(it("!(rel(tup(a:1))) : rel(a:1)", "", true));
+	ts << "forall_error9" << result(it("!(rel(tup(a:1))) : \"foo\"", "", true));
 }
 
 

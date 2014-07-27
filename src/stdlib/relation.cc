@@ -1021,18 +1021,24 @@ rm_object * rm_projectMinusRel(rm_object * rel_, uint32_t name_count, const char
 
 	Relation * rel = static_cast<Relation *>(rel_);
 
-	// find the indices of the names we want to keep
+	// removes duplicates from inputNames and sort them
 	std::vector<std::string> inputNames;
-	std::vector<std::pair<std::string, size_t>> schemaNames;
 	for(uint32_t i = 0; i < name_count; i++)
 		inputNames.push_back(names[i]);
+
+	std::sort(inputNames.begin(), inputNames.end());
+	inputNames.erase(
+		std::unique(inputNames.begin(), inputNames.end()),
+		inputNames.end());
+
+	// prepare and sort the schema's column names
+	std::vector<std::pair<std::string, size_t>> schemaNames;
 	for(size_t i = 0; i < rel->schema->attributes.size(); i++)
 		schemaNames.emplace_back(rel->schema->attributes[i].name, i);
-	std::sort(inputNames.begin(), inputNames.end());
 	std::sort(schemaNames.begin(), schemaNames.end());
 
+	// find the indices in the relation of the names we want to keep
 	std::vector<size_t> indices;
-
 	for(size_t i = 0, j = 0; i < schemaNames.size(); i++){
 		if(j < inputNames.size() && schemaNames[i].first == inputNames[j])
 			j++;
@@ -1108,39 +1114,45 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
 int64_t rm_maxRel(rm_object * lhs, const char * name) {
 
 	Relation * rel = static_cast<Relation *>(lhs);
-
 	size_t index = getColumnIndex(rel, name);
-
-	if(rel->tuples.size() == 0)
-		return RM_NULLINT;
+	bool rel_has_nonnull_values = false;
 
 	AnyValue max;
 	max.type = rel->schema->attributes[index].type;
+
 	switch(max.type){
 	case TInt:
 		max.intValue = std::numeric_limits<int64_t>::min();
-		break;
+		for(auto tup : rel->tuples)
+			if(tup->values[index].intValue != RM_NULLINT && max < tup->values[index]){
+				max = tup->values[index];
+				rel_has_nonnull_values = true;
+			}
+
+		if(rel_has_nonnull_values)
+			return max.intValue;
+		else
+			return RM_NULLINT;
+		
 	case TBool:
 		max.boolValue = std::numeric_limits<int8_t>::min();
-		break;
+		for(auto tup : rel->tuples)
+			if(tup->values[index].boolValue != RM_NULLBOOL && max < tup->values[index]){
+				max = tup->values[index];
+				rel_has_nonnull_values = true;
+			}
+
+		if(rel_has_nonnull_values)
+			return max.intValue;
+		else
+			return RM_NULLBOOL;
+
 	case TText:
+		max.type = TInvalid; // prevent freeing of max.objectValue
 		ILE("Ordering is not defined for text");
 	default:
 		ILE("Unknown type of column", name);
 	}
-	
-	for(auto tup : rel->tuples)
-		if(max < tup->values[index])
-			max = tup->values[index];
-
-	switch(max.type){
-	case TInt:
-		return max.intValue;
-	case TBool:
-		return max.boolValue;
-	default:
-		ILE("Unknown type of column", name);
-	}	
 
 }
 
@@ -1152,37 +1164,51 @@ int64_t rm_minRel(rm_object * lhs, const char * name) {
 	Relation * rel = static_cast<Relation *>(lhs);
 
 	size_t index = getColumnIndex(rel, name);
-
-	if(rel->tuples.size() == 0)
-		return RM_NULLINT;
-
+	bool rel_has_nonnull_values = false;
+	
 	AnyValue min;
 	min.type = rel->schema->attributes[index].type;
 	switch(min.type){
 	case TInt:
 		min.intValue = std::numeric_limits<int64_t>::max();
-		break;
+		for(auto tup : rel->tuples)
+			if(tup->values[index].intValue != RM_NULLINT && tup->values[index] < min){
+				min = tup->values[index];
+				rel_has_nonnull_values = true;
+			}
+
+		if(rel_has_nonnull_values)
+			return min.intValue;
+		else
+			return RM_NULLINT;
+		
 	case TBool:
+
+		// TODO Q: Currently, returning e.g. "true" will be shown in the
+		// interpreter as "3", not "true", i.e., the interpreter seems unaware of the 
+		// type of value returned. Should we continue supporting minimum for
+		// booleans and implement some kind of type-awareness?
+		// (the same applies for max)
+
 		min.boolValue = std::numeric_limits<int8_t>::max();
-		break;
+		for(auto tup : rel->tuples)
+			if(tup->values[index].boolValue != RM_NULLBOOL && tup->values[index] < min){
+				min = tup->values[index];
+				rel_has_nonnull_values = true;
+			}
+
+		if(rel_has_nonnull_values)
+			return min.intValue;
+		else
+			return RM_NULLBOOL;
+
 	case TText:
+		min.type = TInvalid; // prevent freeing of min.objectValue
 		ILE("Ordering is not defined for text");
 	default:
 		ILE("Unknown type of column", name);
 	}
-	
-	for(auto tup : rel->tuples)
-		if(tup->values[index] < min)
-			min = tup->values[index];
 
-	switch(min.type){
-	case TInt:
-		return min.intValue;
-	case TBool:
-		return min.boolValue;
-	default:
-		ILE("Unknown type of column", name);
-	}
 }
 
 /**
@@ -1355,14 +1381,9 @@ void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret) {
 
 /**
  * \Brief returns the tuple which is the union of lhs and rhs
- * \Note Shared values are taken from rhs, not lhs
+ * \Note Shared values and types are taken from rhs, not lhs
  */
 rm_object * rm_extendTup(rm_object * lhs_, rm_object * rhs_) {
-
-	// TODO Q: The manual says that if a column appears in both lhs and rhs,
-	// but has different types in each, an error should occur. But this is not
-	// what currently happens. However, this behavior seems limiting; should we
-	// really change the function?
 
 	// note, we intentionally swap lhs_ and rhs_ 
 	// to ensure that shared values are taken 
