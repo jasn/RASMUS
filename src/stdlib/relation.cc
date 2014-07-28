@@ -73,6 +73,10 @@ namespace rasmus {
 namespace stdlib {
 
 void printRelationToStream(rm_object * ptr, std::ostream & out) {
+
+	if(ptr->type != LType::relation)
+        ILE("Called with arguments of the wrong type");
+
 	Relation * relation = static_cast<Relation *>(ptr);
 	Schema * schema = relation->schema.get();
 
@@ -172,6 +176,10 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
 	the values of the tuples in the relation.
  */
 void saveRelationToStream(rm_object * o, std::ostream & outFile){
+
+	if(o->type != LType::relation)
+        ILE("Called with arguments of the wrong type");
+
 	Relation * relation = static_cast<Relation *>(o);
 	outFile << relation->schema->attributes.size() << std::endl;
 	for(auto & attribute : relation->schema->attributes){
@@ -354,6 +362,9 @@ void printBoolToStream(int8_t val, std::ostream & out){
  * \Brief prints the given tuple to the out stream
  */
 void printTupleToStream(rm_object * ptr, std::ostream & out) {
+	if(ptr->type != LType::tuple)
+        ILE("Called with arguments of the wrong type");
+
 	Tuple * tup = static_cast<Tuple *>(ptr);
 	Schema * schema = tup->schema.get();
 
@@ -675,6 +686,9 @@ rm_object * rm_loadRel(const char * name) {
 
  */
 rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs) {
+	
+	if(lhs->type != LType::relation || rhs->type != LType::relation)
+		ILE("Called with arguments of the wrong type");
 
 	Relation * l = static_cast<Relation *>(lhs);
 	Relation * r = static_cast<Relation *>(rhs);
@@ -788,6 +802,9 @@ rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs) {
  */
 rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
 
+	if(lhs->type != LType::relation || rhs->type != LType::relation)
+		ILE("Called with arguments of the wrong type");
+
 	Relation * l = static_cast<Relation *>(lhs);
 	Relation * r = static_cast<Relation *>(rhs);
 
@@ -856,6 +873,9 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
  * is returned.
  */
 rm_object * rm_diffRel(rm_object * lhs, rm_object * rhs) {
+
+	if(lhs->type != LType::relation || rhs->type != LType::relation)
+		ILE("Called with arguments of the wrong type");
 
 	Relation * l = static_cast<Relation *>(lhs);
 	Relation * r = static_cast<Relation *>(rhs);
@@ -952,6 +972,9 @@ typedef	void (* selectFunc) (FuncBase *, AnyRet *, int64_t, int8_t);
  */
 rm_object * rm_selectRel(rm_object * rel_, rm_object * func) {
 
+	if(rel_->type != LType::relation)
+		ILE("Called with arguments of the wrong type");
+
 	Relation * rel = static_cast<Relation *>(rel_);
 	FuncBase * base = (FuncBase *) func;
 	selectFunc f = (selectFunc) base->func;
@@ -979,6 +1002,9 @@ rm_object * rm_selectRel(rm_object * rel_, rm_object * func) {
  */
 rm_object * rm_projectPlusRel(rm_object * rel_, uint32_t name_count, const char ** names) {
 	
+	if(rel_->type != LType::relation)
+        ILE("Called with arguments of the wrong type");
+
 	Relation * rel = static_cast<Relation *>(rel_);
 
 	// find the indices of the names we want to keep
@@ -1018,6 +1044,9 @@ rm_object * rm_projectPlusRel(rm_object * rel_, uint32_t name_count, const char 
 /** \Brief Projects rel into all names except the given set of names
  */
 rm_object * rm_projectMinusRel(rm_object * rel_, uint32_t name_count, const char ** names) {
+
+	if(rel_->type != LType::relation)
+        ILE("Called with arguments of the wrong type");
 
 	Relation * rel = static_cast<Relation *>(rel_);
 
@@ -1059,8 +1088,10 @@ rm_object * rm_projectMinusRel(rm_object * rel_, uint32_t name_count, const char
  */
 rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** names) {
 
+	if(rel->type != LType::relation)
+        ILE("Called with arguments of the wrong type");	
+	
 	Relation * old_rel = static_cast<Relation *>(rel);
-
 	RefPtr<Relation> relation = makeRef<Relation>();
 		
 	for(auto & old_tup : old_rel->tuples){
@@ -1113,6 +1144,9 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
  */
 int64_t rm_maxRel(rm_object * lhs, const char * name) {
 
+	if(lhs->type != LType::relation)
+        ILE("Called with arguments of the wrong type");
+
 	Relation * rel = static_cast<Relation *>(lhs);
 	size_t index = getColumnIndex(rel, name);
 	bool rel_has_nonnull_values = false;
@@ -1160,6 +1194,9 @@ int64_t rm_maxRel(rm_object * lhs, const char * name) {
  * \Brief Finds the minimum value for the given column
  */
 int64_t rm_minRel(rm_object * lhs, const char * name) {
+
+	if(lhs->type != LType::relation)
+        ILE("Called with arguments of the wrong type");
 
 	Relation * rel = static_cast<Relation *>(lhs);
 
@@ -1216,6 +1253,9 @@ int64_t rm_minRel(rm_object * lhs, const char * name) {
  */
 int64_t rm_addRel(rm_object * lhs, const char * name) {
 
+	if(lhs->type != LType::relation)
+        ILE("Called with arguments of the wrong type");
+
 	Relation * rel = static_cast<Relation *>(lhs);
 	size_t index = getColumnIndex(rel, name);
 
@@ -1233,6 +1273,10 @@ int64_t rm_addRel(rm_object * lhs, const char * name) {
  * \Brief Returns the product of all values for the given column
  */
 int64_t rm_multRel(rm_object * lhs, const char * name) {
+
+	if(lhs->type != LType::relation)
+        ILE("Called with arguments of the wrong type");
+
 	Relation * rel = static_cast<Relation *>(lhs);
 	size_t index = getColumnIndex(rel, name);
 
@@ -1250,6 +1294,9 @@ int64_t rm_multRel(rm_object * lhs, const char * name) {
  * \Brief Return the number of non-null entries in the given column
  */
 int64_t rm_countRel(rm_object * lhs, const char * name) {
+
+	if(lhs->type != LType::relation)
+        ILE("Called with arguments of the wrong type");
 
 	Relation * rel = static_cast<Relation *>(lhs);
 
@@ -1332,6 +1379,9 @@ rm_object * rm_createTup(uint32_t count, TupEntry * entries) {
  */
 rm_object * rm_createRel(rm_object * tup) {
 
+	if(tup->type != LType::tuple)
+        ILE("Called with arguments of the wrong type");
+
 	Tuple * tuple = static_cast<Tuple *>(tup);
 
 	if(!tuple) ILE("Null tuple in rm_createRel");
@@ -1350,6 +1400,10 @@ rm_object * rm_createRel(rm_object * tup) {
  * \Note the value is saved in ret
  */
 void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret) {
+
+	if(tup->type != LType::tuple)
+        ILE("Called with arguments of the wrong type");
+
 	Tuple * tuple = static_cast<Tuple *>(tup);
 	Schema * schema = tuple->schema.get();
 
@@ -1385,9 +1439,13 @@ void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret) {
  */
 rm_object * rm_extendTup(rm_object * lhs_, rm_object * rhs_) {
 
+	if(lhs_->type != LType::tuple || rhs_->type != LType::tuple)
+		ILE("Called with arguments of the wrong type");
+
 	// note, we intentionally swap lhs_ and rhs_ 
 	// to ensure that shared values are taken 
 	// from rhs, not lhs
+
 	Tuple * lhs = static_cast<Tuple *>(rhs_);
 	Tuple * rhs = static_cast<Tuple *>(lhs_);
 
@@ -1419,6 +1477,9 @@ rm_object * rm_extendTup(rm_object * lhs_, rm_object * rhs_) {
  */
 rm_object * rm_tupRemove(rm_object * tup, const char * name) {
 
+	if(tup->type != LType::tuple)
+        ILE("Called with arguments of the wrong type");
+
 	Tuple * old_tup = static_cast<Tuple *>(tup);
 	Schema * old_schema = old_tup->schema.get();
 	
@@ -1445,6 +1506,10 @@ rm_object * rm_tupRemove(rm_object * tup, const char * name) {
  * \Brief Checks whether or not the given tuple's schema contains the given name
  */
 uint8_t rm_tupHasEntry(rm_object * tup, const char * name) {
+
+	if(tup->type != LType::tuple)
+		ILE("Called with arguments of the wrong type");
+
 	Tuple * tuple = static_cast<Tuple *>(tup);
 
 	for(auto attribute : tuple->schema->attributes){
@@ -1458,6 +1523,10 @@ uint8_t rm_tupHasEntry(rm_object * tup, const char * name) {
  * \Brief Checks whether or not the given relation's schema contains the given name
  */
 uint8_t rm_relHasEntry(rm_object * rel, const char * name) {
+
+	if(rel->type != LType::relation)
+		ILE("Called with arguments of the wrong type");
+
 	Relation * relation = static_cast<Relation *>(rel);
 	if(!relation) ILE("Null relation passed to rm_relHasEntry");
 	if(!relation->schema) ILE("Null schema for relation passed to rm_relHasEntry");
@@ -1474,6 +1543,10 @@ uint8_t rm_relHasEntry(rm_object * rel, const char * name) {
  * They must be completely identical; same schema, same number of tuples etc.
  */
 uint8_t rm_equalRel(rm_object * lhs, rm_object * rhs) {
+
+	if(lhs->type != LType::relation || rhs->type != LType::relation)
+		ILE("Called with arguments of the wrong type");
+
 	Relation * l = static_cast<Relation *>(lhs);
 	Relation * r = static_cast<Relation *>(rhs);
 
@@ -1551,6 +1624,9 @@ uint8_t rm_equalRel(rm_object * lhs, rm_object * rhs) {
  */
 uint8_t rm_equalTup(rm_object * lhs, rm_object * rhs) {
 
+	if(lhs->type != LType::tuple || rhs->type != LType::tuple)
+        ILE("Called with arguments of the wrong type");
+
 	// check sizes of schemas
 	Tuple * lt = static_cast<Tuple *>(lhs); // left tuple
 	Tuple * rt = static_cast<Tuple *>(rhs); // right tuple
@@ -1599,6 +1675,9 @@ uint8_t rm_equalTup(rm_object * lhs, rm_object * rhs) {
  * \Brief runs 'func' on each tuple in 'rel_' and returns a relation which is the union of the results
  */
 rm_object * rm_forAll(rm_object * rel_, rm_object * func){
+
+	if(rel_->type != LType::relation)
+        ILE("Called with arguments of the wrong type");
 
 	Relation * rel = static_cast<Relation *>(rel_);
 	RefPtr<Relation> ret = makeRef<Relation>();
@@ -1661,6 +1740,9 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 		if(num_relations != 1)
 			ILE("The forall operator only supports exactly one relation");
 
+		if(relations[0]->type != LType::relation)
+			ILE("Called with arguments of the wrong type");
+
 		return rm_forAll(relations[0], func);
 	}
 
@@ -1668,6 +1750,10 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 	
 	if(num_relations > 32)
 		ILE("It is not possible to factor more than 32 relations at once");
+
+	for(size_t i = 0; i < num_relations; i++)
+		if(relations[i]->type != LType::relation)
+			ILE("Called with arguments of the wrong type");
 
 	std::vector<std::string> names;
 	for(uint32_t i = 0; i < num_col_names; i++)
@@ -1689,7 +1775,7 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 	std::vector<std::vector<size_t>> rel_nonname_indices;
 	
 	for(size_t i = 0; i < num_relations; i++){
-		
+
 		Relation * cur_rel = static_cast<Relation *>(relations[i]);
 		rel_indices.push_back(std::vector<size_t>());
 		rel_nonname_indices.push_back(std::vector<size_t>());
