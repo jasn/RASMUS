@@ -111,34 +111,64 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
 		widths[i] = std::max<int>(widths[i], attribute.name.size());
 		i++;
 	}
-	
+
 	size_t total_width = std::accumulate(begin(widths), end(widths), 0);
-	total_width += 1 + widths.size() * 3; 
     // 1 for beginning |, 3 per field for ' | ' (space, bar, space)
+	total_width += 1 + widths.size() * 3;
+
+	const char * TL_CORNER = "┌"; // Top Left corner
+	const char * TR_CORNER = "┐";
+	const char * BL_CORNER = "└"; // Bottom Left corner
+	const char * BR_CORNER = "┘";
+	const char * M_JUNC    = "┼"; // Middle Junction
+	const char * T_JUNC    = "┬";
+	const char * B_JUNC    = "┴";
+	const char * R_JUNC    = "┤";
+	const char * L_JUNC    = "├";
+	const char * HOR_BAR   = "─"; // Horizontal bar
+	const char * VER_BAR   = "│";
 
 	// print header
-	out << std::string(total_width, '-') << std::endl;
-	out << "|";
 
+	// top frame
+	out << TL_CORNER;
+	bool first = true;
+	for(auto & width : widths){
+		if(first) first = false;
+		else out << T_JUNC;
+		for(int i = 0; i < width+2; i++) out << HOR_BAR;
+	}
+	out << TR_CORNER << std::endl;
+
+	// header contents
+	out << VER_BAR;
 	i = 0;
 	for(auto & attribute : schema->attributes){
-		out << ' ' << std::left << std::setw(widths[i]) << attribute.name <<  " |";
+		out << ' ' << std::left << std::setw(widths[i]) << attribute.name <<  ' ' << VER_BAR;
 		i++;
 	}
-	
+	out << std::endl;
+
+	// line that divides the header from the rest of the table
+	out << L_JUNC;
+	size_t index = 0;
+	for(auto & width : widths){
+		for(int i = 0; i < width+2; i++) out << HOR_BAR;
+		if(index == widths.size()-1) out << R_JUNC;
+		else out << M_JUNC;
+		index++;
+	}
 	out << std::endl;
 
 	// print body
-	out << std::string(total_width, '-') << std::endl;
-
 	if(empty_schema){
 		for(size_t i = 0; i < relation->tuples.size(); i++)
-			out << "| " << EMPTY_MSG << " |" << std::endl;
+			out << VER_BAR << ' ' << EMPTY_MSG << ' ' << VER_BAR << std::endl;
 
 	} else {
 		for(auto & tuple : relation->tuples){
 			i = 0;
-			out << '|';
+			out << VER_BAR;
 			for(auto & value : tuple->values){
 				switch(value.type){
 				case TInt:
@@ -156,14 +186,22 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
 				default:
 					ILE("Unhandled type", value.type);
 				}
-				out << " |";
+				out << ' ' << VER_BAR;
 				i++;
 			}
 			out << std::endl;
 		}
 	}
 
-	out << std::string(total_width, '-') << std::endl;
+	// bottom frame
+	out << BL_CORNER;
+	first = true;
+	for(auto & width : widths){
+		if(first) first = false;
+		else out << B_JUNC;
+		for(int i = 0; i < width+2; i++) out << HOR_BAR;
+	}
+	out << BR_CORNER << std::endl;
 } 
 
 /*  outputs the given relation to the given stream. 
