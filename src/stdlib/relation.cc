@@ -40,11 +40,11 @@ size_t utf8strlen(std::string str){
 		len++;
 		const char & c = str.at(i);
 		if((c & 0x80) == 0) i++;
-		else if((c & 0xC0) == 0x80) i += 2;
-		else if((c & 0xE0) == 0xC0) i += 3;
-		else if((c & 0xF0) == 0xE0) i += 4;
-		else if((c & 0xF8) == 0xF0) i += 5;
-		else if((c & 0xFC) == 0xF8) i += 6;
+		else if((c & 0xE0) == 0xC0) i += 2;
+		else if((c & 0xF0) == 0xE0) i += 3;
+		else if((c & 0xF8) == 0xF0) i += 4;
+		else if((c & 0xFC) == 0xF8) i += 5;
+		else if((c & 0xFE) == 0xFC) i += 6;
 		else ILE("Invalid utf8-char given to utf8strlen");
 	}
 	return len;
