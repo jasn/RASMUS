@@ -976,9 +976,9 @@ public:
 		return  r;
 	}
 
-	/** \brief Codegen for a valiable */
-	LLVMVal visit(std::shared_ptr<VariableExp> node) {
-		if (NodePtr store = node->store.lock()) {
+	LLVMVal readNamedVariable(Token nameToken, std::weak_ptr<Node> storePtr,
+							  const NodePtr & node) {
+		if (NodePtr store = storePtr.lock()) {
 			if (store->nodeType != NodeType::AssignmentExp) return borrow(store->llvmVal);
 			std::shared_ptr<AssignmentExp> st=std::static_pointer_cast<AssignmentExp>(store);
 			
@@ -986,11 +986,11 @@ public:
 				return borrow(store->llvmVal);
 			
 			Value * rv = builder.CreateAlloca(anyRetType);
-
+			
 			builder.CreateCall2(getStdlibFunc("rm_loadGlobalAny"),
 								int32(st->globalId),
 								rv);
-
+			
 			return cast(BorrowedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
 										builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1))),
 						TAny, node->type, node);
@@ -998,8 +998,13 @@ public:
 		} else {
 			return OwnedLLVMVal(builder.CreateCall(
 									getStdlibFunc("rm_loadRel"),
-									globalString(node->nameToken)));
+									globalString(nameToken)));
 		}
+	}
+	
+	/** \brief Codegen for a valiable */
+	LLVMVal visit(std::shared_ptr<VariableExp> node) {
+		return readNamedVariable(node->nameToken, node->store, node);
 	} 
 	
 	/** \brief Codegen for an assignment */
@@ -1112,7 +1117,7 @@ public:
 			}
 			forgetOwnership(cond);
 		}
-
+		
 		if (!done) {
 			LLVMVal v=takeOwnership(getUndef(node->type), node->type);
 			builder.CreateStore(v.value, value);
@@ -1255,9 +1260,10 @@ public:
 		
         // Store captures
 		for (size_t i=0; i < node->captures.size(); ++i) {
-			NodePtr n(node->captures[i]->store);
-			assert(n);
-			saveValue(p, {0, 5+(int)i}, borrow(n->llvmVal), node->captures[i]->type);;
+			std::shared_ptr<FuncCaptureValue> fcv = node->captures[i];
+			LLVMVal v=readNamedVariable(fcv->nameToken, fcv->store, fcv);
+			saveValue(p, {0, 5+(int)i}, borrow(v), fcv->type);
+			disown(v, fcv->type);
 		}
 
 		return OwnedLLVMVal(p);
@@ -1635,8 +1641,25 @@ public:
 		case TokenType::TK_DIV:
 			return binopImpl(node, {
 					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
-							return builder.CreateSelect(builder.CreateICmpEQ(rhs.value, int64(0)), undefInt,
-														builder.CreateSDiv(lhs.value, rhs.value));
+							BasicBlock * b1 = newBlock();		
+							BasicBlock * b2 = newBlock();
+							BasicBlock * bend = newBlock();
+							builder.CreateCondBr(builder.CreateICmpEQ(rhs.value, int64(0)), b1, b2);
+							
+							builder.SetInsertPoint(b1);
+							Value * v1 = undefInt;
+							builder.CreateBr(bend);
+							
+							builder.SetInsertPoint(b2);
+							Value * v2 = builder.CreateSDiv(lhs.value, rhs.value);
+							builder.CreateBr(bend);
+							
+							builder.SetInsertPoint(bend);
+							
+							PHINode * phi = builder.CreatePHI(int64Type, 2, "div");
+							phi->addIncoming(v1, b1);
+							phi->addIncoming(v2, b2);
+							return phi;
 						}, TInt, TInt, TInt)
 						});
 		case TokenType::TK_MOD:
