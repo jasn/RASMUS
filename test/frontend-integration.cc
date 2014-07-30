@@ -167,6 +167,12 @@ void integer(rasmus::teststream & ts) {
 	ts << "greater equal 3" << result(it("1 >= ?-Int", "?-Bool"));
 }
 
+void crash(rasmus::teststream & ts) {
+	ts << "crash1" << result(it("X := one; (X ? (X = one)) = one", "true"));
+	ts << "crash2" << result(it("a:=1\nb:=0\na/b","?-Int"));
+	ts << "crash3" << result(it("foo := func (x:Int) -> (Int) x end; bar := func (y:Int) -> (Int) foo(y) end; bar(42);", "42"));
+}
+
 void ifs(rasmus::teststream & ts) {
 	ts << "int" << result(it("if false -> 2 & true -> 1 fi", "1"));
 	ts << "bool" << result(it("if false -> true & true -> ?-Bool fi", "?-Bool"));
@@ -922,6 +928,7 @@ int main(int argc, char **argv) {
 		.multi_test(tuple, "tuple")
 		.multi_test(relation, "relation")
 		.multi_test(ifs, "if")
+		.multi_test(crash, "crash")
 		.test(comments, "comments")
 		.test(relation_external, "relation_external");
 }
