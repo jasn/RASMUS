@@ -938,13 +938,14 @@ public:
 				forgetOwnership(r);	
 				a=b;
 			}
+
 			
 			builder.SetInsertPoint(errTarget);
 			
 			builder.CreateCall4(getStdlibFunc("rm_emitTypeError"),
 								int32(node->charRange.lo), int32(node->charRange.hi),
 								vals[i].type,
-								typeRepr(TInt)); //TODO FIXME, this should not be tint
+								typeRepr(ops.begin()->types[i])); // TODO FIXME this only states one even though there might be more allowed
 			builder.CreateUnreachable();
 			builder.SetInsertPoint(end);
 			LLVMVal r=OwnedLLVMVal(
