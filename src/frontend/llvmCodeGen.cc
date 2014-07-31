@@ -271,7 +271,7 @@ public:
 		switch (t) {
 		case TBool: return int8Type;
 		case TInt: return int64Type;
-		case TFunc: return pointerType(funcBase);
+		case TFunc: 
 		case TText: 
 		case TRel: 
 			return voidPtrType;
@@ -322,9 +322,9 @@ public:
 	/**
 	 * \Brief create a new block with a unique name
 	 */
-	BasicBlock * newBlock() {
+	BasicBlock * newBlock(std::string name = "b") {
 		std::stringstream ss;
-		ss << "b" << uid++;
+		ss << name << uid++;
 		return BasicBlock::Create(getGlobalContext(), ss.str(), getFunction());
 	}
 
@@ -524,9 +524,11 @@ public:
 		}
 
 		if (tfrom == TAny) {
-			BasicBlock * fblock = newBlock();
-			BasicBlock * nblock = newBlock();
-			builder.CreateCondBr(builder.CreateICmpEQ(value.type, typeRepr(tto)), nblock, fblock);
+			BasicBlock * fblock = newBlock("badtype");
+			BasicBlock * nblock = newBlock("goodtype");
+			std::stringstream ss;
+			ss << "is" << tto;
+			builder.CreateCondBr(builder.CreateICmpEQ(value.type, typeRepr(tto), ss.str()), nblock, fblock);
 			builder.SetInsertPoint(fblock);
 			builder.CreateCall4(getStdlibFunc("rm_emitTypeError"),
 								int32(node->charRange.lo), int32(node->charRange.hi),
@@ -540,10 +542,13 @@ public:
 			case TBool:
 				return BorrowedLLVMVal(builder.CreateTruncOrBitCast(value.value, llvmType(tto)));
 			case TText:
-			case TFunc:
+				return BorrowedLLVMVal(builder.CreateIntToPtr(value.value, voidPtrType, "text"));
 			case TRel:
+				return BorrowedLLVMVal(builder.CreateIntToPtr(value.value, voidPtrType, "rel"));
 			case TTup:
-				return BorrowedLLVMVal(builder.CreateIntToPtr(value.value, voidPtrType));
+				return BorrowedLLVMVal(builder.CreateIntToPtr(value.value, voidPtrType, "tup"));
+			case TFunc:
+				return BorrowedLLVMVal(builder.CreateIntToPtr(value.value, voidPtrType, "func"));
 			default:
 				ICE("Unhandled type", tfrom, tto, node);
 			}
@@ -594,19 +599,23 @@ public:
 		for (int x: gep) GEP.push_back(int32(x));
 		switch (type) {
 		case TInt:
+			return BorrowedLLVMVal(builder.CreateLoad(builder.CreateGEP(v, GEP, "int_addr"), "int"));
 		case TBool:
+			return BorrowedLLVMVal(builder.CreateLoad(builder.CreateGEP(v, GEP, "bool_addr"), "bool"));
 		case TText:
+			return BorrowedLLVMVal(builder.CreateLoad(builder.CreateGEP(v, GEP, "text_addr"), "text"));
 		case TFunc:
+			return BorrowedLLVMVal(builder.CreateLoad(builder.CreateGEP(v, GEP, "func_addr"), "func"));
 		case TRel:
-			return BorrowedLLVMVal(builder.CreateLoad(builder.CreateGEP(v, GEP)));
+			return BorrowedLLVMVal(builder.CreateLoad(builder.CreateGEP(v, GEP, "rel_addr"), "rel"));
 		case TAny:
 		{
 			GEP.push_back(int32(0));
-			Value * value=builder.CreateGEP(v, GEP);
+			Value * value=builder.CreateGEP(v, GEP, "value_addr");
 			GEP.pop_back();
 			GEP.push_back(int32(1));
-			Value * type=builder.CreateGEP(v, GEP);
-			return BorrowedLLVMVal(builder.CreateLoad(value), builder.CreateLoad(type));
+			Value * type=builder.CreateGEP(v, GEP, "type_addr");
+			return BorrowedLLVMVal(builder.CreateLoad(value, "value"), builder.CreateLoad(type,"type"));
 		}
 		default:
 			ICE("Unhandled type", type);
@@ -619,19 +628,27 @@ public:
 		for (int x: gep) GEP.push_back(int32(x));
 		switch (type) {
 		case TInt:
+			builder.CreateStore(v.value, builder.CreateGEP(dst, GEP, "int_addr"));
+			break;
 		case TBool:
+			builder.CreateStore(v.value, builder.CreateGEP(dst, GEP, "bool_addr"));
+			break;
 		case TText:
+			builder.CreateStore(v.value, builder.CreateGEP(dst, GEP, "text_addr"));
+			break;
 		case TFunc:
+			builder.CreateStore(v.value, builder.CreateGEP(dst, GEP, "func_addr"));
+			break;
 		case TRel:
-			builder.CreateStore(v.value, builder.CreateGEP(dst, GEP));
+			builder.CreateStore(v.value, builder.CreateGEP(dst, GEP, "rel_addr"));
 			break;
 		case TAny:
 		{
 			GEP.push_back(int32(0));
-			builder.CreateStore(v.value, builder.CreateGEP(dst, GEP));
+			builder.CreateStore(v.value, builder.CreateGEP(dst, GEP, "value_addr"));
 			GEP.pop_back();
 			GEP.push_back(int32(1));
-			builder.CreateStore(v.type, builder.CreateGEP(dst, GEP));
+			builder.CreateStore(v.type, builder.CreateGEP(dst, GEP, "type_addr"));
 			break;
 		}
 		default:
@@ -985,20 +1002,21 @@ public:
 			if (st->globalId == NOT_GLOBAL)
 				return borrow(store->llvmVal);
 			
-			Value * rv = builder.CreateAlloca(anyRetType);
+			Value * rv = builder.CreateAlloca(anyRetType, nullptr, "globalVar");
 			
 			builder.CreateCall2(getStdlibFunc("rm_loadGlobalAny"),
 								int32(st->globalId),
 								rv);
 			
-			return cast(BorrowedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
-										builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1))),
+			return cast(BorrowedLLVMVal(
+							builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0, "value_addr"), "value"), 
+							builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1, "type_addr"), "type")),
 						TAny, node->type, node);
 			
 		} else {
 			return OwnedLLVMVal(builder.CreateCall(
 									getStdlibFunc("rm_loadRel"),
-									globalString(nameToken)));
+									globalString(nameToken),"rel"));
 		}
 	}
 	
@@ -1187,6 +1205,7 @@ public:
 			auto self = al.begin();
 			self->setName("self");
 			Value * selfv = builder.CreatePointerCast(self, pointerType(captureType));
+			
 
 			//go through the capture list and abandon all
 			for (size_t i=0; i < node->captures.size(); ++i) {
@@ -1251,12 +1270,12 @@ public:
 		builder.restoreIP(old_ip);
 		Constant* AllocSize = ConstantExpr::getSizeOf(captureType);
 		AllocSize = ConstantExpr::getTruncOrBitCast(AllocSize, int32Type);
-		auto pp = builder.CreateCall(getStdlibFunc("rm_createFunction"), AllocSize);
-		auto p = builder.CreatePointerCast(pp, pointerType(captureType));
-		builder.CreateStore(int32(1), builder.CreateConstGEP2_32(p, 0, 0)); //RefCount
-		builder.CreateStore(int16(node->args.size()), builder.CreateConstGEP2_32(p, 0, 2)); //Argc
-		builder.CreateStore(dtor, builder.CreateConstGEP2_32(p, 0, 3)); //Dtor
-		builder.CreateStore(function, builder.CreateConstGEP2_32(p, 0, 4)); //Fptr
+		auto pp = builder.CreateCall(getStdlibFunc("rm_createFunction"), AllocSize, "func");
+		auto p = builder.CreatePointerCast(pp, pointerType(captureType), "func_c");
+		builder.CreateStore(int32(1), builder.CreateConstGEP2_32(p, 0, 0, "refcnt")); //RefCount
+		builder.CreateStore(int16(node->args.size()), builder.CreateConstGEP2_32(p, 0, 2, "argc")); //Argc
+		builder.CreateStore(dtor, builder.CreateConstGEP2_32(p, 0, 3, "dtor")); //Dtor
+		builder.CreateStore(function, builder.CreateConstGEP2_32(p, 0, 4, "fptr")); //Fptr
 		
         // Store captures
 		for (size_t i=0; i < node->captures.size(); ++i) {
@@ -1266,7 +1285,7 @@ public:
 			disown(v, fcv->type);
 		}
 
-		return OwnedLLVMVal(p);
+		return OwnedLLVMVal(builder.CreatePointerCast(p, voidPtrType, "func"));
 	}
 
 
