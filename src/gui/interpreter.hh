@@ -17,14 +17,14 @@ public:
 public slots:
   
   void run(QString line);
-
 signals:
   
   void incomplete();
   void complete();
-  
+  void display(QString string);
+public:
+  void doDisplay(QString string);
 private:
-  
   InterpreterPrivate *d_ptr;
 
 };

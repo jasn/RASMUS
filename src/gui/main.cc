@@ -21,6 +21,8 @@ public:
     QObject::connect(ui.console, SIGNAL(run(QString)), interpreter, SLOT(run(QString)));
     QObject::connect(interpreter, SIGNAL(incomplete()), ui.console, SLOT(incomplete()));
     QObject::connect(interpreter, SIGNAL(complete()), ui.console, SLOT(complete()));
+    QObject::connect(interpreter, SIGNAL(display(QString)), ui.console, SLOT(display(QString)));
+    ui.console->complete();
   }
 
 };

@@ -2,9 +2,7 @@ project("rasmus")
 cmake_minimum_required(VERSION 2.8)
 enable_testing()
 
-find_package(Qt4 4.4.3 REQUIRED QtCore QtGui)
-
-FIND_PACKAGE(Qt4 REQUIRED)
+find_package(Qt4 4.4.3 COMPONENTS QtCore QtGui)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules/")
 find_package(LLVM REQUIRED)

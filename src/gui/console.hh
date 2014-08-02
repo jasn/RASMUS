@@ -6,17 +6,15 @@
 class Console: public QPlainTextEdit {
   Q_OBJECT
 public:
-  Console(QWidget * parent): QPlainTextEdit(parent) {}
-
+  Console(QWidget * parent);
   void keyPressEvent(QKeyEvent *e);
 
 public slots:
   
   void incomplete();
   void complete();
-    
-
- signals:
+  void display(QString msg);
+signals:
   
   void run(QString line);
 
