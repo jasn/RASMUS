@@ -8,3 +8,4 @@ target_link_libraries(rasmus frontend ${QT_LIBRARIES} -pthread stdlib)
 set_target_properties(rasmus PROPERTIES AUTOMOC TRUE)
 set_target_properties(rasmus PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../../)
 
+install(TARGETS rasmus RUNTIME DESTINATION bin)

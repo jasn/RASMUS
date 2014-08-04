@@ -26,6 +26,7 @@ else (RASMUS_STATIC)
 	SHARED
 	${LIB_FILES})
    set_target_properties(stdlib PROPERTIES LIBRARY_OUTPUT_DIRECTORY ../../)
+   install(TARGETS stdlib LIBRARY DESTINATION lib)
 endif (RASMUS_STATIC)
 
 
