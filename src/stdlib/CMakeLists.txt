@@ -1,6 +1,4 @@
-add_library(
-	stdlib 
-	SHARED
+set(LIB_FILES 	
 	callback.cc
 	callback.hh
 	default_callback.hh
@@ -15,6 +13,19 @@ add_library(
 	rm_object.hh
 	text.cc
 	text.hh
-	global.cc
-	)
-set_target_properties(stdlib PROPERTIES LIBRARY_OUTPUT_DIRECTORY ../../)
+	global.cc)
+
+if (RASMUS_STATIC)
+   add_library(
+	stdlib 
+	STATIC
+	${LIB_FILES})
+else (RASMUS_STATIC)
+   add_library(
+	stdlib 
+	SHARED
+	${LIB_FILES})
+   set_target_properties(stdlib PROPERTIES LIBRARY_OUTPUT_DIRECTORY ../../)
+endif (RASMUS_STATIC)
+
+

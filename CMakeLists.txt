@@ -1,6 +1,8 @@
 project("rasmus")
 cmake_minimum_required(VERSION 2.8)
-enable_testing()
+
+option(RASMUS_TESTS "Build with testing support" ON)
+option(RASMUS_STATIC "Build rasmus static" OFF)
 
 find_package(Qt4 4.4.3 COMPONENTS QtCore QtGui)
 
@@ -13,4 +15,8 @@ include_directories(src)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/src ${LLVM_INCLUDE_DIR})
 link_directories(${LLVM_LIBRARY_DIR})
 add_subdirectory(src)
-add_subdirectory(test)
+if (RASMUS_TESTS)
+   enable_testing()
+   add_subdirectory(test)
+endif (RASMUS_TESTS)
+

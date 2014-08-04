@@ -1,6 +1,7 @@
 #include <interpreter.hh>
 #include <memory>
 #include <iostream>
+#include <algorithm>
 
 #include "frontend/callback.hh"
 #include "frontend/interpreter.hh"
