@@ -778,7 +778,7 @@ def build_posix_local(config, basedir):
     if subprocess.call([make, '-j%d' % CPU_COUNT]):
         shell('%s -j%d' % (make, CPU_COUNT))
 
-    rmdir(dist)
+    mkdir_p(qt)
     os.chdir(qt)
     if not exists('is_configured'):
         shell('../../qt/configure %s' % qt_config('posix', '--prefix=%s' % qt))
@@ -787,6 +787,7 @@ def build_posix_local(config, basedir):
     if subprocess.call([make, '-j%d' % CPU_COUNT]):
         shell('%s -j%d' % (make, CPU_COUNT))
 
+    mkdir_p(app)
     os.chdir(app)
     shell('rm -f bin/*')
     os.environ['RASMUS_VERSION'] = version
@@ -924,12 +925,6 @@ def main():
     rootdir = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
     basedir = os.path.join(rootdir, 'static-build')
 
-    if not os.path.isdir(os.path.join(basedir, "qt")):
-        download_tarball(QT_SOURCE['url'], QT_SOURCE['sha1'], basedir, "qt")
-
-    if not os.path.isdir(os.path.join(basedir, "llvm")):
-        download_tarball(LLVM_SOURCE['url'], LLVM_SOURCE['sha1'], basedir, "llvm")
-
     if len(sys.argv) == 1:
         usage(0)
 
@@ -948,6 +943,12 @@ def main():
 
     if '-clean' in sys.argv[2:]:
         rmdir(os.path.join(basedir, config))
+
+    if not os.path.isdir(os.path.join(basedir, "qt")):
+        download_tarball(QT_SOURCE['url'], QT_SOURCE['sha1'], basedir, "qt")
+
+    if not os.path.isdir(os.path.join(basedir, "llvm")):
+        download_tarball(LLVM_SOURCE['url'], LLVM_SOURCE['sha1'], basedir, "llvm")
 
     os.chdir(rootdir)
     globals()['check_%s' % BUILDERS[config]](final_config)
