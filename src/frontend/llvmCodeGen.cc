@@ -224,7 +224,7 @@ public:
 			{"rm_diffRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
 			{"rm_loadRel", functionType(voidPtrType, {pointerType(int8Type)})},
 			{"rm_saveRel", functionType(voidType, {voidPtrType, pointerType(int8Type)})},
-			{"rm_maxRel", functionType(int64Type, {voidPtrType, pointerType(int8Type)})},
+			{"rm_maxRel", functionType(int64Type, {int64Type, voidPtrType, pointerType(int8Type)})},
 			{"rm_minRel", functionType(int64Type, {voidPtrType, pointerType(int8Type)})},
 			{"rm_addRel", functionType(int64Type, {voidPtrType, pointerType(int8Type)})},
 			{"rm_multRel", functionType(int64Type, {voidPtrType, pointerType(int8Type)})},
@@ -290,6 +290,12 @@ public:
 	llvm::ConstantInt * trueBool = int8(3);
 	llvm::ConstantInt * undefBool = int8(2);
 	llvm::ConstantInt * falseBool = int8(0);
+
+
+	llvm::ConstantInt * packCharRange(std::shared_ptr<Node> node) {
+		return int64(node->charRange.lo | (uint64_t(node->charRange.hi) << 32));
+	}
+
 	
 	/**
 	 * \Brief get the runtime type represetnation for a static type
@@ -1357,8 +1363,9 @@ public:
 		case TokenType::TK_MAX:
 		{	
 			LLVMVal v=castVisit(node->args[0], TRel);
-			OwnedLLVMVal r(builder.CreateCall2(
-								   getStdlibFunc("rm_maxRel"), 
+			OwnedLLVMVal r(builder.CreateCall3(
+								   getStdlibFunc("rm_maxRel"),
+								   packCharRange(node),
 								   v.value, 
 								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code))));
 			disown(v, TRel);

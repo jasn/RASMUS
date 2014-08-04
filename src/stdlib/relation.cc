@@ -1182,7 +1182,7 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
  * \Brief Finds the maximum value for the given column
  * \Note Ordering is not defined for text
  */
-int64_t rm_maxRel(rm_object * lhs, const char * name) {
+int64_t rm_maxRel(uint64_t range, rm_object * lhs, const char * name) {
 
 	if(lhs->type != LType::relation)
         ILE("Called with arguments of the wrong type");
@@ -1223,6 +1223,7 @@ int64_t rm_maxRel(rm_object * lhs, const char * name) {
 
 	case TText:
 		max.type = TInvalid; // prevent freeing of max.objectValue
+		std::cout << range << std::endl;
 		ILE("Ordering is not defined for text");
 	default:
 		ILE("Unknown type of column", name);
