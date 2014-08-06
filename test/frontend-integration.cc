@@ -633,19 +633,20 @@ void relation(rasmus::teststream & ts) {
 	ts << "pos_project12" << result(it(""
 "X := rel(tup(b:16, a:true, c:\"\", d:42)) + rel(tup(b:16, a:true, c:\"\", d:43));"
 "|X |+ d,a| = 2", "true"));
+	ts << "pos_project_error13" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ a,b,c,d,d,e) = X |+ a,b,c,d,e", "true"));
+	ts << "pos_project_error14" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ f,e,d,c,b,b) = X |+ b,c,d,e,f", "true"));
+
 	ts << "pos_project_error1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |+ boo", "", true));
 	ts << "pos_project_error2" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |+ abe, kat, baz, boo", "", true));
 	ts << "pos_project_error3" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ a,b,z,c,d) = X", "", true));
 	ts << "pos_project_error4" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ f,g) = X", "", true));
-	ts << "pos_project_error5" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ a,b,c,d,d,e) = X", "", true));
-	ts << "pos_project_error6" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ f,e,d,c,b,b) = X", "", true));
-	ts << "pos_project_error7" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ true) = X", "", true));
-	ts << "pos_project_error8" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ \"a\") = X", "", true));
-	ts << "pos_project_error9" << result(it("X := rel(tup()); (X |+ a) = X", "", true));
-	ts << "pos_project_error10" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ rel(tup())) = X", "", true));
-	ts << "pos_project_error11" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ tup()) = X", "", true));
-	ts << "pos_project_error12" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ 1) = X", "", true));
-	ts << "pos_project_error13" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ \"a\") = X", "", true));
+	ts << "pos_project_error5" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ true) = X", "", true));
+	ts << "pos_project_error6" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ \"a\") = X", "", true));
+	ts << "pos_project_error7" << result(it("X := rel(tup()); (X |+ a) = X", "", true));
+	ts << "pos_project_error8" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ rel(tup())) = X", "", true));
+	ts << "pos_project_error9" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ tup()) = X", "", true));
+	ts << "pos_project_error10" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ 1) = X", "", true));
+	ts << "pos_project_error11" << result(it("X := rel(tup(e:1,d:2,f:3,a:true,c:\"\",b:1)); (X |+ \"a\") = X", "", true));
 	ts << "neg_project1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |- abe,baz = rel(tup(kat: 5))", "true"));
 	ts << "neg_project2" << result(it("(rel(tup(a:1, b:1)) + rel(tup(a:1, b:2))) |- b = rel(tup(a: 1))", "true"));
 	ts << "neg_project3" << result(it("|(rel(tup(a:1, b:1)) + rel(tup(a:1, b:2))) |- a| = 2", "true"));

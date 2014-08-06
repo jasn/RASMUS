@@ -22,6 +22,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <limits>
+#include <string>
+#include <vector>
 
 static const int8_t RM_TRUE = 3;
 static const int8_t RM_FALSE = 0;
@@ -148,6 +150,12 @@ void rm_emitTypeError [[ noreturn ]] (uint32_t start, uint32_t end, uint8_t got,
  * @param expected the number of arguments we expected
  */
 void rm_emitArgCntError [[ noreturn ]] (int32_t start, int32_t end, int16_t got, int16_t expect);
+
+/**
+ * Emit a column name error which says that wantedName does not exist in the given relation
+ */
+void rm_emitColNameError [[noreturn]] (uint32_t begin, uint32_t end, std::string wantedName,
+                                       std::vector<std::pair<std::string, size_t>> schemaNames);
 
 /////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////  relation.cc  //////////////////////////////////////

@@ -21,6 +21,7 @@
 #include <shared/type.hh>
 #include <sstream>
 #include <stdlib/callback.hh>
+#include <vector>
 
 extern "C" {
 using namespace rasmus::stdlib;
@@ -38,5 +39,20 @@ void rm_emitArgCntError [[noreturn]] (int32_t start, int32_t end, int16_t got, i
 	callback->reportError(start, end, ss.str());
 	__builtin_unreachable();
 }
+
+void rm_emitColNameError [[noreturn]] (uint32_t begin, uint32_t end, std::string wantedName,
+									   std::vector<std::pair<std::string, size_t>> schemaNames) {
+	std::stringstream ss;
+	ss << "A column with name " << wantedName << " does not exist in the given schema. Valid column names are: ";
+	for(size_t k = 0; k < schemaNames.size(); k++){
+		ss << schemaNames[k].first;
+		if(k != schemaNames.size() - 1)
+			ss << ", ";
+	}
+	callback->reportError(begin, end, ss.str());
+	__builtin_unreachable();
+}			
+
+
 
 } //extern C

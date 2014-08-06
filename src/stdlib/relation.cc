@@ -435,14 +435,18 @@ void printTupleToStream(rm_object * ptr, std::ostream & out) {
 /**
  * \Brief find the index of the column with name 'name'
  */
-size_t getColumnIndex(Relation * rel, const char * name){
+size_t getColumnIndex(Relation * rel, const char * name, std::pair<uint32_t, uint32_t> range){
 	size_t i;
 	for(i = 0; i < rel->schema->attributes.size(); i++)
 		if(name == rel->schema->attributes[i].name)
 			break;
 
-	if(i == rel->schema->attributes.size())
-		ILE("A column with name", name, "does not exist in the given relation");
+	if(i == rel->schema->attributes.size()){
+		std::stringstream ss;
+		ss << "Could not find a column with name " << name << " in the given relation";
+		callback->reportError(range.first, range.second, ss.str());
+		__builtin_unreachable();
+	}
 
 	return i;
 }
@@ -650,6 +654,10 @@ bool schemaEquals(Schema * l, Schema * r){
 
 }
 
+std::pair<uint32_t, uint32_t> unpackCharRange(uint64_t in){
+	return std::pair<uint32_t, uint32_t>(in & 0xffffffff, in >> 32);
+}
+
 
 } //namespace stdlib
 } //namespace rasmus
@@ -758,8 +766,9 @@ rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs) {
 		if(l->schema->attributes[l_index].name ==
 		   r->schema->attributes[r_index].name){
 			if(l->schema->attributes[l_index].type !=
-			   r->schema->attributes[r_index].type)
+			   r->schema->attributes[r_index].type){
 				ILE("The column", l->schema->attributes[l_index].name, "has different types in each relation!");
+			}
 			lsi.push_back(l_index);
 			rsi.push_back(r_index);
 			i++;
@@ -1040,8 +1049,8 @@ rm_object * rm_selectRel(rm_object * rel_, rm_object * func) {
  * according to the given list of names
  * \Note duplicates must be removed
  */
-rm_object * rm_projectPlusRel(rm_object * rel_, uint32_t name_count, const char ** names) {
-	
+rm_object * rm_projectPlusRel(rm_object * rel_, uint32_t name_count, const char ** names, uint64_t range) {
+
 	if(rel_->type != LType::relation)
         ILE("Called with arguments of the wrong type");
 
@@ -1057,21 +1066,31 @@ rm_object * rm_projectPlusRel(rm_object * rel_, uint32_t name_count, const char 
 		inputNames.push_back(names[i]);
 	for(size_t i = 0; i < rel->schema->attributes.size(); i++)
 		schemaNames.emplace_back(rel->schema->attributes[i].name, i);
+
 	std::sort(inputNames.begin(), inputNames.end());
+	inputNames.erase(
+		std::unique(inputNames.begin(), inputNames.end()),
+		inputNames.end());
 	std::sort(schemaNames.begin(), schemaNames.end());
 
-	std::vector<size_t> indices;
-	if(inputNames.size() > schemaNames.size())
-		ILE("The relation does not have that many columns!");
+	if(inputNames.size() > schemaNames.size()){
+		std::stringstream ss;
+		ss << inputNames.size() << (inputNames.size() == 1 ? " column name was" : " column names were") << " given, but the relation only contains " << schemaNames.size() << " column" << (schemaNames.size() == 1 ? "" : "s");
+		callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second, ss.str());
+		__builtin_unreachable();
+	}
 
+	std::vector<size_t> indices;
 	for(size_t i = 0, j = 0; i < schemaNames.size() && j < inputNames.size(); i++){
 		if(schemaNames[i].first == inputNames[j]){
 			indices.push_back(schemaNames[i].second);
 			j++;
-		}
+		}else if(inputNames[j] < schemaNames[i].first)
+			rm_emitColNameError(unpackCharRange(range).first, unpackCharRange(range).second, inputNames[j], schemaNames);
 	}
+
 	if(indices.size() != inputNames.size())
-		ILE("The relation does not contain all the given columns");
+		rm_emitColNameError(unpackCharRange(range).first, unpackCharRange(range).second, inputNames[inputNames.size() - 1], schemaNames);
 
 	// project the relation onto the found indices
 	RefPtr<Relation> ret = projectByIndices(rel, indices);
@@ -1147,7 +1166,7 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
 
 	schema->attributes = old_rel->schema->attributes;
 
-	if(schema->attributes.size() < name_count)
+	if(schema->attributes.size() < name_count) // TODO use a common method for this and plus project's error
 		ILE("Attempt to change", name_count, "names, but the relation only contains", schema->attributes.size(), "names");
 
 	for(uint32_t i = 0; i < name_count; i++){
@@ -1182,18 +1201,19 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
  * \Brief Finds the maximum value for the given column
  * \Note Ordering is not defined for text
  */
-int64_t rm_maxRel(uint64_t range, rm_object * lhs, const char * name) {
+int64_t rm_maxRel(rm_object * lhs, const char * name, uint64_t range) {
 
 	if(lhs->type != LType::relation)
         ILE("Called with arguments of the wrong type");
 
 	Relation * rel = static_cast<Relation *>(lhs);
-	size_t index = getColumnIndex(rel, name);
+	size_t index = getColumnIndex(rel, name, unpackCharRange(range));
 	bool rel_has_nonnull_values = false;
 
 	AnyValue max;
 	max.type = rel->schema->attributes[index].type;
 
+	std::pair<uint32_t, uint32_t> range_values;
 	switch(max.type){
 	case TInt:
 		max.intValue = std::numeric_limits<int64_t>::min();
@@ -1223,8 +1243,9 @@ int64_t rm_maxRel(uint64_t range, rm_object * lhs, const char * name) {
 
 	case TText:
 		max.type = TInvalid; // prevent freeing of max.objectValue
-		std::cout << range << std::endl;
-		ILE("Ordering is not defined for text");
+		range_values = unpackCharRange(range);
+		callback->reportError(range_values.first, range_values.second, "max() was given a column of type text, but ordering is not defined for text");
+		__builtin_unreachable();
 	default:
 		ILE("Unknown type of column", name);
 	}
@@ -1234,14 +1255,14 @@ int64_t rm_maxRel(uint64_t range, rm_object * lhs, const char * name) {
 /**
  * \Brief Finds the minimum value for the given column
  */
-int64_t rm_minRel(rm_object * lhs, const char * name) {
+int64_t rm_minRel(rm_object * lhs, const char * name, uint64_t range) {
 
 	if(lhs->type != LType::relation)
         ILE("Called with arguments of the wrong type");
 
 	Relation * rel = static_cast<Relation *>(lhs);
 
-	size_t index = getColumnIndex(rel, name);
+	size_t index = getColumnIndex(rel, name, unpackCharRange(range));
 	bool rel_has_nonnull_values = false;
 	
 	AnyValue min;
@@ -1292,13 +1313,13 @@ int64_t rm_minRel(rm_object * lhs, const char * name) {
 /**
  * \Brief Returns the sum of all values for the given column
  */
-int64_t rm_addRel(rm_object * lhs, const char * name) {
+int64_t rm_addRel(rm_object * lhs, const char * name, uint64_t range) {
 
 	if(lhs->type != LType::relation)
         ILE("Called with arguments of the wrong type");
 
 	Relation * rel = static_cast<Relation *>(lhs);
-	size_t index = getColumnIndex(rel, name);
+	size_t index = getColumnIndex(rel, name, unpackCharRange(range));
 
 	if(rel->schema->attributes[index].type != TInt)
 		ILE("Addition is not supported for the type of column", name);
@@ -1313,13 +1334,13 @@ int64_t rm_addRel(rm_object * lhs, const char * name) {
 /**
  * \Brief Returns the product of all values for the given column
  */
-int64_t rm_multRel(rm_object * lhs, const char * name) {
+int64_t rm_multRel(rm_object * lhs, const char * name, uint64_t range) {
 
 	if(lhs->type != LType::relation)
         ILE("Called with arguments of the wrong type");
 
 	Relation * rel = static_cast<Relation *>(lhs);
-	size_t index = getColumnIndex(rel, name);
+	size_t index = getColumnIndex(rel, name, unpackCharRange(range));
 
 	if(rel->schema->attributes[index].type != TInt)
 		ILE("Multiplication is not supported for the type of column", name);
@@ -1334,14 +1355,14 @@ int64_t rm_multRel(rm_object * lhs, const char * name) {
 /**
  * \Brief Return the number of non-null entries in the given column
  */
-int64_t rm_countRel(rm_object * lhs, const char * name) {
+int64_t rm_countRel(rm_object * lhs, const char * name, uint64_t range) {
 
 	if(lhs->type != LType::relation)
         ILE("Called with arguments of the wrong type");
 
 	Relation * rel = static_cast<Relation *>(lhs);
 
-	size_t index = getColumnIndex(rel, name);
+	size_t index = getColumnIndex(rel, name, unpackCharRange(range));
 	int64_t count = 0;
 
 	switch(rel->schema->attributes[index].type){

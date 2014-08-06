@@ -224,13 +224,13 @@ public:
 			{"rm_diffRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
 			{"rm_loadRel", functionType(voidPtrType, {pointerType(int8Type)})},
 			{"rm_saveRel", functionType(voidType, {voidPtrType, pointerType(int8Type)})},
-			{"rm_maxRel", functionType(int64Type, {int64Type, voidPtrType, pointerType(int8Type)})},
-			{"rm_minRel", functionType(int64Type, {voidPtrType, pointerType(int8Type)})},
-			{"rm_addRel", functionType(int64Type, {voidPtrType, pointerType(int8Type)})},
-			{"rm_multRel", functionType(int64Type, {voidPtrType, pointerType(int8Type)})},
-			{"rm_countRel", functionType(int64Type, {voidPtrType, pointerType(int8Type)})},
+			{"rm_maxRel", functionType(int64Type, {voidPtrType, pointerType(int8Type), int64Type})},
+			{"rm_minRel", functionType(int64Type, {voidPtrType, pointerType(int8Type), int64Type})},
+			{"rm_addRel", functionType(int64Type, {voidPtrType, pointerType(int8Type), int64Type})},
+			{"rm_multRel", functionType(int64Type, {voidPtrType, pointerType(int8Type), int64Type})},
+			{"rm_countRel", functionType(int64Type, {voidPtrType, pointerType(int8Type), int64Type})},
 			{"rm_selectRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
-			{"rm_projectPlusRel", functionType(voidPtrType, {voidPtrType, int32Type, pointerType(pointerType(int8Type))})},
+			{"rm_projectPlusRel", functionType(voidPtrType, {voidPtrType, int32Type, pointerType(pointerType(int8Type)), int64Type})},
 			{"rm_renameRel", functionType(voidPtrType, {voidPtrType, int32Type, pointerType(pointerType(int8Type))})},
 			{"rm_projectMinusRel", functionType(voidPtrType, {voidPtrType, int32Type, pointerType(pointerType(int8Type))})},
 			{"rm_substrText", functionType(voidPtrType, {voidPtrType, int64Type, int64Type})},
@@ -1365,49 +1365,53 @@ public:
 			LLVMVal v=castVisit(node->args[0], TRel);
 			OwnedLLVMVal r(builder.CreateCall3(
 								   getStdlibFunc("rm_maxRel"),
-								   packCharRange(node),
 								   v.value, 
-								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code))));
+								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
+								   packCharRange(node)));
 			disown(v, TRel);
 			return LLVMVal(std::move(r));
 		}
 		case TokenType::TK_MIN:
 		{	
 			LLVMVal v=castVisit(node->args[0], TRel);
-			OwnedLLVMVal r(builder.CreateCall2(
+			OwnedLLVMVal r(builder.CreateCall3(
 								   getStdlibFunc("rm_minRel"), 
 								   v.value, 
-								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code))));
+								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
+								   packCharRange(node)));
 			disown(v, TRel);
 			return LLVMVal(std::move(r));
 		}
 		case TokenType::TK_ADD:
 		{	
 			LLVMVal v=castVisit(node->args[0], TRel);
-			OwnedLLVMVal r(builder.CreateCall2(
+			OwnedLLVMVal r(builder.CreateCall3(
 								   getStdlibFunc("rm_addRel"), 
 								   v.value, 
-								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code))));
+								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
+								   packCharRange(node)));
 			disown(v, TRel);
 			return LLVMVal(std::move(r));
 		}
 		case TokenType::TK_MULT:
 		{	
 			LLVMVal v=castVisit(node->args[0], TRel);
-			OwnedLLVMVal r(builder.CreateCall2(
+			OwnedLLVMVal r(builder.CreateCall3(
 								   getStdlibFunc("rm_multRel"), 
 								   v.value, 
-								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code))));
+								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
+								   packCharRange(node)));
 			disown(v, TRel);
 			return LLVMVal(std::move(r));
 		}
 		case TokenType::TK_COUNT:
 		{	
 			LLVMVal v=castVisit(node->args[0], TRel);
-			OwnedLLVMVal r(builder.CreateCall2(
+			OwnedLLVMVal r(builder.CreateCall3(
 								   getStdlibFunc("rm_countRel"), 
 								   v.value, 
-								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code))));
+								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
+								   packCharRange(node)));
 			disown(v, TRel);
 			return LLVMVal(std::move(r));
 		}
@@ -1619,7 +1623,7 @@ public:
 			ret=OwnedLLVMVal(builder.CreateCall3(getStdlibFunc("rm_projectMinusRel"), rel.value, int32(exp->names.size()), names));
 			break;
 		case TokenType::TK_PROJECT_PLUS:
-			ret=OwnedLLVMVal(builder.CreateCall3(getStdlibFunc("rm_projectPlusRel"), rel.value, int32(exp->names.size()), names));
+			ret=OwnedLLVMVal(builder.CreateCall4(getStdlibFunc("rm_projectPlusRel"), rel.value, int32(exp->names.size()), names, packCharRange(exp)));
 			break;
 		default:
 			ICE("Bad project", exp->projectionToken.id, exp->projectionToken, exp);
@@ -1656,7 +1660,7 @@ public:
 					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateMul(lhs.value, rhs.value);
 						}, TInt, TInt, TInt),
-					dCall("rm_joinRel", TRel, TRel, TRel)
+						dCall("rm_joinRel", TRel, TRel, TRel)
 						});
 		case TokenType::TK_MINUS:
 			return binopImpl(node, {

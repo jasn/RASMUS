@@ -151,7 +151,7 @@ public:
 				return;
 			} else {
 				std::stringstream ss;
-				ss << "Unknow variable " << name;
+				ss << "Unknown variable " << name;
 				error->reportError(ss.str(), node->nameToken);
 				return;
 			}
