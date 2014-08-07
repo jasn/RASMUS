@@ -162,7 +162,7 @@ void rm_emitColNameError [[noreturn]] (uint32_t begin, uint32_t end, std::string
 /////////////////////////////////////////////////////////////////////////////////////
 void rm_saveRel(rm_object * o, const char * name);
 
-rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs);
+rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs, uint64_t range);
 
 rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs);
 

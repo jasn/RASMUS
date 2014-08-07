@@ -805,6 +805,25 @@ public:
 	}
 
 	/**
+	 * \brief Declare a typed operation which is a standard library call
+	 * See \ref{dOp}
+	 */
+	template <typename ...T>
+	OpImpl<typename th<T>::t...> dCallR(
+		const char * name, 
+		std::shared_ptr<Node> node, 
+		::Type rtype, 
+		T ... types) {
+		typedef OpImpl<typename th<T>::t...> rt;
+		return rt{rtype, {types...},
+				[name, this, node](typename bwh<T>::t... vals) -> OwnedLLVMVal {
+					return builder.CreateCall(
+						getStdlibFunc(name), 
+						std::vector<Value*>{vals.value..., packCharRange(node)});
+				}};
+	}
+
+	/**
 	 * \brief Declare a typed operation
 	 * \param func The function that exmits code for the operation
 	 * \param rtype The return type of the operation
@@ -1657,10 +1676,10 @@ public:
 						});
 		case TokenType::TK_MUL:
 			return binopImpl(node, {
-					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+					dOpU([this, node](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateMul(lhs.value, rhs.value);
 						}, TInt, TInt, TInt),
-						dCall("rm_joinRel", TRel, TRel, TRel)
+						dCallR("rm_joinRel", node, TRel, TRel, TRel)
 						});
 		case TokenType::TK_MINUS:
 			return binopImpl(node, {

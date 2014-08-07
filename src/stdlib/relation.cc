@@ -733,7 +733,7 @@ rm_object * rm_loadRel(const char * name) {
  * their union to the result-relation
 
  */
-rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs) {
+rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs, uint64_t range) {
 	
 	if(lhs->type != LType::relation || rhs->type != LType::relation)
 		ILE("Called with arguments of the wrong type");
