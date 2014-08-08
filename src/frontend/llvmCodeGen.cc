@@ -231,17 +231,17 @@ public:
 			{"rm_countRel", functionType(int64Type, {voidPtrType, pointerType(int8Type), int64Type})},
 			{"rm_selectRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
 			{"rm_projectPlusRel", functionType(voidPtrType, {voidPtrType, int32Type, pointerType(pointerType(int8Type)), int64Type})},
-			{"rm_renameRel", functionType(voidPtrType, {voidPtrType, int32Type, pointerType(pointerType(int8Type))})},
+			{"rm_renameRel", functionType(voidPtrType, {voidPtrType, int32Type, pointerType(pointerType(int8Type)), int64Type})},
 			{"rm_projectMinusRel", functionType(voidPtrType, {voidPtrType, int32Type, pointerType(pointerType(int8Type))})},
 			{"rm_substrText", functionType(voidPtrType, {voidPtrType, int64Type, int64Type})},
 			{"rm_createFunction", functionType(voidPtrType, {int32Type})},
 			{"rm_loadGlobalAny", functionType(voidType, {int32Type, pointerType(anyRetType)})},
 			{"rm_saveGlobalAny", functionType(voidType, {int32Type, int64Type, int8Type})},
 			{"rm_length", functionType(int64Type, {voidPtrType})},
-			{"rm_tupEntry", functionType(voidType, {voidPtrType, pointerType(int8Type), pointerType(anyRetType)})},
-			{"rm_createTup", functionType(voidPtrType, {int32Type, pointerType(tupleEntryType)})},
+			{"rm_tupEntry", functionType(voidType, {voidPtrType, pointerType(int8Type), pointerType(anyRetType), int64Type})},
+			{"rm_createTup", functionType(voidPtrType, {int32Type, pointerType(tupleEntryType), int64Type})},
 			{"rm_extendTup", functionType(voidPtrType, {voidPtrType, voidPtrType})},
-			{"rm_tupRemove", functionType(voidPtrType, {voidPtrType, pointerType(int8Type)})},
+			{"rm_tupRemove", functionType(voidPtrType, {voidPtrType, pointerType(int8Type), int64Type})},
 			{"rm_tupHasEntry", functionType(int8Type, {voidPtrType, pointerType(int8Type)})},
 			{"rm_relHasEntry", functionType(int8Type, {voidPtrType, pointerType(int8Type)})},
 			{"rm_equalText", functionType(int8Type, {voidPtrType, voidPtrType})},
@@ -1310,7 +1310,8 @@ public:
 			builder.CreateStore(v.type, builder.CreateConstGEP2_32(entries, i, 2)); //type
 		}
 
-		OwnedLLVMVal r(builder.CreateCall2(getStdlibFunc("rm_createTup"), int32(exp->items.size()), entries));
+		OwnedLLVMVal r(builder.CreateCall3(getStdlibFunc("rm_createTup"), int32(exp->items.size()), 
+										   entries, packCharRange(exp)));
 		
 		for (size_t i=0; i < exp->items.size(); ++i)
 			disown(values[i], exp->items[i]->exp->type);
@@ -1577,7 +1578,7 @@ public:
 		}
 		
 		LLVMVal rel=castVisit(exp->lhs, TRel);
-		LLVMVal ret=OwnedLLVMVal(builder.CreateCall3(getStdlibFunc("rm_renameRel"), rel.value, int32(exp->renames.size()), names));
+		LLVMVal ret=OwnedLLVMVal(builder.CreateCall4(getStdlibFunc("rm_renameRel"), rel.value, int32(exp->renames.size()), names, packCharRange(exp)));
 		disown(rel, TRel);
 		return ret;
 
@@ -1587,7 +1588,7 @@ public:
 	LLVMVal visit(std::shared_ptr<DotExp> node) {
 		LLVMVal tup=castVisit(node->lhs, TTup);
 		Value * rv = builder.CreateAlloca(anyRetType);
-		builder.CreateCall3(getStdlibFunc("rm_tupEntry"), tup.value, globalString(node->nameToken), rv);
+		builder.CreateCall4(getStdlibFunc("rm_tupEntry"), tup.value, globalString(node->nameToken), rv, packCharRange(node));
 		
 		OwnedLLVMVal r=cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
 										 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1))),
@@ -1600,7 +1601,8 @@ public:
 	LLVMVal visit(std::shared_ptr<TupMinus> node) {
 		LLVMVal tup=castVisit(node->lhs, TTup);
 
-		OwnedLLVMVal ans(builder.CreateCall2(getStdlibFunc("rm_tupRemove"), tup.value, globalString(node->nameToken)));
+		OwnedLLVMVal ans(builder.CreateCall3(getStdlibFunc("rm_tupRemove"), tup.value, globalString(node->nameToken),
+											 packCharRange(node)));
 		disown(tup, TTup);
 		return LLVMVal(std::move(ans));
 	}

@@ -24,6 +24,7 @@
 #include <limits>
 #include <string>
 #include <vector>
+#include <shared/type.hh>
 
 static const int8_t RM_TRUE = 3;
 static const int8_t RM_FALSE = 0;
@@ -152,10 +153,30 @@ void rm_emitTypeError [[ noreturn ]] (uint32_t start, uint32_t end, uint8_t got,
 void rm_emitArgCntError [[ noreturn ]] (int32_t start, int32_t end, int16_t got, int16_t expect);
 
 /**
- * Emit a column name error which says that wantedName does not exist in the given relation
+ * Emit a column name error which says that wantedName does not exist in the given relation or tuple
  */
 void rm_emitColNameError [[noreturn]] (uint32_t begin, uint32_t end, std::string wantedName,
-                                       std::vector<std::pair<std::string, size_t>> schemaNames);
+									   std::vector<std::string> schemaNames);
+void rm_emitTupColNameError [[noreturn]] (uint32_t begin, uint32_t end, std::string wantedName,
+										  std::vector<std::string> schemaNames);
+
+
+/**
+ * Emit an error because the user requested more colulmns than the relation has
+ */
+void rm_emitColCntError [[noreturn]] (int32_t start, int32_t end, size_t given, size_t max);
+
+/**
+ * Emit an error because e.g. multiplication was attempted on non-integers
+ */
+void rm_emitBadCalcTypeError [[noreturn]] (int32_t start, int32_t end, std::string name,
+										   Type type, std::string calcType);
+
+/**
+ * Emit an error because the schemas in two relations returned by factor were different
+ */
+void rm_emitDiffSchemasError [[noreturn]] (int32_t start, int32_t end, std::string exp_type);
+
 
 /////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////  relation.cc  //////////////////////////////////////
@@ -170,15 +191,15 @@ rm_object * rm_loadRel(const char * name);
 
 rm_object * rm_select(rm_object * rel, rm_object * func);
 
-rm_object * rm_createTup(uint32_t count, TupEntry * entries);
+rm_object * rm_createTup(uint32_t count, TupEntry * entries, int64_t range);
 
 rm_object * rm_extendTup(rm_object * lhs, rm_object * rhs);
 
-rm_object * rm_tupRemove(rm_object * tup, const char * name);
+rm_object * rm_tupRemove(rm_object * tup, const char * name, int64_t range);
 
 uint8_t rm_tupHasEntry(rm_object * tup, const char * name);
 
-void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret);
+void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret, int64_t range);
 
 /////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////  global.cc  //////////////////////////////////////

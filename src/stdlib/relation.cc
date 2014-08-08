@@ -442,10 +442,10 @@ size_t getColumnIndex(Relation * rel, const char * name, std::pair<uint32_t, uin
 			break;
 
 	if(i == rel->schema->attributes.size()){
-		std::stringstream ss;
-		ss << "Could not find a column with name " << name << " in the given relation";
-		callback->reportError(range.first, range.second, ss.str());
-		__builtin_unreachable();
+		std::vector<std::string> arg;
+		for(size_t k = 0; k < rel->schema->attributes.size(); k++)
+			arg.push_back(rel->schema->attributes[k].name);
+		rm_emitColNameError(range.first, range.second, name, arg);
 	}
 
 	return i;
@@ -1073,24 +1073,27 @@ rm_object * rm_projectPlusRel(rm_object * rel_, uint32_t name_count, const char 
 		inputNames.end());
 	std::sort(schemaNames.begin(), schemaNames.end());
 
-	if(inputNames.size() > schemaNames.size()){
-		std::stringstream ss;
-		ss << inputNames.size() << (inputNames.size() == 1 ? " column name was" : " column names were") << " given, but the relation only contains " << schemaNames.size() << " column" << (schemaNames.size() == 1 ? "" : "s");
-		callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second, ss.str());
-		__builtin_unreachable();
-	}
+	if(inputNames.size() > schemaNames.size())
+		rm_emitColCntError(unpackCharRange(range).first, unpackCharRange(range).second, 
+						   inputNames.size(), schemaNames.size());
 
 	std::vector<size_t> indices;
 	for(size_t i = 0, j = 0; i < schemaNames.size() && j < inputNames.size(); i++){
 		if(schemaNames[i].first == inputNames[j]){
 			indices.push_back(schemaNames[i].second);
 			j++;
-		}else if(inputNames[j] < schemaNames[i].first)
-			rm_emitColNameError(unpackCharRange(range).first, unpackCharRange(range).second, inputNames[j], schemaNames);
+		}else if(inputNames[j] < schemaNames[i].first){
+			std::vector<std::string> arg;
+			for(size_t k = 0; k < schemaNames.size(); k++) arg.push_back(schemaNames[k].first);
+			rm_emitColNameError(unpackCharRange(range).first, unpackCharRange(range).second, inputNames[j], arg);
+		}
 	}
 
-	if(indices.size() != inputNames.size())
-		rm_emitColNameError(unpackCharRange(range).first, unpackCharRange(range).second, inputNames[inputNames.size() - 1], schemaNames);
+	if(indices.size() != inputNames.size()){
+		std::vector<std::string> arg;
+		for(size_t k = 0; k < schemaNames.size(); k++) arg.push_back(schemaNames[k].first);
+		rm_emitColNameError(unpackCharRange(range).first, unpackCharRange(range).second, inputNames[inputNames.size() - 1], arg);
+	}
 
 	// project the relation onto the found indices
 	RefPtr<Relation> ret = projectByIndices(rel, indices);
@@ -1145,7 +1148,7 @@ rm_object * rm_projectMinusRel(rm_object * rel_, uint32_t name_count, const char
  * \Brief Replace the names in the relation with a set of replacement names
  * \Note "names" has twice the length of name_count; it holds both the old names and the new ones
  */
-rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** names) {
+rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** names, int64_t range) {
 
 	if(rel->type != LType::relation)
         ILE("Called with arguments of the wrong type");	
@@ -1166,8 +1169,9 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
 
 	schema->attributes = old_rel->schema->attributes;
 
-	if(schema->attributes.size() < name_count) // TODO use a common method for this and plus project's error
-		ILE("Attempt to change", name_count, "names, but the relation only contains", schema->attributes.size(), "names");
+	if(schema->attributes.size() < name_count) 
+		rm_emitColCntError(unpackCharRange(range).first, unpackCharRange(range).second, 
+						   name_count, schema->attributes.size());
 
 	for(uint32_t i = 0; i < name_count; i++){
 		std::string old_name = names[i*2];
@@ -1180,15 +1184,24 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
 				break;
 			}
 		}
-		if(!found) ILE("Schema has no such name", old_name);
+		if(!found){
+			std::vector<std::string> arg;
+			for(size_t k = 0; k < old_rel->schema->attributes.size(); k++)
+				arg.push_back(old_rel->schema->attributes[k].name);
+			rm_emitColNameError(unpackCharRange(range).first, unpackCharRange(range).second, old_name, arg);
+		}
 	}
 
 	// check if we have produced a schema with duplicate names
 	std::set<std::string> schema_names;
-	for(auto attribute : schema->attributes)
-		schema_names.insert(attribute.name);
-	if(schema_names.size() != schema->attributes.size())
-		ILE("The rename operation caused the schema to have duplicate names");
+	for(auto & attribute : schema->attributes)
+		if(!schema_names.insert(attribute.name).second){
+			std::stringstream ss;
+			ss << "The rename operation could not be performed because it would cause the column " 
+			   << attribute.name << " to occur twice";
+			callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second, ss.str());
+			__builtin_unreachable();
+		}
 	
 	for(auto & tuple : relation->tuples)
 		tuple->schema = schema;
@@ -1243,8 +1256,8 @@ int64_t rm_maxRel(rm_object * lhs, const char * name, uint64_t range) {
 
 	case TText:
 		max.type = TInvalid; // prevent freeing of max.objectValue
-		range_values = unpackCharRange(range);
-		callback->reportError(range_values.first, range_values.second, "max() was given a column of type text, but ordering is not defined for text");
+		callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second,
+							  "max() was given a column of type text, but ordering is not defined for text");
 		__builtin_unreachable();
 	default:
 		ILE("Unknown type of column", name);
@@ -1303,7 +1316,9 @@ int64_t rm_minRel(rm_object * lhs, const char * name, uint64_t range) {
 
 	case TText:
 		min.type = TInvalid; // prevent freeing of min.objectValue
-		ILE("Ordering is not defined for text");
+		callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second,
+							  "min() was given a column of type text, but ordering is not defined for text");
+		__builtin_unreachable();
 	default:
 		ILE("Unknown type of column", name);
 	}
@@ -1322,7 +1337,8 @@ int64_t rm_addRel(rm_object * lhs, const char * name, uint64_t range) {
 	size_t index = getColumnIndex(rel, name, unpackCharRange(range));
 
 	if(rel->schema->attributes[index].type != TInt)
-		ILE("Addition is not supported for the type of column", name);
+		rm_emitBadCalcTypeError(unpackCharRange(range).first, unpackCharRange(range).second,
+								name, Type(rel->schema->attributes[index].type), "addition");
 
 	int64_t ret = 0;
 	for(auto tup : rel->tuples)
@@ -1343,7 +1359,8 @@ int64_t rm_multRel(rm_object * lhs, const char * name, uint64_t range) {
 	size_t index = getColumnIndex(rel, name, unpackCharRange(range));
 
 	if(rel->schema->attributes[index].type != TInt)
-		ILE("Multiplication is not supported for the type of column", name);
+		rm_emitBadCalcTypeError(unpackCharRange(range).first, unpackCharRange(range).second,
+								name, Type(rel->schema->attributes[index].type), "multiplication");
 
 	int64_t ret = 1;
 	for(auto tup : rel->tuples)
@@ -1392,7 +1409,7 @@ int64_t rm_countRel(rm_object * lhs, const char * name, uint64_t range) {
 /**
  * \Brief Creates a tuple from the given entries
  */
-rm_object * rm_createTup(uint32_t count, TupEntry * entries) {
+rm_object * rm_createTup(uint32_t count, TupEntry * entries, int64_t range) {
 	RefPtr<Tuple> t = makeRef<Tuple>();
 	
 	RefPtr<Schema> schema = makeRef<Schema>();
@@ -1428,10 +1445,14 @@ rm_object * rm_createTup(uint32_t count, TupEntry * entries) {
 
 	// check if we have produced a schema with duplicate names
 	std::set<std::string> schema_names;
-	for(auto attribute : schema->attributes)
-		schema_names.insert(attribute.name);
-	if(schema_names.size() != schema->attributes.size())
-		ILE("A tuple's schema cannot contain duplicate names");
+	for(auto & attribute : schema->attributes)
+		if(!schema_names.insert(attribute.name).second){
+			std::stringstream ss;
+			ss << "The tuple could not be created because it would cause the column "
+			   << attribute.name << " to occur twice";
+			callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second, ss.str());
+			__builtin_unreachable();
+		}
 
 	return t.unbox();
 }
@@ -1461,7 +1482,7 @@ rm_object * rm_createRel(rm_object * tup) {
  * \Brief Fetch the value given by name from tup
  * \Note the value is saved in ret
  */
-void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret) {
+void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret, int64_t range) {
 
 	if(tup->type != LType::tuple)
         ILE("Called with arguments of the wrong type");
@@ -1474,7 +1495,12 @@ void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret) {
 		if(schema->attributes[i].name == name)
 			break;
 
-	if(i == schema->attributes.size()) ILE("Name", name, "was not found in the tuple's schema");
+	if(i == schema->attributes.size()){
+		std::vector<std::string> arg;
+		for(size_t k = 0; k < schema->attributes.size(); k++)
+			arg.push_back(schema->attributes[k].name);
+		rm_emitTupColNameError(unpackCharRange(range).first, unpackCharRange(range).second, name, arg);
+	}
 	
 	AnyValue val = tuple->values[i];
 	ret->type = val.type;
@@ -1537,7 +1563,7 @@ rm_object * rm_extendTup(rm_object * lhs_, rm_object * rhs_) {
  * \Brief Creates a tuple whose schema does not contain name
  * If the original tuple's schema does not contain name, we error out
  */
-rm_object * rm_tupRemove(rm_object * tup, const char * name) {
+rm_object * rm_tupRemove(rm_object * tup, const char * name, int64_t range) {
 
 	if(tup->type != LType::tuple)
         ILE("Called with arguments of the wrong type");
@@ -1559,7 +1585,12 @@ rm_object * rm_tupRemove(rm_object * tup, const char * name) {
 		new_tup->values.push_back(old_tup->values[i]);
 	}
 
-	if(!found_name) ILE("Name", name, "was not found in the tuple's schema");
+	if(!found_name){
+		std::vector<std::string> arg;
+		for(size_t k = 0; k < old_schema->attributes.size(); k++)
+			arg.push_back(old_schema->attributes[k].name);
+		rm_emitTupColNameError(unpackCharRange(range).first, unpackCharRange(range).second, name, arg);
+	}
 
 	return new_tup.unbox();
 }
@@ -1736,7 +1767,7 @@ uint8_t rm_equalTup(rm_object * lhs, rm_object * rhs) {
 /**
  * \Brief runs 'func' on each tuple in 'rel_' and returns a relation which is the union of the results
  */
-rm_object * rm_forAll(rm_object * rel_, rm_object * func){
+rm_object * rm_forAll(rm_object * rel_, rm_object * func, int64_t range){
 
 	if(rel_->type != LType::relation || func->type != LType::function)
         ILE("Called with arguments of the wrong type");
@@ -1770,7 +1801,7 @@ rm_object * rm_forAll(rm_object * rel_, rm_object * func){
 			ret->schema->attributes = result->schema->attributes;
 			ret_initialized = true;
 		}else if(!schemaEquals(ret->schema.get(), result->schema.get()))
-			ILE("The relations returned must all have identical schemas");
+			rm_emitDiffSchemasError(unpackCharRange(range).first, unpackCharRange(range).second, "forall");
 
 		for(auto & tuple : result->tuples)
 			ret->tuples.push_back(tuple);
@@ -1794,24 +1825,38 @@ rm_object * rm_forAll(rm_object * rel_, rm_object * func){
  */
 rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num_relations, rm_object ** relations, rm_object * func){
 
+	int64_t range = 0; // TODO fix me ILE
+
 	// preliminary checks
 	
 	// when factor is given no columns, it should implicitly use all of them;
 	// this is equivalent to a forall
 	if(num_col_names == 0){
-		if(num_relations != 1)
-			ILE("The forall operator only supports exactly one relation");
+		if(num_relations != 1){
+			std::stringstream ss;
+			ss << "The forall operator can only be used on exactly one relation, but "
+			   << num_relations << " were given.";
+			callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second, ss.str());
+			__builtin_unreachable();
+		}
 
 		if(relations[0]->type != LType::relation)
 			ILE("Called with arguments of the wrong type");
 
-		return rm_forAll(relations[0], func);
+		return rm_forAll(relations[0], func, range);
 	}
 
-	if(num_relations < 1) ILE("No relations were given to factor");
+	if(num_relations < 1){
+		callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second, 
+							  "No relations were given to factor");
+		__builtin_unreachable();
+	}
 	
-	if(num_relations > 32)
-		ILE("It is not possible to factor more than 32 relations at once");
+	if(num_relations > 32){
+		callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second, 
+							  "RASMUS does not currently support factoring more than 32 relations at once");
+		__builtin_unreachable();
+	}
 
 	for(size_t i = 0; i < num_relations; i++)
 		if(relations[i]->type != LType::relation)
@@ -1825,8 +1870,13 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 		names.push_back(col_names[i]);
 
 	std::sort(names.begin(), names.end());
-	if(std::adjacent_find(names.begin(), names.end()) != names.end())
-		ILE("Duplicate column names provided to factor");
+	auto idx = std::adjacent_find(names.begin(), names.end());
+	if(idx != names.end()){
+		std::stringstream ss;
+		ss << "The column with name " << *idx << " was provided more than once to factor";
+		callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second, ss.str());
+		__builtin_unreachable();
+	}
 		
 	// confirm that all the column names exist in all
 	// the relations
@@ -2017,7 +2067,7 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 			ret->schema->attributes = result->schema->attributes;
 			ret_initialized = true;
 		}else if(!schemaEquals(ret->schema.get(), result->schema.get()))
-			ILE("The relations returned must all have identical schemas");
+			rm_emitDiffSchemasError(unpackCharRange(range).first, unpackCharRange(range).second, "factor");
 
 		for(auto & tuple : result->tuples)
 			ret->tuples.push_back(tuple);

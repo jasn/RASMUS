@@ -20,8 +20,8 @@
 #include "lib.h"
 #include <shared/type.hh>
 #include <sstream>
-#include <stdlib/callback.hh>
 #include <vector>
+#include <stdlib/callback.hh>
 
 extern "C" {
 using namespace rasmus::stdlib;
@@ -41,18 +41,64 @@ void rm_emitArgCntError [[noreturn]] (int32_t start, int32_t end, int16_t got, i
 }
 
 void rm_emitColNameError [[noreturn]] (uint32_t begin, uint32_t end, std::string wantedName,
-									   std::vector<std::pair<std::string, size_t>> schemaNames) {
+									   std::vector<std::string> schemaNames) {
 	std::stringstream ss;
-	ss << "A column with name " << wantedName << " does not exist in the given schema. Valid column names are: ";
-	for(size_t k = 0; k < schemaNames.size(); k++){
-		ss << schemaNames[k].first;
-		if(k != schemaNames.size() - 1)
-			ss << ", ";
+	ss << "The given relation's schema does not contain a column named " << wantedName << ". ";
+	if(schemaNames.size() == 0)
+		ss << "The relation's schema has no columns";
+	else {
+		ss << "Valid column names are: ";
+		for(size_t k = 0; k < schemaNames.size(); k++){
+			ss << schemaNames[k];
+			if(k != schemaNames.size() - 1)
+				ss << ", ";
+		}
 	}
 	callback->reportError(begin, end, ss.str());
 	__builtin_unreachable();
 }			
 
+void rm_emitTupColNameError [[noreturn]] (uint32_t begin, uint32_t end, std::string wantedName,
+										  std::vector<std::string> schemaNames) {
+	std::stringstream ss;
+	ss << "The given tuple's schema does not contain a column named " << wantedName << ". ";
+	if(schemaNames.size() == 0)
+		ss << "The tuple has no columns";
+	else {
+		ss << "Valid column names are: ";
+		for(size_t k = 0; k < schemaNames.size(); k++){
+			ss << schemaNames[k];
+			if(k != schemaNames.size() - 1)
+				ss << ", ";
+		}
+	}
+	callback->reportError(begin, end, ss.str());
+	__builtin_unreachable();
+}
+
+void rm_emitDiffSchemasError [[noreturn]] (int32_t start, int32_t end, std::string exp_type){
+	std::stringstream ss;
+	ss << "The right hand side of the " << exp_type << " expression returned relations with different schemas.";
+	callback->reportError(start, end, ss.str());
+	__builtin_unreachable();
+}
+
+
+void rm_emitColCntError [[noreturn]] (int32_t start, int32_t end, size_t given, size_t max) {
+	std::stringstream ss;
+	ss << given << (given == 1 ? " column name was" : " column names were") << " given, but the relation only contains " << max << " column" << (max == 1 ? "" : "s");
+	callback->reportError(start, end, ss.str());
+	__builtin_unreachable();
+}
+
+void rm_emitBadCalcTypeError [[noreturn]] (int32_t start, int32_t end, std::string name,
+										   Type type, std::string calcType) {
+	std::stringstream ss;
+	ss << "The given column " << name << " has type " << type
+	   << " but " << calcType << " is only supported for integers";
+	callback->reportError(start, end, ss.str());
+	__builtin_unreachable();
+}
 
 
 } //extern C
