@@ -219,9 +219,9 @@ public:
 			{"rm_getConstText", functionType(voidPtrType, {pointerType(int8Type)})},
 			{"rm_emitTypeError", functionType(voidType, {int32Type, int32Type, int8Type, int8Type})},
 			{"rm_emitArgCntError", functionType(voidType, {int32Type, int32Type, int16Type, int16Type})},
-			{"rm_unionRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
-			{"rm_joinRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
-			{"rm_diffRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
+			{"rm_unionRel", functionType(voidPtrType, {voidPtrType, voidPtrType, int64Type})},
+			{"rm_joinRel", functionType(voidPtrType, {voidPtrType, voidPtrType, int64Type})},
+			{"rm_diffRel", functionType(voidPtrType, {voidPtrType, voidPtrType, int64Type})},
 			{"rm_loadRel", functionType(voidPtrType, {pointerType(int8Type)})},
 			{"rm_saveRel", functionType(voidType, {voidPtrType, pointerType(int8Type)})},
 			{"rm_maxRel", functionType(int64Type, {voidPtrType, pointerType(int8Type), int64Type})},
@@ -248,7 +248,7 @@ public:
 			{"rm_equalRel", functionType(int8Type, {voidPtrType, voidPtrType})},
 			{"rm_equalTup", functionType(int8Type, {voidPtrType, voidPtrType})},
 			{"rm_createRel", functionType(voidPtrType, {voidPtrType})},
-			{"rm_factorRel", functionType(voidPtrType, {int32Type, pointerType(pointerType(int8Type)), int32Type, pointerType(voidPtrType), voidPtrType})}
+			{"rm_factorRel", functionType(voidPtrType, {int32Type, pointerType(pointerType(int8Type)), int32Type, pointerType(voidPtrType), voidPtrType, int64Type})}
 		};
 
 		for(auto p: fs)
@@ -1188,7 +1188,15 @@ public:
 		}
 
 		LLVMVal func = castVisit(node->exp, TFunc);
-		LLVMVal ret = OwnedLLVMVal(builder.CreateCall5(getStdlibFunc("rm_factorRel"), int32(node->names.size()), names, int32(node->listExps.size()), relations, builder.CreatePointerCast(func.value, voidPtrType)));
+		std::vector<Value *> args;
+		args.push_back(int32(node->names.size()));
+		args.push_back(names);
+		args.push_back(int32(node->listExps.size()));
+		args.push_back(relations);
+		args.push_back(builder.CreatePointerCast(func.value, voidPtrType));
+		args.push_back(packCharRange(node));
+			
+		LLVMVal ret = OwnedLLVMVal(builder.CreateCall(getStdlibFunc("rm_factorRel"), args));
 
 		disown(func, TFunc);
 		for(auto & rel : possibly_owned_relations)
@@ -1674,7 +1682,7 @@ public:
 					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateAdd(lhs.value, rhs.value);
 						}, TInt, TInt, TInt),
-					dCall("rm_unionRel", TRel, TRel, TRel)	
+						dCallR("rm_unionRel", node, TRel, TRel, TRel)	
 						});
 		case TokenType::TK_MUL:
 			return binopImpl(node, {
@@ -1688,7 +1696,7 @@ public:
 					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateSub(lhs.value, rhs.value);
 						}, TInt, TInt, TInt),
-					dCall("rm_diffRel", TRel, TRel, TRel)
+						dCallR("rm_diffRel", node, TRel, TRel, TRel)
 				});
 		case TokenType::TK_DIV:
 			return binopImpl(node, {

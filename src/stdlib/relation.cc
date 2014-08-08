@@ -767,7 +767,14 @@ rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs, uint64_t range) {
 		   r->schema->attributes[r_index].name){
 			if(l->schema->attributes[l_index].type !=
 			   r->schema->attributes[r_index].type){
-				ILE("The column", l->schema->attributes[l_index].name, "has different types in each relation!");
+				std::stringstream ss;
+				ss << "Joining requires that columns with identical names have identical types in both relations. "
+				   << "The column named " << l->schema->attributes[l_index].name
+				   << " has varying types " << l->schema->attributes[l_index].type 
+				   << " and " << r->schema->attributes[r_index].type << ".";
+				callback->reportError(unpackCharRange(range).first, 
+									  unpackCharRange(range).second, ss.str());
+				__builtin_unreachable();
 			}
 			lsi.push_back(l_index);
 			rsi.push_back(r_index);
@@ -849,13 +856,18 @@ rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs, uint64_t range) {
  * If not, throw an error
  * Otherwise return the union of the two relations
  */
-rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
+rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs, int64_t range) {
 
 	if(lhs->type != LType::relation || rhs->type != LType::relation)
 		ILE("Called with arguments of the wrong type");
 
 	Relation * l = static_cast<Relation *>(lhs);
 	Relation * r = static_cast<Relation *>(rhs);
+
+	// ensure schema equality
+	if(l->schema->attributes.size() != r->schema->attributes.size())
+		rm_emitSchemaSizeError(unpackCharRange(range).first, unpackCharRange(range).second, 
+							   l->schema->attributes.size(), r->schema->attributes.size());
 
 	// ensure the left relation is never the smaller one
 	// this will make things more efficient later
@@ -864,10 +876,6 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
 		l = r;
 		r = tmp;
 	}
-	
-	// ensure schema equality
-	if(l->schema->attributes.size() != r->schema->attributes.size()) 
-		ILE("The given schemas are not equal!");
 
 	std::vector<std::pair<std::string, size_t>> l_indices;
 	std::vector<std::pair<std::string, size_t>> r_indices;
@@ -883,11 +891,18 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
 	for(size_t i = 0; i < l->schema->attributes.size(); i++){
 		size_t left_index = l_indices[i].second;
 		size_t right_index = r_indices[i].second;
+
 		if(l->schema->attributes[left_index].name != 
-		   r->schema->attributes[right_index].name || 
-		   l->schema->attributes[left_index].type !=
-		   r->schema->attributes[right_index].type)
-			ILE("The given schemas are not equal!");
+		   r->schema->attributes[right_index].name)
+			rm_emitMissingColError(unpackCharRange(range).first, unpackCharRange(range).second, 
+								   std::min(l->schema->attributes[left_index].name,
+											r->schema->attributes[right_index].name));			
+		else if (l->schema->attributes[left_index].type !=
+				 r->schema->attributes[right_index].type)
+			rm_emitBadColTypeError(unpackCharRange(range).first, unpackCharRange(range).second,
+								   l->schema->attributes[left_index].name,
+								   l->schema->attributes[left_index].type, 
+								   r->schema->attributes[right_index].type);
 	}
 	
 	// build a new relation from lhs
@@ -921,7 +936,7 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs) {
  * Then two sets are created, and their difference
  * is returned.
  */
-rm_object * rm_diffRel(rm_object * lhs, rm_object * rhs) {
+rm_object * rm_diffRel(rm_object * lhs, rm_object * rhs, int64_t range) {
 
 	if(lhs->type != LType::relation || rhs->type != LType::relation)
 		ILE("Called with arguments of the wrong type");
@@ -931,7 +946,8 @@ rm_object * rm_diffRel(rm_object * lhs, rm_object * rhs) {
 
 	// ensure schema equality
 	if(l->schema->attributes.size() != r->schema->attributes.size()) 
-		ILE("The given schemas are not equal!");
+		rm_emitSchemaSizeError(unpackCharRange(range).first, unpackCharRange(range).second, 
+							   l->schema->attributes.size(), r->schema->attributes.size());
 
 	std::vector<std::pair<std::string, size_t>> l_indices;
 	std::vector<std::pair<std::string, size_t>> r_indices;
@@ -949,11 +965,19 @@ rm_object * rm_diffRel(rm_object * lhs, rm_object * rhs) {
 	for(size_t i = 0; i < l->schema->attributes.size(); i++){
 		size_t left_index = l_indices[i].second;
 		size_t right_index = r_indices[i].second;
+
 		if(l->schema->attributes[left_index].name != 
-		   r->schema->attributes[right_index].name || 
-		   l->schema->attributes[left_index].type !=
-		   r->schema->attributes[right_index].type)
-			ILE("The given schemas are not equal!");
+		   r->schema->attributes[right_index].name)
+			rm_emitMissingColError(unpackCharRange(range).first, unpackCharRange(range).second, 
+								   std::min(l->schema->attributes[left_index].name,
+											r->schema->attributes[right_index].name));			
+		else if (l->schema->attributes[left_index].type !=
+				 r->schema->attributes[right_index].type)
+			rm_emitBadColTypeError(unpackCharRange(range).first, unpackCharRange(range).second,
+								   l->schema->attributes[left_index].name,
+								   l->schema->attributes[left_index].type, 
+								   r->schema->attributes[right_index].type);
+
 		common_schema->attributes.push_back(l->schema->attributes[left_index]);
 	}
 
@@ -1198,7 +1222,7 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
 		if(!schema_names.insert(attribute.name).second){
 			std::stringstream ss;
 			ss << "The rename operation could not be performed because it would cause the column " 
-			   << attribute.name << " to occur twice";
+			   << attribute.name << " to occur twice in the resulting relation.";
 			callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second, ss.str());
 			__builtin_unreachable();
 		}
@@ -1257,7 +1281,7 @@ int64_t rm_maxRel(rm_object * lhs, const char * name, uint64_t range) {
 	case TText:
 		max.type = TInvalid; // prevent freeing of max.objectValue
 		callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second,
-							  "max() was given a column of type text, but ordering is not defined for text");
+							  "max() was given a column of type text, but ordering is not defined for text.");
 		__builtin_unreachable();
 	default:
 		ILE("Unknown type of column", name);
@@ -1317,7 +1341,7 @@ int64_t rm_minRel(rm_object * lhs, const char * name, uint64_t range) {
 	case TText:
 		min.type = TInvalid; // prevent freeing of min.objectValue
 		callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second,
-							  "min() was given a column of type text, but ordering is not defined for text");
+							  "min() was given a column of type text, but ordering is not defined for text.");
 		__builtin_unreachable();
 	default:
 		ILE("Unknown type of column", name);
@@ -1449,7 +1473,7 @@ rm_object * rm_createTup(uint32_t count, TupEntry * entries, int64_t range) {
 		if(!schema_names.insert(attribute.name).second){
 			std::stringstream ss;
 			ss << "The tuple could not be created because it would cause the column "
-			   << attribute.name << " to occur twice";
+			   << attribute.name << " to occur twice.";
 			callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second, ss.str());
 			__builtin_unreachable();
 		}
@@ -1801,7 +1825,7 @@ rm_object * rm_forAll(rm_object * rel_, rm_object * func, int64_t range){
 			ret->schema->attributes = result->schema->attributes;
 			ret_initialized = true;
 		}else if(!schemaEquals(ret->schema.get(), result->schema.get()))
-			rm_emitDiffSchemasError(unpackCharRange(range).first, unpackCharRange(range).second, "forall");
+			rm_emitFuncDiffSchemasError(unpackCharRange(range).first, unpackCharRange(range).second, "forall");
 
 		for(auto & tuple : result->tuples)
 			ret->tuples.push_back(tuple);
@@ -1823,12 +1847,10 @@ rm_object * rm_forAll(rm_object * rel_, rm_object * func, int64_t range){
  * Once we have calculated all arguments from all relations, we call 'func' and union the resulting relation into our return-relation
  * Finally, we remove duplicates and return the return-relation
  */
-rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num_relations, rm_object ** relations, rm_object * func){
-
-	int64_t range = 0; // TODO fix me ILE
+rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num_relations, rm_object ** relations, rm_object * func, int64_t range){
 
 	// preliminary checks
-	
+
 	// when factor is given no columns, it should implicitly use all of them;
 	// this is equivalent to a forall
 	if(num_col_names == 0){
@@ -1848,13 +1870,13 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 
 	if(num_relations < 1){
 		callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second, 
-							  "No relations were given to factor");
+							  "No relations were given to factor.");
 		__builtin_unreachable();
 	}
 	
 	if(num_relations > 32){
 		callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second, 
-							  "RASMUS does not currently support factoring more than 32 relations at once");
+							  "RASMUS does not currently support factoring more than 32 relations at once.");
 		__builtin_unreachable();
 	}
 
@@ -1873,7 +1895,7 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 	auto idx = std::adjacent_find(names.begin(), names.end());
 	if(idx != names.end()){
 		std::stringstream ss;
-		ss << "The column with name " << *idx << " was provided more than once to factor";
+		ss << "The column with name " << *idx << " was provided more than once to factor.";
 		callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second, ss.str());
 		__builtin_unreachable();
 	}
@@ -1917,8 +1939,15 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 
 		}
 
-		if(rel_indices[i].size() != names.size())
-			ILE("All of the relations' schemas must contain all the given columns");
+		if(rel_indices[i].size() != names.size()){
+			if(rel_indices[i].size() > names.size()) ILE("Should not happen");
+			std::string missing_col_name = names[rel_indices[i].size()];
+			std::vector<std::string> arg;
+			for(size_t k = 0; k < cur_rel->schema->attributes.size(); k++)
+				arg.push_back(cur_rel->schema->attributes[k].name);
+			rm_factorMissingColError(unpackCharRange(range).first, unpackCharRange(range).second,
+									 missing_col_name, i, arg);
+		}
 	}
 	
 	// ensure that the type of columns in each schema is equal to the others
@@ -1931,8 +1960,17 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 			size_t index1 = rel_indices[0][j];
 			size_t index2 = rel_indices[i][j];
 			if(rel1->schema->attributes[index1].type !=
-			   rel2->schema->attributes[index2].type)
-				ILE("All of the given columns must have equal types in all given relations");
+			   rel2->schema->attributes[index2].type){
+				std::stringstream ss;
+				ss << "Factoring requires each column to have identical types in each relation. "
+				   << "The column named " << rel1->schema->attributes[index1].name
+				   << " has varying types " << rel1->schema->attributes[index1].type 
+				   << " and " << rel2->schema->attributes[index2].type 
+				   << " in relations number 0 and " << i << ".";
+				callback->reportError(unpackCharRange(range).first, 
+									  unpackCharRange(range).second, ss.str());
+				__builtin_unreachable();
+			}
 		}
 	}
 	
@@ -2067,7 +2105,7 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 			ret->schema->attributes = result->schema->attributes;
 			ret_initialized = true;
 		}else if(!schemaEquals(ret->schema.get(), result->schema.get()))
-			rm_emitDiffSchemasError(unpackCharRange(range).first, unpackCharRange(range).second, "factor");
+			rm_emitFuncDiffSchemasError(unpackCharRange(range).first, unpackCharRange(range).second, "factor");
 
 		for(auto & tuple : result->tuples)
 			ret->tuples.push_back(tuple);

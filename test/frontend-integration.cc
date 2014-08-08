@@ -487,7 +487,7 @@ void relation(rasmus::teststream & ts) {
 	ts << "diff_error14" << result(it("(rel(tup(a:1,b:true)) + rel(tup(a:2,b:true)) + rel(tup(a:0,b:false)) + rel(tup(a:99,b:true))) - rel(tup(c:1,b:true))", "", true));
 	ts << "diff_error15" << result(it("(rel(tup(a:1,b:true)) + rel(tup(a:2,b:true)) + rel(tup(a:0,b:false)) + rel(tup(a:99,b:true))) - rel(tup(a:1))", "", true));
 	ts << "diff_error16" << result(it("(rel(tup(a:1,b:true)) + rel(tup(a:2,b:true)) + rel(tup(a:0,b:false)) + rel(tup(a:99,b:true))) - rel(tup(b:true))", "", true));
-	ts << "diff_error17" << result(it("(rel(tup(a:1,b:true)) + rel(tup(a:2,b:true)) + rel(tup(a:0,b:false)) + rel(tup(a:99,b:true))) - rel(tup(a:1,b:true,c:0000))", "", true));
+	ts << "diff_error17" << result(it("(rel(tup(a:1,b:true)) + rel(tup(a:2,b:true)) + rel(tup(a:0,b:false)) + rel(tup(a:99,b:true))) - rel(tup(a:1,b:true,c:0))", "", true));
 	ts << "diff_error18" << result(it("(rel(tup(a:1,b:true)) + rel(tup(a:2,b:true)) + rel(tup(a:0,b:false)) + rel(tup(a:99,b:true))) - rel(tup())", "", true));
 	ts << "diff_error19" << result(it("(rel(tup(a:1,b:true)) + rel(tup(a:2,b:true)) + rel(tup(a:0,b:false)) + rel(tup(a:99,b:true))) - rel(tup(a:true,b:true))", "", true));
 	ts << "diff_error20" << result(it("(rel(tup(a:1,b:true)) + rel(tup(a:2,b:true)) + rel(tup(a:0,b:false)) + rel(tup(a:99,b:true))) - rel(tup(a:1,b:\"foo\"))", "", true));
@@ -607,10 +607,6 @@ void relation(rasmus::teststream & ts) {
 									 "|X ? (X ? (X ? (1)))| = 5", "", true));
 	ts << "select_err22" << result(it("X := rel(tup(a:1,b:2,c:3)) + rel(tup(a:1,b:2,c:4)) + rel(tup(a:0,b:2,c:3)) + rel(tup(a:8,b:1,c:3)) + rel(tup(a:5,b:3,c:2));"
 									 "|X ? (# # #)| = 5", "", true));
-
-
-
-
 	ts << "pos_project1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) |+ abe,baz = rel(tup(abe: 4, baz:2))", "true"));
 	ts << "pos_project2" << result(it("(rel(tup(abe: 4, kat:5, baz:2)) + rel(tup(abe:4, kat:5, baz:3))) |+ abe,kat = rel(tup(abe: 4, kat:5))", "true"));
 	ts << "pos_project3" << result(it("rel(tup(a:1,b:2,c:3,d:true,e:\"\",f:1)) |+ a = rel(tup(a:1))", "true"));
@@ -854,6 +850,7 @@ void relation(rasmus::teststream & ts) {
 	ts << "factor_error13" << result(it("!(rel(tup(a:1,b:2,c:3)))|true : rel(tup())", "", true));
 	ts << "factor_error14" << result(it("!(rel(tup(a:1,b:2,c:3)))|\"a\" : rel(tup())", "", true));
 	ts << "factor_error15" << result(it("!(rel(tup(a:1,b:2,c:3)))|rel(tup()) : rel(tup())", "", true));
+	ts << "factor_error16" << result(it("X := rel(tup(a:1)); Y := rel(tup(a:true)); !(X,Y)|a : rel(tup())", "", true));
 	ts << "forall1" << result(it("|!(rel(tup(a:1)) + rel(tup(a:2)) + rel(tup(a:3)) + rel(tup(a:4)) ) : rel(#)| = 4", "true"));
 	ts << "forall2" << result(it("(!(rel(tup())) : rel(tup())) = one", "true"));
 	ts << "forall3" << result(it(""
