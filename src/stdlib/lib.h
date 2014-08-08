@@ -183,7 +183,7 @@ void rm_emitDiffSchemasError [[noreturn]] (int32_t start, int32_t end, std::stri
 /////////////////////////////////////////////////////////////////////////////////////
 void rm_saveRel(rm_object * o, const char * name);
 
-rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs);
+rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs, uint64_t range);
 
 rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs);
 
