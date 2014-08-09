@@ -433,6 +433,95 @@ void printTupleToStream(rm_object * ptr, std::ostream & out) {
 }
 
 /**
+ * Helper method which prints field to stream
+ * This method is needed for escaping characters in field
+ * as needed for the CSV format
+ */
+void printFieldToStream(std::string field, std::ostream & stream){
+	
+	// TODO implement escaping of double quotes etc. here
+	stream << field;
+}
+
+/**
+ * \Brief Saves a relation to a stream in the CSV format
+ * The format conforms to RFC 4180. Lines are separated by CRLF.
+ * Each field may be escaped by double quotes. In this case, double
+ * quotes inside the field itself are replaced by two double quotes.
+ * The column names and types of the relation are output as the first
+ * line (the header) of the CSV file, with a leading I/T/B specifying
+ * the column type, followed by the column name.
+ */
+void saveCSVRelationToStream(rm_object * o, std::ostream & stream){
+	if(o->type != LType::relation)
+        ILE("Called with arguments of the wrong type");
+
+	Relation * rel = static_cast<Relation *>(o);
+	
+	// print the column names and types to the header of the csv file
+
+	bool first = true;
+	for(auto & attribute : rel->schema->attributes){
+		if(first)
+			first = false;
+		else
+			stream << ",";
+
+		std::stringstream field;
+		switch(attribute.type){
+		case TInt:
+			field << "I ";
+			break;
+		case TBool:
+			field << "B ";
+			break;
+		case TText:
+			field << "T ";
+			break;
+		default:
+			ILE("Unsupported type", attribute.type);
+		}
+		field << attribute.name;
+		printFieldToStream(field.str(), stream);
+	}
+	// we are not using std::endl because of RFC 4180
+	stream << "\r\n"; 
+
+	// print all the rows
+	for(auto & tuple : rel->tuples){
+		first = true;
+		for(auto & val : tuple->values){
+			if(first)
+				first = false;
+			else
+				stream << ",";
+
+			std::stringstream field;
+			switch(val.type){
+			case TInt:
+				printIntToStream(val.intValue, stream);
+				break;
+			case TBool:
+				printBoolToStream(val.boolValue, stream);
+				break;
+			case TText:
+				printFieldToStream(textToString(val.objectValue.getAs<TextBase>()), stream);
+				break;
+			default:
+				ILE("Unsupported type", val.type);
+			}
+		}
+		stream << "\r\n"; 
+	}
+	
+}
+
+void saveCSVRelationToFile(rm_object * rel, const char * name) {
+	std::ofstream file(name);
+	saveCSVRelationToStream(rel, file);
+}
+
+/**
  * \Brief find the index of the column with name 'name'
  */
 size_t getColumnIndex(Relation * rel, const char * name, std::pair<uint32_t, uint32_t> range){

@@ -1188,13 +1188,9 @@ public:
 		}
 
 		LLVMVal func = castVisit(node->exp, TFunc);
-		std::vector<Value *> args;
-		args.push_back(int32(node->names.size()));
-		args.push_back(names);
-		args.push_back(int32(node->listExps.size()));
-		args.push_back(relations);
-		args.push_back(builder.CreatePointerCast(func.value, voidPtrType));
-		args.push_back(packCharRange(node));
+		std::vector<Value *> args = {int32(node->names.size()), names, int32(node->listExps.size()),
+									 relations, builder.CreatePointerCast(func.value, voidPtrType),
+									 packCharRange(node)};
 			
 		LLVMVal ret = OwnedLLVMVal(builder.CreateCall(getStdlibFunc("rm_factorRel"), args));
 

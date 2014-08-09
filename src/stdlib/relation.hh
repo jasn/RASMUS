@@ -105,6 +105,9 @@ void printTupleToStream(rm_object * ptr, std::ostream & out);
 void printBoolToStream(int8_t val, std::ostream & out);
 void printIntToStream(int64_t val, std::ostream & out);
 
+void saveCSVRelationToStream(rm_object * o, std::ostream & stream);
+void saveCSVRelationToFile(rm_object * rel, const char * name);
+
 
 } //namespace stdlib
 } //namespace rasmus

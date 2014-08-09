@@ -87,7 +87,8 @@ void rm_emitTupColNameError [[noreturn]] (uint32_t begin, uint32_t end, std::str
 
 void rm_emitFuncDiffSchemasError [[noreturn]] (int32_t start, int32_t end, std::string exp_type){
 	std::stringstream ss;
-	ss << "The right hand side of the " << exp_type << " expression returned relations with different schemas.";
+	ss << "The subrelations returned by the " << exp_type
+	   << " expression have schemas which are different from each other.";
 	callback->reportError(start, end, ss.str());
 	__builtin_unreachable();
 }
