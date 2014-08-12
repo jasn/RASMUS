@@ -20,6 +20,7 @@
 #include "lib.h"
 #include <shared/type.hh>
 #include <sstream>
+#include <iostream>
 #include <vector>
 #include <stdlib/callback.hh>
 
@@ -139,6 +140,14 @@ void rm_emitBadColTypeError [[noreturn]] (int32_t start, int32_t end, std::strin
 	   << t2 << ".";
 	callback->reportError(start, end, ss.str());
 	__builtin_unreachable();
+}
+
+void rm_emitBadCSVFormatError [[noreturn]] () {
+	std::cerr << "The first row in the given CSV file could not be parsed "
+			  << "because its format is wrong. It is expected that each "
+			  << "field in the first row begins with I/T/B followed by a "
+			  << "space, to indicate the column type." << std::endl;
+	exit(EXIT_FAILURE);
 }
 
 

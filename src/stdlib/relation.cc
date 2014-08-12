@@ -15,7 +15,7 @@
 // License for more details.
 // 
 // You should have received a copy of the GNU Lesser General Public License
-// along with pyRASMUS.  If not, see <http://www.gnu.org/licensgges/>
+// along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 
 #include <iostream>
 #include <vector>
@@ -50,6 +50,14 @@ size_t utf8strlen(std::string str){
 	return len;
 }
 
+void escapeNewlines(std::string & text){
+	size_t sp = 0;
+	while((sp = text.find('\n')) != std::string::npos){
+		text.replace(sp, 1, "\\n");
+		sp += 2; // strlen("\\n")
+	}
+}
+
 int rm_itemWidth(AnyValue av){
 	std::string str;
 	std::wstring widestr;
@@ -61,7 +69,11 @@ int rm_itemWidth(AnyValue av){
 		if(av.intValue == RM_NULLINT) return 5; // strlen("?-Int")
 		else return std::to_string(av.intValue).size();
 	case TText:
-		return utf8strlen(textToString(av.objectValue.getAs<TextBase>()));
+	{
+		std::string str = textToString(av.objectValue.getAs<TextBase>());
+		escapeNewlines(str);
+		return utf8strlen(str);
+	}
 	default:
 		ILE("Unhandled type");
 	}
@@ -180,9 +192,13 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
 					printBoolToStream(value.boolValue, out);
 					break;
 				case TText:
+				{
 					out << ' ' << std::left << std::setw(widths[i]);
-					out << textToString(value.objectValue.getAs<TextBase>());
+					std::string text = textToString(value.objectValue.getAs<TextBase>());
+					escapeNewlines(text);
+					out << text;
 					break;
+				}
 				default:
 					ILE("Unhandled type", value.type);
 				}
@@ -258,6 +274,18 @@ void saveRelationToStream(rm_object * o, std::ostream & outFile){
 	}
 	
 }	
+
+/**
+ * \Brief converts text to a RASMUS boolean
+ */
+int8_t rm_textToBool(std::string & text){
+	if(text == "false")
+		return RM_FALSE;
+	else if(text == "?-Bool")
+		return RM_NULLBOOL;
+	else
+		return RM_TRUE;
+}
 
 /*  parses a relation given by an input stream and returns 
 	it. The format is as given in the RASMUS user manual. 
@@ -341,7 +369,7 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 				break;
 			}
 			case TBool:
-				tuple->values.emplace_back((line != "false") ? RM_TRUE : RM_FALSE);
+				tuple->values.emplace_back(rm_textToBool(line));
 				break;
 			case TText:
 				tuple->values.emplace_back(TText, RefPtr<rm_object>::steal(rm_getConstText(line.c_str())));
@@ -433,14 +461,218 @@ void printTupleToStream(rm_object * ptr, std::ostream & out) {
 }
 
 /**
+ * \Brief Parses input as a CSV file
+ * parseCSV returns a vector containing all the record in the CSV.
+ * Each record contains a number of fields represented as strings.
+ */
+std::vector< std::vector<std::string> > parseCSV(std::string input){
+  
+	std::vector< std::vector<std::string> > ret;
+	if(input.size() == 0)
+		return ret;
+
+	bool more_rows = true;
+	size_t index = 0;
+  
+	while(more_rows){
+	  
+		std::vector<std::string> row;		
+		std::string field = "";
+	
+		for(bool more_fields = true, in_quotes = false; more_fields; index++){
+		  
+			if(index > input.size())
+				ILE("index out of bounds while parsing the CSV file");
+			char c = input[index];
+
+			if(!in_quotes){
+				switch(c){
+				case '\x00':
+					more_fields = false;
+					more_rows = false;
+					row.push_back(std::move(field));
+					break;
+				case '"':
+					in_quotes = true;
+					break;
+				case '\r':
+					if(input[index+1] != '\n'){
+						std::cerr << "Could not parse CSV file because "
+								  << "of an unexpected type of line break." 
+								  << std::endl;
+						exit(EXIT_FAILURE);
+					}
+					index++;
+					// note the fallthrough
+				case '\n':
+					if(index == input.size() - 1)
+						more_rows = false;
+					row.push_back(std::move(field));
+					more_fields = false;
+					break;
+				case ',':
+					row.push_back(std::move(field));
+					field = "";
+					break;
+				default:
+					field += c;
+					break;
+				}
+			} else { // inside quotes
+				switch(c){
+				case '\x00':
+					std::cerr << "Could not parse CSV file because "
+							  << "a null byte was encountered inside quotes."
+							  << std::endl;
+					exit(EXIT_FAILURE);
+				case '"':
+					if(input[index+1] == '"'){
+						field += '"';
+						index++;
+					} else {
+						char next = input[index+1];
+						if(next == '\x00' || next == '\n' || next == ',' ||
+						   (next == '\r' && input[index+2] == '\n'))
+							in_quotes = false;
+						else{
+							std::cerr <<  "Could not parse CSV file because "
+									  << "a quoted field contains data outside its quotes."
+									  << std::endl;
+							exit(EXIT_FAILURE);
+						}
+					}
+					break;
+				default:
+					field += c;
+					break;
+				}
+			}
+		}
+
+		if(ret.size() > 0 && ret[0].size() != row.size()){
+			std::cerr << "Could not parse CSV file because one of the records "
+					  << "had a different number of fields compared to the rest "
+					  << "(" << ret[0].size() << " compared to " << row.size() << ")"
+					  << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
+		ret.push_back(std::move(row));
+	}
+
+	return ret;
+}
+
+
+rm_object * parseCSVToRelation(std::vector< std::vector<std::string> > rows){
+	
+	RefPtr<Relation> ret = makeRef<Relation>();
+	RefPtr<Schema> schema = makeRef<Schema>();
+	ret->schema = schema;
+
+	if(rows.size() == 0){
+		return ret.unbox();
+	}
+
+	// parse the header
+	for(auto & field : rows[0]){
+
+		if(field.size() < 2)
+			rm_emitBadCSVFormatError();
+
+		Attribute attribute;
+		attribute.name = field.substr(2, field.size()-2);
+		switch(field[0]){
+		case 'I':
+			attribute.type = TInt;
+			break;
+		case 'T':
+			attribute.type = TText;
+			break;
+		case 'B':
+			attribute.type = TBool;
+			break;
+		default:
+			rm_emitBadCSVFormatError();
+		}
+
+		schema->attributes.push_back(std::move(attribute));
+	}
+
+	// parse the rest of the rows
+	for(size_t i = 1; i < rows.size(); i++){
+		
+		RefPtr<Tuple> tup = makeRef<Tuple>();
+		tup->schema = schema;
+
+		if(schema->attributes.size() != rows[i].size())
+			// should have been caught earlier
+			ILE("Row number", i, "has the wrong number of fields");
+
+		for(size_t j = 0; j < schema->attributes.size(); j++){
+
+			std::string & field = rows[i][j];
+
+			switch(schema->attributes[j].type){
+			case TInt:
+			{
+				std::stringstream iss(field);
+				int64_t value;
+				iss >> value;
+				tup->values.emplace_back(value);
+				break;
+			}
+			case TBool:
+				tup->values.emplace_back(rm_textToBool(field));
+				break;
+			case TText:
+				tup->values.emplace_back(TText, RefPtr<rm_object>::steal(rm_getConstText(field.c_str())));
+				break;
+			default:
+				ILE("Should not happen");
+			}
+		}
+
+		ret->tuples.push_back(std::move(tup));
+	}
+
+	return ret.unbox();
+}
+
+/**
+ * \Brief Loads the CSV file given by name and returns a corresponding relation
+ */
+rm_object * loadRelationFromCSVFile(const char * name) {
+	std::ifstream ifs(name);
+	std::stringstream ss;
+	ss << ifs.rdbuf();
+	std::vector< std::vector<std::string> > parsedCSV = parseCSV(ss.str());
+	return parseCSVToRelation(parsedCSV);
+}
+
+/**
  * Helper method which prints field to stream
- * This method is needed for escaping characters in field
+ * This method is needed for escaping characters in the field
  * as needed for the CSV format
  */
 void printFieldToStream(std::string field, std::ostream & stream){
-	
-	// TODO implement escaping of double quotes etc. here
-	stream << field;
+
+	if(field.find('"') != std::string::npos){
+		std::string escaped;
+		for(size_t i = 0; i < field.size(); i++){
+			if(field[i] == '"')
+				escaped += "\"\"";
+			else
+				escaped += field[i];
+		}
+		stream << '"' << escaped << '"';
+
+	} else if (field.find(',') != std::string::npos ||
+			   field.find("\r") != std::string::npos ||
+			   field.find("\n") != std::string::npos)
+		stream << '"' << field << '"';
+	else
+		stream << field;
 }
 
 /**
