@@ -1454,6 +1454,7 @@ public:
         case TokenType::TK_STDBOOL:
 			return getUndef(TBool);
 		case TokenType::TK_INT:
+		case TokenType::TK_BADINT:
 			return OwnedLLVMVal(int64(atol(node->valueToken.getText(code).c_str())));
 		case TokenType::TK_TEXT: {
 			std::string text=node->valueToken.getText(code);

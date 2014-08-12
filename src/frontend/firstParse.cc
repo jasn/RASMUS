@@ -358,6 +358,12 @@ public:
         case TokenType::TK_STDINT:
 			node->type = TInt;
 			break;
+		case TokenType::TK_BADINT:
+			error->reportWarning(
+				"Integers should not start with 0 (we do not support octals)",
+				node->valueToken);
+			node->type = TInt;
+			break;
 		case TokenType::TK_INT:
 			//TODO Validate the integer and check its range
             //atoi(code->code.substr(node->valueToken.start, node->valueToken.length).c_str());

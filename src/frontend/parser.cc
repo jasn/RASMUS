@@ -396,6 +396,7 @@ public:
 		case TokenType::TK_STDINT:
 		case TokenType::TK_STDTEXT:
 		case TokenType::TK_TEXT:
+		case TokenType::TK_BADINT:
 		case TokenType::TK_INT:
 		case TokenType::TK_TRUE:
 		case TokenType::TK_FALSE:

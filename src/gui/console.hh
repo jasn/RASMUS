@@ -2,6 +2,7 @@
 #define __SRC_GUI_CONSOLE_H__
 
 #include <QPlainTextEdit>
+#include <vector>
 
 class Console: public QPlainTextEdit {
   Q_OBJECT
@@ -14,6 +15,17 @@ public slots:
   void incomplete();
   void complete();
   void display(QString msg);
+
+private:
+
+  void updateHistory();
+  void rewriteCurrentLine();
+  void insertEmptyBlock();
+
+  std::vector<QString> history;
+  size_t currHistoryPosition;
+  bool currentLineInsertedInHistory;
+
 signals:
   
   void run(QString line);
