@@ -462,7 +462,7 @@ void printTupleToStream(rm_object * ptr, std::ostream & out) {
 
 /**
  * \Brief Parses input as a CSV file
- * parseCSV returns a vector containing all the record in the CSV.
+ * parseCSV returns a vector containing all the records in the CSV.
  * Each record contains a number of fields represented as strings.
  */
 std::vector< std::vector<std::string> > parseCSV(std::string input){
@@ -563,7 +563,33 @@ std::vector< std::vector<std::string> > parseCSV(std::string input){
 	return ret;
 }
 
+const uint8_t UNK_TYPE = 0;
+const uint8_t BOOL_TYPE = 1;
+const uint8_t INT_TYPE = 2;
+const uint8_t TEXT_TYPE = 3;
+/**
+ * \Brief returns the field-type of the given field
+ * The types have the values they do because this allows 
+ * us to use logical OR to set column types. E.g. if all
+ * fields we have seen in a column so far are of type BOOL_TYPE
+ * and we see a field of type INT_TYPE, we can OR them, and 
+ * the column must be of type TEXT_TYPE.
+ */
+uint8_t fieldType(std::string field){
+	if(field.empty()) return UNK_TYPE;
+	char* p;
+	strtol(field.c_str(), &p, 10);
+	if(*p == 0) // field is a valid int
+		return INT_TYPE;
+	else if(field == "true" || field == "false" || field == "?-Bool")
+		return BOOL_TYPE;
+	else 
+		return TEXT_TYPE;
+}
 
+/**
+ * \Brief parses the given rows, extracted from a CSV file, into a relation
+ */
 rm_object * parseCSVToRelation(std::vector< std::vector<std::string> > rows){
 	
 	RefPtr<Relation> ret = makeRef<Relation>();
@@ -574,33 +600,65 @@ rm_object * parseCSVToRelation(std::vector< std::vector<std::string> > rows){
 		return ret.unbox();
 	}
 
-	// parse the header
-	for(auto & field : rows[0]){
+	size_t num_fields = rows[0].size();
 
-		if(field.size() < 2)
-			rm_emitBadCSVFormatError();
-
-		Attribute attribute;
-		attribute.name = field.substr(2, field.size()-2);
-		switch(field[0]){
-		case 'I':
-			attribute.type = TInt;
-			break;
-		case 'T':
-			attribute.type = TText;
-			break;
-		case 'B':
-			attribute.type = TBool;
-			break;
-		default:
-			rm_emitBadCSVFormatError();
+	// determine the types of each column by examining
+	// all rows except the first one (since it might be a header)
+	std::vector<uint8_t> types(num_fields, UNK_TYPE);
+	for(size_t i = 1; i < rows.size(); i++){
+		if(rows[i].size() != num_fields)
+			ILE("Unexpected number of fields while parsing CSV");
+		for(size_t j = 0; j < num_fields; j++){
+			std::string & field = rows[i][j];
+			types[j] |= fieldType(field);
 		}
-
-		schema->attributes.push_back(std::move(attribute));
 	}
 
-	// parse the rest of the rows
-	for(size_t i = 1; i < rows.size(); i++){
+	// determine if the first row is a header or a normal row
+	bool first_row_textual = true;
+	bool other_rows_textual = true;
+	for(size_t j = 0; j < num_fields; j++){
+		uint8_t fr_type = fieldType(rows[0][j]);
+		if(fr_type == BOOL_TYPE || fr_type == INT_TYPE)
+			first_row_textual = false;
+		if(types[j] == BOOL_TYPE || types[j] == INT_TYPE)
+			other_rows_textual = false;
+	}
+	// note that if _all_ rows are purely textual,
+	// we assume that the first row is a normal row, not special header
+	bool first_row_header = (first_row_textual && !other_rows_textual);
+
+	// fill in the schema
+	for(size_t i = 0; i < num_fields; i++){
+		Attribute at;
+		switch(types[i]){
+		case BOOL_TYPE:
+			at.type = TBool;
+			break;
+		case INT_TYPE:
+			at.type = TInt;
+			break;
+		case TEXT_TYPE:
+		case UNK_TYPE:
+			at.type = TText;
+			break;
+		default:
+			ILE("Unknown field type for header field number", i);
+		}
+
+		if(first_row_header)
+			at.name = rows[0][i];
+		else {
+			std::stringstream name;
+			name << "column" << i;
+			at.name = name.str();
+		}
+
+		schema->attributes.push_back(std::move(at));
+	}
+	
+	// parse the remaining rows
+	for(size_t i = (first_row_header ? 1 : 0); i < rows.size(); i++){
 		
 		RefPtr<Tuple> tup = makeRef<Tuple>();
 		tup->schema = schema;
@@ -700,6 +758,7 @@ void saveCSVRelationToStream(rm_object * o, std::ostream & stream){
 			stream << ",";
 
 		std::stringstream field;
+		/*
 		switch(attribute.type){
 		case TInt:
 			field << "I ";
@@ -713,6 +772,7 @@ void saveCSVRelationToStream(rm_object * o, std::ostream & stream){
 		default:
 			ILE("Unsupported type", attribute.type);
 		}
+		*/
 		field << attribute.name;
 		printFieldToStream(field.str(), stream);
 	}
