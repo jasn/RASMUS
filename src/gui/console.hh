@@ -26,6 +26,8 @@ private:
   size_t currHistoryPosition;
   bool currentLineInsertedInHistory;
 
+  bool incompleteState;
+
 signals:
   
   void run(QString line);

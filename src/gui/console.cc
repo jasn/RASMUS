@@ -68,7 +68,11 @@ void Console::keyPressEvent(QKeyEvent *e) {
     case Qt::Key_Return:
       if (c.document()->lastBlock().text().size() <= 4) {
 	c.movePosition(QTextCursor::End);
-	insertEmptyBlock();
+	if (!incompleteState) {
+	  insertEmptyBlock();
+	} else {
+	  incomplete();
+	}
       } else {
 	QString tmp = c.document()->lastBlock().text().right(c.document()->lastBlock().text().size() -4);
 	emit run(tmp);
@@ -77,7 +81,6 @@ void Console::keyPressEvent(QKeyEvent *e) {
 	history.push_back(QString::fromStdString(""));
 	
       }
-
       break;
       
     default:
@@ -88,6 +91,7 @@ void Console::keyPressEvent(QKeyEvent *e) {
 }
 
 void Console::incomplete() {
+  incompleteState = true;
   QTextCursor c = textCursor();
   c.movePosition(QTextCursor::End);
   c.insertBlock();
@@ -98,11 +102,13 @@ void Console::incomplete() {
   setCurrentCharFormat(cf);
   c = textCursor();
   c.insertText(" ");
+  c.document()->clearUndoRedoStacks();
   ensureCursorVisible();
 }
 
 void Console::complete() {
   insertEmptyBlock();
+  incompleteState = false;
 }
 
 void Console::insertEmptyBlock() {
@@ -115,6 +121,7 @@ void Console::insertEmptyBlock() {
   setCurrentCharFormat(cf);
   c = textCursor();
   c.insertText(" ");
+  c.document()->clearUndoRedoStacks();
   ensureCursorVisible();
 }
 
@@ -126,5 +133,5 @@ void Console::display(QString block) {
   ensureCursorVisible();
 }
 
-Console::Console(QWidget * parent): QPlainTextEdit(parent), history(std::vector<QString>()), currHistoryPosition(0), currentLineInsertedInHistory(false) {
+Console::Console(QWidget * parent): QPlainTextEdit(parent), history(std::vector<QString>()), currHistoryPosition(0), currentLineInsertedInHistory(false), incompleteState(false) {
 }
