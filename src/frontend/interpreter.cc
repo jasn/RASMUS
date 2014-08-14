@@ -35,8 +35,10 @@
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/ExecutionEngine/JIT.h>
 #include <llvm/ExecutionEngine/MCJIT.h>
+#ifndef _WIN32
 #include <unistd.h>
 #include <dlfcn.h>
+#endif //_WIN32
 #include <stdlib/callback.hh>
 #include <stdlib/text.hh>
 #include <stdlib/relation.hh>
@@ -162,8 +164,10 @@ public:
 		charRanges = makeCharRanges();
 		firstParse = makeFirstParse(error, code, this->callback);
 		astPrinter = makeAstPrinter(code);
+		#ifndef _WIN32
 		// TODO: if this line is removed ./rm does not link, WTF??
 		if (options & 12345) dlopen("monkey.so", 0);
+		#endif //_WIN32
 
 		this->options = options;
 	}
@@ -195,6 +199,12 @@ public:
 			incomplete = "";
 
 			module = new llvm::Module("my cool jit", llvm::getGlobalContext());
+			#ifdef _WIN32
+			//ase x86:     return "i386";
+		  //ase x86_64:  return "x86_64";
+			module->setTargetTriple("i386-pc-win32-elf");
+			#endif //_WIN32
+
 			codeGen = makeLlvmCodeGen(error, code, module,
 									  options & DumpRawFunction,
 									  options & DumpOptFunction);
@@ -202,6 +212,7 @@ public:
 			llvm::Function * f = codeGen->translate(t);
 			
 			std::string ErrStr;
+
 			engine = llvm::EngineBuilder(module).setErrorStr(&ErrStr).setUseMCJIT(true).create();
 			if (!engine) {
 				callback->report(MsgType::error, std::string("Could not create engine: ")+ ErrStr);
