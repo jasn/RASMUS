@@ -39,6 +39,9 @@ class GuiCallBack : public rasmus::frontend::Callback {
 public:
   GuiCallBack(Interpreter * interperter): interperter(interperter) {}
 
+  void environmentChanged(const char * name) override {
+    interperter->environmentChanged(name);
+  }
 
   virtual void report(rf::MsgType type, 
 		      std::shared_ptr<rf::Code> code,
@@ -153,6 +156,10 @@ void Interpreter::run(QString line) {
   } else {
     emit incomplete();
   }
+
+}
+
+void Interpreter::getCurrentEnvironment() {
 
 }
 

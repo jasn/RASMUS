@@ -22,8 +22,10 @@ signals:
   void incomplete();
   void complete();
   void display(QString string);
+  void environmentChanged(const char *name);
 public:
   void doDisplay(QString string);
+  void getCurrentEnvironment();
 private:
   InterpreterPrivate *d_ptr;
 

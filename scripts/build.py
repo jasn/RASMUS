@@ -617,7 +617,6 @@ def build_msvc_winsdk71(config, basedir):
 
 def build_msvc_common(config, basedir):
     version, simple_version = get_version(basedir)
-    build_deplibs(config, basedir)
 
     libdir = os.path.join(basedir, config, 'deplibs')
     qtdir  = os.path.join(basedir, config, 'qt')
@@ -671,7 +670,6 @@ def check_mingw64_cross(config):
 
 def build_mingw64_cross(config, basedir):
     version, simple_version = get_version(basedir)
-    build_deplibs(config, basedir)
 
     libdir = os.path.join(basedir, config, 'deplibs')
     qtdir  = os.path.join(basedir, config, 'qt')
@@ -944,6 +942,7 @@ def main():
     if '-clean' in sys.argv[2:]:
         rmdir(os.path.join(basedir, config))
 
+    mkdir_p(basedir)
     if not os.path.isdir(os.path.join(basedir, "qt")):
         download_tarball(QT_SOURCE['url'], QT_SOURCE['sha1'], basedir, "qt")
 

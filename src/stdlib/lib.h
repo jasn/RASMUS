@@ -232,8 +232,8 @@ void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret, int64_t range
  * @parm id The id of the global to load
  * @param ret Pointer of where to store the result
  */
-void rm_loadGlobalAny(uint32_t id, AnyRet * ret);
-
+//void rm_loadGlobalAny(uint32_t id, AnyRet * ret);
+void rm_loadGlobalAny(const char * name, AnyRet * ret);
 /**
  * save a global to the globals database. 
  *
@@ -241,7 +241,7 @@ void rm_loadGlobalAny(uint32_t id, AnyRet * ret);
  * @param value The value of the global casted to a int64_t
  * @param type The Type of the global cast to a int8_t
  */
-void rm_saveGlobalAny(uint32_t id, int64_t value, int8_t type);
+void rm_saveGlobalAny(const char * name, int64_t value, int8_t type);
 
 /**
  * clear all storred globals

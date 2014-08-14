@@ -22,7 +22,15 @@ public:
     QObject::connect(interpreter, SIGNAL(incomplete()), ui.console, SLOT(incomplete()));
     QObject::connect(interpreter, SIGNAL(complete()), ui.console, SLOT(complete()));
     QObject::connect(interpreter, SIGNAL(display(QString)), ui.console, SLOT(display(QString)));
+
+    //QObject::connect(Interpreter, SIGNAL(environmentChange), ui, SLOT(environmentChange());
     ui.console->complete();
+  }
+
+public slots:
+
+  void environmentChange() {
+      
   }
 
 };

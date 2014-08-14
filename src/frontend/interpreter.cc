@@ -59,6 +59,11 @@ class StdlibCallback: public rasmus::stdlib::Callback {
 public:
 	std::shared_ptr<rasmus::frontend::Callback> cb;
 	std::shared_ptr<Code> code;
+
+	void environmentChanged(const char * name) override {
+		cb->environmentChanged(name);
+	}
+
 	StdlibCallback(std::shared_ptr<rasmus::frontend::Callback> cb,
 				   std::shared_ptr<Code> code): cb(cb), code(code) {}
 
