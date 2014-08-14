@@ -10,7 +10,8 @@ find_package(Qt4 4.4.3 COMPONENTS QtCore QtGui)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules/")
 find_package(LLVM REQUIRED)
-find_package(Readline REQUIRED)
+find_package(Readline)
+find_package(PythonInterp REQUIRED)
 
 SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")
 include_directories(src)
@@ -31,6 +32,5 @@ set(CPACK_PACKAGE_VERSION 2.0)
 #dpkg --print-architecture
 set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE amd64)
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.19), llvm-3.4, libqt4-core, libqt4-gui")
-
 
 include(CPack)
