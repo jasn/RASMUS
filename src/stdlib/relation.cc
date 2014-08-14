@@ -757,24 +757,7 @@ void saveCSVRelationToStream(rm_object * o, std::ostream & stream){
 		else
 			stream << ",";
 
-		std::stringstream field;
-		/*
-		switch(attribute.type){
-		case TInt:
-			field << "I ";
-			break;
-		case TBool:
-			field << "B ";
-			break;
-		case TText:
-			field << "T ";
-			break;
-		default:
-			ILE("Unsupported type", attribute.type);
-		}
-		*/
-		field << attribute.name;
-		printFieldToStream(field.str(), stream);
+		printFieldToStream(attribute.name, stream);
 	}
 	// we are not using std::endl because of RFC 4180
 	stream << "\r\n"; 
@@ -2167,6 +2150,34 @@ uint8_t rm_equalTup(rm_object * lhs, rm_object * rhs) {
 	}
 
 	return RM_TRUE;
+}
+
+/**
+ * \Brief Sorts the relation rel_ by the column given by col_num
+ * If ascending is false, the resulting column has descending order
+ */
+void rm_sortRel(rm_object * rel_, size_t col_num, bool ascending){
+
+	if(rel_->type != LType::relation)
+		ILE("Called with arguments of the wrong type");
+
+	Relation * rel = static_cast<Relation *>(rel_);
+
+	if(col_num >= rel->schema->attributes.size())
+		ILE("The column number to sort by was out of range");
+
+	if(ascending)
+		std::stable_sort(rel->tuples.begin(), rel->tuples.end(),						 
+						 [&](const RefPtr<Tuple> & a,
+							 const RefPtr<Tuple> & b)->bool{
+							 return a->values[col_num] < b->values[col_num];
+						 });		
+	else 
+		std::stable_sort(rel->tuples.begin(), rel->tuples.end(),						 
+						 [&](const RefPtr<Tuple> & a,
+							 const RefPtr<Tuple> & b)->bool{
+							 return b->values[col_num] < a->values[col_num];
+						 });
 }
 
 /**

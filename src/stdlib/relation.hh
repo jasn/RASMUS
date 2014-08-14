@@ -109,7 +109,6 @@ void saveCSVRelationToStream(rm_object * o, std::ostream & stream);
 void saveCSVRelationToFile(rm_object * rel, const char * name);
 rm_object * loadRelationFromCSVFile(const char * name);
 
-
 } //namespace stdlib
 } //namespace rasmus
 
