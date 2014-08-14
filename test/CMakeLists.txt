@@ -1,6 +1,6 @@
 macro(add_unittest NAME)
   add_executable(ut-${NAME} ${NAME}.cc common.hh)
-  target_link_libraries(ut-${NAME} testlib stdlib frontend -pthread)
+  target_link_libraries(ut-${NAME} testlib stdlib frontend)
   set(MTESTS ${ARGV})
   list(REMOVE_AT MTESTS 0)
   foreach(TEST ${MTESTS})
