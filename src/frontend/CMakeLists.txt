@@ -1,6 +1,6 @@
 add_custom_command(
   OUTPUT AST.hh visitor.hh nodetype.hh
-  COMMAND python2 ${CMAKE_SOURCE_DIR}/tools/ASTGen.py ${CMAKE_CURRENT_SOURCE_DIR}/AST.txt 
+  COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/ASTGen.py ${CMAKE_CURRENT_SOURCE_DIR}/AST.txt 
   MAIN_DEPENDENCY AST.txt 
   DEPENDS ${CMAKE_SOURCE_DIR}/tools/ASTGen.py)
 
@@ -33,4 +33,4 @@ add_library(frontend
   tokenizer.cc
 )
 
-target_link_libraries(frontend ${LLVM_LFLAGS} ${LLVM_MODULE_LIBS} -lncurses stdlib)
+target_link_libraries(frontend -L${LLVM_LIBRARY_DIR} ${LLVM_MODULE_LIBS} ${LLVM_LFLAGS} -lm stdlib)
