@@ -148,6 +148,10 @@ Interpreter::~Interpreter() {
   delete d_ptr;
 }
 
+void Interpreter::environmentChanged(const char * name) {
+  emit updateEnvironment(name);
+}
+
 void Interpreter::run(QString line) {
   d_ptr->interpreter->runLine(line.toUtf8().data());
   

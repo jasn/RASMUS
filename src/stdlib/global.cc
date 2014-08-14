@@ -17,11 +17,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #include <cstring>
-#include <callback.hh>
+#include "callback.hh"
 #include <iostream>
 #include <map>
 #include <stdlib/anyvalue.hh>
 #include <vector>
+
 namespace {
 
 using namespace rasmus::stdlib;
@@ -75,7 +76,7 @@ void rm_saveGlobalAny(const char * name, int64_t value, int8_t type) {
 		break;
 	}
 
-	callback.environmentChange(name);
+	callback->environmentChanged(name);
 
 }
 

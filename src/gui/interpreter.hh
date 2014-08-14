@@ -13,6 +13,7 @@ public:
 
   Interpreter(QObject *parent);
   ~Interpreter();
+  void environmentChanged(const char *name);
 
 public slots:
   
@@ -22,7 +23,7 @@ signals:
   void incomplete();
   void complete();
   void display(QString string);
-  void environmentChanged(const char *name);
+  void updateEnvironment(const char * name);
 public:
   void doDisplay(QString string);
   void getCurrentEnvironment();

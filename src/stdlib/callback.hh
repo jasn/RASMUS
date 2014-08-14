@@ -47,7 +47,7 @@ public:
 	
 	virtual void reportError [[noreturn]] (size_t start, size_t end, std::string text) = 0;
 	virtual void reportMessage(std::string text) = 0;
-	virtual void environmentChange(const char * name) {}
+	virtual void environmentChanged(const char * name) {}
 };
 
 extern std::shared_ptr<Callback> callback;
