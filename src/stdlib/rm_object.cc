@@ -31,9 +31,10 @@ namespace rasmus {
 namespace stdlib {
 
 size_t objectCount=0;
-bool debugAllocations=true;
+bool debugAllocations=false;
 
 void reportAllocation(rm_object * ptr) {
+	if (!callback) return;
 	std::stringstream ss;
 	ss << "alloc " << ptr << " of type " << ptr->type;
 	callback->reportMessage(ss.str());
@@ -41,6 +42,7 @@ void reportAllocation(rm_object * ptr) {
 
 
 void reportDeallocation(rm_object * ptr) {
+	if (!callback) return;
 	std::stringstream ss;
 	ss << "dealloc " << ptr << " of type " << ptr->type;
 	callback->reportMessage(ss.str());
