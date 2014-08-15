@@ -3,8 +3,10 @@
 #include <iostream>
 #include <algorithm>
 
+#include <stdlib/relation.hh>
 #include "frontend/callback.hh"
 #include "frontend/interpreter.hh"
+#include <llvm/Support/FileSystem.h>
 
 namespace rf = rasmus::frontend;
 
@@ -117,9 +119,18 @@ public:
     interperter->doDisplay(QString::fromUtf8(ss.str().c_str()));
   }
 
-  virtual void saveRelation(rm_object * o, const char * name) override {}
-  virtual rm_object * loadRelation(const char * name) override { return 0; }
-  virtual bool hasRelation(const char * name) override { return false; }
+  virtual void saveRelation(rm_object * o, const char * name) override {
+    rasmus::stdlib::saveRelationToFile(o, (std::string(name)+".rdb").c_str());
+  }
+
+  virtual rm_object * loadRelation(const char * name) override {
+    rm_object * res = rasmus::stdlib::loadRelationFromFile((std::string(name)+".rdb").c_str());
+    return res;
+  }
+
+  virtual bool hasRelation(const char * name) override { 
+    return llvm::sys::fs::exists(std::string(name)+".rdb");
+  }
 
 private:
   Interpreter * interperter;

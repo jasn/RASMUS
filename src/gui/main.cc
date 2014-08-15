@@ -46,9 +46,6 @@ public slots:
     case TText: //It's a Text
       stringRepresentation.append("Text");
       break;
-    case TRel:
-      stringRepresentation.append("Rel");
-      break;
     case TTup:
       stringRepresentation.append("Tup");
       break;
