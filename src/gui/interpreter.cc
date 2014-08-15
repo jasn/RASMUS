@@ -125,6 +125,7 @@ public:
 
   virtual rm_object * loadRelation(const char * name) override {
     rm_object * res = rasmus::stdlib::loadRelationFromFile((std::string(name)+".rdb").c_str());
+    environmentChanged(name);
     return res;
   }
 

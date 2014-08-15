@@ -22,6 +22,7 @@
 #include <map>
 #include <stdlib/anyvalue.hh>
 #include <vector>
+#include <llvm/Support/FileSystem.h>
 
 namespace {
 
@@ -44,6 +45,12 @@ extern "C" {
 void rm_loadGlobalAny(const char * name, 
 					  AnyRet * ret) {
 
+	// if (!globals.count(name) && llvm::sys::fs::exists(std::string(name)+".rdb")) {
+	// 	rm_object * rel = rm_loadRel(name);
+	// 	AnyValue av(TRel, RefPtr(rel));
+	// 	globals[name] = av;
+	// }
+
 	AnyValue & v = globals[name];
 	ret->type = v.type;
 	switch (v.type) {
@@ -57,7 +64,6 @@ void rm_loadGlobalAny(const char * name,
 		ret->value = reinterpret_cast<int64_t>(v.objectValue.get());
 		break;
 	}
-
 }
 
 
@@ -69,6 +75,11 @@ void rm_saveGlobalAny(const char * name, int64_t value, int8_t type) {
 	case TBool:
 		globals[name] = AnyValue(static_cast<int8_t>(value));
 		break;
+	// case TRel:
+	// 	rm_saveRel(reinterpret_cast<rm_object*>(value), name);
+	// 	globals[name] = AnyValue(TRel, 
+	// 							 RefPtr<rm_object>(reinterpret_cast<rm_object*>(value)));
+	// 	break;
 	default:
 		globals[name] = AnyValue((Type)type, 
 			RefPtr<rm_object>(reinterpret_cast<rm_object*>(value))

@@ -1,10 +1,12 @@
 #include <QApplication>
+#include <QTableView>
 #include <QTextEdit>
 #include "ui_main.h"
 #include <stdlib/lib.h>
 #include <interpreter.hh>
 #include <shared/type.hh>
 #include <iostream>
+#include <relation_model.hh>
 
 class MainWindow : public QMainWindow {
 
@@ -13,13 +15,16 @@ class MainWindow : public QMainWindow {
 public:
   
   Ui::MainWindow ui;
-
+  QTableView *tableView;
   Interpreter *interpreter;
 
-  MainWindow() {
+  MainWindow() : tableView(new QTableView(0)){
     ui.setupUi(this);
     interpreter = new Interpreter(this);
-    
+    tableView->show();
+    this->tableView->setModel(new RelationModel("Runde1"));
+    this->tableView->horizontalHeader()->show();
+
     QObject::connect(ui.console, SIGNAL(run(QString)), interpreter, SLOT(run(QString)));
     QObject::connect(interpreter, SIGNAL(incomplete()), ui.console, SLOT(incomplete()));
     QObject::connect(interpreter, SIGNAL(complete()), ui.console, SLOT(complete()));
@@ -53,7 +58,9 @@ public slots:
       stringRepresentation.append("Func");
       break;
     default:
-      stringRepresentation.append("Unknown");
+      // due to strange loading of relations, this is in fact a relation or an error.
+      stringRepresentation.append("Rel");
+      // update the tableview window.      
     }
 
     QList<QTreeWidgetItem*> items(ui.environment->findItems(name, Qt::MatchFlag::MatchExactly, 0));
