@@ -31,6 +31,7 @@ private:
 signals:
   
   void run(QString line);
+  void cancel();
 
 };
 

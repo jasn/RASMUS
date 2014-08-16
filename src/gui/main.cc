@@ -30,6 +30,9 @@ public:
     QObject::connect(interpreter, SIGNAL(complete()), ui.console, SLOT(complete()));
     QObject::connect(interpreter, SIGNAL(display(QString)), ui.console, SLOT(display(QString)));
 
+    QObject::connect(ui.console, SIGNAL(cancel()),
+		     interpreter, SLOT(cancel()));
+
     QObject::connect(ui.environment, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)),
 		     this, SLOT(environmentVariableDoubleClicked(QTreeWidgetItem *, int)));
 
@@ -47,7 +50,9 @@ public slots:
 	tableViews[qtwi]->show();
       } else {
 	QTableView *tblView = new QTableView(0);
+	tblView->setSortingEnabled(true);
 	tblView->show();
+	
 	tblView->setModel(new RelationModel(qtwi->text(0).toStdString().c_str()));
 	tableViews[qtwi] = tblView;
       }
@@ -78,7 +83,6 @@ public slots:
     default:
       // due to strange loading of relations, this is in fact a relation or an error.
       stringRepresentation.append("Rel");
-      // update the tableview window.      
     }
 
     QList<QTreeWidgetItem*> items(ui.environment->findItems(name, Qt::MatchFlag::MatchExactly, 0));

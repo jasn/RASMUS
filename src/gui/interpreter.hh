@@ -18,6 +18,8 @@ public:
 public slots:
   
   void run(QString line);
+  void cancel();
+
 signals:
   
   void incomplete();

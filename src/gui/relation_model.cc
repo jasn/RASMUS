@@ -25,70 +25,89 @@ int RelationModel::columnCount(const QModelIndex& parent) const {
 
 QVariant RelationModel::data(const QModelIndex& index, int role) const {
   // rasmus::stdlib::Relation* rel = static_cast<rasmus::stdlib::Relation*>(rm_loadRel(relationName.c_str()));
-  if (role == Qt::DisplayRole) {
-    size_t column = index.column();
-    size_t row = index.row();
-    rasmus::stdlib::AnyValue av = rel->tuples[row]->values[column];
-    switch (av.type) {
-    case TInt:
-      return QVariant(static_cast<int>(av.intValue));
+
+  std::string val;
+
+  size_t column = index.column();
+  size_t row = index.row();
+  rasmus::stdlib::AnyValue av = rel->tuples[row]->values[column];
+  switch (av.type) {
+  case TInt: {
+    std::stringstream tmpss;
+    tmpss << av.intValue;
+    val = tmpss.str();
+    break;
+  }
+  case TBool:
+    switch (av.boolValue) {
+    case RM_TRUE:
+      val = "true";
       break;
-    case TBool:
-      switch (av.boolValue) {
-      case RM_TRUE:
-	return QVariant("true");
-      case RM_FALSE:
-	return QVariant("false");
-      case RM_NULLBOOL:
-	return QVariant("?-Bool");
-      default:
-	return QVariant("Unkown (internal error)");
-      }
+    case RM_FALSE:
+      val = "false";
       break;
-    case TText:
-      {
-	std::string str = 
-	  rasmus::stdlib::textToString(av.objectValue.getAs<rasmus::stdlib::TextBase>());
-	return QVariant(str.c_str());
-      }
+    case RM_NULLBOOL:
+      val = "?-Bool";
+      break;
     default:
-      return QVariant("something else");
+      val = "Unknown (internal error)";
     }
-    return QVariant("hmm");
+    break;
+  case TText: {
+      val = rasmus::stdlib::textToString(av.objectValue.getAs<rasmus::stdlib::TextBase>());
+      break;
+    }
+  default:
+    val = "Something else";
   }
 
-  return QString("");
+
+  switch (role) {
+  case Qt::DisplayRole: {
+    return QVariant(QString::fromStdString(val));
+  }
+  case Qt::SizeHintRole: {
+    return QSize(100,30);
+    break;
+  }
+  default:
+    return QVariant();
+  }
+
 }
 
 QVariant RelationModel::headerData(int section, Qt::Orientation orientation, int role) const {
+  if (orientation != Qt::Horizontal) return QVariant("f");
 
-  if (orientation != Qt::Horizontal) return QVariant("");
-  if (role == Qt::SizeHintRole) {
-    return QVariant(QSize(50,20));
+  std::stringstream ss;
+  ss << rel->schema->attributes[section].name;
+  ss << " : ";
+  switch (rel->schema->attributes[section].type) {
+  case TText:
+    ss << "Text";
+    break;
+  case TInt:
+    ss << "Int";
+    break;
+  default:
+    ss << "Unknown";
+    break;
   }
+
+  switch (role) {
+  case Qt::DisplayRole:
+    return QVariant(QString::fromStdString(ss.str()));
+  case Qt::SizeHintRole:
+    return QVariant(QSize(ss.str().length()*5, 25));
+  default:
+    return QVariant("");
+  }
+
+
+
+
 
   // rasmus::stdlib::Relation* rel = static_cast<rasmus::stdlib::Relation*>(rm_loadRel(relationName.c_str()));
-
-  if (section < rel->schema->attributes.size()) {
-    std::stringstream ss;
-    ss << rel->schema->attributes[section].name;
-    ss << " : ";
-    switch (rel->schema->attributes[section].type) {
-    case TText:
-      ss << "Text";
-      break;
-    case TInt:
-      ss << "Int";
-      break;
-    default:
-      ss << "Unknown";
-      break;
-    }
-
-    return QVariant(QString::fromStdString(ss.str()));
-  } else {
-    return QVariant("foo");
-  }
 
 
 }

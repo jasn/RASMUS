@@ -17,8 +17,10 @@ public:
   explicit escaped(const std::string & str): str(str.c_str()) {}
   
   friend std::ostream & operator<<(std::ostream & o, const escaped & e) {
+    // only write the first say 10 lines
+    size_t cnt = 0;
     const char * c=e.str;
-    while (true) {
+    while (cnt < 10) {
       switch (*c) {
       case '<': o << "&lt;"; break;
       case '>': o << "&ge;"; break;
@@ -26,11 +28,14 @@ public:
       case '"': o << "&qout;"; break;
       case '\'': o << "&apos;"; break;
       case '&': o << "&amp;" ; break;
-      case '\n': o << "<br>" ; break;
+      case '\n': o << "<br>" ; ++cnt; break;
       case '\0': return o;
       default: o << *c; break;
       }
       ++c;
+    }
+    if (c != '\0') {
+      o << " ... The rest of the output was skipped<br>";
     }
     return o;
   }  
@@ -162,6 +167,11 @@ Interpreter::~Interpreter() {
 
 void Interpreter::environmentChanged(const char * name) {
   emit updateEnvironment(name);
+}
+
+void Interpreter::cancel() {
+  d_ptr->interpreter->cancel();
+  emit complete();
 }
 
 void Interpreter::run(QString line) {
