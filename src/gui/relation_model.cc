@@ -7,12 +7,15 @@
 #include <stdlib/anyvalue.hh>
 #include <string>
 #include <stdlib/text.hh>
+#include <stdlib/lib.h>
 
 RelationModel::RelationModel(const char * relationName) : relationName(relationName) { 
   rel = static_cast<rasmus::stdlib::Relation*>(rm_loadRel(relationName));
 }
 
-RelationModel::~RelationModel() {}
+RelationModel::~RelationModel() {
+  //rm_free(rel);
+}
 
 int RelationModel::rowCount(const QModelIndex& parent) const {
   return rel->tuples.size();
@@ -25,7 +28,6 @@ int RelationModel::columnCount(const QModelIndex& parent) const {
 
 QVariant RelationModel::data(const QModelIndex& index, int role) const {
   // rasmus::stdlib::Relation* rel = static_cast<rasmus::stdlib::Relation*>(rm_loadRel(relationName.c_str()));
-
   std::string val;
 
   size_t column = index.column();
@@ -106,5 +108,6 @@ QVariant RelationModel::headerData(int section, Qt::Orientation orientation, int
 }
 
 void RelationModel::sort(int column, Qt::SortOrder order) {
-  
+  rm_sortRel(rel, column, order==Qt::AscendingOrder);
+  emit layoutChanged();
 }
