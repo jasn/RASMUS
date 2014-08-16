@@ -5,6 +5,8 @@
 #include <shared/type.hh>
 #include <QSize>
 #include <stdlib/anyvalue.hh>
+#include <string>
+#include <stdlib/text.hh>
 
 RelationModel::RelationModel(const char * relationName) : relationName(relationName) { 
   rel = static_cast<rasmus::stdlib::Relation*>(rm_loadRel(relationName));
@@ -29,18 +31,28 @@ QVariant RelationModel::data(const QModelIndex& index, int role) const {
     rasmus::stdlib::AnyValue av = rel->tuples[row]->values[column];
     switch (av.type) {
     case TInt:
-      return QVariant("int");
+      return QVariant(static_cast<int>(av.intValue));
       break;
     case TBool:
-      return QVariant("bool");
+      switch (av.boolValue) {
+      case RM_TRUE:
+	return QVariant("true");
+      case RM_FALSE:
+	return QVariant("false");
+      case RM_NULLBOOL:
+	return QVariant("?-Bool");
+      default:
+	return QVariant("Unkown (internal error)");
+      }
       break;
     case TText:
-      //return QVariant(QString::fromStdString(textToString(av.objectValue)));
-      return QVariant("text");
+      {
+	std::string str = 
+	  rasmus::stdlib::textToString(av.objectValue.getAs<rasmus::stdlib::TextBase>());
+	return QVariant(str.c_str());
+      }
     default:
       return QVariant("something else");
-      break;
-      
     }
     return QVariant("hmm");
   }
