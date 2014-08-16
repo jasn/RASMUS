@@ -17,22 +17,41 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #include <cstring>
+#include "callback.hh"
 #include <iostream>
+#include <map>
 #include <stdlib/anyvalue.hh>
 #include <vector>
+#include <llvm/Support/FileSystem.h>
+
 namespace {
+
 using namespace rasmus::stdlib;
 
-std::vector<AnyValue> globals;
+struct mystrcmp {
+
+	bool operator() (const char * lhs, const char * rhs) const {
+		return strcmp(lhs, rhs) < 0;
+	}
+
+};
+
+std::map<const char *, AnyValue, mystrcmp> globals;
 
 } //nameless namespace
 
 extern "C" {
 
-
-void rm_loadGlobalAny(uint32_t id, 
+void rm_loadGlobalAny(const char * name, 
 					  AnyRet * ret) {
-	AnyValue & v = globals[id];
+
+	// if (!globals.count(name) && llvm::sys::fs::exists(std::string(name)+".rdb")) {
+	// 	rm_object * rel = rm_loadRel(name);
+	// 	AnyValue av(TRel, RefPtr(rel));
+	// 	globals[name] = av;
+	// }
+
+	AnyValue & v = globals[name];
 	ret->type = v.type;
 	switch (v.type) {
 	case TInt:
@@ -47,23 +66,29 @@ void rm_loadGlobalAny(uint32_t id,
 	}
 }
 
-void rm_saveGlobalAny(uint32_t id, int64_t value, int8_t type) {
-	if (globals.size() <= id) 
-		globals.resize(id*2+10);
-	
+
+void rm_saveGlobalAny(const char * name, int64_t value, int8_t type) {
 	switch (type) {
 	case TInt:
-		globals[id] = AnyValue(value);
+		globals[name] = AnyValue(value);
 		break;
 	case TBool:
-		globals[id] = AnyValue(static_cast<int8_t>(value));
+		globals[name] = AnyValue(static_cast<int8_t>(value));
 		break;
+	// case TRel:
+	// 	rm_saveRel(reinterpret_cast<rm_object*>(value), name);
+	// 	globals[name] = AnyValue(TRel, 
+	// 							 RefPtr<rm_object>(reinterpret_cast<rm_object*>(value)));
+	// 	break;
 	default:
-		globals[id] = AnyValue((Type)type, 
+		globals[name] = AnyValue((Type)type, 
 			RefPtr<rm_object>(reinterpret_cast<rm_object*>(value))
 				);
 		break;
-	}	
+	}
+
+	callback->environmentChanged(name);
+
 }
 
 void rm_clearGlobals() {

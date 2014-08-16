@@ -3,8 +3,10 @@
 #include <iostream>
 #include <algorithm>
 
+#include <stdlib/relation.hh>
 #include "frontend/callback.hh"
 #include "frontend/interpreter.hh"
+#include <llvm/Support/FileSystem.h>
 
 namespace rf = rasmus::frontend;
 
@@ -15,8 +17,10 @@ public:
   explicit escaped(const std::string & str): str(str.c_str()) {}
   
   friend std::ostream & operator<<(std::ostream & o, const escaped & e) {
+    // only write the first say 10 lines
+    size_t cnt = 0;
     const char * c=e.str;
-    while (true) {
+    while (cnt < 10) {
       switch (*c) {
       case '<': o << "&lt;"; break;
       case '>': o << "&ge;"; break;
@@ -24,11 +28,14 @@ public:
       case '"': o << "&qout;"; break;
       case '\'': o << "&apos;"; break;
       case '&': o << "&amp;" ; break;
-      case '\n': o << "<br>" ; break;
+      case '\n': o << "<br>" ; ++cnt; break;
       case '\0': return o;
       default: o << *c; break;
       }
       ++c;
+    }
+    if (c != '\0') {
+      o << " ... The rest of the output was skipped<br>";
     }
     return o;
   }  
@@ -39,6 +46,9 @@ class GuiCallBack : public rasmus::frontend::Callback {
 public:
   GuiCallBack(Interpreter * interperter): interperter(interperter) {}
 
+  void environmentChanged(const char * name) override {
+    interperter->environmentChanged(name);
+  }
 
   virtual void report(rf::MsgType type, 
 		      std::shared_ptr<rf::Code> code,
@@ -114,9 +124,19 @@ public:
     interperter->doDisplay(QString::fromUtf8(ss.str().c_str()));
   }
 
-  virtual void saveRelation(rm_object * o, const char * name) override {}
-  virtual rm_object * loadRelation(const char * name) override { return 0; }
-  virtual bool hasRelation(const char * name) override { return false; }
+  virtual void saveRelation(rm_object * o, const char * name) override {
+    rasmus::stdlib::saveRelationToFile(o, (std::string(name)+".rdb").c_str());
+  }
+
+  virtual rm_object * loadRelation(const char * name) override {
+    rm_object * res = rasmus::stdlib::loadRelationFromFile((std::string(name)+".rdb").c_str());
+    environmentChanged(name);
+    return res;
+  }
+
+  virtual bool hasRelation(const char * name) override { 
+    return llvm::sys::fs::exists(std::string(name)+".rdb");
+  }
 
 private:
   Interpreter * interperter;
@@ -145,6 +165,15 @@ Interpreter::~Interpreter() {
   delete d_ptr;
 }
 
+void Interpreter::environmentChanged(const char * name) {
+  emit updateEnvironment(name);
+}
+
+void Interpreter::cancel() {
+  d_ptr->interpreter->cancel();
+  emit complete();
+}
+
 void Interpreter::run(QString line) {
   d_ptr->interpreter->runLine(line.toUtf8().data());
   
@@ -153,6 +182,10 @@ void Interpreter::run(QString line) {
   } else {
     emit incomplete();
   }
+
+}
+
+void Interpreter::getCurrentEnvironment() {
 
 }
 

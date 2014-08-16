@@ -49,6 +49,8 @@ public:
 	virtual void saveRelation(rm_object * o, const char * name) = 0;
 	virtual rm_object * loadRelation(const char * name) = 0;
 	virtual bool hasRelation(const char * name) = 0;
+
+	virtual void environmentChanged(const char * name) {}
 };
 
 class TerminalCallback: public Callback {

@@ -235,8 +235,8 @@ public:
 			{"rm_projectMinusRel", functionType(voidPtrType, {voidPtrType, int32Type, pointerType(pointerType(int8Type))})},
 			{"rm_substrText", functionType(voidPtrType, {voidPtrType, int64Type, int64Type})},
 			{"rm_createFunction", functionType(voidPtrType, {int32Type})},
-			{"rm_loadGlobalAny", functionType(voidType, {int32Type, pointerType(anyRetType)})},
-			{"rm_saveGlobalAny", functionType(voidType, {int32Type, int64Type, int8Type})},
+			{"rm_loadGlobalAny", functionType(voidType, {pointerType(int8Type), pointerType(anyRetType)})},
+			{"rm_saveGlobalAny", functionType(voidType, {pointerType(int8Type), int64Type, int8Type})},
 			{"rm_length", functionType(int64Type, {voidPtrType})},
 			{"rm_tupEntry", functionType(voidType, {voidPtrType, pointerType(int8Type), pointerType(anyRetType), int64Type})},
 			{"rm_createTup", functionType(voidPtrType, {int32Type, pointerType(tupleEntryType), int64Type})},
@@ -1031,7 +1031,7 @@ public:
 			Value * rv = builder.CreateAlloca(anyRetType, nullptr, "globalVar");
 			
 			builder.CreateCall2(getStdlibFunc("rm_loadGlobalAny"),
-								int32(st->globalId),
+								globalString(nameToken),
 								rv);
 			
 			return cast(BorrowedLLVMVal(
@@ -1062,7 +1062,7 @@ public:
 		{
 			BorrowedLLVMVal v2 = cast(borrow(val), node->type, TAny, node);
 			builder.CreateCall3(getStdlibFunc("rm_saveGlobalAny"), 
-								int32(node->globalId),
+								globalString(node->nameToken),
 								v2.value,
 								v2.type);
 		}

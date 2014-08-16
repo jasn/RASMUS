@@ -59,6 +59,11 @@ class StdlibCallback: public rasmus::stdlib::Callback {
 public:
 	std::shared_ptr<rasmus::frontend::Callback> cb;
 	std::shared_ptr<Code> code;
+
+	void environmentChanged(const char * name) override {
+		cb->environmentChanged(name);
+	}
+
 	StdlibCallback(std::shared_ptr<rasmus::frontend::Callback> cb,
 				   std::shared_ptr<Code> code): cb(cb), code(code) {}
 
@@ -163,6 +168,12 @@ public:
 		this->options = options;
 	}
 
+	void cancel() {
+		if (incomplete.size() > 0) {
+			incomplete = "";
+		}
+	}
+
 	bool runLine(const std::string & line) override {
 		lexer->index = theCode.size();
 		code->set(theCode + incomplete + line);
@@ -182,7 +193,6 @@ public:
 			
 			theCode = code->code+"\n";
 			incomplete = "";
-
 
 			module = new llvm::Module("my cool jit", llvm::getGlobalContext());
 			codeGen = makeLlvmCodeGen(error, code, module,

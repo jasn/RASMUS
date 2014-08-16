@@ -43,6 +43,16 @@ void Console::keyPressEvent(QKeyEvent *e) {
     if (history.size() == 0) history.push_back(QString::fromStdString(""));
 
     switch (e->key()) {
+    case Qt::Key_Escape:
+      if (incompleteState) {
+	// do stuff.
+	emit cancel();
+      }
+      break;
+    case Qt::Key_Home:
+      c.setPosition(firstInLastBlock);
+      setTextCursor(c);
+      break;
     case Qt::Key_Backspace:
       if (c.positionInBlock() > 4) 
 	QPlainTextEdit::keyPressEvent(e);
