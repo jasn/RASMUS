@@ -103,11 +103,8 @@ QVariant RelationModel::headerData(int section, Qt::Orientation orientation, int
     return QVariant("");
   }
 
+}
 
-
-
-
-  // rasmus::stdlib::Relation* rel = static_cast<rasmus::stdlib::Relation*>(rm_loadRel(relationName.c_str()));
-
-
+void RelationModel::sort(int column, Qt::SortOrder order) {
+  
 }
