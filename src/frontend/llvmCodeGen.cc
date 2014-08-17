@@ -214,6 +214,7 @@ public:
 		std::vector< std::pair<std::string, FunctionType *> > fs =
 		{
 			{"rm_print", functionType(voidType, {int8Type, int64Type})},
+			{"rm_checkAbort", functionType(voidType, {})},
 			{"rm_free", functionType(voidType, {voidPtrType})},
 			{"rm_concatText", functionType(voidPtrType, {voidPtrType, voidPtrType})},
 			{"rm_getConstText", functionType(voidPtrType, {pointerType(int8Type)})},
@@ -1533,7 +1534,10 @@ public:
 
 	/** \brief Codegen for function invocation */
     LLVMVal visit(std::shared_ptr<FuncInvocationExp> node) {
-        FunctionType * ft = funcType(node->args.size());
+    
+		builder.CreateCall(getStdlibFunc("rm_checkAbort")); 
+	
+		FunctionType * ft = funcType(node->args.size());
 		
 		LLVMVal cap=castVisit(node->funcExp, TFunc);
 		Value * capture = builder.CreatePointerCast(cap.value, pointerType(funcBase));

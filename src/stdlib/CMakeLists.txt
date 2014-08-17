@@ -13,6 +13,8 @@ set(LIB_FILES
 	rm_object.hh
 	text.cc
 	text.hh
+	abort.cc
+	abort.hh
 	global.cc)
 
 if (RASMUS_STATIC)

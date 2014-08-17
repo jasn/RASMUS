@@ -250,5 +250,28 @@ void rm_saveGlobalAny(const char * name, int64_t value, int8_t type);
  */
 void rm_clearGlobals();
 
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////  abort.cc  ////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * \brief abort current computation
+ *
+ * This method may be called from another thread
+ */
+void rm_abort();
+
+/**
+ * \brief clear abortion flag
+ *
+ * This method may be called from another thread
+ */
+void rm_clearAbort();
+
+/**
+ * \brief Handle abort if we should
+ */
+void rm_checkAbort();
+
 } //extern C
 #endif //__LIB_H__

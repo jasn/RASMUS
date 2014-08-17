@@ -30,6 +30,7 @@
 #include <stdlib/callback.hh>
 #include <stdlib/anyvalue.hh>
 #include <stdlib/ile.hh>
+#include <stdlib/abort.hh>
 
 namespace {
 using namespace rasmus::stdlib;
@@ -85,6 +86,7 @@ namespace rasmus {
 namespace stdlib {
 
 void printRelationToStream(rm_object * ptr, std::ostream & out) {
+	checkAbort();
 
 	if(ptr->type != LType::relation)
         ILE("Called with arguments of the wrong type");
@@ -179,6 +181,7 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
 
 	} else {
 		for(auto & tuple : relation->tuples){
+			checkAbort();
 			i = 0;
 			out << VER_BAR;
 			for(auto & value : tuple->values){
@@ -230,7 +233,7 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
 	the values of the tuples in the relation.
  */
 void saveRelationToStream(rm_object * o, std::ostream & outFile){
-
+	checkAbort();
 	if(o->type != LType::relation)
         ILE("Called with arguments of the wrong type");
 
@@ -294,7 +297,7 @@ int8_t rm_textToBool(std::string & text){
 	and relations->tuples contains the tuples for the relation
 */
 rm_object * loadRelationFromStream(std::istream & inFile){
-
+	checkAbort();
 	size_t num_columns;
 	RefPtr<Schema> schema;
 
@@ -743,6 +746,7 @@ void printFieldToStream(std::string field, std::ostream & stream){
  * the column type, followed by the column name.
  */
 void saveCSVRelationToStream(rm_object * o, std::ostream & stream){
+	checkAbort();
 	if(o->type != LType::relation)
         ILE("Called with arguments of the wrong type");
 
@@ -821,6 +825,7 @@ size_t getColumnIndex(Relation * rel, const char * name, std::pair<uint32_t, uin
  * a linear sweep through them to remove any duplicates
  */
 void removeDuplicateRows(Relation * rel){
+	checkAbort();
 	std::sort(rel->tuples.begin(), rel->tuples.end(),
 			  [](const RefPtr<Tuple> & l,
 				 const RefPtr<Tuple> & r)->bool{
@@ -842,16 +847,16 @@ void removeDuplicateRows(Relation * rel){
  * \Brief Projects a relation onto the columns numbered in 'indices'
  */
 RefPtr<Relation> projectByIndices(Relation * rel, std::vector<size_t> indices){
-
 	RefPtr<Relation> ret = makeRef<Relation>();
 	RefPtr<Schema> schema = makeRef<Schema>();
 
 	for(size_t index : indices)
 		schema->attributes.push_back(rel->schema->attributes[index]);
 	ret->schema = schema;
-
+	
 	// create new tuples and add them to the new relation
 	for(auto old_tuple : rel->tuples){
+		checkAbort();
 		RefPtr<Tuple> new_tuple = makeRef<Tuple>();
 		new_tuple->schema = schema;
 		for(size_t index : indices)
@@ -884,7 +889,6 @@ Tuple restrict(const RefPtr<Tuple> & orig, const std::vector<size_t> indices){
  * right tuple which are shared
  */
 RefPtr<Tuple> rowUnion(RefPtr<Tuple> left, RefPtr<Tuple> right, std::vector<size_t> rsi){
-
 	// make 'ret' a copy of 'left' and expand it later
 	RefPtr<Tuple> ret = makeRef<Tuple>();
 	RefPtr<Schema> schema = makeRef<Schema>();
@@ -1150,7 +1154,8 @@ rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs, uint64_t range) {
 		else
 			j++;
 	}
-
+	
+	checkAbort();
 	// sort lhs and rhs, respectively, by their restricted tuples
 	std::sort(l->tuples.begin(), l->tuples.end(),
 			  [&](const RefPtr<Tuple> & a,
@@ -1159,6 +1164,7 @@ rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs, uint64_t range) {
 					  restrict(b, lsi);
 			  });
 	
+	checkAbort();
 	std::sort(r->tuples.begin(), r->tuples.end(),
 			  [&](const RefPtr<Tuple> & a,
 				  const RefPtr<Tuple> & b)->bool{
@@ -1184,6 +1190,7 @@ rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs, uint64_t range) {
 	for(size_t l_start = 0, r_start = 0; 
 		l_start < l->tuples.size() && r_start < r->tuples.size(); ){
 		
+		checkAbort();
 		// find the smallest restriction of a pointed-to tuple
 		Tuple smallest = std::min(restrict(l->tuples[l_start], lsi), 
 								  restrict(r->tuples[r_start], rsi));
@@ -1221,7 +1228,7 @@ rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs, uint64_t range) {
  * Otherwise return the union of the two relations
  */
 rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs, int64_t range) {
-
+	checkAbort();
 	if(lhs->type != LType::relation || rhs->type != LType::relation)
 		ILE("Called with arguments of the wrong type");
 
@@ -1277,6 +1284,7 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs, int64_t range) {
 
 	// add all entries from rhs to the relation
 	for(auto & old_tup : r->tuples){
+		checkAbort();
 		RefPtr<Tuple> new_tup = makeRef<Tuple>();
 		new_tup->schema = rel->schema;
 		new_tup->values.resize(l->schema->attributes.size());
@@ -1301,7 +1309,7 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs, int64_t range) {
  * is returned.
  */
 rm_object * rm_diffRel(rm_object * lhs, rm_object * rhs, int64_t range) {
-
+	checkAbort();
 	if(lhs->type != LType::relation || rhs->type != LType::relation)
 		ILE("Called with arguments of the wrong type");
 
@@ -1369,11 +1377,13 @@ rm_object * rm_diffRel(rm_object * lhs, rm_object * rhs, int64_t range) {
 		rs.push_back(std::move(new_tup));
 	}
 
+	checkAbort();
 	std::sort(ls.begin(), ls.end(),
 			  [](const RefPtr<Tuple> & l,
 				 const RefPtr<Tuple> & r)->bool{
 				  return *l < *r;
 			  });
+	checkAbort();
 	std::sort(rs.begin(), rs.end(),
 			  [](const RefPtr<Tuple> & l,
 				 const RefPtr<Tuple> & r)->bool{
@@ -1383,6 +1393,7 @@ rm_object * rm_diffRel(rm_object * lhs, rm_object * rhs, int64_t range) {
 	RefPtr<Relation> ret = makeRef<Relation>();
 	ret->schema = common_schema;
 
+	checkAbort();
 	std::set_difference(ls.begin(), ls.end(), rs.begin(), rs.end(),
 						std::inserter(ret->tuples, ret->tuples.end()),
 						cmpTupPtrs);
@@ -1423,6 +1434,7 @@ rm_object * rm_selectRel(rm_object * rel_, rm_object * func) {
 	ret->schema = schema;
 
 	for(size_t i = 0; i < rel->tuples.size(); i++){
+		checkAbort();
 		f(base, &retval, reinterpret_cast<int64_t>(rel->tuples[i].get()), TTup);
 		if(retval.value == RM_TRUE)
 			ret->tuples.push_back(rel->tuples[i]);
@@ -1438,7 +1450,7 @@ rm_object * rm_selectRel(rm_object * rel_, rm_object * func) {
  * \Note duplicates must be removed
  */
 rm_object * rm_projectPlusRel(rm_object * rel_, uint32_t name_count, const char ** names, uint64_t range) {
-
+	checkAbort();
 	if(rel_->type != LType::relation)
         ILE("Called with arguments of the wrong type");
 
@@ -1494,7 +1506,7 @@ rm_object * rm_projectPlusRel(rm_object * rel_, uint32_t name_count, const char 
 /** \Brief Projects rel into all names except the given set of names
  */
 rm_object * rm_projectMinusRel(rm_object * rel_, uint32_t name_count, const char ** names) {
-
+	checkAbort();
 	if(rel_->type != LType::relation)
         ILE("Called with arguments of the wrong type");
 
@@ -1537,7 +1549,7 @@ rm_object * rm_projectMinusRel(rm_object * rel_, uint32_t name_count, const char
  * \Note "names" has twice the length of name_count; it holds both the old names and the new ones
  */
 rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** names, int64_t range) {
-
+	checkAbort();
 	if(rel->type != LType::relation)
         ILE("Called with arguments of the wrong type");	
 	
@@ -1590,7 +1602,8 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
 			callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second, ss.str());
 			__builtin_unreachable();
 		}
-	
+
+	checkAbort();
 	for(auto & tuple : relation->tuples)
 		tuple->schema = schema;
 
@@ -1603,7 +1616,7 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
  * \Note Ordering is not defined for text
  */
 int64_t rm_maxRel(rm_object * lhs, const char * name, uint64_t range) {
-
+	checkAbort();
 	if(lhs->type != LType::relation)
         ILE("Called with arguments of the wrong type");
 
@@ -1657,7 +1670,7 @@ int64_t rm_maxRel(rm_object * lhs, const char * name, uint64_t range) {
  * \Brief Finds the minimum value for the given column
  */
 int64_t rm_minRel(rm_object * lhs, const char * name, uint64_t range) {
-
+	checkAbort();
 	if(lhs->type != LType::relation)
         ILE("Called with arguments of the wrong type");
 
@@ -1717,7 +1730,7 @@ int64_t rm_minRel(rm_object * lhs, const char * name, uint64_t range) {
  * \Brief Returns the sum of all values for the given column
  */
 int64_t rm_addRel(rm_object * lhs, const char * name, uint64_t range) {
-
+	checkAbort();
 	if(lhs->type != LType::relation)
         ILE("Called with arguments of the wrong type");
 
@@ -1739,7 +1752,7 @@ int64_t rm_addRel(rm_object * lhs, const char * name, uint64_t range) {
  * \Brief Returns the product of all values for the given column
  */
 int64_t rm_multRel(rm_object * lhs, const char * name, uint64_t range) {
-
+	checkAbort();
 	if(lhs->type != LType::relation)
         ILE("Called with arguments of the wrong type");
 
@@ -1761,7 +1774,7 @@ int64_t rm_multRel(rm_object * lhs, const char * name, uint64_t range) {
  * \Brief Return the number of non-null entries in the given column
  */
 int64_t rm_countRel(rm_object * lhs, const char * name, uint64_t range) {
-
+	checkAbort();
 	if(lhs->type != LType::relation)
         ILE("Called with arguments of the wrong type");
 
@@ -2024,7 +2037,7 @@ uint8_t rm_relHasEntry(rm_object * rel, const char * name) {
  * They must be completely identical; same schema, same number of tuples etc.
  */
 uint8_t rm_equalRel(rm_object * lhs, rm_object * rhs) {
-
+	checkAbort();
 	if(lhs->type != LType::relation || rhs->type != LType::relation)
 		ILE("Called with arguments of the wrong type");
 
@@ -2056,6 +2069,7 @@ uint8_t rm_equalRel(rm_object * lhs, rm_object * rhs) {
 			return RM_FALSE;
 	}
 
+	checkAbort();
 	// sort the rows in each schema before checking equality
 	std::sort(l->tuples.begin(), l->tuples.end(),
 			  [&](const RefPtr<Tuple> & _a,
@@ -2070,6 +2084,8 @@ uint8_t rm_equalRel(rm_object * lhs, rm_object * rhs) {
 				  }
 				  return false;
 			  });
+
+	checkAbort();
 	std::sort(r->tuples.begin(), r->tuples.end(),
 			  [&](const RefPtr<Tuple> & _a,
 				  const RefPtr<Tuple> & _b)->bool{
@@ -2084,7 +2100,8 @@ uint8_t rm_equalRel(rm_object * lhs, rm_object * rhs) {
 				  return false;
 			  });
 
-	// ensure tuple equality
+	checkAbort();
+	// ensure tuple equality	
 	for(size_t i = 0; i < l->tuples.size(); i++){	
 		for(size_t j = 0; j < l->schema->attributes.size(); j++){
 			size_t left_index = l_indices[j].second;
@@ -2184,7 +2201,7 @@ void rm_sortRel(rm_object * rel_, size_t col_num, bool ascending){
  * \Brief runs 'func' on each tuple in 'rel_' and returns a relation which is the union of the results
  */
 rm_object * rm_forAll(rm_object * rel_, rm_object * func, int64_t range){
-
+	checkAbort();
 	if(rel_->type != LType::relation || func->type != LType::function)
         ILE("Called with arguments of the wrong type");
 
@@ -2198,7 +2215,7 @@ rm_object * rm_forAll(rm_object * rel_, rm_object * func, int64_t range){
 	bool ret_initialized = false;
 	
 	for(size_t i = 0; i < rel->tuples.size(); i++){
-
+		checkAbort();
 		Tuple * tup = rel->tuples[i].get();
 		int64_t arg_tup = reinterpret_cast<int64_t>(tup);
 		int64_t arg_rel_as_int = reinterpret_cast<int64_t>(arg_rel.get());
@@ -2240,7 +2257,7 @@ rm_object * rm_forAll(rm_object * rel_, rm_object * func, int64_t range){
  * Finally, we remove duplicates and return the return-relation
  */
 rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num_relations, rm_object ** relations, rm_object * func, int64_t range){
-
+	checkAbort();
 	// preliminary checks
 
 	// when factor is given no columns, it should implicitly use all of them;
@@ -2370,7 +2387,7 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 
 	for(size_t i = 0; i < num_relations; i++){
 		Relation * cur_rel = static_cast<Relation *>(relations[i]);
-
+		checkAbort();
 		std::sort(cur_rel->tuples.begin(), cur_rel->tuples.end(),
 				  [&](const RefPtr<Tuple> & a,
 					  const RefPtr<Tuple> & b)->bool{
@@ -2417,7 +2434,7 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 	std::vector<size_t> row_indices(num_relations, 0);
 	
 	while(1){
-
+		checkAbort();
 		// loop condition: are there rows left to process?
 		bool proceed = false;
 		for(size_t i = 0; i < num_relations; i++){

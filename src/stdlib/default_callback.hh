@@ -73,6 +73,11 @@ public:
 	void reportMessage(std::string text) override {
 		std::cerr << text << std::endl;
 	}
+
+	void reportAbort() override {
+		std::cerr << "Computation aborted" << std::endl;
+		exit(EXIT_FAILURE);
+	}
 };
 
 } //namespace stdlib

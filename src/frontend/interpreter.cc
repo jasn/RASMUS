@@ -117,6 +117,12 @@ public:
 		throw ErrException();
 	}
 	
+	void reportAbort() override {
+		cb->report(MsgType::error, "Aborted");
+		throw ErrException();
+	}
+	
+
 	void reportMessage(std::string text) override {
 		cb->report(MsgType::info, text);
 	}
