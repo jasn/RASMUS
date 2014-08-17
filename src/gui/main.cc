@@ -1,14 +1,19 @@
-#include <QApplication>
-#include <QTableView>
-#include <QTextEdit>
 #include "ui_main.h"
-#include <stdlib/lib.h>
-#include <interpreter.hh>
-#include <shared/type.hh>
-#include <iostream>
-#include <relation_model.hh>
-#include <map>
+#include <QApplication>
+#include <QFileDialog>
+#include <QInputDialog>
+#include <QTableView>
 #include <QTextCodec>
+#include <QTextEdit>
+
+#include <interpreter.hh>
+#include <iostream>
+#include <map>
+#include <relation_model.hh>
+
+#include <shared/type.hh>
+#include <stdlib/lib.h>
+#include <stdlib/relation.hh>
 
 class MainWindow : public QMainWindow {
 
@@ -38,11 +43,37 @@ public:
 
     QObject::connect(interpreter, SIGNAL(updateEnvironment(const char *)), 
 		     this, SLOT(environmentChanged(const char *)));
-    //QObject::connect(Interpreter, SIGNAL(environmentChange), ui, SLOT(environmentChange());
+
+
+    QObject::connect(ui.actionLoad_file, SIGNAL(triggered(bool)),
+		     this, SLOT(loadAction()));
+
     ui.console->complete();
   }
 
 public slots:
+
+  void loadAction() {
+    QString relPath = QFileDialog::getOpenFileName(this, tr("Open File"),
+						   QString(), 
+						   tr("Rasmus Files (*.rdb *.csv)"));
+    if (relPath == "") return;
+
+    QString relName = QInputDialog::getText(this, "Relation name", "Enter a name for the relation");
+
+    if (relName == "") return;
+
+    rm_object *rel;
+
+    if (relPath.endsWith("csv", Qt::CaseInsensitive)) {
+      rel = rasmus::stdlib::loadRelationFromCSVFile(relPath.toStdString().c_str());
+    } else {
+      rel = rasmus::stdlib::loadRelationFromFile(relPath.toStdString().c_str());
+    }
+
+    interpreter->enterRelationToEnvironment(rel, relName.toStdString().c_str());
+
+  }
 
   void environmentVariableDoubleClicked(QTreeWidgetItem * qtwi, int column) {
     if (qtwi->text(1) == "Rel") {

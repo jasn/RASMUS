@@ -169,6 +169,11 @@ void Interpreter::environmentChanged(const char * name) {
   emit updateEnvironment(name);
 }
 
+void Interpreter::enterRelationToEnvironment(rm_object * rel, const char * name) {
+  d_ptr->callback->saveRelation(rel, name);
+  d_ptr->callback->loadRelation(name);
+}
+
 void Interpreter::cancel() {
   d_ptr->interpreter->cancel();
   emit complete();
