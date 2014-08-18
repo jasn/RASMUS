@@ -14,6 +14,7 @@
 #include <shared/type.hh>
 #include <stdlib/lib.h>
 #include <stdlib/relation.hh>
+#include <settings.hh>
 
 class MainWindow : public QMainWindow {
 
@@ -24,6 +25,7 @@ public:
   Ui::MainWindow ui;
   std::map<QTreeWidgetItem *, QTableView*> tableViews;
   Interpreter *interpreter;
+  Settings s;
 
   MainWindow() : tableViews(std::map<QTreeWidgetItem*, QTableView*>()) {
     ui.setupUi(this);
@@ -44,16 +46,15 @@ public:
     QObject::connect(interpreter, SIGNAL(updateEnvironment(const char *)), 
 		     this, SLOT(environmentChanged(const char *)));
 
-
-    QObject::connect(ui.actionLoad_file, SIGNAL(triggered(bool)),
-		     this, SLOT(loadAction()));
-
     ui.console->complete();
   }
 
 public slots:
+  void showPreferences() {
+    s.show();
+  }
 
-  void loadAction() {
+  void importRelation() {
     QString relPath = QFileDialog::getOpenFileName(this, tr("Open File"),
 						   QString(), 
 						   tr("Rasmus Files (*.rdb *.csv)"));
