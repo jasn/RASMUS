@@ -30,6 +30,7 @@ void Settings::update() {
 	ui.textColor->setText(QString("<span style=\"color: %1\">%1</span").arg(consoleTextColor.name()));
 	ui.backgroundColor->setText(QString("<span style=\"color: %1\">%1</span").arg(consoleBackgroundColor.name()));
 	ui.font->setText(consoleFont.toString());
+
 }
 
 void Settings::selectFont() {
@@ -66,10 +67,12 @@ void Settings::load() {
 	consoleTextColor = settings.value("console/textColor", QColor(Qt::white)).value<QColor>();
 	consoleBackgroundColor = settings.value("console/backgroundColor", QColor(Qt::black)).value<QColor>();
 	update();
+	emit visualUpdate(this);
 }
 
 void Settings::save() {
 	settings.setValue("console/font", consoleFont);
 	settings.setValue("console/textColor", consoleTextColor);
 	settings.setValue("console/backgroundColor", consoleBackgroundColor);
+	emit visualUpdate(this);
 }

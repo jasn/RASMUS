@@ -2,7 +2,18 @@
 #include <QTextBlock>
 #include <iostream>
 #include <vector>
+#include "settings.hh"
 
+void Console::visualUpdate(Settings *s) {
+
+  setFont(s->consoleFont);
+  QPalette p(palette());
+  p.setColor(QPalette::Text, s->consoleTextColor);
+  p.setColor(QPalette::Base, s->consoleBackgroundColor);
+  
+  setPalette(p);
+
+}
 
 void Console::updateHistory() {
   QTextCursor c = textCursor();
@@ -145,8 +156,4 @@ void Console::display(QString block) {
 
 Console::Console(QWidget * parent): QPlainTextEdit(parent), history(std::vector<QString>()), currHistoryPosition(0), currentLineInsertedInHistory(false), incompleteState(false) {
 
-  QFont f = font();
-  f.setStyleHint(QFont::Monospace);
-  setFont(f);
-  
 }

@@ -186,7 +186,7 @@
      <x>0</x>
      <y>0</y>
      <width>1008</width>
-     <height>25</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -238,7 +238,9 @@
   </action>
   <action name="actionExit">
    <property name="icon">
-    <iconset theme="Quit"/>
+    <iconset theme="Quit">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Quit</string>
@@ -348,6 +350,7 @@
    <header location="global">console.hh</header>
    <slots>
     <slot>cancel()</slot>
+    <slot>visualUpdate(Settings*)</slot>
    </slots>
   </customwidget>
  </customwidgets>

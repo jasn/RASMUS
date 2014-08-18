@@ -45,7 +45,7 @@ private:
 	QSettings settings;
 	void update();
 signals:
-	
+	void visualUpdate(Settings *);
 };
 
 #endif //__SRC_GUI_SETTINGS_H__

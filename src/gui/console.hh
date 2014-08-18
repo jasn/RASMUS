@@ -4,6 +4,8 @@
 #include <QPlainTextEdit>
 #include <vector>
 
+class Settings;
+
 class Console: public QPlainTextEdit {
   Q_OBJECT
 public:
@@ -15,6 +17,8 @@ public slots:
   void incomplete();
   void complete();
   void display(QString msg);
+
+  void visualUpdate(Settings *);
 
 private:
 
