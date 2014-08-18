@@ -386,6 +386,7 @@ public:
 		case TokenType::TK_MINUS:
             typeCheck(node->opToken, node->exp, {TInt});
             node->type = TInt;
+			break;
 		default:
             internalError(node->opToken, "Bad unary operator");
             node->type = TInvalid;

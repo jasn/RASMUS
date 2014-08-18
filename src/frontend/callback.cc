@@ -56,6 +56,11 @@ void TerminalCallback::report(MsgType type,
 	
 	auto it=std::upper_bound(code->lineStarts.begin(), code->lineStarts.end(), lo);
 	int line=it - code->lineStarts.begin();
+
+	// if we were given no ranges and mainToken is null, line will be too big
+	if(it == code->lineStarts.end() && line > 0)
+		line--;
+	
 	
 	std::cerr << code->name.c_str() << ":" << line << " ";
 	switch (type) {
@@ -71,6 +76,7 @@ void TerminalCallback::report(MsgType type,
 	std::cerr << " " << message << std::endl;
 	int startOfLine = code->lineStarts[line-1]+1;
     int endOfLine = code->lineStarts[line];
+
 	std::cout << green
 			  << code->code.substr(startOfLine,endOfLine-startOfLine)
 			  << reset
