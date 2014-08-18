@@ -144,4 +144,9 @@ void Console::display(QString block) {
 }
 
 Console::Console(QWidget * parent): QPlainTextEdit(parent), history(std::vector<QString>()), currHistoryPosition(0), currentLineInsertedInHistory(false), incompleteState(false) {
+
+  QFont f = font();
+  f.setStyleHint(QFont::Monospace);
+  setFont(f);
+  
 }
