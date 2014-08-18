@@ -186,7 +186,7 @@
      <x>0</x>
      <y>0</y>
      <width>1008</width>
-     <height>23</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -208,7 +208,6 @@
     <addaction name="actionCut"/>
     <addaction name="actionCopy"/>
     <addaction name="actionPaste"/>
-    <addaction name="actionDelete"/>
     <addaction name="separator"/>
     <addaction name="actionCancel"/>
     <addaction name="separator"/>
@@ -405,22 +404,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>actionDelete</sender>
-   <signal>triggered()</signal>
-   <receiver>console</receiver>
-   <slot>clear()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>372</x>
-     <y>413</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>actionPaste</sender>
    <signal>triggered()</signal>
    <receiver>console</receiver>
@@ -513,22 +496,6 @@
     <hint type="destinationlabel">
      <x>503</x>
      <y>411</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionCancel</sender>
-   <signal>triggered()</signal>
-   <receiver>console</receiver>
-   <slot>cancel()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>372</x>
-     <y>413</y>
     </hint>
    </hints>
   </connection>

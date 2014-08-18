@@ -40,10 +40,12 @@ public slots:
 	void selectPath();
 	void save();
 	void load();
+	void changeFont(QFont);
+	void changeFontSize(int);
 private:
 	Ui::Settings ui;
 	QSettings settings;
-	void update();
+	void updateSettings();
 signals:
 	void visualUpdate(Settings *);
 };

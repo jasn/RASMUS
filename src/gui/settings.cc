@@ -26,11 +26,11 @@ Settings::Settings(): settings("AU", "RASMUS") {
 	load();
 }
 
-void Settings::update() {
+void Settings::updateSettings() {
 	ui.textColor->setText(QString("<span style=\"color: %1\">%1</span").arg(consoleTextColor.name()));
 	ui.backgroundColor->setText(QString("<span style=\"color: %1\">%1</span").arg(consoleBackgroundColor.name()));
-	ui.font->setText(consoleFont.toString());
-
+	ui.fontSize->setValue(consoleFont.pointSize());
+	ui.fontName->setCurrentFont(consoleFont);
 }
 
 void Settings::selectFont() {
@@ -38,35 +38,35 @@ void Settings::selectFont() {
 	QFont font = QFontDialog::getFont(&ok, consoleFont, this);
 	if (!ok) return;
 	consoleFont = font;
-	update();
+	updateSettings();
 }
 
 void Settings::selectTextColor() {
 	QColor c = QColorDialog::getColor(consoleTextColor, this);
 	if (!c.isValid()) return;
 	consoleTextColor=c;
-	update();
+	updateSettings();
 }
 
 void Settings::selectBackgroudColor() {
 	QColor c = QColorDialog::getColor(consoleBackgroundColor, this);
 	if (!c.isValid()) return;
 	consoleBackgroundColor=c;
-	update();
+	updateSettings();
 }
 
 void Settings::selectPath() {
 	QString path=QFileDialog::getExistingDirectory(this, "Path");
 	//if (!path.empty()) return;
 	//TODO
-	update();
+	updateSettings();
 }
 
 void Settings::load() {
 	consoleFont = settings.value("console/font", QFont("Courier", 12)).value<QFont>();
 	consoleTextColor = settings.value("console/textColor", QColor(Qt::white)).value<QColor>();
 	consoleBackgroundColor = settings.value("console/backgroundColor", QColor(Qt::black)).value<QColor>();
-	update();
+	updateSettings();
 	emit visualUpdate(this);
 }
 
@@ -75,4 +75,12 @@ void Settings::save() {
 	settings.setValue("console/textColor", consoleTextColor);
 	settings.setValue("console/backgroundColor", consoleBackgroundColor);
 	emit visualUpdate(this);
+}
+
+void Settings::changeFont(QFont f) {
+	consoleFont = f;
+}
+
+void Settings::changeFontSize(int i) {
+	consoleFont.setPointSize(i);
 }

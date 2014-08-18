@@ -56,6 +56,9 @@ public:
     QObject::connect(interpreter, SIGNAL(complete()), ui.console, SLOT(complete()));
     QObject::connect(interpreter, SIGNAL(display(QString)), ui.console, SLOT(display(QString)));
 
+	QObject::connect(ui.actionCancel, SIGNAL(activated()),
+					 interpreter, SLOT(cancel()));
+
     QObject::connect(ui.console, SIGNAL(cancel()),
 		     interpreter, SLOT(cancel()));
 
