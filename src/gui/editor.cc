@@ -21,5 +21,8 @@
 
 Editor::Editor() {
 	ui.setupUi(this);
-	new Highlighter(ui.edit->document());
+	Highlighter * h = new Highlighter(ui.edit->document());
+
+	QObject::connect(ui.edit->document(), SIGNAL(contentsChange(int, int, int)),
+					 h, SLOT(highlightAll()));
 }

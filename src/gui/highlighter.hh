@@ -21,8 +21,8 @@
 #define __SRC_GUI_HIGHLIGHTER_H__
 
 #include <QTextDocument>
-#include <QRegExp>
-#include <QTextCharFormat>
+/*#include <QRegExp>
+  #include <QTextCharFormat>*/
 #include <QSyntaxHighlighter>
 
 class Highlighter : public QSyntaxHighlighter {
@@ -33,13 +33,9 @@ public:
 
 protected:
 	void highlightBlock(const QString &text);
-	
-private:
-	struct HighlightingRule	{
-		QRegExp pattern;
-		QTextCharFormat format;
-	};
-	QVector<HighlightingRule> highlightingRules;
+
+public slots:
+    void highlightAll();
 };
 
 

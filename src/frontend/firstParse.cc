@@ -64,9 +64,13 @@ public:
 	std::vector<Scope> scopes;
 	std::shared_ptr<Callback> callback;
 	GlobalId globalId;
-
-	FirstParseImpl(std::shared_ptr<Error> error, std::shared_ptr<Code> code, std::shared_ptr<Callback> callback):
-		error(error), code(code), callback(callback) {
+	Type missingType;
+	FirstParseImpl(std::shared_ptr<Error> error, 
+				   std::shared_ptr<Code> code, 
+				   std::shared_ptr<Callback> callback,
+				   Type missingType)
+		: error(error), code(code)
+		, callback(callback), missingType(missingType) {
 		scopes.push_back(Scope());
 		globalId=0;
 	}
@@ -147,7 +151,7 @@ public:
 		// If we cannot find the variable, then it must be an external relation
 		if (!lookedUp) {
 			if (callback->hasRelation(name.c_str())) {
-				node->type = TRel;
+				node->type = missingType;
 				return;
 			} else {
 				std::stringstream ss;
@@ -597,8 +601,9 @@ namespace frontend {
         
 std::shared_ptr<FirstParse> makeFirstParse(std::shared_ptr<Error> error, 
 										   std::shared_ptr<Code> code,
-										   std::shared_ptr<Callback> callback) {
-	return std::make_shared<FirstParseImpl>(error, code, callback);
+										   std::shared_ptr<Callback> callback,
+										   Type missingType) {
+	return std::make_shared<FirstParseImpl>(error, code, callback, missingType);
 }
 
 } //namespace rasmus
