@@ -48,7 +48,9 @@ void Console::doCancel() {
 
 void Console::keyPressEvent(QKeyEvent *e) {
   if (isReadOnly()) {
-    if (e->key() == Qt::Key_Escape) 
+    if (e->key() == Qt::Key_Escape && e->modifiers() == Qt::NoModifier)
+      doCancel();
+    if (e->key() == Qt::Key_C && e->modifiers() == Qt::ControlModifier) 
       doCancel();
     return;
   }
@@ -70,6 +72,22 @@ void Console::keyPressEvent(QKeyEvent *e) {
 	// do stuff.
 	doCancel();
       }
+      break;
+    case Qt::Key_C:
+      if (e->modifiers() == Qt::ControlModifier) {
+	doCancel();
+	break;
+      }
+      QPlainTextEdit::keyPressEvent(e);
+      updateHistory();
+      break;
+    case Qt::Key_D:
+      if (e->modifiers() == Qt::ControlModifier) {
+	emit quit();
+	break;
+      }
+      QPlainTextEdit::keyPressEvent(e);
+      updateHistory();
       break;
     case Qt::Key_Home:
       c.setPosition(firstInLastBlock);

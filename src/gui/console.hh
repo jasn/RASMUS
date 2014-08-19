@@ -35,6 +35,7 @@ signals:
   
   void run(QString line);
   void cancel();
+  void quit();
 };
 
 

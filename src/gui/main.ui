@@ -349,6 +349,7 @@
    <header location="global">console.hh</header>
    <slots>
     <slot>visualUpdate(Settings*)</slot>
+    <signal>quit()</signal>
     <slot>doCancel()</slot>
    </slots>
   </customwidget>
@@ -524,6 +525,22 @@
     <hint type="sourcelabel">
      <x>-1</x>
      <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>503</x>
+     <y>411</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>console</sender>
+   <signal>quit()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>372</x>
+     <y>413</y>
     </hint>
     <hint type="destinationlabel">
      <x>503</x>
