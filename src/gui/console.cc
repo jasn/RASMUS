@@ -131,7 +131,10 @@ void Console::keyPressEvent(QKeyEvent *e) {
 	currHistoryPosition = 0;
 	history[history.size()-1] = tmp;
 	history.push_back(QString::fromStdString(""));
-	
+		
+	c.movePosition(QTextCursor::End);
+	setTextCursor(c);
+	ensureCursorVisible();
       }
       break;
       
