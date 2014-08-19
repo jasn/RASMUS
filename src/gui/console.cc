@@ -2,6 +2,7 @@
 #include <QTextBlock>
 #include <iostream>
 #include <vector>
+#include <stdlib/lib.h>
 #include "settings.hh"
 
 void Console::visualUpdate(Settings *s) {
@@ -39,8 +40,18 @@ void Console::rewriteCurrentLine() {
 
 }
 
+void Console::doCancel() {
+  if (isReadOnly()) rm_abort();
+  else emit cancel();
+}
+
+
 void Console::keyPressEvent(QKeyEvent *e) {
-  
+  if (isReadOnly()) {
+    if (e->key() == Qt::Key_Escape) 
+      doCancel();
+    return;
+  }
     QTextCursor c = textCursor();
     
     int firstInLastBlock = c.document()->lastBlock().position() + 4;
@@ -57,7 +68,7 @@ void Console::keyPressEvent(QKeyEvent *e) {
     case Qt::Key_Escape:
       if (incompleteState) {
 	// do stuff.
-	emit cancel();
+	doCancel();
       }
       break;
     case Qt::Key_Home:
@@ -96,6 +107,8 @@ void Console::keyPressEvent(QKeyEvent *e) {
 	}
       } else {
 	QString tmp = c.document()->lastBlock().text().right(c.document()->lastBlock().text().size() -4);
+	setReadOnly(true);
+	rm_clearAbort();
 	emit run(tmp);
 	currHistoryPosition = 0;
 	history[history.size()-1] = tmp;
@@ -112,6 +125,7 @@ void Console::keyPressEvent(QKeyEvent *e) {
 }
 
 void Console::incomplete() {
+  setReadOnly(false);
   incompleteState = true;
   QTextCursor c = textCursor();
   c.movePosition(QTextCursor::End);
@@ -128,6 +142,7 @@ void Console::incomplete() {
 }
 
 void Console::complete() {
+  setReadOnly(false);
   insertEmptyBlock();
   incompleteState = false;
 }

@@ -24,7 +24,7 @@
 #include <QTableView>
 #include <QTextCodec>
 #include <QTextEdit>
-
+#include <QThread>
 #include <interpreter.hh>
 #include <iostream>
 #include <map>
@@ -35,6 +35,7 @@
 #include <stdlib/relation.hh>
 #include <settings.hh>
 #include <editor.hh>
+#include <QThread>
 
 class MainWindow : public QMainWindow {
 
@@ -42,15 +43,22 @@ class MainWindow : public QMainWindow {
 
 public:
   
+
 	Ui::MainWindow ui;
 	std::map<QTreeWidgetItem *, QTableView*> tableViews;
 	Interpreter *interpreter;
+	QThread interpreterThread;
 	Settings s;
+
 
 	MainWindow() : tableViews(std::map<QTreeWidgetItem*, QTableView*>()) {
 		ui.setupUi(this);
 		QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-		interpreter = new Interpreter(this);
+
+		interpreterThread.start();
+		interpreter = new Interpreter(nullptr);
+		interpreter->moveToThread(&interpreterThread);
+
 
 		QObject::connect(ui.console, SIGNAL(run(QString)), interpreter, SLOT(run(QString)));
 		QObject::connect(interpreter, SIGNAL(incomplete()), ui.console, SLOT(incomplete()));
@@ -76,6 +84,10 @@ public:
 
 		ui.console->complete();
 	}
+
+  ~MainWindow() {
+    interpreterThread.quit();
+  }
 
 public slots:
 

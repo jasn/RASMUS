@@ -17,9 +17,8 @@ public slots:
   void incomplete();
   void complete();
   void display(QString msg);
-
   void visualUpdate(Settings *);
-
+  void doCancel();
 private:
 
   void updateHistory();
@@ -36,7 +35,6 @@ signals:
   
   void run(QString line);
   void cancel();
-
 };
 
 

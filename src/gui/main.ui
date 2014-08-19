@@ -348,8 +348,8 @@
    <extends>QPlainTextEdit</extends>
    <header location="global">console.hh</header>
    <slots>
-    <slot>cancel()</slot>
     <slot>visualUpdate(Settings*)</slot>
+    <slot>doCancel()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -496,6 +496,22 @@
     <hint type="destinationlabel">
      <x>503</x>
      <y>411</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionCancel</sender>
+   <signal>triggered()</signal>
+   <receiver>console</receiver>
+   <slot>doCancel()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>372</x>
+     <y>413</y>
     </hint>
    </hints>
   </connection>
