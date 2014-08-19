@@ -1,7 +1,7 @@
 include(${QT_USE_FILE})
 
 include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
-QT4_WRAP_UI(UISrs main.ui settings.ui editor.ui)
+QT4_WRAP_UI(UISrs main.ui settings.ui editor.ui about.ui)
 add_executable(rasmus 
   ${UISrs} 
   console.cc console.hh 

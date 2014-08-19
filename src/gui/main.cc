@@ -36,6 +36,7 @@
 #include <settings.hh>
 #include <editor.hh>
 #include <QThread>
+#include <ui_about.h>
 
 class MainWindow : public QMainWindow {
 
@@ -188,6 +189,14 @@ public slots:
 		ui.environment->sortItems(0, Qt::SortOrder::AscendingOrder);
 
 	}
+
+
+  void showAbout() {
+    QDialog diag;
+    Ui::About about;
+    about.setupUi(&diag);
+    diag.exec();
+  }
 
 };
 
