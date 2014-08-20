@@ -85,11 +85,11 @@ public:
 	int endOfLine = std::max<int>(0,
 				      std::min<int>(code->lineStarts[line], code->code.size()));
 	if (endOfLine < startOfLine) endOfLine=startOfLine;
-	ss << "<span style=\"color: green\">" << escaped(code->code.substr(startOfLine,endOfLine-startOfLine))
+	ss << "<span style=\"color: green; font-weight:normal;\">" << escaped(code->code.substr(startOfLine,endOfLine-startOfLine))
 	   << "</span><br>";
 	if (ranges.size() == 0 && mainToken) {
 	  ss << escaped(std::string(mainToken.start-startOfLine, ' '))
-	     << "<span style=\"color: blue\">"
+	     << "<span style=\"color: blue; font-weight:normal;\">"
 	     << "^"
 	     << escaped(std::string(std::max<size_t>(mainToken.length, 1)-1, '~'))
 	     << "</span>";
@@ -110,10 +110,10 @@ public:
     std::stringstream ss;
     switch (type) {
     case rf::MsgType::error:
-      ss << "<span style=\"color: red\">error</span>: ";
+      ss << "<span style=\"color: red; font-weight:normal;\">error</span>: ";
       break;
     case rf::MsgType::warning:
-      ss << "<span style=\"color: yellow\">warning</span>: ";
+      ss << "<span style=\"color: yellow; font-weight:normal;\">warning</span>: ";
     default:
       break;
     }

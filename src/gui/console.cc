@@ -151,7 +151,7 @@ void Console::incomplete() {
   QTextCursor c = textCursor();
   c.movePosition(QTextCursor::End);
   c.insertBlock();
-  c.insertHtml("<span style=\"color: blue\">...</style>");
+  c.insertHtml("<span style=\"color: #7070FFF\">...</style>");
 
   QTextCharFormat cf = currentCharFormat();
   cf.clearForeground();
@@ -172,7 +172,7 @@ void Console::insertEmptyBlock() {
   QTextCursor c = textCursor();
   c.movePosition(QTextCursor::End);
   c.insertBlock();
-  c.insertHtml("<span style=\"color: blue\">&gt;&gt;&gt;</style>");
+  c.insertHtml("<span style=\"color: #7070FF\">&gt;&gt;&gt;</style>");
   QTextCharFormat cf = currentCharFormat();
   cf.clearForeground();
   setCurrentCharFormat(cf);

@@ -186,7 +186,7 @@
      <x>0</x>
      <y>0</y>
      <width>1008</width>
-     <height>19</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -250,7 +250,7 @@
   </action>
   <action name="actionRun_file">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>&amp;Run...</string>
@@ -261,7 +261,7 @@
   </action>
   <action name="actionOpen_file">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>&amp;Open...</string>
@@ -348,8 +348,8 @@
    <extends>QPlainTextEdit</extends>
    <header location="global">console.hh</header>
    <slots>
-    <slot>visualUpdate(Settings*)</slot>
     <signal>quit()</signal>
+    <slot>visualUpdate(Settings*)</slot>
     <slot>doCancel()</slot>
    </slots>
   </customwidget>

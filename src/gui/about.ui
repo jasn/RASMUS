@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>450</width>
-    <height>311</height>
+    <width>469</width>
+    <height>334</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>About RASMUS</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="leftMargin">
@@ -32,7 +32,8 @@
       <string>&lt;h2&gt;RASMUS&lt;/h2&gt;
 &lt;p&gt;2.0&lt;/p&gt;
 &lt;p&gt;A RASMUS interpreter&lt;/p&gt;
-&lt;p&gt;&amp;copy; 2014 Jesper S. Nielsen, Jakob Truelsen, Thomas E. Hybel&lt;/p&gt;
+&lt;p&gt;&amp;copy; 2014 Thomas E. Hybel, Jesper S. Nielsen, Jakob Truelsen&lt;/p&gt;
+&lt;p&gt;Bugs can be reported to &lt;a href=&quot;https://github.com/jasn/RASMUS/issues&quot;&gt;https://github.com/jasn/RASMUS/issues&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;This program comes with ABSOLUTELY NO WARRANTY, and is distributed under the GNU Lesser General Public License version 3 (LGPL3) or later;
 for details, visit &lt;a href=&quot;http://www.gnu.org/licenses/&quot;&gt;http://www.gnu.org/licenses/&lt;/a&gt;
 &lt;/p&gt;</string>

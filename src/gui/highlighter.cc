@@ -161,7 +161,10 @@ Highlighter::Highlighter(QTextDocument *parent)
 
 }
 
-
+Highlighter::~Highlighter() {
+	intellisenseThread.quit();
+	intellisenseThread.wait();
+}
 
 enum class StyleType {
 	NORMAL, TEXT, KEYWORD, ERROR, WARNING, COMMENT, INVALID

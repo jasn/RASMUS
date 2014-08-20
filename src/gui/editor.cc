@@ -18,8 +18,90 @@
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #include "editor.hh"
 #include "highlighter.hh"
+#include <QFileDialog>
+#include <QMessageBox>
+#include <ui_about.h>
 
 Editor::Editor() {
 	ui.setupUi(this);
 	ui.edit->highlighter = new Highlighter(ui.edit->document());
+	dirty(false);
+	setAttribute(Qt::WA_DeleteOnClose);
 }
+
+Editor::Editor(QString path, QString content): path(path) {
+	ui.setupUi(this);
+	ui.edit->highlighter = new Highlighter(ui.edit->document());
+	ui.edit->document()->setPlainText(content);
+	dirty(false);
+	setAttribute(Qt::WA_DeleteOnClose);
+}
+
+void Editor::dirty(bool d) {
+	if (path.filePath().isEmpty()) 
+		setWindowTitle((d?"*":"")+QString("New File"));
+	else
+		setWindowTitle((d?"*":"")+path.fileName());
+
+}
+
+void Editor::closeEvent(QCloseEvent *event) {
+	if (!ui.edit->document()->isUndoAvailable()) {
+		event->accept();
+		return;
+	}
+
+	QMessageBox::StandardButton btn = QMessageBox::question(this, tr("Save?"), tr("Save document before closing?"),
+											   QMessageBox::Save | QMessageBox::Cancel | QMessageBox::Discard);
+	switch(btn) {
+	case QMessageBox::Discard:
+		event->accept();
+		break;
+	case QMessageBox::Save:		
+		if (save())
+			event->accept();
+		else
+			event->ignore();
+		break;
+	default:
+		event->ignore();
+		break;
+	}
+}
+
+
+void Editor::showAbout() {
+	QDialog diag;
+    Ui::About about;
+    about.setupUi(&diag);
+    diag.exec();
+}
+
+void Editor::run() {
+	emit runContent(path.fileName(), ui.edit->toPlainText());
+}
+
+bool Editor::save() {
+	if (path.filePath().isEmpty()) {
+		return saveAs();
+	}
+	QFile file(path.filePath());
+	if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
+		QMessageBox::critical(this, "Error", "Unable to upen file " + path.filePath() + " for writing");
+		return false;
+	}
+	ui.edit->document()->clearUndoRedoStacks();
+	file.write(ui.edit->toPlainText().toUtf8());
+	file.close();
+	return true;
+}
+
+bool Editor::saveAs() {
+	QString p = QFileDialog::getSaveFileName(this, tr("Save As"), path.filePath(), tr("RASMUS Files (*.rm)"));
+	if (p.isEmpty()) return false;
+	path.setFile(p);
+	if (!save()) return false;
+	dirty(false);
+	return true;
+}
+

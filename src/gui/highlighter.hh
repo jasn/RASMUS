@@ -52,6 +52,7 @@ class Highlighter : public QSyntaxHighlighter {
 
 public:
 	Highlighter(QTextDocument *parent = 0);
+	~Highlighter();
 
 	std::string getIssue(size_t block, size_t index);
  

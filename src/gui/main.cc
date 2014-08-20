@@ -36,6 +36,7 @@
 #include <settings.hh>
 #include <editor.hh>
 #include <QThread>
+#include <QMessageBox>
 #include <ui_about.h>
 
 class MainWindow : public QMainWindow {
@@ -94,6 +95,7 @@ public slots:
 
 	void newFile() {
 		Editor * e = new Editor();
+		QObject::connect(e, SIGNAL(runContent(QString, QString)), this, SLOT(runContent(QString, QString)));
 		e->show();
 	}
 	
@@ -190,13 +192,47 @@ public slots:
 
 	}
 
+	void showAbout() {
+		QDialog diag;
+		Ui::About about;
+		about.setupUi(&diag);
+		diag.exec();
+	}
 
-  void showAbout() {
-    QDialog diag;
-    Ui::About about;
-    about.setupUi(&diag);
-    diag.exec();
-  }
+	void openFile() {
+		QString p = QFileDialog::getOpenFileName(this, tr("Open"), QString(), tr("RASMUS Files (*.rm)"));
+		if (p.isEmpty()) return;
+		
+		QFile file(p);
+		if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+			QMessageBox::critical(this, "Error", "Unable to open file " + p + " for reading");
+			return;
+		}
+		
+		Editor * e = new Editor(p, QString::fromUtf8(file.readAll()));
+		QObject::connect(e, SIGNAL(runContent(QString, QString)), this, SLOT(runContent(QString, QString)));
+		e->show();
+	}
+
+	void runFile() {
+		QString p = QFileDialog::getOpenFileName(this, tr("Run"), QString(), tr("RASMUS Files (*.rm)"));
+		if (p.isEmpty()) return;
+
+		QFile file(p);
+		if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+			QMessageBox::critical(this, "Error", "Unable to open file " + p + " for reading");
+			return;
+		}
+		
+		QFileInfo i(p);
+		
+		runContent(i.fileName(), QString::fromUtf8(file.readAll()));
+	}
+
+	void runContent(QString name, QString content) {
+
+
+	}
 
 };
 

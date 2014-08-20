@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>New File</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -336,11 +336,28 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>edit</sender>
+   <signal>undoAvailable(bool)</signal>
+   <receiver>Editor</receiver>
+   <slot>dirty(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>399</x>
+     <y>300</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>save()</slot>
   <slot>saveAs()</slot>
   <slot>run()</slot>
   <slot>showAbout()</slot>
+  <slot>dirty(bool)</slot>
  </slots>
 </ui>
