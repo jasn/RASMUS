@@ -1028,23 +1028,18 @@ public:
 			
 			if (st->globalId == NOT_GLOBAL)
 				return borrow(store->llvmVal);
-			
-			Value * rv = builder.CreateAlloca(anyRetType, nullptr, "globalVar");
-			
-			builder.CreateCall2(getStdlibFunc("rm_loadGlobalAny"),
-								globalString(nameToken),
-								rv);
-			
-			return cast(BorrowedLLVMVal(
-							builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0, "value_addr"), "value"), 
-							builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1, "type_addr"), "type")),
-						TAny, node->type, node);
-			
-		} else {
-			return OwnedLLVMVal(builder.CreateCall(
-									getStdlibFunc("rm_loadRel"),
-									globalString(nameToken),"rel"));
 		}
+		Value * rv = builder.CreateAlloca(anyRetType, nullptr, "globalVar");
+			
+		builder.CreateCall2(getStdlibFunc("rm_loadGlobalAny"),
+							globalString(nameToken),
+							rv);
+			
+		return cast(BorrowedLLVMVal(
+						builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0, "value_addr"), "value"), 
+						builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1, "type_addr"), "type")),
+					TAny, node->type, node);
+			
 	}
 	
 	/** \brief Codegen for a valiable */
@@ -1068,37 +1063,6 @@ public:
 								v2.type);
 		}
 
-		switch (node->type) {
-		case TRel:
-		{
-			builder.CreateCall2(getStdlibFunc("rm_saveRel"), 
-								builder.CreateIntToPtr(val.value, voidPtrType),
-								globalString(node->nameToken));
-			break;
-		}
-		case TAny:
-		{
-			std::stringstream ss1;
-			ss1 << "store_rel_" << uid++;
-			BasicBlock * sblock = BasicBlock::Create(getGlobalContext(), ss1.str(), getFunction());
-			
-			std::stringstream ss2;
-			ss2 << "continue_" << uid++;
-			BasicBlock * cblock = BasicBlock::Create(getGlobalContext(), ss2.str(), getFunction());
-			
-			
-			builder.CreateCondBr(builder.CreateICmpEQ(val.type, typeRepr(TRel)), sblock, cblock);
-			builder.SetInsertPoint(sblock);
-			builder.CreateCall2(getStdlibFunc("rm_saveRel"), 
-								builder.CreateIntToPtr(val.value, voidPtrType),
-								globalString(node->nameToken));
-			builder.CreateBr(cblock);
-			builder.SetInsertPoint(cblock);
-			break;
-		}
-		default:
-			break;
-		}
 		return val;
 	}
 
