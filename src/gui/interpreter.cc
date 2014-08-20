@@ -26,7 +26,10 @@
 #include "frontend/interpreter.hh"
 #include <llvm/Support/FileSystem.h>
 
+#include <relation_model.hh>
+
 namespace rf = rasmus::frontend;
+namespace rs = rasmus::stdlib;
 
 struct escaped {
 public:
@@ -36,9 +39,8 @@ public:
   
 	friend std::ostream & operator<<(std::ostream & o, const escaped & e) {
 		// only write the first say 10 lines
-		size_t cnt = 0;
 		const char * c=e.str;
-		while (cnt < 10) {
+		while (true) {
 			switch (*c) {
 			case '<': o << "&lt;"; break;
 			case '>': o << "&ge;"; break;
@@ -46,17 +48,14 @@ public:
 			case '"': o << "&quot;"; break;
 			case '\'': o << "&apos;"; break;
 			case '&': o << "&amp;" ; break;
-			case '\n': o << "<br>" ; ++cnt; break;
+			case '\n': o << "<br>" ; break;
 			case '\0': return o;
 			default: o << *c; break;
 			}
 			++c;
 		}
-		if (c != '\0') {
-			o << " ... The rest of the output was skipped<br>";
-		}
 		return o;
-	}  
+	}
 };
 
 
@@ -66,6 +65,18 @@ public:
 
 	void environmentChanged(const char * name) override {
 		interperter->environmentChanged(name);
+	}
+
+	void printRel(rm_object *o) {
+		rs::Relation *r = static_cast<rs::Relation*>(o);
+		size_t sz = r->tuples.size();
+		if (sz < 8) {
+			rf::Callback::printRel(o);
+		} else {
+			interperter->doDisplay("Relation too big, displaying in seperate window");
+
+			interperter->doDisplayRelation(r);
+		}
 	}
 
 	virtual void report(rf::MsgType type, 
@@ -185,6 +196,11 @@ Interpreter::Interpreter(QObject *parent) : QObject(parent) {
 
 Interpreter::~Interpreter() {
 	delete d_ptr;
+}
+
+void Interpreter::doDisplayRelation(rs::Relation * r) {
+	r->incref();
+	emit displayRelation(r);
 }
 
 void Interpreter::environmentChanged(const char * name) {

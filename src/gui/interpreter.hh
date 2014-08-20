@@ -5,6 +5,12 @@
 #include <QString>
 #include <stdlib/lib.h>
 
+namespace rasmus {
+namespace stdlib {
+  class Relation;
+}
+}
+
 class InterpreterPrivate;
 
 class Interpreter : public QObject {
@@ -16,6 +22,7 @@ public:
   ~Interpreter();
   void environmentChanged(const char *name);
   void enterRelationToEnvironment(rm_object * rel, const char * name);
+  void doDisplayRelation(rasmus::stdlib::Relation *);
 
 public slots:
   
@@ -29,6 +36,8 @@ signals:
   void display(QString string);
   void updateEnvironment(const char * name);
   void bussy(bool);
+
+  void displayRelation(rasmus::stdlib::Relation *);
 
 public:
   void doDisplay(QString string);

@@ -51,6 +51,16 @@ public:
 	virtual bool hasRelation(const char * name) = 0;
 
 	virtual void environmentChanged(const char * name) {}
+
+	virtual void printInt(int64_t v);
+
+	virtual void printBool(int8_t v);
+	virtual void printText(rm_object * o);
+	virtual void printFunc(rm_object * o);
+	virtual void printTup(rm_object * o);
+	virtual void printRel(rm_object * o);
+	
+
 };
 
 class TerminalCallback: public Callback {

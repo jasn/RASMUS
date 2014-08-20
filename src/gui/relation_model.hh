@@ -3,12 +3,15 @@
 
 #include <QAbstractTableModel>
 #include <stdlib/relation.hh>
+#include <stdlib/lib.h>
+
+
 
 class RelationModel : public QAbstractTableModel {
 public:
 
   RelationModel(const char * relationName);
-  ~RelationModel();
+  RelationModel(rasmus::stdlib::Relation *r);
 
   int rowCount(const QModelIndex& parent) const;
   int columnCount(const QModelIndex& parent) const;
@@ -20,7 +23,9 @@ public:
 
 private:
   std::string relationName;
-  rasmus::stdlib::Relation* rel;
+  rasmus::stdlib::RefPtr<rasmus::stdlib::Relation> rel;
 };
+
+void showTableViewWindow(RelationModel * rm);
 
 #endif

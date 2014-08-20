@@ -39,6 +39,8 @@
 #include <QMessageBox>
 #include <ui_about.h>
 
+namespace rs = rasmus::stdlib;
+
 class MainWindow : public QMainWindow {
 
 	Q_OBJECT
@@ -47,13 +49,13 @@ public:
   
 
 	Ui::MainWindow ui;
-	std::map<QTreeWidgetItem *, QTableView*> tableViews;
+
 	Interpreter *interpreter;
 	QThread interpreterThread;
 	Settings s;
 
 
-	MainWindow() : tableViews(std::map<QTreeWidgetItem*, QTableView*>()) {
+	MainWindow() {
 		ui.setupUi(this);
 		QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
 
@@ -86,6 +88,9 @@ public:
 		QObject::connect(&s, SIGNAL(visualUpdate(Settings *)),
 						 ui.console, SLOT(visualUpdate(Settings *)));
 
+		QObject::connect(interpreter, SIGNAL(displayRelation(rasmus::stdlib::Relation *)),
+						 this, SLOT(displayRelation(rasmus::stdlib::Relation *)));
+		
 		s.load();
 
 		ui.console->complete();
@@ -96,6 +101,11 @@ public:
   }
 
 public slots:
+
+	void displayRelation(rasmus::stdlib::Relation * r) {
+		showTableViewWindow(new RelationModel(r));
+		r->decref();
+	}
 
 	void newFile() {
 		Editor * e = new Editor();
@@ -131,16 +141,7 @@ public slots:
 
 	void environmentVariableDoubleClicked(QTreeWidgetItem * qtwi, int column) {
 		if (qtwi->text(1) == "Rel") {
-			if (tableViews.count(qtwi)) {
-				tableViews[qtwi]->show();
-			} else {
-				QTableView *tblView = new QTableView(0);
-				tblView->setSortingEnabled(true);
-				tblView->show();
-	
-				tblView->setModel(new RelationModel(qtwi->text(0).toStdString().c_str()));
-				tableViews[qtwi] = tblView;
-			}
+			showTableViewWindow(new RelationModel(qtwi->text(0).toStdString().c_str()));
 		}
 	}
 
@@ -171,25 +172,13 @@ public slots:
 		}
 
 		QList<QTreeWidgetItem*> items(ui.environment->findItems(name, Qt::MatchFlag::MatchExactly, 0));
-		if (items.size () == 0) {
+		if (items.size() == 0) {
 			QTreeWidgetItem *newItem = new QTreeWidgetItem(ui.environment);
 			newItem->setText(0, name);
 			newItem->setText(1, stringRepresentation);
 		} else {
 			QTreeWidgetItem * item = items[0];
 			item->setText(1, stringRepresentation);
-
-			if (stringRepresentation == "Rel") {
-				if (tableViews.count(item)) {
-					QTableView *tmp = tableViews[item];
-					if (tmp->isVisible()) {
-						tmp->hide();
-					}
-					tableViews.erase(item);
-					delete tmp;
-					environmentVariableDoubleClicked(item, 1);
-				}
-			}
 		}
 
 		ui.environment->sortItems(0, Qt::SortOrder::AscendingOrder);

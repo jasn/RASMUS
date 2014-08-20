@@ -38,6 +38,42 @@ const char * errorText = "\033[31merror\x1b[0m";
 namespace rasmus {
 namespace frontend {
 
+void Callback::printInt(int64_t v) {
+	std::stringstream ss;
+	rasmus::stdlib::printIntToStream(v, ss);
+	print(TInt, ss.str());
+}
+
+void Callback::printBool(int8_t v) {
+	std::stringstream ss;
+	rasmus::stdlib::printBoolToStream(v, ss);
+	print(TBool, ss.str());
+}
+
+void Callback::printText(rm_object * o) {
+	std::stringstream ss;
+	rasmus::stdlib::printTextToStream(static_cast<rasmus::stdlib::TextBase *>(o), ss);
+	print(TText, ss.str());
+}
+
+void Callback::printFunc(rm_object * o) {
+	std::stringstream ss;
+	ss << "func(" << o << ")";
+	print(TFunc, ss.str());
+}
+
+void Callback::printTup(rm_object * o) {
+	std::stringstream ss;
+	rasmus::stdlib::printTupleToStream(o, ss);
+	print(TTup, ss.str());
+}
+
+void Callback::printRel(rm_object * o) {
+	std::stringstream ss;
+	rasmus::stdlib::printRelationToStream(o, ss);
+	print(TRel, ss.str());
+}
+
 void TerminalCallback::report(MsgType type, 
 							  std::shared_ptr<Code> code,
 							  std::string message,

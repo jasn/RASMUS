@@ -70,43 +70,30 @@ public:
 				   std::shared_ptr<Code> code): cb(cb), code(code) {}
 
 	void printInt(int64_t v) override {
-		std::stringstream ss;
-		rasmus::stdlib::printIntToStream(v, ss);
-		cb->print(TInt, ss.str());
+		cb->printInt(v);
 	}
 
 	void printBool(int8_t v) override {
-		std::stringstream ss;
-		rasmus::stdlib::printBoolToStream(v, ss);
-		cb->print(TBool, ss.str());
+		cb->printBool(v);
 	}
 	
 	void printText(rm_object * o) override {
-		std::stringstream ss;
-		rasmus::stdlib::printTextToStream(static_cast<rasmus::stdlib::TextBase *>(o), ss);
-		cb->print(TText, ss.str());
+		cb->printText(o);
 	}
 
 	void printFunc(rm_object * o) override {
-		std::stringstream ss;
-		ss << "func(" << o << ")";
-		cb->print(TFunc, ss.str());
+		cb->printFunc(o);
 	}
 
 	void printTup(rm_object * o) override {
-		std::stringstream ss;
-		rasmus::stdlib::printTupleToStream(o, ss);
-		cb->print(TTup, ss.str());
+		cb->printTup(o);
 	}
 
 	void printRel(rm_object * o) override {
-		std::stringstream ss;
-		rasmus::stdlib::printRelationToStream(o, ss);
-		cb->print(TRel, ss.str());
+		cb->printRel(o);
 	}
 	
-	void reportError(size_t start, size_t end, std::string text) override {
-	
+	void reportError(size_t start, size_t end, std::string text) override {	
 		if (start < end)
 			cb->report(MsgType::error, code,
 					   text,

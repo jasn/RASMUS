@@ -9,30 +9,35 @@
 #include <stdlib/text.hh>
 #include <stdlib/lib.h>
 
+#include <QTableView>
+
+namespace rs = rasmus::stdlib;
+
 RelationModel::RelationModel(const char * relationName) : relationName(relationName) { 
-  rel = static_cast<rasmus::stdlib::Relation*>(rm_loadRel(relationName));
+  AnyRet rv;
+  rm_loadGlobalAny(relationName, &rv);
+  rel = rs::RefPtr<rs::Relation>(reinterpret_cast<rs::Relation*>(rv.value));
+  
 }
 
-RelationModel::~RelationModel() {
-  //rm_free(rel);
-}
+RelationModel::RelationModel(rasmus::stdlib::Relation *r) : rel(r) { }
 
 int RelationModel::rowCount(const QModelIndex& parent) const {
   return rel->tuples.size();
 }
 
 int RelationModel::columnCount(const QModelIndex& parent) const {
-  // rasmus::stdlib::Relation* rel = static_cast<rasmus::stdlib::Relation*>(rm_loadRel(relationName.c_str()));
+  // rs::Relation* rel = static_cast<rs::Relation*>(rm_loadRel(relationName.c_str()));
   return rel->schema->attributes.size();
 }
 
 QVariant RelationModel::data(const QModelIndex& index, int role) const {
-  // rasmus::stdlib::Relation* rel = static_cast<rasmus::stdlib::Relation*>(rm_loadRel(relationName.c_str()));
+  // rs::Relation* rel = static_cast<rs::Relation*>(rm_loadRel(relationName.c_str()));
   std::string val;
 
   size_t column = index.column();
   size_t row = index.row();
-  rasmus::stdlib::AnyValue av = rel->tuples[row]->values[column];
+  rs::AnyValue av = rel->tuples[row]->values[column];
   switch (av.type) {
   case TInt: {
     std::stringstream tmpss;
@@ -56,7 +61,7 @@ QVariant RelationModel::data(const QModelIndex& index, int role) const {
     }
     break;
   case TText: {
-      val = rasmus::stdlib::textToString(av.objectValue.getAs<rasmus::stdlib::TextBase>());
+      val = rs::textToString(av.objectValue.getAs<rs::TextBase>());
       break;
     }
   default:
@@ -108,6 +113,19 @@ QVariant RelationModel::headerData(int section, Qt::Orientation orientation, int
 }
 
 void RelationModel::sort(int column, Qt::SortOrder order) {
-  rm_sortRel(rel, column, order==Qt::AscendingOrder);
+  rm_sortRel(rel.get(), column, order==Qt::AscendingOrder);
   emit layoutChanged();
+}
+
+void showTableViewWindow(RelationModel * rm) {
+  QTableView *tblView = new QTableView(0);
+  tblView->setSortingEnabled(true);
+  tblView->show();
+
+  tblView->setAttribute(Qt::WA_DeleteOnClose);
+
+  tblView->setModel(rm);
+
+  rm->setParent(tblView);
+
 }
