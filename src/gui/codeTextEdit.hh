@@ -16,10 +16,21 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#include "editor.hh"
-#include "highlighter.hh"
 
-Editor::Editor() {
-	ui.setupUi(this);
-	ui.edit->highlighter = new Highlighter(ui.edit->document());
-}
+#ifndef __SRC_GUI_CODETEXTEDIT_HH__
+#define __SRC_GUI_CODETEXTEDIT_HH__
+
+#include <QPlainTextEdit>
+
+class Highlighter;
+
+class CodeTextEdit: public QPlainTextEdit {
+public:
+	CodeTextEdit(QWidget * parent): QPlainTextEdit(parent), highlighter(nullptr) {}
+
+	bool event(QEvent* event) override;
+
+	Highlighter * highlighter;
+};
+
+#endif //__SRC_GUI_CODETEXTEDIT_HH__

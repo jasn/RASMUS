@@ -386,3 +386,13 @@ void Highlighter::registerIssues(std::vector<Issue> * issues) {
 	
 	if (!upToDate) doIntellisense();
 }
+
+std::string Highlighter::getIssue(size_t block, size_t index) {
+	auto itr=issues.find(block);
+	if (itr == issues.end()) return "";
+	for (auto issue: itr->second) {
+		if (issue.start <= index &&
+			issue.end > index) return issue.message;
+	}
+	return "";
+}

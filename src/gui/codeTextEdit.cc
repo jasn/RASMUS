@@ -16,10 +16,25 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#include "editor.hh"
-#include "highlighter.hh"
 
-Editor::Editor() {
-	ui.setupUi(this);
-	ui.edit->highlighter = new Highlighter(ui.edit->document());
+#include <QToolTip>
+#include "codeTextEdit.hh"
+#include "highlighter.hh"
+#include <iostream>
+
+bool CodeTextEdit::event(QEvent* event) {
+	if (event->type() != QEvent::ToolTip ||
+		!highlighter) return QPlainTextEdit::event(event);
+	
+	QHelpEvent* helpEvent = static_cast<QHelpEvent*>(event);
+	QTextCursor cursor = cursorForPosition(helpEvent->pos());
+	std::string msg=highlighter->getIssue(cursor.blockNumber(), cursor.positionInBlock());
+
+	if (msg.empty()) {
+		QToolTip::hideText();
+		return true;
+	}
+	
+	QToolTip::showText(helpEvent->globalPos(), QString::fromUtf8(msg.c_str()));
+	return true;
 }

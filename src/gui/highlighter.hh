@@ -53,6 +53,8 @@ class Highlighter : public QSyntaxHighlighter {
 public:
 	Highlighter(QTextDocument *parent = 0);
 
+	std::string getIssue(size_t block, size_t index);
+ 
 protected:
 	void highlightBlock(const QString &text);
 
@@ -61,6 +63,7 @@ signals:
 
 public slots:
 	void registerIssues(std::vector<Issue> * issues);
+
 
 private:
 	void doIntellisense();

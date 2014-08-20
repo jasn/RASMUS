@@ -12,6 +12,7 @@ add_executable(rasmus
   editor.hh editor.cc
   highlighter.cc highlighter.hh
   table.cc table.hh
+  codeTextEdit.cc codeTextEdit.hh
   )
 
 target_link_libraries(rasmus frontend ${QT_LIBRARIES} -pthread stdlib)
