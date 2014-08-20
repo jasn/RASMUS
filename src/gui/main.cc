@@ -66,6 +66,10 @@ public:
 		QObject::connect(interpreter, SIGNAL(incomplete()), ui.console, SLOT(incomplete()));
 		QObject::connect(interpreter, SIGNAL(complete()), ui.console, SLOT(complete()));
 		QObject::connect(interpreter, SIGNAL(display(QString)), ui.console, SLOT(display(QString)));
+		QObject::connect(interpreter, SIGNAL(bussy(bool)), ui.console, SLOT(bussy(bool)));
+
+		QObject::connect(this, SIGNAL(doRunContent(QString,QString)), interpreter, SLOT(runContent(QString,QString)));
+
 
 		QObject::connect(ui.actionCancel, SIGNAL(activated()),
 						 interpreter, SLOT(cancel()));
@@ -95,7 +99,7 @@ public slots:
 
 	void newFile() {
 		Editor * e = new Editor();
-		QObject::connect(e, SIGNAL(runContent(QString, QString)), this, SLOT(runContent(QString, QString)));
+		QObject::connect(e, SIGNAL(runContent(QString, QString)), interpreter, SLOT(runContent(QString, QString)));
 		e->show();
 	}
 	
@@ -210,7 +214,7 @@ public slots:
 		}
 		
 		Editor * e = new Editor(p, QString::fromUtf8(file.readAll()));
-		QObject::connect(e, SIGNAL(runContent(QString, QString)), this, SLOT(runContent(QString, QString)));
+		QObject::connect(e, SIGNAL(runContent(QString, QString)), interpreter, SLOT(runContent(QString, QString)));
 		e->show();
 	}
 
@@ -225,15 +229,11 @@ public slots:
 		}
 		
 		QFileInfo i(p);
-		
-		runContent(i.fileName(), QString::fromUtf8(file.readAll()));
+		emit doRunContent(i.fileName(), QString::fromUtf8(file.readAll()));
 	}
 
-	void runContent(QString name, QString content) {
-
-
-	}
-
+signals:
+	void doRunContent(QString, QString);
 };
 
 int main(int argc, char * argv[]) {

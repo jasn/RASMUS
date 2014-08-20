@@ -184,6 +184,10 @@ public:
 		}
 	}
 
+	void runContent(const std::string & name, const std::string & content) {
+
+	}
+
 	bool runLine(const std::string & line) override {
 		lexer->index = theCode.size();
 		code->set(theCode + incomplete + line);

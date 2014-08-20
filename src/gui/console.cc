@@ -45,7 +45,6 @@ void Console::doCancel() {
   else emit cancel();
 }
 
-
 void Console::keyPressEvent(QKeyEvent *e) {
   if (isReadOnly()) {
     if (e->key() == Qt::Key_Escape && e->modifiers() == Qt::NoModifier)
@@ -125,7 +124,6 @@ void Console::keyPressEvent(QKeyEvent *e) {
 	}
       } else {
 	QString tmp = c.document()->lastBlock().text().right(c.document()->lastBlock().text().size() -4);
-	setReadOnly(true);
 	rm_clearAbort();
 	emit run(tmp);
 	currHistoryPosition = 0;
@@ -145,8 +143,11 @@ void Console::keyPressEvent(QKeyEvent *e) {
 
 }
 
+void Console::bussy(bool bussy) {
+  setReadOnly(bussy);
+}
+
 void Console::incomplete() {
-  setReadOnly(false);
   incompleteState = true;
   QTextCursor c = textCursor();
   c.movePosition(QTextCursor::End);
@@ -163,7 +164,6 @@ void Console::incomplete() {
 }
 
 void Console::complete() {
-  setReadOnly(false);
   insertEmptyBlock();
   incompleteState = false;
 }

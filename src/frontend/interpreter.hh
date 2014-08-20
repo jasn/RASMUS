@@ -37,6 +37,7 @@ public:
 	virtual void setup(int options=0, std::string name="Interpreted") = 0;
 	virtual void destroy() = 0;
 	virtual bool runLine(const std::string & str) = 0;
+	virtual void runContent(const std::string & name, const std::string & content) = 0;
 	virtual bool complete() const = 0;
 	virtual size_t objectCount() const = 0;
 	virtual void freeGlobals() = 0;

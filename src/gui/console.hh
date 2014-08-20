@@ -19,6 +19,7 @@ public slots:
   void display(QString msg);
   void visualUpdate(Settings *);
   void doCancel();
+  void bussy(bool);
 private:
 
   void updateHistory();
