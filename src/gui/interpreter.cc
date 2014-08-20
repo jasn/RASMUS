@@ -25,7 +25,7 @@ public:
       case '<': o << "&lt;"; break;
       case '>': o << "&ge;"; break;
       case ' ': o << "&nbsp;"; break;
-      case '"': o << "&qout;"; break;
+      case '"': o << "&quot;"; break;
       case '\'': o << "&apos;"; break;
       case '&': o << "&amp;" ; break;
       case '\n': o << "<br>" ; ++cnt; break;
@@ -79,8 +79,12 @@ public:
 	  break;
 	}
 	ss << " " << escaped(message) << "<br>";
-	int startOfLine = code->lineStarts[line-1]+1;
-	int endOfLine = code->lineStarts[line];
+	int startOfLine = std::min<int>(
+					std::max<int>(0, code->lineStarts[line-1]+1),
+					code->code.size());
+	int endOfLine = std::max<int>(0,
+				      std::min<int>(code->lineStarts[line], code->code.size()));
+	if (endOfLine < startOfLine) endOfLine=startOfLine;
 	ss << "<span style=\"color: green\">" << escaped(code->code.substr(startOfLine,endOfLine-startOfLine))
 	   << "</span><br>";
 	if (ranges.size() == 0 && mainToken) {
