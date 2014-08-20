@@ -210,13 +210,17 @@ void Interpreter::run(QString line) {
 	} else {
 		emit incomplete();
 	}
-
 }
 
 void Interpreter::runContent(QString name, QString content) {
 	emit bussy(true);
 	d_ptr->interpreter->runContent(name.toUtf8().data(), content.toUtf8().data());
 	emit bussy(false);
+	if (d_ptr->interpreter->complete()) {
+		emit complete();
+	} else {
+		emit incomplete();
+	}
 }
 
 void Interpreter::getCurrentEnvironment() {

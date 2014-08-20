@@ -183,9 +183,63 @@ public:
 			incomplete = "";
 		}
 	}
-
+	
 	void runContent(const std::string & name, const std::string & content) {
+		lexer->index = theCode.size();
+		code->set(theCode + content);
+		lexer->tknizer = lexer::Tokenizer(code->code.data()+lexer->index);
+		try {
+			size_t errorsPrior = error->count();
+			NodePtr r=parser->parse();
+			if (r->nodeType == NodeType::InvalidExp) return;
+			
+			std::shared_ptr<BuiltInExp> t = std::make_shared<BuiltInExp>(Token(TokenType::TK_PRINT, "print"), Token(TokenType::TK_RPAREN, ")")); 
+			t->args.push_back(r);
+			charRanges->run(t);
+			firstParse->run(t);
+			if (options & DumpAST) astPrinter->run(t, std::cout);
 
+			if (error->count() != errorsPrior) return;
+			
+			theCode = code->code+"\n";
+			
+			module = new llvm::Module("my cool jit", llvm::getGlobalContext());
+			#ifdef _WIN32
+			//ase x86:     return "i386";
+			//ase x86_64:  return "x86_64";
+			module->setTargetTriple("i386-pc-win32-elf");
+			#endif //_WIN32
+
+			codeGen = makeLlvmCodeGen(error, code, module,
+									  options & DumpRawFunction,
+									  options & DumpOptFunction);
+
+			llvm::Function * f = codeGen->translate(t);
+			
+			std::string ErrStr;
+			
+			engine = llvm::EngineBuilder(module).setErrorStr(&ErrStr).setUseMCJIT(true).create();
+			if (!engine) {
+				callback->report(MsgType::error, std::string("Could not create engine: ")+ ErrStr);
+				return;
+			}
+			
+			engine->finalizeObject();
+			void * fp = engine->getPointerToFunction(f);
+			void (*FP)() = (void (*)())fp;
+			FP();
+		} catch (ErrException) {
+			return;
+		} catch (ICEException e) {
+			if (e.mainToken || e.ranges.size())
+				callback->report(MsgType::error, code, e.what(), e.mainToken, e.ranges);
+			else
+				callback->report(MsgType::error, e.what());
+			return;
+		} catch (IncompleteInputException) {
+			callback->report(MsgType::error, "Unexpected end of file");
+			return;
+		}
 	}
 
 	bool runLine(const std::string & line) override {

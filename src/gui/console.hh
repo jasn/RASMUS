@@ -20,6 +20,7 @@ public slots:
   void visualUpdate(Settings *);
   void doCancel();
   void bussy(bool);
+  void gotoEnd();
 private:
 
   void updateHistory();

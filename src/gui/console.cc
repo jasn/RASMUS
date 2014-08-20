@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <stdlib/lib.h>
+#include <QScrollBar>
 #include "settings.hh"
 
 void Console::visualUpdate(Settings *s) {
@@ -45,6 +46,16 @@ void Console::doCancel() {
   else emit cancel();
 }
 
+void Console::gotoEnd() {
+  QTextCursor c = textCursor();
+  c.clearSelection();
+  c.movePosition(QTextCursor::End);
+  setTextCursor(c);
+  verticalScrollBar()->setValue(verticalScrollBar()->maximum());
+  ensureCursorVisible();
+}
+
+
 void Console::keyPressEvent(QKeyEvent *e) {
   if (isReadOnly()) {
     if (e->key() == Qt::Key_Escape && e->modifiers() == Qt::NoModifier)
@@ -57,11 +68,8 @@ void Console::keyPressEvent(QKeyEvent *e) {
     
     int firstInLastBlock = c.document()->lastBlock().position() + 4;
 
-    if (c.selectionStart() < firstInLastBlock) {
-      c.clearSelection();
-      c.movePosition(QTextCursor::End);
-      setTextCursor(c);
-    }
+    if (c.selectionStart() < firstInLastBlock)
+      gotoEnd();
 
     if (history.size() == 0) history.push_back(QString::fromStdString(""));
 
@@ -116,7 +124,7 @@ void Console::keyPressEvent(QKeyEvent *e) {
     case Qt::Key_Enter:
     case Qt::Key_Return:
       if (c.document()->lastBlock().text().size() <= 4) {
-	c.movePosition(QTextCursor::End);
+	gotoEnd();
 	if (!incompleteState) {
 	  insertEmptyBlock();
 	} else {
@@ -130,9 +138,7 @@ void Console::keyPressEvent(QKeyEvent *e) {
 	history[history.size()-1] = tmp;
 	history.push_back(QString::fromStdString(""));
 		
-	c.movePosition(QTextCursor::End);
-	setTextCursor(c);
-	ensureCursorVisible();
+	gotoEnd();
       }
       break;
       
@@ -149,37 +155,28 @@ void Console::bussy(bool bussy) {
 
 void Console::incomplete() {
   incompleteState = true;
-  QTextCursor c = textCursor();
-  c.movePosition(QTextCursor::End);
-  c.insertBlock();
-  c.insertHtml("<span style=\"color: #7070FFF\">...</style>");
-
-  QTextCharFormat cf = currentCharFormat();
-  cf.clearForeground();
-  setCurrentCharFormat(cf);
-  c = textCursor();
-  c.insertText(" ");
-  c.document()->clearUndoRedoStacks();
-  ensureCursorVisible();
+  insertEmptyBlock();
 }
 
 void Console::complete() {
-  insertEmptyBlock();
   incompleteState = false;
+  insertEmptyBlock();
 }
 
 void Console::insertEmptyBlock() {
   QTextCursor c = textCursor();
   c.movePosition(QTextCursor::End);
   c.insertBlock();
-  c.insertHtml("<span style=\"color: #7070FF\">&gt;&gt;&gt;</style>");
+  
+  if (incompleteState) c.insertHtml("<span style=\"color: #7070FF\">...</style>");
+  else c.insertHtml("<span style=\"color: #7070FF\">&gt;&gt;&gt;</style>");
   QTextCharFormat cf = currentCharFormat();
   cf.clearForeground();
   setCurrentCharFormat(cf);
   c = textCursor();
   c.insertText(" ");
   c.document()->clearUndoRedoStacks();
-  ensureCursorVisible();
+  gotoEnd();
 }
 
 void Console::display(QString block) {
@@ -187,7 +184,7 @@ void Console::display(QString block) {
   c.movePosition(QTextCursor::End);
   c.insertText("\n");
   c.insertHtml(block);
-  ensureCursorVisible();
+  gotoEnd();
 }
 
 Console::Console(QWidget * parent): QPlainTextEdit(parent), history(std::vector<QString>()), currHistoryPosition(0), currentLineInsertedInHistory(false), incompleteState(false) {
