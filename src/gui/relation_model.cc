@@ -10,6 +10,7 @@
 #include <stdlib/lib.h>
 
 #include <QTableView>
+#include <QHeaderView>
 
 namespace rs = rasmus::stdlib;
 
@@ -119,12 +120,18 @@ void RelationModel::sort(int column, Qt::SortOrder order) {
 
 void showTableViewWindow(RelationModel * rm) {
   QTableView *tblView = new QTableView(0);
-  tblView->setSortingEnabled(true);
-  tblView->show();
 
   tblView->setAttribute(Qt::WA_DeleteOnClose);
 
   tblView->setModel(rm);
+
+  QHeaderView *qh = tblView->horizontalHeader();
+  qh->setResizeMode(QHeaderView::Stretch);
+
+  tblView->resize(800, 600);
+
+  tblView->setSortingEnabled(true);
+  tblView->show();
 
   rm->setParent(tblView);
 
