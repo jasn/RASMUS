@@ -347,8 +347,7 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 	RefPtr<Relation> relations = makeRef<Relation>();
 	relations->schema = schema;
 
-	bool done = false;
-
+	bool done = (num_columns == 0);
 	while(!done){
 		
 		RefPtr<Tuple> tuple = makeRef<Tuple>();
