@@ -50,7 +50,7 @@ public:
 	virtual rm_object * loadRelation(const char * name) = 0;
 	virtual bool hasRelation(const char * name) = 0;
 
-	virtual void environmentChanged(const char * name) {}
+	virtual void environmentChanged(const char * /*name*/) {}
 
 	virtual void printInt(int64_t v);
 

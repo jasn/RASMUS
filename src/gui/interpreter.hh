@@ -29,14 +29,15 @@ class Relation;
 }
 }
 
+class Settings;
+
 class InterpreterPrivate;
 
 class Interpreter : public QObject {
 	Q_OBJECT
   
 public:
-  
-	Interpreter(QObject *parent);
+	Interpreter(QObject *parent, Settings * settings);
 	~Interpreter();
 	void environmentChanged(const char *name);
 	void enterRelationToEnvironment(rm_object * rel, const char * name);

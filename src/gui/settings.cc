@@ -20,6 +20,7 @@
 #include <QFontDialog>
 #include <QColorDialog>
 #include <QFileDialog>
+#include <QDesktopServices>
 
 Settings::Settings(): settings("AU", "RASMUS") {
 	ui.setupUi(this);
@@ -29,6 +30,7 @@ Settings::Settings(): settings("AU", "RASMUS") {
 void Settings::updateSettings() {
 	ui.textColor->setText(QString("<span style=\"color: %1\">%1</span").arg(consoleTextColor.name()));
 	ui.backgroundColor->setText(QString("<span style=\"color: %1\">%1</span").arg(consoleBackgroundColor.name()));
+	ui.path->setText(path);
 	ui.fontSize->setValue(consoleFont.pointSize());
 	ui.fontName->setCurrentFont(consoleFont);
 }
@@ -57,15 +59,28 @@ void Settings::selectBackgroudColor() {
 
 void Settings::selectPath() {
 	QString path=QFileDialog::getExistingDirectory(this, "Path");
-	//if (!path.empty()) return;
-	//TODO
+	if (path.isEmpty()) return;
+	this->path = path;
 	updateSettings();
+}
+
+void Settings::restoreDefaults() {
+	settings.clear();
+	load();
+}
+
+void Settings::clicked(QAbstractButton * button) {
+	QDialogButtonBox::StandardButton standardButton = ui.buttonBox->standardButton(button);
+	if (standardButton == QDialogButtonBox::RestoreDefaults) restoreDefaults();
 }
 
 void Settings::load() {
 	consoleFont = settings.value("console/font", QFont("Courier", 12)).value<QFont>();
 	consoleTextColor = settings.value("console/textColor", QColor(Qt::white)).value<QColor>();
 	consoleBackgroundColor = settings.value("console/backgroundColor", QColor(Qt::black)).value<QColor>();
+	path = settings.value("path",  QCoreApplication::applicationDirPath()+"/relations"
+						  /*QDesktopServices::storageLocation(QDesktopServices::DataLocation)*/
+		).value<QString>();
 	updateSettings();
 	emit visualUpdate(this);
 }
@@ -74,6 +89,7 @@ void Settings::save() {
 	settings.setValue("console/font", consoleFont);
 	settings.setValue("console/textColor", consoleTextColor);
 	settings.setValue("console/backgroundColor", consoleBackgroundColor);
+	settings.setValue("path", path);
 	emit visualUpdate(this);
 }
 

@@ -25,8 +25,9 @@
 #include "frontend/callback.hh"
 #include "frontend/interpreter.hh"
 #include <llvm/Support/FileSystem.h>
-
 #include <relation_model.hh>
+#include "settings.hh"
+#include <QDir>
 
 namespace rf = rasmus::frontend;
 namespace rs = rasmus::stdlib;
@@ -61,7 +62,9 @@ public:
 
 class GuiCallBack : public rasmus::frontend::Callback {
 public:
-	GuiCallBack(Interpreter * interperter): interperter(interperter) {}
+	GuiCallBack(Interpreter * interperter, Settings * settings)
+		: interperter(interperter)
+		, settings(settings) {}
 
 	void environmentChanged(const char * name) override {
 		interperter->environmentChanged(name);
@@ -157,22 +160,29 @@ public:
 		interperter->doDisplay(QString::fromUtf8(ss.str().c_str()));
 	}
 
+	QString location(const char * name) {
+		return settings->path + "/" + name + ".rdb";
+	}
+
 	virtual void saveRelation(rm_object * o, const char * name) override {
-		rasmus::stdlib::saveRelationToFile(o, (std::string(name)+".rdb").c_str());
+		QDir d;
+		d.mkpath(settings->path);
+		rasmus::stdlib::saveRelationToFile(o, location(name).toUtf8().data());
 	}
 
 	virtual rm_object * loadRelation(const char * name) override {
-		rm_object * res = rasmus::stdlib::loadRelationFromFile((std::string(name)+".rdb").c_str());
-		environmentChanged(name);
+		rm_object * res = rasmus::stdlib::loadRelationFromFile(location(name).toUtf8().data());
 		return res;
 	}
-
+	
 	virtual bool hasRelation(const char * name) override { 
-		return llvm::sys::fs::exists(std::string(name)+".rdb");
+		
+		return llvm::sys::fs::exists(location(name).toUtf8().data());
 	}
 
 private:
 	Interpreter * interperter;
+	Settings * settings;
 };
 
 
@@ -182,16 +192,16 @@ public:
 	std::shared_ptr<rasmus::frontend::Interperter> interpreter;
 	std::shared_ptr<rasmus::frontend::Callback> callback;
 
-	InterpreterPrivate(Interpreter * interperter) {
+	InterpreterPrivate(Interpreter * interperter, Settings * settings) {
 		int options = 0; // dump no info on terminal.
-		callback = std::make_shared<GuiCallBack>(interperter);
+		callback = std::make_shared<GuiCallBack>(interperter, settings);
 		interpreter=rasmus::frontend::makeInterperter(callback);
 		interpreter->setup(options, std::string("Interpreter"));    
 	}
 };
 
-Interpreter::Interpreter(QObject *parent) : QObject(parent) {
-	d_ptr = new InterpreterPrivate(this);
+Interpreter::Interpreter(QObject *parent, Settings * settings) : QObject(parent) {
+	d_ptr = new InterpreterPrivate(this, settings);
 }
 
 Interpreter::~Interpreter() {

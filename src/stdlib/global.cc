@@ -45,10 +45,11 @@ extern "C" {
 void rm_loadGlobalAny(const char * name, 
 					  AnyRet * ret) {
 
-	if (!globals.count(name) && llvm::sys::fs::exists(std::string(name)+".rdb")) {
+	if (!globals.count(name)) {
 		rm_object * rel = rm_loadRel(name);
 		AnyValue av(TRel, RefPtr<rm_object>(rel));
 		globals[name] = av;
+		callback->environmentChanged(name);
 	}
 	
 	AnyValue & v = globals[name];
@@ -88,7 +89,6 @@ void rm_saveGlobalAny(const char * name, int64_t value, int8_t type) {
 	}
 
 	callback->environmentChanged(name);
-
 }
 
 void rm_clearGlobals() {

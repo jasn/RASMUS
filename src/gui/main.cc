@@ -36,6 +36,7 @@
 #include <settings.hh>
 #include <editor.hh>
 #include <QThread>
+#include <QDir>
 #include <QMessageBox>
 #include "help.hh"
 
@@ -60,7 +61,7 @@ public:
 		QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
 
 		interpreterThread.start();
-		interpreter = new Interpreter(nullptr);
+		interpreter = new Interpreter(nullptr, &s);
 		interpreter->moveToThread(&interpreterThread);
 
 
@@ -71,7 +72,6 @@ public:
 		QObject::connect(interpreter, SIGNAL(bussy(bool)), ui.console, SLOT(bussy(bool)));
 
 		QObject::connect(this, SIGNAL(doRunContent(QString,QString)), interpreter, SLOT(runContent(QString,QString)));
-
 
 		QObject::connect(ui.actionCancel, SIGNAL(activated()),
 						 interpreter, SLOT(cancel()));
@@ -88,6 +88,9 @@ public:
 		QObject::connect(&s, SIGNAL(visualUpdate(Settings *)),
 						 ui.console, SLOT(visualUpdate(Settings *)));
 
+		QObject::connect(&s, SIGNAL(visualUpdate(Settings *)),
+						 this, SLOT(findRelations(Settings *)));
+
 		QObject::connect(interpreter, SIGNAL(displayRelation(rasmus::stdlib::Relation *)),
 						 this, SLOT(displayRelation(rasmus::stdlib::Relation *)));
 		
@@ -95,12 +98,36 @@ public:
 
 		ui.console->complete();
 	}
-
-  ~MainWindow() {
-    interpreterThread.quit();
-  }
+	
+	~MainWindow() {
+		interpreterThread.quit();
+		interpreterThread.wait();
+	}
 
 public slots:
+	void findRelations(Settings * s) {
+		QSet<QString> there;
+		for (size_t i=0; i < (size_t)ui.environment->topLevelItemCount(); ++i) {
+			QTreeWidgetItem * item=ui.environment->topLevelItem(i);
+			if (item->data(0, Qt::UserRole) != -1) {
+				there.insert(item->text(0));
+				continue;
+			}
+			delete item;
+			--i;
+		}
+
+		QDir d(s->path);
+		for (auto a: d.entryList(QStringList("*.rdb"), QDir::Files | QDir::Readable)) {
+			QFileInfo f(a);
+			if (there.contains(f.baseName())) continue;
+			QTreeWidgetItem *newItem = new QTreeWidgetItem(ui.environment);
+			newItem->setText(0, f.baseName());
+			newItem->setText(1, "Relation");
+			newItem->setData(0, Qt::UserRole, -1);
+		}
+		ui.environment->sortItems(0, Qt::SortOrder::AscendingOrder);
+	}
 
 	void displayRelation(rasmus::stdlib::Relation * r) {
 		showTableViewWindow(new RelationModel(r));
@@ -140,49 +167,52 @@ public slots:
 	}
 
 	void environmentVariableDoubleClicked(QTreeWidgetItem * qtwi, int column) {
-		if (qtwi->text(1) == "Rel") {
+		int data = qtwi->data(0, Qt::UserRole).toInt();
+		if (data == -1 || data == int(TRel)) {
 			showTableViewWindow(new RelationModel(qtwi->text(0).toStdString().c_str()));
 		}
 	}
 
 	void environmentChanged(const char *name) {
-		// do type look up
-		AnyRet *valuePtr = new AnyRet();
-		rm_loadGlobalAny(name, valuePtr);
-		QString stringRepresentation;
-		switch (Type(valuePtr->type)) {
+		
+		AnyRet value;
+		rm_loadGlobalAny(name, &value);
+		std::stringstream repr;
+
+		switch (Type(value.type)) {
 		case TBool:
-			stringRepresentation.append("Bool");
+			rasmus::stdlib::printBoolToStream(int8_t(value.value), repr);
 			break;
 		case TInt:
-			stringRepresentation.append("Int");
+			rasmus::stdlib::printIntToStream(value.value, repr);
 			break;
-		case TText: //It's a Text
-			stringRepresentation.append("Text");
+		case TText: 
+			rasmus::stdlib::printTextToStream(reinterpret_cast<rasmus::stdlib::TextBase *>(value.value), repr);
 			break;
 		case TTup:
-			stringRepresentation.append("Tup");
+			rasmus::stdlib::printTupleToStream(reinterpret_cast<rm_object *>(value.value), repr);
 			break;
 		case TFunc:
-			stringRepresentation.append("Func");
+			repr << "Function";
+			break;
+		case TRel:
+			repr << "Relation of " << reinterpret_cast<rasmus::stdlib::Relation *>(value.value)->tuples.size() << " tuples";
 			break;
 		default:
-			// due to strange loading of relations, this is in fact a relation or an error.
-			stringRepresentation.append("Rel");
+			repr << "Error";
+			break;
 		}
 
 		QList<QTreeWidgetItem*> items(ui.environment->findItems(name, Qt::MatchFlag::MatchExactly, 0));
-		if (items.size() == 0) {
-			QTreeWidgetItem *newItem = new QTreeWidgetItem(ui.environment);
-			newItem->setText(0, name);
-			newItem->setText(1, stringRepresentation);
-		} else {
-			QTreeWidgetItem * item = items[0];
-			item->setText(1, stringRepresentation);
-		}
-
+		QTreeWidgetItem * item;
+		if (items.size() == 0) 
+			item = new QTreeWidgetItem(ui.environment);
+		else
+			item = items[0];
+		item->setText(0, name);
+		item->setText(1, QString::fromUtf8(repr.str().c_str()));
+		item->setData(0, Qt::UserRole, (int)value.type);
 		ui.environment->sortItems(0, Qt::SortOrder::AscendingOrder);
-
 	}
 
 	void showAbout() {

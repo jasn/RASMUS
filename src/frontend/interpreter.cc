@@ -171,7 +171,7 @@ public:
 		}
 	}
 	
-	void runContent(const std::string & name, const std::string & content) {
+	void runContent(const std::string & /*name*/, const std::string & content) {
 		lexer->index = theCode.size();
 		code->set(theCode + content);
 		lexer->tknizer = lexer::Tokenizer(code->code.data()+lexer->index);

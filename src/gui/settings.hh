@@ -33,6 +33,7 @@ public:
 	QFont consoleFont;
 	QColor consoleTextColor;
 	QColor consoleBackgroundColor;
+	QString path;
 public slots:
 	void selectFont();
 	void selectTextColor();
@@ -42,6 +43,8 @@ public slots:
 	void load();
 	void changeFont(QFont);
 	void changeFontSize(int);
+	void restoreDefaults();
+	void clicked(QAbstractButton * button);
 private:
 	Ui::Settings ui;
 	QSettings settings;
