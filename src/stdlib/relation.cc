@@ -274,6 +274,8 @@ void saveRelationToStream(rm_object * o, std::ostream & outFile){
 				ILE("Unhandled type", value.type);
 			}
 		}
+		if(tuple->values.size() == 0)
+			outFile << std::endl;
 	}
 	
 }	
@@ -347,7 +349,19 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 	RefPtr<Relation> relations = makeRef<Relation>();
 	relations->schema = schema;
 
-	bool done = (num_columns == 0);
+	bool done = false;
+
+	// special case: either the zero or one relation
+	if(schema->attributes.size() == 0){
+		std::string line;
+		if(getline(inFile, line)){
+			RefPtr<Tuple> tuple = makeRef<Tuple>();
+			tuple->schema = schema;
+			relations->tuples.push_back(std::move(tuple));
+		}
+		return relations.unbox();
+	}
+
 	while(!done){
 		
 		RefPtr<Tuple> tuple = makeRef<Tuple>();
