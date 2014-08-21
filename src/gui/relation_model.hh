@@ -22,10 +22,10 @@
 #include <QAbstractTableModel>
 #include <stdlib/relation.hh>
 #include <stdlib/lib.h>
+#include "ui_relation.h"
 
 class RelationModel : public QAbstractTableModel {
 public:
-
 	RelationModel(const char * relationName);
 	RelationModel(rasmus::stdlib::Relation *r);
 
@@ -36,11 +36,25 @@ public:
 						Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
 	void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
-private:
+
 	std::string relationName;
 	rasmus::stdlib::RefPtr<rasmus::stdlib::Relation> rel;
+};
+
+class RelationWindow: public QMainWindow {
+	Q_OBJECT
+public:
+	RelationWindow(RelationModel * model);
+public slots:
+	void showAbout();
+	void saveAsGlobal();
+	void exportCSV();
+private:
+	Ui::RelationWindow ui;
+	RelationModel * model;
 };
 
 void showTableViewWindow(RelationModel * rm);
 
 #endif
+ 

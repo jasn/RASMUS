@@ -37,7 +37,7 @@
 #include <editor.hh>
 #include <QThread>
 #include <QMessageBox>
-#include <ui_about.h>
+#include "help.hh"
 
 namespace rs = rasmus::stdlib;
 
@@ -186,10 +186,7 @@ public slots:
 	}
 
 	void showAbout() {
-		QDialog diag;
-		Ui::About about;
-		about.setupUi(&diag);
-		diag.exec();
+		::showAbout();
 	}
 
 	void openFile() {

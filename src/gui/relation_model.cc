@@ -26,9 +26,11 @@
 #include <string>
 #include <stdlib/text.hh>
 #include <stdlib/lib.h>
-
 #include <QTableView>
 #include <QHeaderView>
+#include "help.hh"
+#include <QFileDialog>
+#include <QInputDialog>
 
 namespace rs = rasmus::stdlib;
 
@@ -41,11 +43,11 @@ RelationModel::RelationModel(const char * relationName) : relationName(relationN
 
 RelationModel::RelationModel(rasmus::stdlib::Relation *r) : rel(r) { }
 
-int RelationModel::rowCount(const QModelIndex& parent) const {
+int RelationModel::rowCount(const QModelIndex&) const {
 	return rel->tuples.size();
 }
 
-int RelationModel::columnCount(const QModelIndex& parent) const {
+int RelationModel::columnCount(const QModelIndex&) const {
 	// rs::Relation* rel = static_cast<rs::Relation*>(rm_loadRel(relationName.c_str()));
 	return rel->schema->attributes.size();
 }
@@ -131,26 +133,40 @@ QVariant RelationModel::headerData(int section, Qt::Orientation orientation, int
 
 }
 
+RelationWindow::RelationWindow(RelationModel * model): model(model) {
+	ui.setupUi(this);
+	model->setParent(this);
+	ui.view->setModel(model);
+	setAttribute(Qt::WA_DeleteOnClose);
+	if (!model->relationName.empty())
+		setWindowTitle(QString::fromUtf8(model->relationName.c_str()) + " - Relation");
+}
+
 void RelationModel::sort(int column, Qt::SortOrder order) {
 	rm_sortRel(rel.get(), column, order==Qt::AscendingOrder);
 	emit layoutChanged();
 }
 
+void RelationWindow::showAbout() {
+	::showAbout();
+}
+
+void RelationWindow::saveAsGlobal() {
+	QString relName = QInputDialog::getText(this, tr("Relation name"), tr("Enter a name for the relation"));
+	if (relName.isEmpty()) return;
+	rm_saveGlobalAny(relName.toUtf8().data(), reinterpret_cast<uint64_t>(model->rel.get()), TRel);
+}
+
+void RelationWindow::exportCSV() {
+	QString name="relation.csv";
+	if (!model->relationName.empty()) 
+		name = QString::fromUtf8(model->relationName.c_str())+".csv";
+	QString p = QFileDialog::getSaveFileName(this, tr("Export as"), name, tr("CSV Files (*.csv)"));
+	if (p.isEmpty()) return;
+	rasmus::stdlib::saveCSVRelationToFile(model->rel.get(), name.toUtf8().data());
+}
+
 void showTableViewWindow(RelationModel * rm) {
-	QTableView *tblView = new QTableView(0);
-
-	tblView->setAttribute(Qt::WA_DeleteOnClose);
-
-	tblView->setModel(rm);
-
-	QHeaderView *qh = tblView->horizontalHeader();
-	qh->setResizeMode(QHeaderView::Stretch);
-
-	tblView->resize(800, 600);
-
-	tblView->setSortingEnabled(true);
-	tblView->show();
-
-	rm->setParent(tblView);
-
+	RelationWindow * w = new RelationWindow(rm);
+	w->show();
 }

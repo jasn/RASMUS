@@ -20,7 +20,7 @@
 #include "highlighter.hh"
 #include <QFileDialog>
 #include <QMessageBox>
-#include <ui_about.h>
+#include "help.hh"
 
 Editor::Editor() {
 	ui.setupUi(this);
@@ -71,10 +71,7 @@ void Editor::closeEvent(QCloseEvent *event) {
 
 
 void Editor::showAbout() {
-	QDialog diag;
-    Ui::About about;
-    about.setupUi(&diag);
-    diag.exec();
+	::showAbout();
 }
 
 void Editor::run() {

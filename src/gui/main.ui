@@ -247,6 +247,9 @@
    <property name="shortcut">
     <string>Ctrl+Q</string>
    </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
   </action>
   <action name="actionRun_file">
    <property name="enabled">
