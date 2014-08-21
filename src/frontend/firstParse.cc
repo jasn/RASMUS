@@ -551,7 +551,6 @@ public:
 					{TInt, TInt, TBool},
 					{TBool, TBool, TBool},
 					{TText, TText, TBool},
-					{TFunc, TFunc, TBool},
 					{TTup, TTup, TBool},
 					{TRel, TRel, TBool}});
 			break;
