@@ -1,3 +1,21 @@
+// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0) (c-set-offset 'inextern-lang 0)); -*-
+// vi:set ts=4 sts=4 sw=4 noet :
+// Copyright 2014 The pyRASMUS development team
+// 
+// This file is part of pyRASMUS.
+// 
+// pyRASMUS is free software: you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License as published by the
+// Free Software Foundation, either version 3 of the License, or (at your
+// option) any later version.
+// 
+// pyRASMUS is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+// License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public License
+// along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __INTERPRETER_GUI_HH_GUARD
 #define __INTERPRETER_GUI_HH_GUARD
 
@@ -7,45 +25,44 @@
 
 namespace rasmus {
 namespace stdlib {
-  class Relation;
+class Relation;
 }
 }
 
 class InterpreterPrivate;
 
 class Interpreter : public QObject {
-  Q_OBJECT
+	Q_OBJECT
   
 public:
   
-  Interpreter(QObject *parent);
-  ~Interpreter();
-  void environmentChanged(const char *name);
-  void enterRelationToEnvironment(rm_object * rel, const char * name);
-  void doDisplayRelation(rasmus::stdlib::Relation *);
+	Interpreter(QObject *parent);
+	~Interpreter();
+	void environmentChanged(const char *name);
+	void enterRelationToEnvironment(rm_object * rel, const char * name);
+	void doDisplayRelation(rasmus::stdlib::Relation *);
 
 public slots:
   
-  void run(QString line);
-  void cancel();
-  void runContent(QString name, QString content);
+	void run(QString line);
+	void cancel();
+	void runContent(QString name, QString content);
 
 signals:
-  void incomplete();
-  void complete();
-  void display(QString string);
-  void updateEnvironment(const char * name);
-  void bussy(bool);
+	void incomplete();
+	void complete();
+	void display(QString string);
+	void updateEnvironment(const char * name);
+	void bussy(bool);
 
-  void displayRelation(rasmus::stdlib::Relation *);
+	void displayRelation(rasmus::stdlib::Relation *);
 
 public:
-  void doDisplay(QString string);
-  void getCurrentEnvironment();
+	void doDisplay(QString string);
+	void getCurrentEnvironment();
 private:
-  InterpreterPrivate *d_ptr;
+	InterpreterPrivate *d_ptr;
 
 };
 
-
-#endif
+#endif //__INTERPRETER_GUI_HH_GUARD
