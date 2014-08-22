@@ -389,6 +389,7 @@ public:
 		case TFunc:
 		case TRel:
 		case TText:
+		case TTup:
 		{
 			Value * v = builder.CreatePointerCast(value.value, pointerType(objectBaseType));
 			Value * rc = builder.CreateAdd(builder.CreateLoad(builder.CreateConstGEP2_32(v, 0, 0)), int32(1));
@@ -1035,10 +1036,10 @@ public:
 							globalString(nameToken),
 							rv);
 			
-		return cast(BorrowedLLVMVal(
-						builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0, "value_addr"), "value"), 
-						builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1, "type_addr"), "type")),
-					TAny, node->type, node);
+		return takeOwnership(cast(BorrowedLLVMVal(
+								 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0, "value_addr"), "value"), 
+								 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1, "type_addr"), "type")),
+								  TAny, node->type, node), node->type);
 			
 	}
 	
