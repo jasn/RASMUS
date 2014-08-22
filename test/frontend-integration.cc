@@ -171,6 +171,7 @@ void crash(rasmus::teststream & ts) {
 	ts << "crash1" << result(it("X := one; (X ? (X = one)) = one", "true"));
 	ts << "crash2" << result(it("a:=1\nb:=0\na/b","?-Int"));
 	ts << "crash3" << result(it("foo := func (x:Int) -> (Int) x end; bar := func (y:Int) -> (Int) foo(y) end; bar(42)", "42"));
+	ts << "crash4" << result(it("x := 0; 123 mod x", "?-Int"));
 }
 
 void ifs(rasmus::teststream & ts) {

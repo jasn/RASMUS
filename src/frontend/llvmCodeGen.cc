@@ -1690,8 +1690,25 @@ public:
 		case TokenType::TK_MOD:
 			return binopImpl(node, {
 					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
-							return builder.CreateSelect(builder.CreateICmpEQ(rhs.value, int64(0)), undefInt,
-														builder.CreateSRem(lhs.value, rhs.value));
+							BasicBlock * b1 = newBlock();		
+							BasicBlock * b2 = newBlock();
+							BasicBlock * bend = newBlock();
+							builder.CreateCondBr(builder.CreateICmpEQ(rhs.value, int64(0)), b1, b2);
+							
+							builder.SetInsertPoint(b1);
+							Value * v1 = undefInt;
+							builder.CreateBr(bend);
+							
+							builder.SetInsertPoint(b2);
+							Value * v2 = builder.CreateSRem(lhs.value, rhs.value);
+							builder.CreateBr(bend);
+							
+							builder.SetInsertPoint(bend);
+							
+							PHINode * phi = builder.CreatePHI(int64Type, 2, "mod");
+							phi->addIncoming(v1, b1);
+							phi->addIncoming(v2, b2);
+							return phi;
 						}, TInt, TInt, TInt)
 						});
 		case TokenType::TK_LESS:
