@@ -576,12 +576,9 @@ void relation(rasmus::teststream & ts) {
 								 "|X ? (tup(z: #.a) = tup(z:1))| = 2", "true"));
 	ts << "select16" << result(it("X := rel(tup(a:1,b:2,c:3)) + rel(tup(a:1,b:2,c:4)) + rel(tup(a:0,b:2,c:3)) + rel(tup(a:8,b:1,c:3)) + rel(tup(a:5,b:3,c:2));"
 "|X ? (min(rel(#), a) = 1)| = 2", "true"));
-/*
-  These are disabled for now as they cause segfaults
 	ts << "select17" << result(it("X := rel(tup(a:1,b:2,c:3)) + rel(tup(a:1,b:2,c:4)) + rel(tup(a:0,b:2,c:3)) + rel(tup(a:8,b:1,c:3)) + rel(tup(a:5,b:3,c:2));"
 								  "|X ? (# << # = #)| = 5", "true"));
 	ts << "select18" << result(it("X := one; ( X ? (X = one) ) = one", "true"));
-*/
 	ts << "select_err1" << result(it("rel(tup(a:1)) ? (#.b = 1)", "", true));
 	ts << "select_err2" << result(it("rel(tup(a:1, b:\"foo\")) ? (#.b = #.a)", "", true));
 	ts << "select_err3" << result(it("rel(tup(a:true, b:2)) ? (#.a > #.b)", "", true));
@@ -860,8 +857,7 @@ void relation(rasmus::teststream & ts) {
 								 "", "true"));
 	ts << "forall4" << result(it("X := rel(tup(a:1, b:2)) + rel(tup(a:2, b:2)) + rel(tup(a:0, b:3)); "
 								 "( !(X) : rel(#) ) = X", "true"));
-/*	Disabled because of core dumping
-	ts << "forall5" << result(it("(!(rel(tup(b:1,c:0))) : rel(tup(a:#.b/#.c))) = rel(tup(a:?-Int))", "true")); */
+	ts << "forall5" << result(it("(!(rel(tup(b:1,c:0))) : rel(tup(a:#.b/#.c))) = rel(tup(a:?-Int))", "true"));
 	ts << "forall_error1" << result(it("!(rel(tup(a:1)), rel(tup(a:2))) : rel(tup())", "", true));
 	ts << "forall_error2" << result(it("!() : rel(tup())", "", true));
 	ts << "forall_error3" << result(it("!(true) : rel(tup())", "", true));
