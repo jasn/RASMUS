@@ -223,6 +223,18 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
 	out << BR_CORNER << std::endl;
 } 
 
+/**
+ * \Brief Prints a boolean to a stream
+ * Handles the special case where the boolean is ?-Bool
+ */
+void printBoolToStream(int8_t val, std::ostream & out){
+	switch (val) {
+	case RM_TRUE: out << "true"; break;
+	case RM_FALSE: out << "false"; break;
+	default: out << "?-Bool"; break;
+	}
+}
+
 /*  outputs the given relation to the given stream. 
 
 	The output format is as given in the RASMUS 
@@ -264,7 +276,8 @@ void saveRelationToStream(rm_object * o, std::ostream & outFile){
 				outFile << value.intValue << std::endl;
 				break;
 			case TBool:
-				outFile << (value.boolValue ? "true" : "false") << std::endl;
+				printBoolToStream(value.boolValue, outFile);
+				outFile << std::endl;
 				break;
 			case TText:
 				printTextToStream(value.objectValue.getAs<TextBase>(), outFile);
@@ -276,8 +289,7 @@ void saveRelationToStream(rm_object * o, std::ostream & outFile){
 		}
 		if(tuple->values.size() == 0)
 			outFile << std::endl;
-	}
-	
+	}	
 }	
 
 /**
@@ -304,7 +316,9 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 	RefPtr<Schema> schema;
 
 	if(!(inFile >> num_columns)){
-		std::cerr << "could not read number of attributes from file "  << std::endl;
+		std::cerr << "The relation could not be loaded because the number "
+				  << "of attributes could not be read from the file."  
+				  << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -316,7 +330,8 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 		Attribute attribute;
 
 		if(!(inFile >> type >> name)){
-			std::cerr << "wrong schema format in file "  << std::endl;
+			std::cerr << "The relation could not be loaded because its "
+					  << "schema is in an unreadable format" << std::endl;
 			exit(EXIT_FAILURE);
 		}
 
@@ -333,7 +348,8 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 			attribute.type = TBool;
 			break;
 		default:
-			std::cerr << "wrong schema format in file "  << std::endl;
+			std::cerr << "The relation could not be loaded because its "
+					  << "schema is in an unreadable format" << std::endl;
 			exit(EXIT_FAILURE);			
 		}
 
@@ -391,9 +407,8 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 				tuple->values.emplace_back(TText, RefPtr<rm_object>::steal(rm_getConstText(line.c_str())));
 				break;
 			default:
-				std::cerr << "internal library error" << std::endl;
+				ILE("Unhandled type");
 				exit(EXIT_FAILURE);			
-				break;
 			}
 			
 		}
@@ -426,18 +441,6 @@ void printIntToStream(int64_t val, std::ostream & out){
 		out << "?-Int";
 	else
 		out << val;
-}
-
-/**
- * \Brief Prints a boolean to a stream
- * Handles the special case where the boolean is ?-Bool
- */
-void printBoolToStream(int8_t val, std::ostream & out){
-	switch (val) {
-	case RM_TRUE: out << "true"; break;
-	case RM_FALSE: out << "false"; break;
-	default: out << "?-Bool"; break;
-	}
 }
 
 /**
@@ -1658,13 +1661,14 @@ int64_t rm_maxRel(rm_object * lhs, const char * name, uint64_t range) {
 	case TBool:
 		max.boolValue = std::numeric_limits<int8_t>::min();
 		for(auto tup : rel->tuples)
-			if(tup->values[index].boolValue != RM_NULLBOOL && max < tup->values[index]){
+			if(tup->values[index].boolValue != RM_NULLBOOL && 
+			   max < tup->values[index]){
 				max = tup->values[index];
 				rel_has_nonnull_values = true;
 			}
 
 		if(rel_has_nonnull_values)
-			return max.intValue;
+			return max.boolValue;
 		else
 			return RM_NULLBOOL;
 
@@ -1718,13 +1722,14 @@ int64_t rm_minRel(rm_object * lhs, const char * name, uint64_t range) {
 
 		min.boolValue = std::numeric_limits<int8_t>::max();
 		for(auto tup : rel->tuples)
-			if(tup->values[index].boolValue != RM_NULLBOOL && tup->values[index] < min){
+			if(tup->values[index].boolValue != RM_NULLBOOL && 
+			   tup->values[index] < min){
 				min = tup->values[index];
 				rel_has_nonnull_values = true;
 			}
 
 		if(rel_has_nonnull_values)
-			return min.intValue;
+			return min.boolValue;
 		else
 			return RM_NULLBOOL;
 
