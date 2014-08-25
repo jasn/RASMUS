@@ -198,6 +198,7 @@
     <addaction name="actionRun_file"/>
     <addaction name="separator"/>
     <addaction name="importRelation"/>
+    <addaction name="actionDelete_2"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -342,6 +343,11 @@
   <action name="actionCancel">
    <property name="text">
     <string>Cancel</string>
+   </property>
+  </action>
+  <action name="actionDelete_2">
+   <property name="text">
+    <string>Delete Relation</string>
    </property>
   </action>
  </widget>
@@ -551,6 +557,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionDelete_2</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>deleteRelation()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>503</x>
+     <y>411</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>showPreferences()</slot>
@@ -559,5 +581,6 @@
   <slot>showAbout()</slot>
   <slot>runFile()</slot>
   <slot>newFile()</slot>
+  <slot>deleteRelation()</slot>
  </slots>
 </ui>

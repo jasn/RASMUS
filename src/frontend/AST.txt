@@ -26,3 +26,4 @@ DotExp|lhs,dotToken,nameToken
 ProjectExp|lhs,projectionToken|TokenList names
 BinaryOpExp|opToken,lhs,rhs
 SequenceExp||NodeList sequence
+UnsetExp|unsetToken,nameToken|bool isGlobal=false

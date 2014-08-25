@@ -380,6 +380,32 @@ public:
 		}
 	}   
 
+    void visit(std::shared_ptr<UnsetExp> node) {
+		node->type = TBool;
+		if (scopes.size() == 1) {
+			node->isGlobal = true;
+		}
+
+		std::string name = node->nameToken.getText(code);
+		auto &lu = scopes.back();
+		auto it = lu.bind.find(name);
+		if (it != lu.bind.end())  {
+			lu.bind.erase(it);
+			return;
+		}
+
+
+		// If we cannot find the variable, then it must be an external relation
+
+		if (scopes.size() != 1 || !callback->hasRelation(name.c_str())) {
+			std::stringstream ss;
+			ss << "Unknown variable " << name;
+			error->reportError(ss.str(), node->nameToken);
+			return;
+		}
+
+	}
+
     void visit(std::shared_ptr<UnaryOpExp> node) {
         visitNode(node->exp);
 		switch (node->opToken.id) {

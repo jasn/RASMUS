@@ -42,6 +42,23 @@ std::map<const char *, AnyValue, mystrcmp> globals;
 
 extern "C" {
 
+void rm_registerGlobal(const char * name, rm_object * rel) {
+	globals[name] = AnyValue(TRel, RefPtr<rm_object>(rel));
+	callback->environmentChanged(name);
+}
+
+bool rm_existsGlobalAny(const char * name) {
+	return globals.count(name) > 0;
+}
+
+void rm_deleteGlobalAny(const char * name) {
+	if (globals.count(name) == 0 || TRel == Type(globals[name].type)) {
+		rm_deleteRel(name);
+	}
+	globals.erase(name);
+	callback->environmentChanged(name);
+}
+
 void rm_loadGlobalAny(const char * name, 
 					  AnyRet * ret) {
 

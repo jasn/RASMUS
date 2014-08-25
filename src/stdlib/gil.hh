@@ -29,6 +29,12 @@ typedef std::lock_guard<gil_t> gil_lock_t;
 // Global interperter lock
 extern gil_t gil;
 
+template<typename T, typename F> 
+inline T gil_execute(F f) {
+	gil_lock_t lock(gil);
+	return f();
+}
+
 } //rasmus
 } //stdlib
 

@@ -232,6 +232,12 @@ public:
 		*s << smallStart(node, "const") << p("value", node->valueToken) << smallEnd();
 	}
 
+    void visit(std::shared_ptr<UnsetExp> node) {
+		*s << start(node, "unset")
+		   << p("nameToken", node->nameToken)
+		   << end();
+	}
+
     void visit(std::shared_ptr<UnaryOpExp> node) {
 		*s << start(node, "unary")
 		   << p("op", node->opToken)

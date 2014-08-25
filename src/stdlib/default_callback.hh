@@ -40,6 +40,10 @@ public:
 		return loadRelationFromFile(name);
 	}
 
+	void deleteRelation(const char * name) override {
+		// TODO
+	}
+
 	void printInt(int64_t v) override {
 		std::cout << v << std::endl;
 	}

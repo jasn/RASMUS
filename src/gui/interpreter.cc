@@ -175,6 +175,10 @@ public:
 		return res;
 	}
 	
+	virtual void deleteRelation(const char * name) override {
+		llvm::sys::fs::remove(location(name).toUtf8().data());
+	}
+
 	virtual bool hasRelation(const char * name) override { 
 		
 		return llvm::sys::fs::exists(location(name).toUtf8().data());
@@ -213,13 +217,16 @@ void Interpreter::doDisplayRelation(rs::Relation * r) {
 	emit displayRelation(r);
 }
 
+bool Interpreter::relationExists(QString relationName) {
+	return d_ptr->callback->hasRelation(relationName.toUtf8().data());
+}
+
 void Interpreter::environmentChanged(const char * name) {
 	emit updateEnvironment(name);
 }
 
 void Interpreter::enterRelationToEnvironment(rm_object * rel, const char * name) {
-	d_ptr->callback->saveRelation(rel, name);
-	d_ptr->callback->loadRelation(name);
+	rm_saveGlobalAny(name, reinterpret_cast<int64_t>(rel), TRel);
 }
 
 void Interpreter::cancel() {
@@ -257,3 +264,7 @@ void Interpreter::doDisplay(QString string) {
 	emit display(string);
 }
 
+void Interpreter::unset(QString name) {
+	runContent("", "unset" + name);
+
+}

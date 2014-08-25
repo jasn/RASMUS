@@ -1081,6 +1081,10 @@ rm_object * rm_loadRel(const char * name) {
 	return callback->loadRelation(name);
 }
 
+void rm_deleteRel(const char * name) {
+	callback->deleteRelation(name);
+}
+
 /**
  * \Brief Perform a natural join on lhs and rhs
 

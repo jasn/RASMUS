@@ -203,6 +203,8 @@ void rm_emitBadCSVFormatError [[noreturn]] ();
 /////////////////////////////////////////////////////////////////////////////////////
 void rm_saveRel(rm_object * o, const char * name);
 
+void rm_deleteRel(const char *name);
+
 rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs, uint64_t range);
 
 rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs, int64_t range);
@@ -231,7 +233,7 @@ void rm_sortRel(rm_object * rel_, size_t col_num, bool ascending);
  * load a global from the globals database, in case the return object
  * is a rm_object the refcnt is NOT increased
  *
- * @parm id The id of the global to load
+ * @param id The id of the global to load
  * @param ret Pointer of where to store the result
  */
 //void rm_loadGlobalAny(uint32_t id, AnyRet * ret);
@@ -244,6 +246,20 @@ void rm_loadGlobalAny(const char * name, AnyRet * ret);
  * @param type The Type of the global cast to a int8_t
  */
 void rm_saveGlobalAny(const char * name, int64_t value, int8_t type);
+
+/**
+ * Delete a named global variable
+ *
+ * @param name the name of the global variable to delete.
+ */
+void rm_deleteGlobalAny(const char * name);
+
+/**
+ * Check whether there a variable with the given name exists
+ *
+ * @param name the name to search for
+ */
+bool rm_existsGlobalAny(const char * name);
 
 /**
  * clear all storred globals

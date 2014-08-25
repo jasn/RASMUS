@@ -37,6 +37,8 @@ public:
 	~Callback() {}
 	virtual void saveRelation(rm_object * o, const char * name) = 0;
 	virtual rm_object * loadRelation(const char * name) = 0;
+	virtual void deleteRelation(const char * name) = 0;
+
 
 	virtual void printInt(int64_t v) = 0;
 	virtual void printBool(int8_t v) = 0;

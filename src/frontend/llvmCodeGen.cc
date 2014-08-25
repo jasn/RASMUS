@@ -249,7 +249,8 @@ public:
 			{"rm_equalRel", functionType(int8Type, {voidPtrType, voidPtrType})},
 			{"rm_equalTup", functionType(int8Type, {voidPtrType, voidPtrType})},
 			{"rm_createRel", functionType(voidPtrType, {voidPtrType})},
-			{"rm_factorRel", functionType(voidPtrType, {int32Type, pointerType(pointerType(int8Type)), int32Type, pointerType(voidPtrType), voidPtrType, int64Type})}
+			{"rm_factorRel", functionType(voidPtrType, {int32Type, pointerType(pointerType(int8Type)), int32Type, pointerType(voidPtrType), voidPtrType, int64Type})},
+			{"rm_deleteGlobalAny", functionType(voidType, {pointerType(int8Type)})}
 		};
 
 		for(auto p: fs)
@@ -1454,6 +1455,13 @@ public:
 	}
 
 	/** \brief Codegen for unary operations */
+	LLVMVal visit(std::shared_ptr<UnsetExp> node) {
+		if (node->isGlobal)
+			builder.CreateCall(getStdlibFunc("rm_deleteGlobalAny"), globalString(node->nameToken));
+
+		return OwnedLLVMVal(trueBool);
+	}
+
 	LLVMVal visit(std::shared_ptr<UnaryOpExp> node) {
 		switch (node->opToken.id) {
 		case TokenType::TK_NOT: {

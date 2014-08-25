@@ -98,6 +98,9 @@ public:
 	void saveRelation(rm_object *, const char *) {}
 	rm_object * loadRelation(const char *) {}
 	bool hasRelation(const char *) {return false;}
+
+	void deleteRelation(const char *) {}
+
 };
 
 void Intellisense::process(std::vector<std::string> * blocks) {

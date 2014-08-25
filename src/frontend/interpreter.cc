@@ -121,6 +121,11 @@ public:
 	rm_object * loadRelation(const char * name) override {
 		return cb->loadRelation(name);
 	}
+	
+	void deleteRelation(const char * name) override {
+		cb->deleteRelation(name);
+	}
+
 };
 
 

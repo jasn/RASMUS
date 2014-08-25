@@ -42,12 +42,15 @@ public:
 	void environmentChanged(const char *name);
 	void enterRelationToEnvironment(rm_object * rel, const char * name);
 	void doDisplayRelation(rasmus::stdlib::Relation *);
+	bool relationExists(QString relationName);
+
 
 public slots:
   
 	void run(QString line);
 	void cancel();
 	void runContent(QString name, QString content);
+	void unset(QString name);
 
 signals:
 	void incomplete();

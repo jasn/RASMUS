@@ -22,7 +22,11 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="CodeTextEdit" name="edit"/>
+     <widget class="CodeTextEdit" name="edit">
+      <property name="tabStopWidth">
+       <number>40</number>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>

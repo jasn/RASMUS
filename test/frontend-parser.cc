@@ -106,6 +106,10 @@ public:
 		ss << t(node->valueToken);
 	}
 
+    void visit(std::shared_ptr<UnsetExp> node) {
+		ss << "(unset " << t(node->nameToken) << ")";
+	}
+
     void visit(std::shared_ptr<UnaryOpExp> node) {
 		ss << "(" << t(node->opToken) << " " << v(node->exp) << ")";
 	}

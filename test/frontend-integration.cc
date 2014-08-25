@@ -70,6 +70,10 @@ public:
 		return relations.count(name);
 	}
 
+	void deleteRelation(const char * name) override {
+		relations.erase(name);
+	}
+
 };
 
 bool it(std::string txt, const char * exp, bool error=false) {

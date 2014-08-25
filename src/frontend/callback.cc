@@ -160,6 +160,11 @@ rm_object * TerminalCallback::loadRelation(const char * name) {
 	return rasmus::stdlib::loadRelationFromFile((std::string(name)+".rdb").c_str());
 }
 
+void TerminalCallback::deleteRelation(const char * name) {
+	// TODO: define proper behaviour?
+	llvm::sys::fs::remove(std::string(name)+".rdb");
+}
+
 bool TerminalCallback::hasRelation(const char * name) {
 	return llvm::sys::fs::exists(std::string(name)+".rdb");
 }

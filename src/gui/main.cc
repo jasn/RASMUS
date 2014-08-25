@@ -19,8 +19,10 @@
 
 #include "ui_main.h"
 #include <QApplication>
+#include <QDialog>
 #include <QFileDialog>
 #include <QInputDialog>
+#include <QMessageBox>
 #include <QTableView>
 #include <QTextCodec>
 #include <QTextEdit>
@@ -95,6 +97,9 @@ public:
 		QObject::connect(interpreter, SIGNAL(displayRelation(rasmus::stdlib::Relation *)),
 						 this, SLOT(displayRelation(rasmus::stdlib::Relation *)));
 		
+		QObject::connect(this, SIGNAL(unset(QString)),
+						 interpreter, SLOT(unset(QString)));
+
 		s.load();
 
 		ui.console->complete();
@@ -136,6 +141,39 @@ public slots:
 		r->decref();
 	}
 
+	void deleteRelation() {
+
+		QString nameOfRelation = QInputDialog::getText(this, "Relation name", "Enter a relation name to delete");
+
+		if (!rasmus::stdlib::gil_execute<bool>([&]{
+					return interpreter->relationExists(nameOfRelation);
+				})) {
+
+			QString msg = "The relation \"";
+			msg.append(nameOfRelation);
+			msg.append("\" does not exist in the current environment.");
+			// pop up with error 'name does not exist in environment'.
+			QMessageBox::StandardButton btn = QMessageBox::warning(this, "Warning", msg);
+			return;
+		}
+
+		// delete relation.
+		QString msg = "This will irretrievably delete the relation \"";
+		msg.append(nameOfRelation);
+		msg.append("\".");
+		QMessageBox::StandardButton btn = QMessageBox::question(this, "Delete relation", msg,
+																QMessageBox::Ok | QMessageBox::Cancel);
+
+		if (btn == QMessageBox::Cancel) {
+			return;
+		}
+		
+		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
+		emit unset(nameOfRelation);
+		//rm_deleteGlobalAny(nameOfRelation.toUtf8().data());
+		
+	}
+
 	void newFile() {
 		Editor * e = new Editor();
 		QObject::connect(e, SIGNAL(runContent(QString, QString)), interpreter, SLOT(runContent(QString, QString)));
@@ -158,31 +196,44 @@ public slots:
 
 		rm_object *rel;
 
-		{
-			rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
-			if (relPath.endsWith("csv", Qt::CaseInsensitive)) {
-				rel = rasmus::stdlib::loadRelationFromCSVFile(relPath.toStdString().c_str());
-			} else {
-				rel = rasmus::stdlib::loadRelationFromFile(relPath.toStdString().c_str());
-			}
+		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
+		if (relPath.endsWith("csv", Qt::CaseInsensitive)) {
+			rel = rasmus::stdlib::loadRelationFromCSVFile(relPath.toUtf8().data());
+		} else {
+			rel = rasmus::stdlib::loadRelationFromFile(relPath.toUtf8().data());
 		}
 		
-		interpreter->enterRelationToEnvironment(rel, relName.toStdString().c_str());
+		interpreter->enterRelationToEnvironment(rel, relName.toUtf8().data());
 
 	}
 
 	void environmentVariableDoubleClicked(QTreeWidgetItem * qtwi, int column) {
 		int data = qtwi->data(0, Qt::UserRole).toInt();
 		if (data == -1 || data == int(TRel)) {
-			showTableViewWindow(new RelationModel(qtwi->text(0).toStdString().c_str()));
+			showTableViewWindow(new RelationModel(qtwi->text(0).toUtf8().data()));
 		}
 	}
 
 	void environmentChanged(const char *name) {
 		std::stringstream repr;
+
 		AnyRet value;
+		QList<QTreeWidgetItem*> items(ui.environment->findItems(name, Qt::MatchFlag::MatchExactly, 0));
+		QTreeWidgetItem * item;
+		if (items.size() == 0) 
+			item = new QTreeWidgetItem(ui.environment);
+		else
+			item = items[0];
+
 		{
 			rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
+
+			if (!rm_existsGlobalAny(name)) {
+				delete item;
+				return;
+			}
+
+
 			rm_loadGlobalAny(name, &value);
 			
 			switch (Type(value.type)) {
@@ -210,12 +261,6 @@ public slots:
 			}
 		}
 
-		QList<QTreeWidgetItem*> items(ui.environment->findItems(name, Qt::MatchFlag::MatchExactly, 0));
-		QTreeWidgetItem * item;
-		if (items.size() == 0) 
-			item = new QTreeWidgetItem(ui.environment);
-		else
-			item = items[0];
 		item->setText(0, name);
 		item->setText(1, QString::fromUtf8(repr.str().c_str()));
 		item->setData(0, Qt::UserRole, (int)value.type);
@@ -257,6 +302,7 @@ public slots:
 
 signals:
 	void doRunContent(QString, QString);
+	void unset(QString);
 };
 
 int main(int argc, char * argv[]) {

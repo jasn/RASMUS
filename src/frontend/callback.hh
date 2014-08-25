@@ -49,6 +49,7 @@ public:
 	virtual void saveRelation(rm_object * o, const char * name) = 0;
 	virtual rm_object * loadRelation(const char * name) = 0;
 	virtual bool hasRelation(const char * name) = 0;
+	virtual void deleteRelation(const char * name) = 0;
 
 	virtual void environmentChanged(const char * /*name*/) {}
 
@@ -78,6 +79,7 @@ public:
 	virtual void saveRelation(rm_object * o, const char * name) override;
 	virtual rm_object * loadRelation(const char * name) override;
 	virtual bool hasRelation(const char * name) override;
+	virtual void deleteRelation(const char * name) override;
 };
 
 } //namespace frontend

@@ -335,8 +335,17 @@ public:
         return n;
 	}
 
+	NodePtr parseUnset() {		
+		Token t = consumeToken();
+		assertToken(TokenType::TK_NAME);
+		Token t2 = consumeToken();
+		return std::make_shared<UnsetExp>(t, t2);
+	}
+
     NodePtr parseBottomExp() {
 		switch (currentToken.id) {
+		case TokenType::TK_UNSET:
+			return parseUnset();
 		case TokenType::TK_IF:
 			return parseIfExp();
 		case TokenType::TK_LPAREN:

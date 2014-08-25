@@ -89,6 +89,10 @@ public:
         node->charRange = u(r(node->opToken), node->exp->charRange);
 	}
 
+    void visit(std::shared_ptr<UnsetExp> node) {
+        node->charRange = u(r(node->unsetToken), r(node->nameToken));
+	}
+
     void visit(std::shared_ptr<RelExp> node) {
         visitNode(node->exp);
         node->charRange = u(r(node->relToken), r(node->rparenToken));
