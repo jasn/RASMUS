@@ -35,25 +35,29 @@
 namespace rs = rasmus::stdlib;
 
 RelationModel::RelationModel(const char * relationName) : relationName(relationName) { 
+	rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 	AnyRet rv;
 	rm_loadGlobalAny(relationName, &rv);
 	rel = rs::RefPtr<rs::Relation>(reinterpret_cast<rs::Relation*>(rv.value));
-  
 }
 
-RelationModel::RelationModel(rasmus::stdlib::Relation *r) : rel(r) { }
+RelationModel::RelationModel(rasmus::stdlib::Relation *r) {
+	rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
+	rel = rasmus::stdlib::RefPtr<rasmus::stdlib::Relation>(r);
+}
 
 int RelationModel::rowCount(const QModelIndex&) const {
+	rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 	return rel->tuples.size();
 }
 
 int RelationModel::columnCount(const QModelIndex&) const {
-	// rs::Relation* rel = static_cast<rs::Relation*>(rm_loadRel(relationName.c_str()));
+	rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 	return rel->schema->attributes.size();
 }
 
 QVariant RelationModel::data(const QModelIndex& index, int role) const {
-	// rs::Relation* rel = static_cast<rs::Relation*>(rm_loadRel(relationName.c_str()));
+	rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 	std::string val;
 
 	size_t column = index.column();
@@ -105,6 +109,7 @@ QVariant RelationModel::data(const QModelIndex& index, int role) const {
 }
 
 QVariant RelationModel::headerData(int section, Qt::Orientation orientation, int role) const {
+	rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 	if (orientation != Qt::Horizontal) return QVariant("f");
 
 	std::stringstream ss;
@@ -133,6 +138,14 @@ QVariant RelationModel::headerData(int section, Qt::Orientation orientation, int
 
 }
 
+void RelationModel::sort(int column, Qt::SortOrder order) {
+	{
+		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
+		rm_sortRel(rel.get(), column, order==Qt::AscendingOrder);
+	}
+	emit layoutChanged();
+}
+
 RelationWindow::RelationWindow(RelationModel * model): model(model) {
 	ui.setupUi(this);
 	model->setParent(this);
@@ -142,10 +155,6 @@ RelationWindow::RelationWindow(RelationModel * model): model(model) {
 		setWindowTitle(QString::fromUtf8(model->relationName.c_str()) + " - Relation");
 }
 
-void RelationModel::sort(int column, Qt::SortOrder order) {
-	rm_sortRel(rel.get(), column, order==Qt::AscendingOrder);
-	emit layoutChanged();
-}
 
 void RelationWindow::showAbout() {
 	::showAbout();
@@ -154,6 +163,7 @@ void RelationWindow::showAbout() {
 void RelationWindow::saveAsGlobal() {
 	QString relName = QInputDialog::getText(this, tr("Relation name"), tr("Enter a name for the relation"));
 	if (relName.isEmpty()) return;
+	rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 	rm_saveGlobalAny(relName.toUtf8().data(), reinterpret_cast<uint64_t>(model->rel.get()), TRel);
 }
 
@@ -163,6 +173,7 @@ void RelationWindow::exportCSV() {
 		name = QString::fromUtf8(model->relationName.c_str())+".csv";
 	QString p = QFileDialog::getSaveFileName(this, tr("Export as"), name, tr("CSV Files (*.csv)"));
 	if (p.isEmpty()) return;
+	rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 	rasmus::stdlib::saveCSVRelationToFile(model->rel.get(), name.toUtf8().data());
 }
 

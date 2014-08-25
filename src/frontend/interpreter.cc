@@ -48,7 +48,7 @@
 #include <frontend/tokenizer.hh>
 #include <sstream>
 #include <stdlib/lib.h>
-
+#include <stdlib/gil.hh>
 using lexer::TokenType;
 
 namespace {
@@ -172,6 +172,7 @@ public:
 	}
 	
 	void runContent(const std::string & /*name*/, const std::string & content) {
+		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 		lexer->index = theCode.size();
 		code->set(theCode + content);
 		lexer->tknizer = lexer::Tokenizer(code->code.data()+lexer->index);
@@ -230,6 +231,7 @@ public:
 	}
 
 	bool runLine(const std::string & line) override {
+		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 		lexer->index = theCode.size();
 		code->set(theCode + incomplete + line);
 		lexer->tknizer = lexer::Tokenizer(code->code.data()+lexer->index);

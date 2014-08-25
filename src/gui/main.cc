@@ -39,6 +39,7 @@
 #include <QDir>
 #include <QMessageBox>
 #include "help.hh"
+#include <stdlib/gil.hh>
 
 namespace rs = rasmus::stdlib;
 
@@ -131,6 +132,7 @@ public slots:
 
 	void displayRelation(rasmus::stdlib::Relation * r) {
 		showTableViewWindow(new RelationModel(r));
+		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 		r->decref();
 	}
 
@@ -156,12 +158,15 @@ public slots:
 
 		rm_object *rel;
 
-		if (relPath.endsWith("csv", Qt::CaseInsensitive)) {
-			rel = rasmus::stdlib::loadRelationFromCSVFile(relPath.toStdString().c_str());
-		} else {
-			rel = rasmus::stdlib::loadRelationFromFile(relPath.toStdString().c_str());
+		{
+			rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
+			if (relPath.endsWith("csv", Qt::CaseInsensitive)) {
+				rel = rasmus::stdlib::loadRelationFromCSVFile(relPath.toStdString().c_str());
+			} else {
+				rel = rasmus::stdlib::loadRelationFromFile(relPath.toStdString().c_str());
+			}
 		}
-
+		
 		interpreter->enterRelationToEnvironment(rel, relName.toStdString().c_str());
 
 	}
@@ -174,33 +179,35 @@ public slots:
 	}
 
 	void environmentChanged(const char *name) {
-		
-		AnyRet value;
-		rm_loadGlobalAny(name, &value);
 		std::stringstream repr;
-
-		switch (Type(value.type)) {
-		case TBool:
-			rasmus::stdlib::printBoolToStream(int8_t(value.value), repr);
-			break;
-		case TInt:
-			rasmus::stdlib::printIntToStream(value.value, repr);
-			break;
-		case TText: 
-			rasmus::stdlib::printTextToStream(reinterpret_cast<rasmus::stdlib::TextBase *>(value.value), repr);
-			break;
-		case TTup:
-			rasmus::stdlib::printTupleToStream(reinterpret_cast<rm_object *>(value.value), repr);
-			break;
-		case TFunc:
-			repr << "Function";
-			break;
-		case TRel:
-			repr << "Relation of " << reinterpret_cast<rasmus::stdlib::Relation *>(value.value)->tuples.size() << " tuples";
-			break;
-		default:
-			repr << "Error";
-			break;
+		AnyRet value;
+		{
+			rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
+			rm_loadGlobalAny(name, &value);
+			
+			switch (Type(value.type)) {
+			case TBool:
+				rasmus::stdlib::printBoolToStream(int8_t(value.value), repr);
+				break;
+			case TInt:
+				rasmus::stdlib::printIntToStream(value.value, repr);
+				break;
+			case TText: 
+				rasmus::stdlib::printTextToStream(reinterpret_cast<rasmus::stdlib::TextBase *>(value.value), repr);
+				break;
+			case TTup:
+				rasmus::stdlib::printTupleToStream(reinterpret_cast<rm_object *>(value.value), repr);
+				break;
+			case TFunc:
+				repr << "Function";
+				break;
+			case TRel:
+				repr << "Relation of " << reinterpret_cast<rasmus::stdlib::Relation *>(value.value)->tuples.size() << " tuples";
+				break;
+			default:
+				repr << "Error";
+				break;
+			}
 		}
 
 		QList<QTreeWidgetItem*> items(ui.environment->findItems(name, Qt::MatchFlag::MatchExactly, 0));

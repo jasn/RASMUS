@@ -15,6 +15,8 @@ set(LIB_FILES
 	text.hh
 	abort.cc
 	abort.hh
+	gil.hh
+	gil.cc
 	global.cc)
 
 if (RASMUS_STATIC)

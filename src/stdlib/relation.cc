@@ -180,8 +180,8 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
 			out << VER_BAR << ' ' << EMPTY_MSG << ' ' << VER_BAR << std::endl;
 
 	} else {
+		checkAbort();
 		for(auto & tuple : relation->tuples){
-			checkAbort();
 			i = 0;
 			out << VER_BAR;
 			for(auto & value : tuple->values){
@@ -871,8 +871,8 @@ RefPtr<Relation> projectByIndices(Relation * rel, std::vector<size_t> indices){
 	ret->schema = schema;
 	
 	// create new tuples and add them to the new relation
+	checkAbort();
 	for(auto old_tuple : rel->tuples){
-		checkAbort();
 		RefPtr<Tuple> new_tuple = makeRef<Tuple>();
 		new_tuple->schema = schema;
 		for(size_t index : indices)
@@ -1202,11 +1202,11 @@ rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs, uint64_t range) {
 		if(add_column[i])
 			ret->schema->attributes.push_back(r->schema->attributes[i]);
 
+	checkAbort();
 	// perform the natural join on lhs and rhs, adding tuples to 'ret'
 	for(size_t l_start = 0, r_start = 0; 
 		l_start < l->tuples.size() && r_start < r->tuples.size(); ){
 		
-		checkAbort();
 		// find the smallest restriction of a pointed-to tuple
 		Tuple smallest = std::min(restrict(l->tuples[l_start], lsi), 
 								  restrict(r->tuples[r_start], rsi));
@@ -1298,9 +1298,10 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs, int64_t range) {
 	rel->schema = l->schema;
 	rel->tuples = l->tuples;
 
+	checkAbort();
+
 	// add all entries from rhs to the relation
 	for(auto & old_tup : r->tuples){
-		checkAbort();
 		RefPtr<Tuple> new_tup = makeRef<Tuple>();
 		new_tup->schema = rel->schema;
 		new_tup->values.resize(l->schema->attributes.size());
@@ -1449,8 +1450,8 @@ rm_object * rm_selectRel(rm_object * rel_, rm_object * func) {
 	schema->attributes = rel->schema->attributes;
 	ret->schema = schema;
 
+	checkAbort();
 	for(size_t i = 0; i < rel->tuples.size(); i++){
-		checkAbort();
 		f(base, &retval, reinterpret_cast<int64_t>(rel->tuples[i].get()), TTup);
 		if(retval.value == RM_TRUE)
 			ret->tuples.push_back(rel->tuples[i]);
@@ -2232,8 +2233,8 @@ rm_object * rm_forAll(rm_object * rel_, rm_object * func, int64_t range){
 	
 	bool ret_initialized = false;
 	
+	checkAbort();
 	for(size_t i = 0; i < rel->tuples.size(); i++){
-		checkAbort();
 		Tuple * tup = rel->tuples[i].get();
 		int64_t arg_tup = reinterpret_cast<int64_t>(tup);
 		int64_t arg_rel_as_int = reinterpret_cast<int64_t>(arg_rel.get());
@@ -2402,10 +2403,9 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 	}
 	
 	// sort all the relations on their restricted tuples
-
+	checkAbort();
 	for(size_t i = 0; i < num_relations; i++){
 		Relation * cur_rel = static_cast<Relation *>(relations[i]);
-		checkAbort();
 		std::sort(cur_rel->tuples.begin(), cur_rel->tuples.end(),
 				  [&](const RefPtr<Tuple> & a,
 					  const RefPtr<Tuple> & b)->bool{
@@ -2450,9 +2450,9 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 
 	// maintain start- and end-pointers to intervals in each relation
 	std::vector<size_t> row_indices(num_relations, 0);
-	
+
+	checkAbort();
 	while(1){
-		checkAbort();
 		// loop condition: are there rows left to process?
 		bool proceed = false;
 		for(size_t i = 0; i < num_relations; i++){

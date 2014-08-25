@@ -16,27 +16,20 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-#ifndef __RM_ABORT_HH__
-#define __RM_ABORT_HH__
-#include <stdlib/callback.hh>
-#include <stdlib/gil.hh>
-
-extern "C" {
-  extern volatile bool rm_do_abort;
-}
-
+#ifndef __GIL_HH__
+#define __GIL_HH__
+#include <mutex>
 
 namespace rasmus {
 namespace stdlib {
 
-inline void checkAbort() {
-	gil.unlock(); //Allow other threads to run if needed
-	gil.lock();
+typedef std::recursive_mutex gil_t;
+typedef std::lock_guard<gil_t> gil_lock_t;
 
-	if (rm_do_abort) callback->reportAbort();
-}
+// Global interperter lock
+extern gil_t gil;
 
-}
-}
+} //rasmus
+} //stdlib
 
-#endif //__RM_ABORT_HH__
+#endif //__GIL_HH__

@@ -22,6 +22,7 @@
 #include <QAbstractTableModel>
 #include <stdlib/relation.hh>
 #include <stdlib/lib.h>
+#include <stdlib/gil.hh>
 #include "ui_relation.h"
 
 class RelationModel : public QAbstractTableModel {
