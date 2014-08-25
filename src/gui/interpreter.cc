@@ -265,6 +265,5 @@ void Interpreter::doDisplay(QString string) {
 }
 
 void Interpreter::unset(QString name) {
-	runContent("", "unset" + name);
-
+	runContent("", "unset " + name);
 }
