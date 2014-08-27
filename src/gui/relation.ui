@@ -47,7 +47,7 @@
      <string>&amp;File</string>
     </property>
     <addaction name="action_Save_as_global"/>
-    <addaction name="action_Export_CVS"/>
+    <addaction name="action_Export_CSV"/>
     <addaction name="separator"/>
     <addaction name="action_Close"/>
    </widget>
@@ -74,9 +74,9 @@
     <string>Ctrl+S</string>
    </property>
   </action>
-  <action name="action_Export_CVS">
+  <action name="action_Export_CSV">
    <property name="text">
-    <string>&amp;Export CVS...</string>
+    <string>&amp;Export CSV...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+E</string>
@@ -126,7 +126,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>action_Export_CVS</sender>
+   <sender>action_Export_CSV</sender>
    <signal>triggered()</signal>
    <receiver>RelationWindow</receiver>
    <slot>exportCSV()</slot>

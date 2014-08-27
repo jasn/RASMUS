@@ -174,7 +174,8 @@ void RelationWindow::exportCSV() {
 	QString p = QFileDialog::getSaveFileName(this, tr("Export as"), name, tr("CSV Files (*.csv)"));
 	if (p.isEmpty()) return;
 	rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
-	rasmus::stdlib::saveCSVRelationToFile(model->rel.get(), name.toUtf8().data());
+	//rasmus::stdlib::saveCSVRelationToFile(model->rel.get(), name.toUtf8().data());
+	rasmus::stdlib::saveCSVRelationToFile(model->rel.get(), p.toUtf8().data());
 }
 
 void showTableViewWindow(RelationModel * rm) {
