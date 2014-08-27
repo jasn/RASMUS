@@ -170,7 +170,6 @@ public slots:
 		
 		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 		emit unset(nameOfRelation);
-		//rm_deleteGlobalAny(nameOfRelation.toUtf8().data());
 		
 	}
 
@@ -196,15 +195,18 @@ public slots:
 
 		rm_object *rel;
 
-		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
-		if (relPath.endsWith("csv", Qt::CaseInsensitive)) {
-			rel = rasmus::stdlib::loadRelationFromCSVFile(relPath.toUtf8().data());
-		} else {
-			rel = rasmus::stdlib::loadRelationFromFile(relPath.toUtf8().data());
-		}
+		try {
+			rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
+			if (relPath.endsWith("csv", Qt::CaseInsensitive)) {
+				rel = rasmus::stdlib::loadRelationFromCSVFile(relPath.toUtf8().data());
+			} else {
+				rel = rasmus::stdlib::loadRelationFromFile(relPath.toUtf8().data());
+			}
 		
-		interpreter->enterRelationToEnvironment(rel, relName.toUtf8().data());
-
+			interpreter->enterRelationToEnvironment(rel, relName.toUtf8().data());
+		} catch (std::exception e) {
+			ui.console->complete();
+		}
 	}
 
 	void environmentVariableDoubleClicked(QTreeWidgetItem * qtwi, int column) {

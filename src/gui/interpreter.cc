@@ -87,6 +87,7 @@ public:
 						std::string message,
 						rf::Token mainToken,
 						std::vector<rf::CharRange> ranges) override {
+
 		int lo = std::numeric_limits<int>::max();
 		int hi = std::numeric_limits<int>::min();
 		if (mainToken) {

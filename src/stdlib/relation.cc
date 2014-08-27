@@ -316,10 +316,11 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 	RefPtr<Schema> schema;
 
 	if(!(inFile >> num_columns)){
-		std::cerr << "The relation could not be loaded because the number "
-				  << "of attributes could not be read from the file."  
-				  << std::endl;
-		exit(EXIT_FAILURE);
+		std::string errText = 
+			"The relation could not be loaded because the number "
+			"of attributes could not be read from the file.";
+		std::cerr << errText << std::endl;
+		callback->reportError(0,0, errText);
 	}
 
 	schema = makeRef<Schema>();
@@ -330,9 +331,11 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 		Attribute attribute;
 
 		if(!(inFile >> type >> name)){
-			std::cerr << "The relation could not be loaded because its "
-					  << "schema is in an unreadable format" << std::endl;
-			exit(EXIT_FAILURE);
+			std::string errText =
+				"The relation could not be loaded because its "
+				"schema is in an unreadable format";
+			std::cerr << errText << std::endl;
+			callback->reportError(0, 0, errText);
 		}
 
 		attribute.name = std::move(name);
@@ -347,10 +350,13 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 		case 'B':
 			attribute.type = TBool;
 			break;
-		default:
-			std::cerr << "The relation could not be loaded because its "
-					  << "schema is in an unreadable format" << std::endl;
-			exit(EXIT_FAILURE);			
+		default: {
+			std::string errText =
+				"The relation could not be loaded because its "
+				"schema is in an unreadable format";
+			std::cerr << errText << std::endl;
+			callback->reportError(0, 0, errText);
+		}
 		}
 
 		schema->attributes.push_back(std::move(attribute));
@@ -408,7 +414,7 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 				break;
 			default:
 				ILE("Unhandled type");
-				exit(EXIT_FAILURE);			
+				callback->reportError(0, 0, "Unhandled type");
 			}
 			
 		}
@@ -516,10 +522,11 @@ std::vector< std::vector<std::string> > parseCSV(std::string input){
 					break;
 				case '\r':
 					if(input[index+1] != '\n'){
-						std::cerr << "Could not parse CSV file because "
-								  << "of an unexpected type of line break." 
-								  << std::endl;
-						exit(EXIT_FAILURE);
+						std::string errText =
+							"Could not parse CSV file because "
+							"of an unexpected type of line break.";
+						std::cerr << errText << std::endl;
+						callback->reportError(0, 0, errText);
 					}
 					index++;
 					// note the fallthrough
@@ -539,11 +546,13 @@ std::vector< std::vector<std::string> > parseCSV(std::string input){
 				}
 			} else { // inside quotes
 				switch(c){
-				case '\x00':
-					std::cerr << "Could not parse CSV file because "
-							  << "a null byte was encountered inside quotes."
-							  << std::endl;
-					exit(EXIT_FAILURE);
+				case '\x00': {
+					std::string errText =
+						"Could not parse CSV file because "
+						"a null byte was encountered inside quotes.";
+					std::cerr << errText << std::endl;
+					callback->reportError(0, 0, errText);
+				}
 				case '"':
 					if(input[index+1] == '"'){
 						field += '"';
@@ -554,10 +563,11 @@ std::vector< std::vector<std::string> > parseCSV(std::string input){
 						   (next == '\r' && input[index+2] == '\n'))
 							in_quotes = false;
 						else{
-							std::cerr <<  "Could not parse CSV file because "
-									  << "a quoted field contains data outside its quotes."
-									  << std::endl;
-							exit(EXIT_FAILURE);
+							std::string errText =
+								"Could not parse CSV file because "
+								"a quoted field contains data outside its quotes.";
+							std::cerr <<  errText << std::endl;
+							callback->reportError(0, 0, errText);
 						}
 					}
 					break;
@@ -569,11 +579,13 @@ std::vector< std::vector<std::string> > parseCSV(std::string input){
 		}
 
 		if(ret.size() > 0 && ret[0].size() != row.size()){
-			std::cerr << "Could not parse CSV file because one of the records "
-					  << "had a different number of fields compared to the rest "
-					  << "(" << ret[0].size() << " compared to " << row.size() << ")"
-					  << std::endl;
-			exit(EXIT_FAILURE);
+			std::stringstream ss;
+			ss << "Could not parse CSV file because one of the records "
+			   << "had a different number of fields compared to the rest"
+			   << "(" << ret[0].size() << " compared to " << row.size() << ")";
+			std::string errText = ss.str();
+			std::cerr << errText << std::endl;
+			callback->reportError(0, 0, errText);
 		}
 
 		ret.push_back(std::move(row));
