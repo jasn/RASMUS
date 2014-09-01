@@ -104,10 +104,14 @@ public:
 		std::stringstream ss;
 		switch (type) {
 		case rf::MsgType::error:
-			ss << "<span style=\"color: red\">error</span>: ";
+			ss << "<span style=\"color: "
+			   << settings->color(Colors::consoleError).name().toStdString()
+			   << "\">error</span>: ";
 			break;
 		case rf::MsgType::warning:
-			ss << "<span style=\"color: yellow\">warning</span>: ";
+			ss << "<span style=\"color: "
+			   << settings->color(Colors::consoleWarning).name().toStdString()
+			   << "\">warning</span>: ";
 		default:
 			break;
 		}
@@ -118,11 +122,15 @@ public:
 		int endOfLine = std::max<int>(0,
 									  std::min<int>(code->lineStarts[line], code->code.size()));
 		if (endOfLine < startOfLine) endOfLine=startOfLine;
-		ss << "<span style=\"color: green\">" << escaped(code->code.substr(startOfLine,endOfLine-startOfLine))
+		ss << "<span style=\"color: "
+		   << settings->color(Colors::consoleCode).name().toStdString() 
+		   << "\">" << escaped(code->code.substr(startOfLine,endOfLine-startOfLine))
 		   << "</span><br>";
 		if (ranges.size() == 0 && mainToken) {
 			ss << escaped(std::string(mainToken.start-startOfLine, ' '))
-			   << "<span style=\"color: blue\">"
+			   << "<span style=\"color: "
+			   << settings->color(Colors::consoleMessage).name().toStdString()
+			   << "\">"
 			   << "^"
 			   << escaped(std::string(std::max<size_t>(mainToken.length, 1)-1, '~'))
 			   << "</span>";
@@ -133,7 +141,9 @@ public:
 					i[x-startOfLine] = '~';
 			if (mainToken)
 				i[std::max<int>(size_t(0), std::min<int>(mainToken.start + (mainToken.length-1) / 2 - startOfLine, endOfLine-startOfLine-1))] = '^';
-			ss << "<span style=\"color: blue\">" << escaped(i) << "</span>";
+			ss << "<span style=\"color: " 
+			   << settings->color(Colors::consoleMessage).name().toStdString()
+			   << "\">" << escaped(i) << "</span>";
 		}
 		interperter->doDisplay(QString::fromUtf8(ss.str().c_str()));
 	}
@@ -143,10 +153,14 @@ public:
 		std::stringstream ss;
 		switch (type) {
 		case rf::MsgType::error:
-			ss << "<span style=\"color: red\">error</span>: ";
+			ss << "<span style=\"color: "
+			   << settings->color(Colors::consoleError).name().toStdString()
+			   << "\">error</span>: ";
 			break;
 		case rf::MsgType::warning:
-			ss << "<span style=\"color: yellow\">warning</span>: ";
+			ss << "<span style=\"color: "
+			   << settings->color(Colors::consoleWarning).name().toStdString()
+			   << "\">warning</span>: ";
 		default:
 			break;
 		}
@@ -162,12 +176,12 @@ public:
 	}
 
 	QString location(const char * name) {
-		return settings->path + "/" + name + ".rdb";
+		return settings->path() + "/" + name + ".rdb";
 	}
 
 	virtual void saveRelation(rm_object * o, const char * name) override {
 		QDir d;
-		d.mkpath(settings->path);
+		d.mkpath(settings->path());
 		rasmus::stdlib::saveRelationToFile(o, location(name).toUtf8().data());
 	}
 

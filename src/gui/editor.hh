@@ -24,21 +24,25 @@
 #include "ui_editor.h"
 #include <QFileInfo>
 
+class Settings;
+
 class Editor: public QMainWindow {
 	Q_OBJECT
 public:
-	Editor();
-	Editor(QString path, QString content);
+	Editor(Settings * settings);
+	Editor(Settings * settings, QString path, QString content);
 	void closeEvent(QCloseEvent *event);
 private:
 	Ui::Editor ui;
 	QFileInfo path;
+	Settings * settings;
 public slots:
 	void dirty(bool dirty);
 	void showAbout();
 	void run();
 	bool save();
 	bool saveAs();
+	void visualUpdate(Settings *);
 signals:
 	void runContent(QString name, QString content);
 };

@@ -25,15 +25,14 @@
 #include "settings.hh"
 
 void Console::visualUpdate(Settings *s) {
-
-	setFont(s->consoleFont);
+	setFont(s->font(Fonts::console));
 	QPalette p(palette());
-	p.setColor(QPalette::Text, s->consoleTextColor);
-	p.setColor(QPalette::Base, s->consoleBackgroundColor);
-  
+	p.setColor(QPalette::Text, s->color(Colors::consoleText));
+	p.setColor(QPalette::Base, s->color(Colors::consoleBackground));
 	setPalette(p);
-
+	settings = s;
 }
+
 
 void Console::updateHistory() {
 	QTextCursor c = textCursor();
@@ -186,8 +185,12 @@ void Console::insertEmptyBlock() {
 	c.movePosition(QTextCursor::End);
 	c.insertBlock();
   
-	if (incompleteState) c.insertHtml("<span style=\"color: #7070FF\">...</style>");
-	else c.insertHtml("<span style=\"color: #7070FF\">&gt;&gt;&gt;</style>");
+	if (incompleteState) c.insertHtml(
+		QString("<span style=\"color: %1\">...</style>").arg(
+			settings->color(Colors::consoleMessage).name()));
+	else c.insertHtml(
+		QString("<span style=\"color: %1\">&gt;&gt;&gt;</style>").arg(
+			settings->color(Colors::consoleMessage).name()));
 	QTextCharFormat cf = currentCharFormat();
 	cf.clearForeground();
 	setCurrentCharFormat(cf);

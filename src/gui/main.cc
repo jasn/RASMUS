@@ -123,7 +123,7 @@ public slots:
 			--i;
 		}
 
-		QDir d(s->path);
+		QDir d(s->path());
 		for (auto a: d.entryList(QStringList("*.rdb"), QDir::Files | QDir::Readable)) {
 			QFileInfo f(a);
 			if (there.contains(f.baseName())) continue;
@@ -174,7 +174,7 @@ public slots:
 	}
 
 	void newFile() {
-		Editor * e = new Editor();
+		Editor * e = new Editor(&s);
 		QObject::connect(e, SIGNAL(runContent(QString, QString)), interpreter, SLOT(runContent(QString, QString)));
 		e->show();
 	}
@@ -283,7 +283,7 @@ public slots:
 			return;
 		}
 		
-		Editor * e = new Editor(p, QString::fromUtf8(file.readAll()));
+		Editor * e = new Editor(&s, p, QString::fromUtf8(file.readAll()));
 		QObject::connect(e, SIGNAL(runContent(QString, QString)), interpreter, SLOT(runContent(QString, QString)));
 		e->show();
 	}

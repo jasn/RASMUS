@@ -26,7 +26,7 @@
 #include <map>
 
 class QTextDocument;
-
+class Settings;
 
 enum class IssueType {WARNING,ERROR};
 
@@ -65,7 +65,7 @@ signals:
 public slots:
 	void registerIssues(std::vector<Issue> * issues);
 
-
+	void updateSettings(Settings *);
 private:
 	void doIntellisense();
 
@@ -75,6 +75,7 @@ private:
 	bool intellinensing;
 	bool upToDate;
 	bool noIntelli;
+	Settings * settings;
 };
 
 

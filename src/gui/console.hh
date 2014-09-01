@@ -48,9 +48,8 @@ private:
 	std::vector<QString> history;
 	size_t currHistoryPosition;
 	bool currentLineInsertedInHistory;
-
 	bool incompleteState;
-
+	Settings * settings;
 signals:
   
 	void run(QString line);

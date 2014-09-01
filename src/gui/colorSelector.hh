@@ -16,55 +16,27 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
-
-#ifndef __SRC_GUI_SETTINGS_H__
-#define __SRC_GUI_SETTINGS_H__
-
-#include <QDialog>
-#include <QFont>
+#ifndef __GUI_COLOR_SELECTOR_HH__
+#define __GUI_COLOR_SELECTOR_HH__
+#include <QWidget>
 #include <QColor>
 
-class SettingsPrivate;
-class QAbstractButton;
+class ColorSelectorPrivate;
 
-enum class Fonts {
-	console,
-	editor
-};
-
-enum class Colors {
-	consoleText,
-	consoleBackground,
-	consoleMessage,
-	consoleError,
-	consoleWarning,
-	consoleCode,
-	editorNormal,
-	editorBackground,
-	editorKeyword,
-	editorWarning,
-	editorError,
-	editorText,
-	editorComment,
-};
-
-class Settings: public QDialog {
+class ColorSelector: public QWidget {
 	Q_OBJECT
 public:
-	Settings();
-	QString path() const;
-	QFont font(Fonts font) const;
-	QColor color(Colors color) const;
+	ColorSelector(QWidget * parent);
+	~ColorSelector();
+	QColor getColor();
 public slots:
-	void selectPath();
-	void save();
-	void load();
-	void restoreDefaults();
-	void clicked(QAbstractButton * button);
+	void selectColor();
+	void setColor(QColor);
 signals:
-	void visualUpdate(Settings *);
+	void colorChanged(QColor);
 private:
-	SettingsPrivate * d;
+	ColorSelectorPrivate * d;
 };
 
-#endif //__SRC_GUI_SETTINGS_H__
+
+#endif //__GUI_COLOR_SELECTOR_HH__

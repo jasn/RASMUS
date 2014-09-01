@@ -29,7 +29,7 @@
 #include <algorithm>
 #include <set>
 #include "table.hh"
-
+#include "settings.hh"
 
 namespace f=rasmus::frontend;
 
@@ -331,23 +331,24 @@ void Highlighter::highlightBlock(const QString &text) {
 		for(const Style & s: currentStyles) {
 			switch(s.type) {
 			case StyleType::INVALID:
+				format.setForeground(settings->color(Colors::editorError));
 			case StyleType::COMMENT:
-				format.setForeground(Qt::red);
+				format.setForeground(settings->color(Colors::editorComment));
 				break;
 			case StyleType::TEXT:
-				format.setForeground(Qt::green);				
+				format.setForeground(settings->color(Colors::editorText));
 				break;
 			case StyleType::KEYWORD:
-				format.setForeground(Qt::blue);
+				format.setForeground(settings->color(Colors::editorKeyword));
 				break;
 			case StyleType::ERROR:
 				format.setToolTip(QString::fromUtf8(s.message.c_str()));
-				format.setUnderlineColor(Qt::red);
+				format.setForeground(settings->color(Colors::editorError));
 				format.setUnderlineStyle(QTextCharFormat::WaveUnderline);
 				break;
 			case StyleType::WARNING:
 				format.setToolTip(QString::fromUtf8(s.message.c_str()));
-				format.setUnderlineColor(Qt::green);
+				format.setForeground(settings->color(Colors::editorWarning));
 				format.setUnderlineStyle(QTextCharFormat::WaveUnderline);
 				break;
 			case StyleType::NORMAL:
@@ -401,4 +402,11 @@ std::string Highlighter::getIssue(size_t block, size_t index) {
 			issue.end > index) return issue.message;
 	}
 	return "";
+}
+
+void Highlighter::updateSettings(Settings * s) {
+	settings = s;
+	noIntelli=true;
+	rehighlight();
+	noIntelli=false;
 }

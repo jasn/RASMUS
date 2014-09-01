@@ -17,86 +17,143 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #include "settings.hh"
-#include <QFontDialog>
-#include <QColorDialog>
 #include <QFileDialog>
-#include <QDesktopServices>
+#include <QSettings>
+#include "ui_settings.h"
+#include <QAbstractButton>
 
-Settings::Settings(): settings("AU", "RASMUS") {
-	ui.setupUi(this);
+class SettingsPrivate {
+public:
+	QSettings settings;
+	QString path;
+	Ui::Settings ui;
+
+	SettingsPrivate(): settings("AU", "RASMUS") {}
+
+	void setPath(QString path) {
+		this->path = path;
+		ui.path->setText(path);
+	}
+	
+	void save() {
+		settings.setValue("console/font", ui.consoleFont->getFont());
+		settings.setValue("console/textColor", ui.consoleTextColor->getColor());
+		settings.setValue("console/backgroundColor", ui.consoleBackgroundColor->getColor());
+		settings.setValue("console/messageColor", ui.consoleMessageColor->getColor());
+		settings.setValue("console/errorColor", ui.consoleErrorColor->getColor());
+		settings.setValue("console/warningColor", ui.consoleWarningColor->getColor());
+		settings.setValue("console/codeColor", ui.consoleCodeColor->getColor());
+
+		settings.setValue("editor/font", ui.editorFont->getFont());
+		settings.setValue("editor/normalColor", ui.editorNormalColor->getColor());
+		settings.setValue("editor/backgroundColor", ui.editorBackgroundColor->getColor());
+		settings.setValue("editor/keywordColor", ui.editorKeywordColor->getColor());
+		settings.setValue("editor/warningColor", ui.editorWarningColor->getColor());
+		settings.setValue("editor/errorColor", ui.editorErrorColor->getColor());
+		settings.setValue("editor/textColor", ui.editorTextColor->getColor());
+		settings.setValue("editor/commentColor", ui.editorCommentColor->getColor());
+
+		settings.setValue("path", path);
+	}
+	
+	void load() {
+		ui.consoleFont->setFont(
+			settings.value("console/font", QFont("Courier", 12)).value<QFont>());
+		ui.consoleTextColor->setColor(
+			settings.value("console/textColor", QColor("#DDDDDD")).value<QColor>());
+		ui.consoleBackgroundColor->setColor(
+			settings.value("console/backgourdColor", QColor(Qt::black)).value<QColor>());
+		ui.consoleMessageColor->setColor(
+			settings.value("console/messageColor", QColor("#7070FF")).value<QColor>());
+		ui.consoleErrorColor->setColor(
+			settings.value("console/errorColor", QColor(Qt::red)).value<QColor>());
+		ui.consoleWarningColor->setColor(
+			settings.value("console/warningColor", QColor(Qt::yellow)).value<QColor>());
+		ui.consoleCodeColor->setColor(
+			settings.value("console/codeColor", QColor(Qt::green)).value<QColor>());
+
+		ui.editorFont->setFont(
+			settings.value("editor/font", QFont("Courier", 12)).value<QFont>());
+		ui.editorNormalColor->setColor(
+			settings.value("editor/normalColor", QColor(Qt::black)).value<QColor>());
+		ui.editorBackgroundColor->setColor(
+			settings.value("editor/backgroundColor", QColor(Qt::white)).value<QColor>());
+		ui.editorKeywordColor->setColor(
+			settings.value("editor/keywordColor", QColor(Qt::blue)).value<QColor>());
+		ui.editorWarningColor->setColor(
+			settings.value("editor/warningColor", QColor(Qt::yellow)).value<QColor>());
+		ui.editorErrorColor->setColor(
+			settings.value("editor/errorColor", QColor(Qt::red)).value<QColor>());
+		ui.editorTextColor->setColor(
+			settings.value("editor/textColor", QColor(Qt::green)).value<QColor>());
+		ui.editorCommentColor->setColor(
+			settings.value("editor/commentColor", QColor(Qt::red)).value<QColor>());
+
+		setPath(
+			settings.value("path",  QCoreApplication::applicationDirPath()+"/relations").value<QString>());
+	}
+
+};
+
+Settings::Settings() {
+	d = new SettingsPrivate();
+	d->ui.setupUi(this);
 	load();
-}
-
-void Settings::updateSettings() {
-	ui.textColor->setText(QString("<span style=\"color: %1\">%1</span").arg(consoleTextColor.name()));
-	ui.backgroundColor->setText(QString("<span style=\"color: %1\">%1</span").arg(consoleBackgroundColor.name()));
-	ui.path->setText(path);
-	ui.fontSize->setValue(consoleFont.pointSize());
-	ui.fontName->setCurrentFont(consoleFont);
-}
-
-void Settings::selectFont() {
-	bool ok;
-	QFont font = QFontDialog::getFont(&ok, consoleFont, this);
-	if (!ok) return;
-	consoleFont = font;
-	updateSettings();
-}
-
-void Settings::selectTextColor() {
-	QColor c = QColorDialog::getColor(consoleTextColor, this);
-	if (!c.isValid()) return;
-	consoleTextColor=c;
-	updateSettings();
-}
-
-void Settings::selectBackgroudColor() {
-	QColor c = QColorDialog::getColor(consoleBackgroundColor, this);
-	if (!c.isValid()) return;
-	consoleBackgroundColor=c;
-	updateSettings();
 }
 
 void Settings::selectPath() {
 	QString path=QFileDialog::getExistingDirectory(this, "Path");
 	if (path.isEmpty()) return;
-	this->path = path;
-	updateSettings();
+	d->setPath(path);
 }
 
 void Settings::restoreDefaults() {
-	settings.clear();
-	load();
+	d->settings.clear();
+	d->load();
 }
 
 void Settings::clicked(QAbstractButton * button) {
-	QDialogButtonBox::StandardButton standardButton = ui.buttonBox->standardButton(button);
+	QDialogButtonBox::StandardButton standardButton = d->ui.buttonBox->standardButton(button);
 	if (standardButton == QDialogButtonBox::RestoreDefaults) restoreDefaults();
 }
 
 void Settings::load() {
-	consoleFont = settings.value("console/font", QFont("Courier", 12)).value<QFont>();
-	consoleTextColor = settings.value("console/textColor", QColor(Qt::white)).value<QColor>();
-	consoleBackgroundColor = settings.value("console/backgroundColor", QColor(Qt::black)).value<QColor>();
-	path = settings.value("path",  QCoreApplication::applicationDirPath()+"/relations"
-						  /*QDesktopServices::storageLocation(QDesktopServices::DataLocation)*/
-		).value<QString>();
-	updateSettings();
+	d->load();
 	emit visualUpdate(this);
 }
 
 void Settings::save() {
-	settings.setValue("console/font", consoleFont);
-	settings.setValue("console/textColor", consoleTextColor);
-	settings.setValue("console/backgroundColor", consoleBackgroundColor);
-	settings.setValue("path", path);
+	d->save();
 	emit visualUpdate(this);
 }
 
-void Settings::changeFont(QFont f) {
-	consoleFont = f;
+QColor Settings::color(Colors c) const {
+	switch (c) {
+	case Colors::consoleText: return d->ui.consoleTextColor->getColor();
+	case Colors::consoleBackground: return d->ui.consoleBackgroundColor->getColor();
+	case Colors::consoleMessage: return d->ui.consoleMessageColor->getColor();
+	case Colors::consoleError: return d->ui.consoleErrorColor->getColor();
+	case Colors::consoleWarning: return d->ui.consoleWarningColor->getColor();
+	case Colors::consoleCode: return d->ui.consoleCodeColor->getColor();
+	case Colors::editorNormal: return d->ui.editorNormalColor->getColor();
+	case Colors::editorBackground: return d->ui.editorBackgroundColor->getColor();
+	case Colors::editorKeyword: return d->ui.editorKeywordColor->getColor();
+	case Colors::editorWarning: return d->ui.editorWarningColor->getColor();
+	case Colors::editorError: return d->ui.editorErrorColor->getColor();
+	case Colors::editorText: return d->ui.editorTextColor->getColor();
+	case Colors::editorComment: return d->ui.editorCommentColor->getColor();
+	}
+	__builtin_unreachable();
 }
 
-void Settings::changeFontSize(int i) {
-	consoleFont.setPointSize(i);
+QFont Settings::font(Fonts f) const {
+	switch (f) {
+	case Fonts::console: return d->ui.consoleFont->getFont();
+	case Fonts::editor: return d->ui.editorFont->getFont();
+	}
+	__builtin_unreachable();
+}
+
+QString Settings::path() const {
+	return d->path;
 }

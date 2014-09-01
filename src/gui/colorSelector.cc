@@ -16,55 +16,38 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
+#include "colorSelector.hh"
+#include <QColorDialog>
+#include "ui_colorSelector.h"
 
-#ifndef __SRC_GUI_SETTINGS_H__
-#define __SRC_GUI_SETTINGS_H__
-
-#include <QDialog>
-#include <QFont>
-#include <QColor>
-
-class SettingsPrivate;
-class QAbstractButton;
-
-enum class Fonts {
-	console,
-	editor
-};
-
-enum class Colors {
-	consoleText,
-	consoleBackground,
-	consoleMessage,
-	consoleError,
-	consoleWarning,
-	consoleCode,
-	editorNormal,
-	editorBackground,
-	editorKeyword,
-	editorWarning,
-	editorError,
-	editorText,
-	editorComment,
-};
-
-class Settings: public QDialog {
-	Q_OBJECT
+class ColorSelectorPrivate {
 public:
-	Settings();
-	QString path() const;
-	QFont font(Fonts font) const;
-	QColor color(Colors color) const;
-public slots:
-	void selectPath();
-	void save();
-	void load();
-	void restoreDefaults();
-	void clicked(QAbstractButton * button);
-signals:
-	void visualUpdate(Settings *);
-private:
-	SettingsPrivate * d;
+	Ui::ColorSelector ui;
+	QColor color;
 };
 
-#endif //__SRC_GUI_SETTINGS_H__
+ColorSelector::ColorSelector(QWidget * parent): QWidget(parent) {
+	d = new ColorSelectorPrivate();
+	d->ui.setupUi(this);
+}
+
+ColorSelector::~ColorSelector() {
+	delete d;
+}
+
+QColor ColorSelector::getColor() {
+	return d->color;
+}
+
+void ColorSelector::selectColor() {
+	QColor c = QColorDialog::getColor(d->color, this);
+	if (!c.isValid()) return;
+	setColor(c);
+}
+
+void ColorSelector::setColor(QColor color) {
+	if (color == d->color) return;
+	d->ui.text->setText(QString("<span style=\"color: %1\">%1</span").arg(color.name()));
+	d->color = color;
+	emit colorChanged(color);
+}

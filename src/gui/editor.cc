@@ -21,20 +21,33 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include "help.hh"
+#include "settings.hh"
 
-Editor::Editor() {
+Editor::Editor(Settings * settings) {
 	ui.setupUi(this);
 	ui.edit->highlighter = new Highlighter(ui.edit->document());
 	dirty(false);
 	setAttribute(Qt::WA_DeleteOnClose);
+	visualUpdate(settings);
 }
 
-Editor::Editor(QString path, QString content): path(path) {
+void Editor::visualUpdate(Settings * s) {
+	settings = s;
+	ui.edit->setFont(s->font(Fonts::editor));
+	QPalette p(palette());
+	p.setColor(QPalette::Text, s->color(Colors::editorNormal));
+	p.setColor(QPalette::Base, s->color(Colors::editorBackground));
+	ui.edit->setPalette(p);
+	static_cast<Highlighter*>(ui.edit->highlighter)->updateSettings(s);
+}
+
+Editor::Editor(Settings * settings, QString path, QString content): path(path) {
 	ui.setupUi(this);
 	ui.edit->highlighter = new Highlighter(ui.edit->document());
 	ui.edit->document()->setPlainText(content);
 	dirty(false);
 	setAttribute(Qt::WA_DeleteOnClose);
+	visualUpdate(settings);
 }
 
 void Editor::dirty(bool d) {

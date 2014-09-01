@@ -1,7 +1,7 @@
 include(${QT_USE_FILE})
 
 include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
-QT4_WRAP_UI(UISrs main.ui settings.ui editor.ui about.ui relation.ui)
+QT4_WRAP_UI(UISrs main.ui settings.ui editor.ui about.ui relation.ui colorSelector.ui fontSelector.ui)
 add_executable(rasmus 
   ${UISrs} 
   console.cc console.hh 
@@ -14,6 +14,8 @@ add_executable(rasmus
   table.cc table.hh
   codeTextEdit.cc codeTextEdit.hh
   help.cc help.hh
+  fontSelector.cc fontSelector.hh
+  colorSelector.cc colorSelector.hh
   )
 
 target_link_libraries(rasmus frontend ${QT_LIBRARIES} -pthread stdlib)

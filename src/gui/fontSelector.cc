@@ -16,55 +16,46 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
+#include "fontSelector.hh"
+#include <QFontDialog>
+#include "ui_fontSelector.h"
 
-#ifndef __SRC_GUI_SETTINGS_H__
-#define __SRC_GUI_SETTINGS_H__
-
-#include <QDialog>
-#include <QFont>
-#include <QColor>
-
-class SettingsPrivate;
-class QAbstractButton;
-
-enum class Fonts {
-	console,
-	editor
-};
-
-enum class Colors {
-	consoleText,
-	consoleBackground,
-	consoleMessage,
-	consoleError,
-	consoleWarning,
-	consoleCode,
-	editorNormal,
-	editorBackground,
-	editorKeyword,
-	editorWarning,
-	editorError,
-	editorText,
-	editorComment,
-};
-
-class Settings: public QDialog {
-	Q_OBJECT
+class FontSelectorPrivate {
 public:
-	Settings();
-	QString path() const;
-	QFont font(Fonts font) const;
-	QColor color(Colors color) const;
-public slots:
-	void selectPath();
-	void save();
-	void load();
-	void restoreDefaults();
-	void clicked(QAbstractButton * button);
-signals:
-	void visualUpdate(Settings *);
-private:
-	SettingsPrivate * d;
+	Ui::FontSelector ui;
+	QFont font;
 };
 
-#endif //__SRC_GUI_SETTINGS_H__
+FontSelector::FontSelector(QWidget * parent): QWidget(parent) {
+	d = new FontSelectorPrivate();
+	d->ui.setupUi(this);
+}
+
+FontSelector::~FontSelector() {
+	delete d;
+}
+
+QFont FontSelector::getFont() {
+	return d->font;
+}
+
+void FontSelector::setFontSize(int size) {
+	QFont f=d->font;
+	f.setPointSize(size);
+	setFont(f);
+}
+
+void FontSelector::setFont(QFont font) {
+	if (font == d->font) return;
+	d->font = font;
+	d->ui.size->setValue(font.pointSize());
+	d->ui.name->setCurrentFont(font);
+	emit fontChanged(font);
+}
+
+void FontSelector::selectFont() {
+	bool ok;
+	QFont font = QFontDialog::getFont(&ok, d->font, this);
+	if (!ok) return;
+	setFont(font);
+}

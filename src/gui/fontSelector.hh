@@ -16,55 +16,29 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
+#ifndef __GUI_FONT_SELECTOR_HH__
+#define __GUI_FONT_SELECTOR_HH__
 
-#ifndef __SRC_GUI_SETTINGS_H__
-#define __SRC_GUI_SETTINGS_H__
-
-#include <QDialog>
+#include <QWidget>
 #include <QFont>
-#include <QColor>
 
-class SettingsPrivate;
-class QAbstractButton;
+class FontSelectorPrivate;
 
-enum class Fonts {
-	console,
-	editor
-};
-
-enum class Colors {
-	consoleText,
-	consoleBackground,
-	consoleMessage,
-	consoleError,
-	consoleWarning,
-	consoleCode,
-	editorNormal,
-	editorBackground,
-	editorKeyword,
-	editorWarning,
-	editorError,
-	editorText,
-	editorComment,
-};
-
-class Settings: public QDialog {
+class FontSelector: public QWidget {
 	Q_OBJECT
 public:
-	Settings();
-	QString path() const;
-	QFont font(Fonts font) const;
-	QColor color(Colors color) const;
+	FontSelector(QWidget * parent);
+	~FontSelector();
+	QFont getFont();
 public slots:
-	void selectPath();
-	void save();
-	void load();
-	void restoreDefaults();
-	void clicked(QAbstractButton * button);
+	void setFontSize(int size);
+	void setFont(QFont font);
+	void selectFont();
 signals:
-	void visualUpdate(Settings *);
+	void sizeChanged(int size);
+	void fontChanged(QFont font);
 private:
-	SettingsPrivate * d;
+	FontSelectorPrivate * d;
 };
 
-#endif //__SRC_GUI_SETTINGS_H__
+#endif //__GUI_FONT_SELECTOR_HH__
