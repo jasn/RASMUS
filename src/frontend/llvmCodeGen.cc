@@ -1256,6 +1256,8 @@ public:
 			for (auto c: node->captures)
 				forgetOwnership(c->llvmVal);
 
+			// HATKAT
+
 			builder.CreateStore(x.value, builder.CreateConstGEP2_32(ret, 0, 0));
 			builder.CreateStore(x.type, builder.CreateConstGEP2_32(ret, 0, 1));
 			builder.CreateRetVoid();
@@ -1791,9 +1793,17 @@ public:
 			x = visitNode(n);
 			t=n->type;
 		}
-		//TODO if I am not outer walk over all sequences again
-		//to abandon any assignments
-		return x;
+		
+		LLVMVal ret=takeOwnership(std::move(x), t);
+		
+		for(auto n: node->sequence) {
+			if (n->nodeType != NodeType::AssignmentExp) continue;
+			std::shared_ptr<AssignmentExp> a=std::static_pointer_cast<AssignmentExp>(n);
+			if (a->globalId != NOT_GLOBAL) continue;
+			disown(a->llvmVal, a->type);
+		}
+
+		return ret;
 	}
 
 	/**
