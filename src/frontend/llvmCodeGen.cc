@@ -1408,6 +1408,11 @@ public:
 			disown(v, TRel);
 			return LLVMVal(std::move(r));
 		}
+		case TokenType::TK_ISBOOL:
+			if(node->args[0]->type == TBool)
+				return OwnedLLVMVal(trueBool);
+			else
+				return OwnedLLVMVal(falseBool);
 		default:
 			ICE("TODO BuildIn not implemented", node->nameToken.id, node->nameToken, node);
 		}

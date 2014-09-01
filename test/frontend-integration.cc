@@ -102,6 +102,15 @@ bool it(std::string txt, const char * exp, bool error=false) {
 	return true;
 }
 
+void builtins(rasmus::teststream & ts) {
+	ts << "is-Bool1" << result(it("is-Bool(1)", "false"));
+	ts << "is-Bool2" << result(it("is-Bool(\"foo\")", "false"));
+	ts << "is-Bool3" << result(it("is-Bool(true)", "true"));
+	ts << "is-Bool4" << result(it("is-Bool(false)", "true"));
+	ts << "is-Bool5" << result(it("is-Bool(?-Bool)", "true"));
+	ts << "is-Bool6" << result(it("is-Bool(rel(tup(a:1)))", "false"));
+}
+
 void base(rasmus::teststream & ts) {
     ts << "block" << result(it("(+val a=4 in a +)", "4"));
     ts << "function" << result(it("(func()->(Int)5 end)()", "5"));
@@ -920,6 +929,7 @@ bool comments() {
 
 int main(int argc, char **argv) {
 	return rasmus::tests(argc, argv)
+		.multi_test(builtins, "builtins")
 		.multi_test(base, "base")
 		.multi_test(integer, "integer")
 		.multi_test(text, "text")
