@@ -22,50 +22,70 @@
 #include <QMessageBox>
 #include "help.hh"
 #include "settings.hh"
+#include "ui_editor.h"
+#include <QFileInfo>
+
+class EditorPrivate {
+public:
+	Ui::Editor ui;
+	QFileInfo path;
+	Settings * settings;
+};
 
 Editor::Editor(Settings * settings) {
-	ui.setupUi(this);
-	ui.edit->highlighter = new Highlighter(ui.edit->document());
+	d = new EditorPrivate();
+	d->ui.setupUi(this);
+	d->ui.edit->highlighter = new Highlighter(d->ui.edit->document());
 	dirty(false);
 	setAttribute(Qt::WA_DeleteOnClose);
 	visualUpdate(settings);
+}
+
+Editor::Editor(Settings * settings, QString path, QString content) {
+	d = new EditorPrivate();
+	d->path = path;
+	
+	d->ui.setupUi(this);
+	d->ui.edit->highlighter = new Highlighter(d->ui.edit->document());
+	d->ui.edit->document()->setPlainText(content);
+	dirty(false);
+	setAttribute(Qt::WA_DeleteOnClose);
+	visualUpdate(settings);
+}
+
+Editor::~Editor() {
+	delete d;
 }
 
 void Editor::visualUpdate(Settings * s) {
-	settings = s;
-	ui.edit->setFont(s->font(Fonts::editor));
+	d->settings = s;
+	d->ui.edit->setFont(s->font(Fonts::editor));
 	QPalette p(palette());
 	p.setColor(QPalette::Text, s->color(Colors::editorNormal));
 	p.setColor(QPalette::Base, s->color(Colors::editorBackground));
-	ui.edit->setPalette(p);
-	static_cast<Highlighter*>(ui.edit->highlighter)->updateSettings(s);
+	d->ui.edit->setPalette(p);
+	static_cast<Highlighter*>(d->ui.edit->highlighter)->updateSettings(s);
 }
 
-Editor::Editor(Settings * settings, QString path, QString content): path(path) {
-	ui.setupUi(this);
-	ui.edit->highlighter = new Highlighter(ui.edit->document());
-	ui.edit->document()->setPlainText(content);
-	dirty(false);
-	setAttribute(Qt::WA_DeleteOnClose);
-	visualUpdate(settings);
-}
-
-void Editor::dirty(bool d) {
-	if (path.filePath().isEmpty()) 
-		setWindowTitle((d?"*":"")+QString("New File"));
+void Editor::dirty(bool dirt) {
+	if (d->path.filePath().isEmpty()) 
+		setWindowTitle((dirt?"*":"")+QString("New File"));
 	else
-		setWindowTitle((d?"*":"")+path.fileName());
+		setWindowTitle((dirt?"*":"")+d->path.fileName());
 
 }
 
 void Editor::closeEvent(QCloseEvent *event) {
-	if (!ui.edit->document()->isUndoAvailable()) {
+	if (!d->ui.edit->document()->isUndoAvailable()) {
 		event->accept();
 		return;
 	}
 
-	QMessageBox::StandardButton btn = QMessageBox::question(this, tr("Save?"), tr("Save document before closing?"),
-											   QMessageBox::Save | QMessageBox::Cancel | QMessageBox::Discard);
+	QMessageBox::StandardButton btn = QMessageBox::question(
+		this, 
+		tr("Save?"), 
+		tr("Save document before closing?"),
+		QMessageBox::Save | QMessageBox::Cancel | QMessageBox::Discard);
 	switch(btn) {
 	case QMessageBox::Discard:
 		event->accept();
@@ -88,28 +108,30 @@ void Editor::showAbout() {
 }
 
 void Editor::run() {
-	emit runContent(path.fileName(), ui.edit->toPlainText());
+	emit runContent(d->path.fileName(), d->ui.edit->toPlainText());
 }
 
 bool Editor::save() {
-	if (path.filePath().isEmpty()) {
+	if (d->path.filePath().isEmpty()) {
 		return saveAs();
 	}
-	QFile file(path.filePath());
+	QFile file(d->path.filePath());
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
-		QMessageBox::critical(this, "Error", "Unable to upen file " + path.filePath() + " for writing");
+		QMessageBox::critical(this, "Error", "Unable to upen file " + d->path.filePath() + " for writing");
 		return false;
 	}
-	ui.edit->document()->clearUndoRedoStacks();
-	file.write(ui.edit->toPlainText().toUtf8());
+	d->ui.edit->document()->clearUndoRedoStacks();
+	file.write(d->ui.edit->toPlainText().toUtf8());
 	file.close();
 	return true;
 }
 
 bool Editor::saveAs() {
-	QString p = QFileDialog::getSaveFileName(this, tr("Save As"), path.filePath(), tr("RASMUS Files (*.rm)"));
+	QString p = QFileDialog::getSaveFileName(
+		this, tr("Save As"), d->path.filePath(), 
+		tr("RASMUS Files (*.rm)"));
 	if (p.isEmpty()) return false;
-	path.setFile(p);
+	d->path.setFile(p);
 	if (!save()) return false;
 	dirty(false);
 	return true;

@@ -21,21 +21,17 @@
 #define __SRC_GUI_EDITOR_H__
 
 #include <QMainWindow>
-#include "ui_editor.h"
-#include <QFileInfo>
 
 class Settings;
+class EditorPrivate;
 
 class Editor: public QMainWindow {
 	Q_OBJECT
 public:
 	Editor(Settings * settings);
 	Editor(Settings * settings, QString path, QString content);
+	~Editor();
 	void closeEvent(QCloseEvent *event);
-private:
-	Ui::Editor ui;
-	QFileInfo path;
-	Settings * settings;
 public slots:
 	void dirty(bool dirty);
 	void showAbout();
@@ -45,6 +41,8 @@ public slots:
 	void visualUpdate(Settings *);
 signals:
 	void runContent(QString name, QString content);
+private:
+	EditorPrivate * d;
 };
 
 #endif //__SRC_GUI_EDITOR_H__
