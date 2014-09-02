@@ -23,6 +23,68 @@
 #include <stdlib/lib.h>
 #include <QScrollBar>
 #include "settings.hh"
+#include <vector>
+
+class ConsolePrivate {
+public:
+	std::vector<QString> history;
+	size_t currHistoryPosition;
+	bool currentLineInsertedInHistory;
+	bool incompleteState;
+	Settings * settings;
+	Console * outer;
+
+	ConsolePrivate(Console * outer): 
+		history(std::vector<QString>())
+		, currHistoryPosition(0)
+		, currentLineInsertedInHistory(false)
+		, incompleteState(false)
+		, outer(outer) {}
+
+	void updateHistory() {
+		QTextCursor c = outer->textCursor();
+		
+		QString currentLine = c.document()->lastBlock().text().right(c.document()->lastBlock().text().size() -4);
+		
+		history[history.size()-1-currHistoryPosition] = currentLine;
+	}
+	
+	// update last line of last line in gui to show history[currentHistoryPosition]
+	void rewriteCurrentLine() {
+		QTextCursor c = outer->textCursor();
+		
+		int firstInLastBlock = c.document()->lastBlock().position()+4;
+		int lastInLastBlock = firstInLastBlock + c.document()->lastBlock().text().size() - 4;
+		c.setPosition(firstInLastBlock);
+		c.setPosition(lastInLastBlock, QTextCursor::KeepAnchor);
+		c.removeSelectedText();
+		
+		c.insertText(history[history.size()-currHistoryPosition-1]);
+		outer->ensureCursorVisible();
+	}
+
+	void insertEmptyBlock() {
+		QTextCursor c = outer->textCursor();
+		c.movePosition(QTextCursor::End);
+		c.insertBlock();
+  
+		if (incompleteState) c.insertHtml(
+			QString("<span style=\"color: %1\">...</style>").arg(
+				settings->color(Colors::consoleMessage).name()));
+		else c.insertHtml(
+			QString("<span style=\"color: %1\">&gt;&gt;&gt;</style>").arg(
+				settings->color(Colors::consoleMessage).name()));
+		QTextCharFormat cf = outer->currentCharFormat();
+		cf.clearForeground();
+		outer->setCurrentCharFormat(cf);
+		c = outer->textCursor();
+		c.insertText(" ");
+		c.document()->clearUndoRedoStacks();
+		outer->gotoEnd();
+	}
+
+};
+
 
 void Console::visualUpdate(Settings *s) {
 	setFont(s->font(Fonts::console));
@@ -30,33 +92,11 @@ void Console::visualUpdate(Settings *s) {
 	p.setColor(QPalette::Text, s->color(Colors::consoleText));
 	p.setColor(QPalette::Base, s->color(Colors::consoleBackground));
 	setPalette(p);
-	settings = s;
+	d->settings = s;
 }
 
 
-void Console::updateHistory() {
-	QTextCursor c = textCursor();
 
-	QString currentLine = c.document()->lastBlock().text().right(c.document()->lastBlock().text().size() -4);
-  
-	history[history.size()-1-currHistoryPosition] = currentLine;
-
-}
-
-// update last line of last line in gui to show history[currentHistoryPosition]
-void Console::rewriteCurrentLine() {
-	QTextCursor c = textCursor();
-  
-	int firstInLastBlock = c.document()->lastBlock().position()+4;
-	int lastInLastBlock = firstInLastBlock + c.document()->lastBlock().text().size() - 4;
-	c.setPosition(firstInLastBlock);
-	c.setPosition(lastInLastBlock, QTextCursor::KeepAnchor);
-	c.removeSelectedText();
-
-	c.insertText(history[history.size()-currHistoryPosition-1]);
-	ensureCursorVisible();
-
-}
 
 void Console::doCancel() {
 	if (isReadOnly()) rm_abort();
@@ -88,11 +128,11 @@ void Console::keyPressEvent(QKeyEvent *e) {
 	if (c.selectionStart() < firstInLastBlock)
 		gotoEnd();
 
-	if (history.size() == 0) history.push_back(QString::fromStdString(""));
+	if (d->history.size() == 0) d->history.push_back(QString::fromStdString(""));
 
 	switch (e->key()) {
 	case Qt::Key_Escape:
-		if (incompleteState) {
+		if (d->incompleteState) {
 			// do stuff.
 			doCancel();
 		}
@@ -103,7 +143,7 @@ void Console::keyPressEvent(QKeyEvent *e) {
 			break;
 		}
 		QPlainTextEdit::keyPressEvent(e);
-		updateHistory();
+		d->updateHistory();
 		break;
 	case Qt::Key_D:
 		if (e->modifiers() == Qt::ControlModifier) {
@@ -111,7 +151,7 @@ void Console::keyPressEvent(QKeyEvent *e) {
 			break;
 		}
 		QPlainTextEdit::keyPressEvent(e);
-		updateHistory();
+		d->updateHistory();
 		break;
 	case Qt::Key_Home:
 		c.setPosition(firstInLastBlock);
@@ -129,21 +169,21 @@ void Console::keyPressEvent(QKeyEvent *e) {
 		QPlainTextEdit::keyPressEvent(e);
 		break;
 	case Qt::Key_Up:
-		if (history.size()-1 == currHistoryPosition) break;
-		++currHistoryPosition;
-		rewriteCurrentLine();
+		if (d->history.size()-1 == d->currHistoryPosition) break;
+		++d->currHistoryPosition;
+		d->rewriteCurrentLine();
 		break;
 	case Qt::Key_Down:
-		if (currHistoryPosition == 0) break;
-		--currHistoryPosition;
-		rewriteCurrentLine();
+		if (d->currHistoryPosition == 0) break;
+		--d->currHistoryPosition;
+		d->rewriteCurrentLine();
 		break;
 	case Qt::Key_Enter:
 	case Qt::Key_Return:
 		if (c.document()->lastBlock().text().size() <= 4) {
 			gotoEnd();
-			if (!incompleteState) {
-				insertEmptyBlock();
+			if (!d->incompleteState) {
+				d->insertEmptyBlock();
 			} else {
 				incomplete();
 			}
@@ -151,9 +191,9 @@ void Console::keyPressEvent(QKeyEvent *e) {
 			QString tmp = c.document()->lastBlock().text().right(c.document()->lastBlock().text().size() -4);
 			rm_clearAbort();
 			emit run(tmp);
-			currHistoryPosition = 0;
-			history[history.size()-1] = tmp;
-			history.push_back(QString::fromStdString(""));
+			d->currHistoryPosition = 0;
+			d->history[d->history.size()-1] = tmp;
+			d->history.push_back(QString::fromStdString(""));
 		
 			gotoEnd();
 		}
@@ -161,7 +201,7 @@ void Console::keyPressEvent(QKeyEvent *e) {
       
 	default:
 		QPlainTextEdit::keyPressEvent(e);
-		updateHistory();
+		d->updateHistory();
 	}
 
 }
@@ -171,33 +211,13 @@ void Console::bussy(bool bussy) {
 }
 
 void Console::incomplete() {
-	incompleteState = true;
-	insertEmptyBlock();
+	d->incompleteState = true;
+	d->insertEmptyBlock();
 }
 
 void Console::complete() {
-	incompleteState = false;
-	insertEmptyBlock();
-}
-
-void Console::insertEmptyBlock() {
-	QTextCursor c = textCursor();
-	c.movePosition(QTextCursor::End);
-	c.insertBlock();
-  
-	if (incompleteState) c.insertHtml(
-		QString("<span style=\"color: %1\">...</style>").arg(
-			settings->color(Colors::consoleMessage).name()));
-	else c.insertHtml(
-		QString("<span style=\"color: %1\">&gt;&gt;&gt;</style>").arg(
-			settings->color(Colors::consoleMessage).name()));
-	QTextCharFormat cf = currentCharFormat();
-	cf.clearForeground();
-	setCurrentCharFormat(cf);
-	c = textCursor();
-	c.insertText(" ");
-	c.document()->clearUndoRedoStacks();
-	gotoEnd();
+	d->incompleteState = false;
+	d->insertEmptyBlock();
 }
 
 void Console::display(QString block) {
@@ -209,8 +229,10 @@ void Console::display(QString block) {
 }
 
 Console::Console(QWidget * parent)
-	: QPlainTextEdit(parent)
-	, history(std::vector<QString>())
-	, currHistoryPosition(0)
-	, currentLineInsertedInHistory(false)
-	, incompleteState(false) {}
+	: QPlainTextEdit(parent) {
+	d = new ConsolePrivate(this);
+}
+
+Console::~Console() {
+	delete d;
+}

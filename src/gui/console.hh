@@ -20,18 +20,18 @@
 #define __SRC_GUI_CONSOLE_H__
 
 #include <QPlainTextEdit>
-#include <vector>
 
 class Settings;
+class ConsolePrivate;
 
 class Console: public QPlainTextEdit {
 	Q_OBJECT
 public:
 	Console(QWidget * parent);
+	~Console();
 	void keyPressEvent(QKeyEvent *e);
 
 public slots:
-  
 	void incomplete();
 	void complete();
 	void display(QString msg);
@@ -39,22 +39,13 @@ public slots:
 	void doCancel();
 	void bussy(bool);
 	void gotoEnd();
-private:
-
-	void updateHistory();
-	void rewriteCurrentLine();
-	void insertEmptyBlock();
-
-	std::vector<QString> history;
-	size_t currHistoryPosition;
-	bool currentLineInsertedInHistory;
-	bool incompleteState;
-	Settings * settings;
 signals:
-  
 	void run(QString line);
 	void cancel();
 	void quit();
+
+private:
+	ConsolePrivate * d;
 };
 
 
