@@ -32,7 +32,7 @@
       <enum>QFontDatabase::Latin</enum>
      </property>
      <property name="fontFilters">
-      <set>QFontComboBox::MonospacedFonts</set>
+      <set>QFontComboBox::AllFonts</set>
      </property>
      <property name="currentFont">
       <font>

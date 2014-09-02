@@ -28,6 +28,7 @@ public:
 
 FontSelector::FontSelector(QWidget * parent): QWidget(parent) {
 	d = new FontSelectorPrivate();
+	d->font.setOverline(true);
 	d->ui.setupUi(this);
 }
 

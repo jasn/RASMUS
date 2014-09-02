@@ -21,6 +21,7 @@
 #include <QSettings>
 #include "ui_settings.h"
 #include <QAbstractButton>
+#include <QDebug>
 
 class SettingsPrivate {
 public:
@@ -52,7 +53,10 @@ public:
 		settings.setValue("editor/errorColor", ui.editorErrorColor->getColor());
 		settings.setValue("editor/textColor", ui.editorTextColor->getColor());
 		settings.setValue("editor/commentColor", ui.editorCommentColor->getColor());
-
+		
+		settings.setValue("relation/font", ui.relationFont->getFont());
+		settings.setValue("relation/textColor", ui.relationTextColor->getColor());
+		settings.setValue("relation/backgroundColor", ui.relationBackgroundColor->getColor());
 		settings.setValue("path", path);
 	}
 	
@@ -89,6 +93,14 @@ public:
 		ui.editorCommentColor->setColor(
 			settings.value("editor/commentColor", QColor(Qt::red)).value<QColor>());
 
+		QWidget w;
+		ui.relationFont->setFont(
+			settings.value("relation/font", w.font()).value<QFont>());
+		ui.relationTextColor->setColor(
+			settings.value("relation/textColor", QColor(Qt::black)).value<QColor>());
+		ui.relationBackgroundColor->setColor(
+			settings.value("relation/backgroundColor", QColor(Qt::white)).value<QColor>());
+				
 		setPath(
 			settings.value("path",  QCoreApplication::applicationDirPath()+"/relations").value<QString>());
 	}
@@ -142,6 +154,8 @@ QColor Settings::color(Colors c) const {
 	case Colors::editorError: return d->ui.editorErrorColor->getColor();
 	case Colors::editorText: return d->ui.editorTextColor->getColor();
 	case Colors::editorComment: return d->ui.editorCommentColor->getColor();
+	case Colors::relationBackground: return d->ui.relationBackgroundColor->getColor();
+	case Colors::relationText: return d->ui.relationTextColor->getColor();
 	}
 	__builtin_unreachable();
 }
@@ -150,6 +164,7 @@ QFont Settings::font(Fonts f) const {
 	switch (f) {
 	case Fonts::console: return d->ui.consoleFont->getFont();
 	case Fonts::editor: return d->ui.editorFont->getFont();
+	case Fonts::relation: return d->ui.relationFont->getFont();
 	}
 	__builtin_unreachable();
 }

@@ -24,6 +24,7 @@
 #include <QThread>
 #include <QSyntaxHighlighter>
 #include <map>
+#include <vector>
 
 class QTextDocument;
 class Settings;

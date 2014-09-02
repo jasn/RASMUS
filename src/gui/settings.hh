@@ -29,7 +29,8 @@ class QAbstractButton;
 
 enum class Fonts {
 	console,
-	editor
+	editor,
+	relation
 };
 
 enum class Colors {
@@ -46,6 +47,8 @@ enum class Colors {
 	editorError,
 	editorText,
 	editorComment,
+	relationText,
+	relationBackground,
 };
 
 class Settings: public QDialog {
