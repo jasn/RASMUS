@@ -96,7 +96,7 @@ public:
 	void print(Type, std::string) {}
 	
 	void saveRelation(rm_object *, const char *) {}
-	rm_object * loadRelation(const char *) {}
+	rm_object * loadRelation(const char *) {return nullptr;}
 	bool hasRelation(const char *) {return false;}
 
 	void deleteRelation(const char *) {}

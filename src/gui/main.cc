@@ -153,7 +153,7 @@ public slots:
 			msg.append(nameOfRelation);
 			msg.append("\" does not exist in the current environment.");
 			// pop up with error 'name does not exist in environment'.
-			QMessageBox::StandardButton btn = QMessageBox::warning(this, "Warning", msg);
+			QMessageBox::warning(this, "Warning", msg);
 			return;
 		}
 
@@ -213,7 +213,7 @@ public slots:
 		}
 	}
 
-	void environmentVariableDoubleClicked(QTreeWidgetItem * qtwi, int column) {
+	void environmentVariableDoubleClicked(QTreeWidgetItem * qtwi, int /*column*/) {
 		int data = qtwi->data(0, Qt::UserRole).toInt();
 		if (data == -1 || data == int(TRel)) {
 			showTableViewWindow(new RelationModel(qtwi->text(0).toUtf8().data()));

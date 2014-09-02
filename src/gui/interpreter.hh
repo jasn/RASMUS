@@ -21,7 +21,8 @@
 
 #include <QObject>
 #include <QString>
-#include <stdlib/lib.h>
+
+class rm_object;
 
 namespace rasmus {
 namespace stdlib {

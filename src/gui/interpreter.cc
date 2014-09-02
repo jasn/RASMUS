@@ -28,6 +28,7 @@
 #include <relation_model.hh>
 #include "settings.hh"
 #include <QDir>
+#include <stdlib/lib.h>
 
 namespace rf = rasmus::frontend;
 namespace rs = rasmus::stdlib;
