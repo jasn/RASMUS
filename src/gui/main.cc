@@ -169,6 +169,7 @@ public slots:
 		}
 		
 		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
+
 		emit unset(nameOfRelation);
 		
 	}
@@ -188,6 +189,7 @@ public slots:
 													   QString(), 
 													   tr("Rasmus Files (*.rdb *.csv)"));
 		if (relPath == "") return;
+		if (!QFile::exists(relPath)) return;
 
 		QString relName = QInputDialog::getText(this, "Relation name", "Enter a name for the relation");
 
@@ -197,6 +199,8 @@ public slots:
 
 		try {
 			rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
+			// make sure file exists.
+
 			if (relPath.endsWith("csv", Qt::CaseInsensitive)) {
 				rel = rasmus::stdlib::loadRelationFromCSVFile(relPath.toUtf8().data());
 			} else {

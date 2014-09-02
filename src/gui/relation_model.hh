@@ -50,6 +50,7 @@ public slots:
 	void showAbout();
 	void saveAsGlobal();
 	void exportCSV();
+	void showPrint();
 private:
 	Ui::RelationWindow ui;
 	RelationModel * model;

@@ -59,16 +59,16 @@ enum Type {
 
 inline const char * typeName(Type t) {
 	switch(t) {
-	case TBool: return "TBool";
-	case TInt: return "TInt";
-	case TInvalid: return "TInvalid";
-	case TText: return "TText";
-	case TRel: return "TRel";
-	case TTup: return "TTup";
-	case TFunc: return "TFunc";
-	case TAny: return "TAny";
-	case TAtom: return "TAtom";
-	case TNAMEQ: return "TNAMEQ";
+	case TBool: return "Bool";
+	case TInt: return "Int";
+	case TInvalid: return "Invalid";
+	case TText: return "Text";
+	case TRel: return "Rel";
+	case TTup: return "Tup";
+	case TFunc: return "Func";
+	case TAny: return "Any";
+	case TAtom: return "Atom";
+	case TNAMEQ: return "NAMEQ";
 	}
 	return "Unknown";
 }

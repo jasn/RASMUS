@@ -49,6 +49,8 @@
     <addaction name="action_Save_as_global"/>
     <addaction name="action_Export_CSV"/>
     <addaction name="separator"/>
+    <addaction name="actionPrint"/>
+    <addaction name="separator"/>
     <addaction name="action_Close"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
@@ -88,6 +90,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+W</string>
+   </property>
+  </action>
+  <action name="actionPrint">
+   <property name="text">
+    <string>&amp;Print</string>
    </property>
   </action>
  </widget>
@@ -157,10 +164,27 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionPrint</sender>
+   <signal>triggered()</signal>
+   <receiver>RelationWindow</receiver>
+   <slot>showPrint()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>354</x>
+     <y>297</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>showAbout()</slot>
   <slot>exportCSV()</slot>
   <slot>saveAsGlobal()</slot>
+  <slot>showPrint()</slot>
  </slots>
 </ui>

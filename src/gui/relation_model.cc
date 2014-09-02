@@ -31,8 +31,53 @@
 #include "help.hh"
 #include <QFileDialog>
 #include <QInputDialog>
+#include <QPrintDialog>
+#include <QPrinter>
+#include <QPrinterInfo>
+#include <QPainter>
 
 namespace rs = rasmus::stdlib;
+
+namespace {
+
+std::string getHeaderText(const rs::Attribute &a) {
+
+	std::stringstream ss;
+	ss << a.name;
+	ss << " : ";
+
+	ss << a.type;
+
+	return ss.str();
+
+}
+
+std::string printHelper(size_t row, size_t column, rasmus::stdlib::RefPtr<rasmus::stdlib::Relation> rel) {
+
+	std::stringstream ss;
+	rs::AnyValue av = rel->tuples[row]->values[column];
+	switch (av.type) {
+	case TInt: {
+		rs::printIntToStream(av.intValue, ss);
+		break;
+	}
+	case TBool:
+		rs::printBoolToStream(av.boolValue, ss);
+		break;
+	case TText: {
+		rs::printTextToStream(av.objectValue.getAs<rs::TextBase>(), ss);
+		break;
+	}
+	default:
+		ss << "Something else";
+	}
+
+	return ss.str();
+
+}
+
+}
+
 
 RelationModel::RelationModel(const char * relationName) : relationName(relationName) { 
 	rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
@@ -57,46 +102,10 @@ int RelationModel::columnCount(const QModelIndex&) const {
 }
 
 QVariant RelationModel::data(const QModelIndex& index, int role) const {
-	rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
-	std::string val;
-
-	size_t column = index.column();
-	size_t row = index.row();
-	rs::AnyValue av = rel->tuples[row]->values[column];
-	switch (av.type) {
-	case TInt: {
-		std::stringstream tmpss;
-		tmpss << av.intValue;
-		val = tmpss.str();
-		break;
-	}
-	case TBool:
-		switch (av.boolValue) {
-		case RM_TRUE:
-			val = "true";
-			break;
-		case RM_FALSE:
-			val = "false";
-			break;
-		case RM_NULLBOOL:
-			val = "?-Bool";
-			break;
-		default:
-			val = "Unknown (internal error)";
-		}
-		break;
-	case TText: {
-		val = rs::textToString(av.objectValue.getAs<rs::TextBase>());
-		break;
-    }
-	default:
-		val = "Something else";
-	}
-
-
 	switch (role) {
 	case Qt::DisplayRole: {
-		return QVariant(QString::fromStdString(val));
+		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
+		return QVariant(QString::fromStdString(::printHelper(index.row(), index.column(), this->rel)));
 	}
 	case Qt::SizeHintRole: {
 		return QSize(100,30);
@@ -105,33 +114,19 @@ QVariant RelationModel::data(const QModelIndex& index, int role) const {
 	default:
 		return QVariant();
 	}
-
 }
 
 QVariant RelationModel::headerData(int section, Qt::Orientation orientation, int role) const {
 	rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 	if (orientation != Qt::Horizontal) return QVariant("f");
 
-	std::stringstream ss;
-	ss << rel->schema->attributes[section].name;
-	ss << " : ";
-	switch (rel->schema->attributes[section].type) {
-	case TText:
-		ss << "Text";
-		break;
-	case TInt:
-		ss << "Int";
-		break;
-	default:
-		ss << "Unknown";
-		break;
-	}
+	std::string s = ::getHeaderText(rel->schema->attributes[section]);
 
 	switch (role) {
 	case Qt::DisplayRole:
-		return QVariant(QString::fromStdString(ss.str()));
+		return QVariant(QString::fromStdString(s));
 	case Qt::SizeHintRole:
-		return QVariant(QSize(ss.str().length()*5, 25));
+		return QVariant(QSize(s.length()*5, 25));
 	default:
 		return QVariant("");
 	}
@@ -174,8 +169,139 @@ void RelationWindow::exportCSV() {
 	QString p = QFileDialog::getSaveFileName(this, tr("Export as"), name, tr("CSV Files (*.csv)"));
 	if (p.isEmpty()) return;
 	rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
-	//rasmus::stdlib::saveCSVRelationToFile(model->rel.get(), name.toUtf8().data());
 	rasmus::stdlib::saveCSVRelationToFile(model->rel.get(), p.toUtf8().data());
+}
+
+void RelationWindow::showPrint() {
+	
+	QPrinter *printer = new QPrinter(QPrinter::HighResolution);
+	QPrintDialog *pdlg = new QPrintDialog(printer, this);
+	pdlg->setWindowTitle(tr("Print Relation"));
+	
+	//Tell the printer object to print the file <out>
+
+	if (!pdlg->exec() == QDialog::Accepted) {
+		return;
+	}
+	
+	QPainter p;
+	p.begin(printer);
+	rasmus::stdlib::RefPtr<rasmus::stdlib::Relation> rel = model->rel;
+	std::vector<double> xs(rel->schema->attributes.size(), 1e13);
+	std::vector<double> ys(xs.size(), 0);
+	
+	for (size_t i = 0; i < xs.size(); ++i) {
+		std::string tmp = ::getHeaderText(rel->schema->attributes[i]);
+		xs[i] = p.fontMetrics().width(QString::fromStdString(tmp));
+	}
+
+	for (size_t j = 0; j < rel->tuples.size(); ++j) {
+		for (size_t i = 0; i < xs.size(); ++i) {
+			std::string tmp = ::printHelper(j, i, rel);
+			xs[i] = std::max<double>(xs[i],
+							 p.fontMetrics().width(
+								 QString::fromStdString(tmp)));
+							 
+		}
+	}
+
+	const double spacing = 60;
+
+	double xmin = 0.0;
+	double xmax = 1e13;
+	while (xmax - xmin >= 1) {
+
+		double x = (xmax + xmin)/2;
+		for (size_t i = 0; i < ys.size(); ++i) {
+			ys[i] = std::min<double>(x, xs[i]);
+			
+		}
+
+		if (std::accumulate(ys.begin(), ys.end(), 0.0) + spacing * (ys.size()-1) > 
+			p.viewport().width()) {
+			
+			xmax = x;
+
+		} else {
+			xmin = x;
+		}
+		
+	}
+
+	bool shouldPrintHeader = true;
+	double whereToStartY = 0.0;
+	size_t currentRow = 0;
+	while (true) {
+		if (shouldPrintHeader) {
+			double whereToStartX = 0.0;
+			double headerHeight = 0.0;
+			for (size_t i = 0; i < xs.size(); ++i) {
+				std::string tmp = ::getHeaderText(rel->schema->attributes[i]);
+				QRectF allowed(whereToStartX, whereToStartY, ys[i], 1e13);
+				QRectF boundingRect;
+				p.drawText(allowed,
+						   Qt::TextWordWrap | Qt::AlignTop, 
+						   QString::fromStdString(tmp),
+						   &boundingRect);
+				
+				whereToStartX += ys[i] + spacing;
+
+				headerHeight = std::max<double>(headerHeight, boundingRect.height());
+
+				if (i+1 == xs.size()) continue;
+				auto x = p.pen();
+				p.setPen(10);
+				p.drawLine(whereToStartX - spacing/2, 0, whereToStartX - spacing/2, p.viewport().height());
+				p.setPen(x);
+			}
+			auto x = p.pen();
+			p.setPen(20);
+			p.drawLine(0, headerHeight + 20, p.viewport().width(), headerHeight+20);
+			p.setPen(x);
+
+			whereToStartY += headerHeight + 40;
+			shouldPrintHeader = false;
+		}
+
+		if (currentRow == rel->tuples.size()) break;
+
+		double rowHeight = 0.0;
+		double whereToStartX = 0.0;
+		for (size_t i = 0; i < xs.size(); ++i) {
+			std::string tmp = ::printHelper(currentRow, i, rel);
+
+			QRectF allowed(whereToStartX, whereToStartY, ys[i], 1e13);
+			QRectF boundingRect;
+			p.drawText(allowed,
+					   Qt::TextWordWrap | Qt::AlignTop, 
+					   QString::fromStdString(tmp),
+					   &boundingRect);
+				
+			whereToStartX += ys[i] + spacing;
+
+			rowHeight = std::max<double>(rowHeight, boundingRect.height());
+
+		}
+
+		whereToStartY += rowHeight + 10;
+
+		if (whereToStartY + 50 > p.viewport().height()) {
+			printer->newPage();
+			shouldPrintHeader = true;
+			whereToStartY = 0.0;
+		}
+
+		++currentRow;
+	}
+
+	p.end();
+	
+
+
+	// this->ui.view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	// this->ui.view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	// this->ui.view->render(printer);
+	
 }
 
 void showTableViewWindow(RelationModel * rm) {
