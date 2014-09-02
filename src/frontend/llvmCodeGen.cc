@@ -1324,6 +1324,22 @@ public:
 		return LLVMVal(std::move(r));
 	}
 
+	LLVMVal genIsExpression(std::shared_ptr<BuiltInExp> & node, ::Type wantedType){
+		if(node->args[0]->type == TAny){
+			LLVMVal v = castVisit(node->args[0], TAny);
+			LLVMVal r = cast(OwnedLLVMVal(builder.CreateSelect(
+											  builder.CreateICmpEQ(v.type, typeRepr(wantedType)),
+											  trueBool,
+											  falseBool)), TBool, node->type, node);
+			disown(v, TAny);
+			return r;
+		}
+		else if(node->args[0]->type == wantedType)
+			return OwnedLLVMVal(trueBool);
+		else
+			return OwnedLLVMVal(falseBool);
+	}
+
 	/** \brief Codegen for buildins */
 	LLVMVal visit(std::shared_ptr<BuiltInExp> node) {
 		switch (node->nameToken.id) {
@@ -1408,11 +1424,44 @@ public:
 			disown(v, TRel);
 			return LLVMVal(std::move(r));
 		}
-		case TokenType::TK_ISBOOL:
-			if(node->args[0]->type == TBool)
+		case TokenType::TK_ISATOM:
+		{
+			if(node->args[0]->type == TAny){
+				LLVMVal v = castVisit(node->args[0], TAny);
+				LLVMVal r = cast(OwnedLLVMVal(builder.CreateSelect(
+												  builder.CreateICmpEQ(v.type, typeRepr(TInt)),
+												  trueBool,
+												  builder.CreateSelect(
+													  builder.CreateICmpEQ(v.type, typeRepr(TBool)),
+													  trueBool,
+													  builder.CreateSelect(
+														  builder.CreateICmpEQ(v.type, typeRepr(TText)),
+														  trueBool,
+														  falseBool
+														  )))), TBool, node->type, node);
+				disown(v, TAny);
+				return r;
+			}
+			else if(node->args[0]->type == TBool || 
+					node->args[0]->type == TInt || 
+					node->args[0]->type == TText)
 				return OwnedLLVMVal(trueBool);
 			else
 				return OwnedLLVMVal(falseBool);
+			
+		}
+		case TokenType::TK_ISBOOL:
+			return genIsExpression(node, TBool);
+		case TokenType::TK_ISINT:
+			return genIsExpression(node, TInt);
+		case TokenType::TK_ISTEXT:
+			return genIsExpression(node, TText);
+		case TokenType::TK_ISTUP:
+			return genIsExpression(node, TTup);
+		case TokenType::TK_ISREL:
+			return genIsExpression(node, TRel);
+		case TokenType::TK_ISFUNC:
+			return genIsExpression(node, TFunc);
 		default:
 			ICE("TODO BuildIn not implemented", node->nameToken.id, node->nameToken, node);
 		}

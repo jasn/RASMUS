@@ -109,7 +109,73 @@ void builtins(rasmus::teststream & ts) {
 	ts << "is-Bool4" << result(it("is-Bool(false)", "true"));
 	ts << "is-Bool5" << result(it("is-Bool(?-Bool)", "true"));
 	ts << "is-Bool6" << result(it("is-Bool(rel(tup(a:1)))", "false"));
+	ts << "is-Bool7" << result(it("is-Bool((func()->(Bool) true end)())", "true"));
+	ts << "is-Bool8" << result(it("is-Bool((func()->(Any) true end)())", "true"));
+	ts << "is-Bool9" << result(it("is-Bool((func()->(Any) 42 end)())", "false"));
+	ts << "is-Bool10" << result(it("is-Bool((func()->(Any) \"foo\" end)())", "false"));
+	ts << "is-Bool11" << result(it("is-Bool((func()->(Any) rel(tup(a:1)) end)())", "false"));
+	ts << "is-Int1" << result(it("is-Int(1234)", "true"));
+	ts << "is-Int2" << result(it("is-Int(0)", "true"));
+	ts << "is-Int3" << result(it("is-Int(-1234565432)", "true"));
+	ts << "is-Int4" << result(it("is-Int(?-Int)", "true"));
+	ts << "is-Int5" << result(it("is-Int(\"foo\")", "false"));
+	ts << "is-Int6" << result(it("is-Int(true)", "false"));
+	ts << "is-Int7" << result(it("is-Int(rel(tup(a:1)))", "false"));
+	ts << "is-Int8" << result(it("is-Int((func()->(Any) true end)())", "false"));
+	ts << "is-Int9" << result(it("is-Int((func()->(Any) 42 end)())", "true"));
+	ts << "is-Text1" << result(it("is-Text(true)", "false"));
+	ts << "is-Text2" << result(it("is-Text(\"foo\")", "true"));
+	ts << "is-Text3" << result(it("is-Text(?-Text)", "true"));
+	ts << "is-Text4" << result(it("is-Text(42)", "false"));
+	ts << "is-Text5" << result(it("is-Text((func()->(Any) true end)())", "false"));
+	ts << "is-Text6" << result(it("is-Text((func()->(Any) \"foo\" end)())", "true"));
+	ts << "is-Tup1" << result(it("is-Tup(true)", "false"));
+	ts << "is-Tup2" << result(it("is-Tup(tup(a:1))", "true"));
+	ts << "is-Tup3" << result(it("is-Tup(42)", "false"));
+	ts << "is-Tup4" << result(it("is-Tup((func()->(Any) true end)())", "false"));
+	ts << "is-Tup5" << result(it("is-Tup((func()->(Any) tup(a:1) end)())", "true"));
+	ts << "is-Rel1" << result(it("is-Rel(true)", "false"));
+	ts << "is-Rel2" << result(it("is-Rel(\"foo\")", "false"));
+	ts << "is-Rel3" << result(it("is-Rel(rel(tup(a:1)))", "true"));
+	ts << "is-Rel4" << result(it("is-Rel(42)", "false"));
+	ts << "is-Rel5" << result(it("is-Rel((func()->(Any) true end)())", "false"));
+	ts << "is-Rel6" << result(it("is-Rel((func()->(Any) rel(tup(a:\"\")) end)())", "true"));
+	ts << "is-Func1" << result(it("is-Func(true)", "false"));
+	ts << "is-Func2" << result(it("is-Func(\"foo\")", "false"));
+	ts << "is-Func4" << result(it("is-Func(42)", "false"));
+	ts << "is-Func5" << result(it("is-Func((func()->(Any) true end))", "true"));
+	ts << "is-Func6" << result(it("is-Func((func()->(Any) \"foo\" end))", "true"));
+	ts << "is-Func7" << result(it("is-Func((func()->(Any) (func()->(Any) true end) end)())", "true"));
+	ts << "is-Atom1" << result(it("is-Atom(true)", "true"));
+	ts << "is-Atom2" << result(it("is-Atom(\"foo\")", "true"));
+	ts << "is-Atom3" << result(it("is-Atom(rel(tup(a:1)))", "false"));
+	ts << "is-Atom4" << result(it("is-Atom(tup(a:1))", "false"));
+	ts << "is-Atom5" << result(it("is-Atom(42)", "true"));
+	ts << "is-Atom6" << result(it("is-Atom((func()->(Any) true end)())", "true"));
+	ts << "is-Atom7" << result(it("is-Atom((func()->(Any) 42 end)())", "true"));
+	ts << "is-Atom8" << result(it("is-Atom((func()->(Any) \"foo\" end)())", "true"));
+	ts << "is-Atom9" << result(it("is-Atom((func()->(Any) rel(tup(a:1)) end)())", "false"));
+	ts << "is-Atom10" << result(it("is-Atom((func()->(Any) (func()->(Any) true end) end)())", "false"));
+	
+
 }
+
+/*
+		case TokenType::TK_ISATOM:
+			ICE("IMPLEMENT ME");
+		case TokenType::TK_ISBOOL:
+			return genIsExpression(node, TBool);
+		case TokenType::TK_ISINT:
+			return genIsExpression(node, TInt);
+		case TokenType::TK_ISTEXT:
+			return genIsExpression(node, TText);
+		case TokenType::TK_ISTUP:
+			return genIsExpression(node, TTup);
+		case TokenType::TK_ISREL:
+			return genIsExpression(node, TRel);
+		case TokenType::TK_ISFUNC:
+			return genIsExpression(node, TFunc);
+*/
 
 void base(rasmus::teststream & ts) {
     ts << "block" << result(it("(+val a=4 in a +)", "4"));
