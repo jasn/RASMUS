@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>709</width>
-    <height>516</height>
+    <width>661</width>
+    <height>656</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,292 +16,380 @@
   <property name="modal">
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="margin">
+    <number>0</number>
+   </property>
    <item>
-    <widget class="QGroupBox" name="groupBox">
-     <property name="title">
-      <string>Console</string>
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
      </property>
-     <layout class="QFormLayout" name="formLayout">
-      <item row="0" column="0">
-       <widget class="QLabel" name="fontLabel">
-        <property name="text">
-         <string>Font</string>
-        </property>
-        <property name="buddy">
-         <cstring>consoleFont</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="FontSelector" name="consoleFont" native="true"/>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="textColorLabel">
-        <property name="text">
-         <string>Text Color</string>
-        </property>
-        <property name="buddy">
-         <cstring>consoleTextColor</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="ColorSelector" name="consoleTextColor" native="true"/>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="backgroudColorLabel">
-        <property name="text">
-         <string>Backgroud Color</string>
-        </property>
-        <property name="buddy">
-         <cstring>consoleBackgroundColor</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="ColorSelector" name="consoleBackgroundColor" native="true"/>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="backgroudColorLabel_2">
-        <property name="text">
-         <string>Message Color</string>
-        </property>
-        <property name="buddy">
-         <cstring>consoleMessageColor</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="ColorSelector" name="consoleMessageColor" native="true"/>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="backgroudColorLabel_3">
-        <property name="text">
-         <string>Error Color</string>
-        </property>
-        <property name="buddy">
-         <cstring>consoleErrorColor</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="ColorSelector" name="consoleErrorColor" native="true"/>
-      </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="backgroudColorLabel_4">
-        <property name="text">
-         <string>Warning Color</string>
-        </property>
-        <property name="buddy">
-         <cstring>consoleWarningColor</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1">
-       <widget class="ColorSelector" name="consoleWarningColor" native="true"/>
-      </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="label_7">
-        <property name="text">
-         <string>Code Color</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1">
-       <widget class="ColorSelector" name="consoleCodeColor" native="true"/>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_2">
-     <property name="title">
-      <string>Editor</string>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
      </property>
-     <layout class="QFormLayout" name="formLayout_3">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Font</string>
-        </property>
-        <property name="buddy">
-         <cstring>editorFont</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="FontSelector" name="editorFont" native="true"/>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Normal Color</string>
-        </property>
-        <property name="buddy">
-         <cstring>editorNormalColor</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="ColorSelector" name="editorNormalColor" native="true"/>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Background Color</string>
-        </property>
-        <property name="buddy">
-         <cstring>editorBackgroundColor</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="ColorSelector" name="editorBackgroundColor" native="true"/>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>Keyword Color</string>
-        </property>
-        <property name="buddy">
-         <cstring>editorKeywordColor</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="ColorSelector" name="editorKeywordColor" native="true"/>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Warning Color</string>
-        </property>
-        <property name="buddy">
-         <cstring>editorWarningColor</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="ColorSelector" name="editorWarningColor" native="true"/>
-      </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="label_6">
-        <property name="text">
-         <string>Error Color</string>
-        </property>
-        <property name="buddy">
-         <cstring>editorErrorColor</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1">
-       <widget class="ColorSelector" name="editorErrorColor" native="true"/>
-      </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="lavel_7">
-        <property name="text">
-         <string>Text Color</string>
-        </property>
-        <property name="buddy">
-         <cstring>editorTextColor</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1">
-       <widget class="ColorSelector" name="editorTextColor" native="true"/>
-      </item>
-      <item row="7" column="0">
-       <widget class="QLabel" name="lavel_8">
-        <property name="text">
-         <string>Comment Color</string>
-        </property>
-        <property name="buddy">
-         <cstring>editorCommentColor</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="1">
-       <widget class="ColorSelector" name="editorCommentColor" native="true"/>
-      </item>
-     </layout>
-     <zorder>label</zorder>
-     <zorder>label_2</zorder>
-     <zorder>label_3</zorder>
-     <zorder>label_4</zorder>
-     <zorder>groupBox</zorder>
-     <zorder>label_5</zorder>
-     <zorder>label_6</zorder>
-     <zorder>editorFont</zorder>
-     <zorder>editorNormalColor</zorder>
-     <zorder>editorBackgroundColor</zorder>
-     <zorder>editorKeywordColor</zorder>
-     <zorder>editorWarningColor</zorder>
-     <zorder>editorErrorColor</zorder>
-     <zorder>lavel_7</zorder>
-     <zorder>editorTextColor</zorder>
-     <zorder>lavel_8</zorder>
-     <zorder>editorCommentColor</zorder>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="environmentBox">
-     <property name="title">
-      <string>Environment</string>
+     <property name="lineWidth">
+      <number>0</number>
      </property>
-     <layout class="QFormLayout" name="formLayout_2">
-      <property name="fieldGrowthPolicy">
-       <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>661</width>
+        <height>611</height>
+       </rect>
       </property>
-      <item row="0" column="0">
-       <widget class="QLabel" name="pathLabel">
-        <property name="text">
-         <string>Path</string>
-        </property>
-        <property name="buddy">
-         <cstring>path</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
-        <item>
-         <widget class="QLineEdit" name="path"/>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pathSelect">
-          <property name="maximumSize">
-           <size>
-            <width>32</width>
-            <height>16777215</height>
-           </size>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Console</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="fontLabel">
+            <property name="text">
+             <string>Font</string>
+            </property>
+            <property name="buddy">
+             <cstring>consoleFont</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="FontSelector" name="consoleFont" native="true"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="textColorLabel">
+            <property name="text">
+             <string>Text Color</string>
+            </property>
+            <property name="buddy">
+             <cstring>consoleTextColor</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="ColorSelector" name="consoleTextColor" native="true"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="backgroudColorLabel">
+            <property name="text">
+             <string>Backgroud Color</string>
+            </property>
+            <property name="buddy">
+             <cstring>consoleBackgroundColor</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="ColorSelector" name="consoleBackgroundColor" native="true"/>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="backgroudColorLabel_2">
+            <property name="text">
+             <string>Message Color</string>
+            </property>
+            <property name="buddy">
+             <cstring>consoleMessageColor</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="ColorSelector" name="consoleMessageColor" native="true"/>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="backgroudColorLabel_3">
+            <property name="text">
+             <string>Error Color</string>
+            </property>
+            <property name="buddy">
+             <cstring>consoleErrorColor</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="ColorSelector" name="consoleErrorColor" native="true"/>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="backgroudColorLabel_4">
+            <property name="text">
+             <string>Warning Color</string>
+            </property>
+            <property name="buddy">
+             <cstring>consoleWarningColor</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="ColorSelector" name="consoleWarningColor" native="true"/>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>Code Color</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="ColorSelector" name="consoleCodeColor" native="true"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>Editor</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_3">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Font</string>
+            </property>
+            <property name="buddy">
+             <cstring>editorFont</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="FontSelector" name="editorFont" native="true"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Normal Color</string>
+            </property>
+            <property name="buddy">
+             <cstring>editorNormalColor</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="ColorSelector" name="editorNormalColor" native="true"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Background Color</string>
+            </property>
+            <property name="buddy">
+             <cstring>editorBackgroundColor</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="ColorSelector" name="editorBackgroundColor" native="true"/>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Keyword Color</string>
+            </property>
+            <property name="buddy">
+             <cstring>editorKeywordColor</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="ColorSelector" name="editorKeywordColor" native="true"/>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Warning Color</string>
+            </property>
+            <property name="buddy">
+             <cstring>editorWarningColor</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="ColorSelector" name="editorWarningColor" native="true"/>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Error Color</string>
+            </property>
+            <property name="buddy">
+             <cstring>editorErrorColor</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="ColorSelector" name="editorErrorColor" native="true"/>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="lavel_7">
+            <property name="text">
+             <string>Text Color</string>
+            </property>
+            <property name="buddy">
+             <cstring>editorTextColor</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="ColorSelector" name="editorTextColor" native="true"/>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="lavel_8">
+            <property name="text">
+             <string>Comment Color</string>
+            </property>
+            <property name="buddy">
+             <cstring>editorCommentColor</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <widget class="ColorSelector" name="editorCommentColor" native="true"/>
+          </item>
+         </layout>
+         <zorder>label</zorder>
+         <zorder>label_2</zorder>
+         <zorder>label_3</zorder>
+         <zorder>label_4</zorder>
+         <zorder>label_5</zorder>
+         <zorder>label_6</zorder>
+         <zorder>editorFont</zorder>
+         <zorder>editorNormalColor</zorder>
+         <zorder>editorBackgroundColor</zorder>
+         <zorder>editorKeywordColor</zorder>
+         <zorder>editorWarningColor</zorder>
+         <zorder>editorErrorColor</zorder>
+         <zorder>lavel_7</zorder>
+         <zorder>editorTextColor</zorder>
+         <zorder>lavel_8</zorder>
+         <zorder>editorCommentColor</zorder>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_3">
+         <property name="title">
+          <string>RelationView</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_4">
+          <item row="0" column="0">
+           <widget class="QLabel" name="fontLabel_2">
+            <property name="text">
+             <string>Font</string>
+            </property>
+            <property name="buddy">
+             <cstring>consoleFont</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="FontSelector" name="relationFont" native="true"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="textColorLabel_2">
+            <property name="text">
+             <string>Text Color</string>
+            </property>
+            <property name="buddy">
+             <cstring>consoleTextColor</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="ColorSelector" name="relationTextColor" native="true"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="backgroudColorLabel_5">
+            <property name="text">
+             <string>Backgroud Color</string>
+            </property>
+            <property name="buddy">
+             <cstring>consoleBackgroundColor</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="ColorSelector" name="relationBackgroundColor" native="true"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="environmentBox">
+         <property name="title">
+          <string>Environment</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_2">
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
           </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-     </layout>
+          <item row="0" column="0">
+           <widget class="QLabel" name="pathLabel">
+            <property name="text">
+             <string>Path</string>
+            </property>
+            <property name="buddy">
+             <cstring>path</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <widget class="QLineEdit" name="path"/>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pathSelect">
+              <property name="maximumSize">
+               <size>
+                <width>32</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+      <zorder>groupBox</zorder>
+      <zorder>environmentBox</zorder>
+      <zorder>groupBox_2</zorder>
+      <zorder>groupBox_3</zorder>
+      <zorder>buttonBox</zorder>
+     </widget>
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="margin">
+      <number>9</number>
      </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::RestoreDefaults</set>
-     </property>
-    </widget>
+     <item>
+      <widget class="QDialogButtonBox" name="buttonBox">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="standardButtons">
+        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::RestoreDefaults</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
-  <zorder>environmentBox</zorder>
-  <zorder>buttonBox</zorder>
-  <zorder>groupBox_2</zorder>
-  <zorder>groupBox</zorder>
-  <zorder>editorErrorColor</zorder>
  </widget>
  <customwidgets>
   <customwidget>
