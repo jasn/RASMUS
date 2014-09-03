@@ -18,13 +18,13 @@ Spilledag [ Kamp <- Id ];
 
 // eksempel 7
 
-(Turnering |+ Udehold) -
+(Turnering |+ UdeHold) -
 ((Turnering ? (#.HjScore<#.UdeScore)) |+ UdeHold);
 
 // eksempel 8
 
 (((Kampe * (Tips ? (#.Uge=18))) ? (#.UdeHold="AGF")) +
- ((Kampe * (tips ? (#.uge=18))) ? (#.HjHold="AGF"))) |+ Nr;
+ ((Kampe * (Tips ? (#.Uge=18))) ? (#.HjHold="AGF"))) |+ Nr;
 
 // eksempel 9
 
@@ -61,3 +61,34 @@ Kupon := func (ugenr:Int) -> (Rel)
          end;
 
 Kupon(18);
+
+Kupon2 :=
+func (ugenr:Int) -> (Rel)
+    (+ val Strip = 
+               func (uge:Int) -> (Rel)
+                   ((Turnering*Tips) ? (#.Uge=uge)) |- Id, Uge
+               end
+          val X = Strip(ugenr)
+          val Et = 
+                (X ? (#.HjScore>#.UdeScore))*rel(tup(Tegn:"1"))
+          val Kryds = 
+                (X ? (#.HjScore=#.UdeScore))*rel(tup(Tegn:"X"))
+          val To = 
+                (X ? (#.HjScore<#.UdeScore))*rel(tup(Tegn:"2"))
+          in (Et + Kryds + To) |- HjScore, UdeScore
+    +)
+end;
+
+// eksempel 21
+foo :=
+func (uge:Int, hold:Text) -> (Rel)
+    (+ val X = Kampe*(Tips ? (#.Uge=uge))
+         in
+         if |X ? (#.HjHold=hold)| > 0 -> rel(tup(Bane:"Hjemme"))
+          & true -> rel(tup(Bane:"ude"))
+         fi
+    +)
+end
+
+
+
