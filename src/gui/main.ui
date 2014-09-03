@@ -200,6 +200,8 @@
     <addaction name="importRelation"/>
     <addaction name="actionDelete_2"/>
     <addaction name="separator"/>
+    <addaction name="actionPrint"/>
+    <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
@@ -350,6 +352,11 @@
     <string>Delete Relation</string>
    </property>
   </action>
+  <action name="actionPrint">
+   <property name="text">
+    <string>&amp;Print</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -360,6 +367,7 @@
     <signal>quit()</signal>
     <slot>visualUpdate(Settings*)</slot>
     <slot>doCancel()</slot>
+    <slot>doPrintConsole()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -570,6 +578,22 @@
     <hint type="destinationlabel">
      <x>503</x>
      <y>411</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionPrint</sender>
+   <signal>triggered()</signal>
+   <receiver>console</receiver>
+   <slot>doPrintConsole()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>372</x>
+     <y>412</y>
     </hint>
    </hints>
   </connection>

@@ -24,6 +24,8 @@
 #include "settings.hh"
 #include "ui_editor.h"
 #include <QFileInfo>
+#include <QPrinter>
+#include <QPrintDialog>
 
 class EditorPrivate {
 public:
@@ -65,6 +67,17 @@ void Editor::visualUpdate(Settings * s) {
 	p.setColor(QPalette::Base, s->color(Colors::editorBackground));
 	d->ui.edit->setPalette(p);
 	static_cast<Highlighter*>(d->ui.edit->highlighter)->updateSettings(s);
+}
+
+void Editor::doPrintEditor() {
+	QPrinter *printer = new QPrinter();
+	QPrintDialog *pdlg = new QPrintDialog(printer, this);
+	pdlg->setWindowTitle(tr("Print code"));
+
+	if (!pdlg->exec() == QDialog::Accepted) return;
+
+	d->ui.edit->print(printer);
+
 }
 
 void Editor::dirty(bool dirt) {

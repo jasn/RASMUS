@@ -39,6 +39,7 @@ public slots:
 	bool save();
 	bool saveAs();
 	void visualUpdate(Settings *);
+	void doPrintEditor();
 signals:
 	void runContent(QString name, QString content);
 private:

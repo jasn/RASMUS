@@ -39,6 +39,7 @@ public slots:
 	void doCancel();
 	void bussy(bool);
 	void gotoEnd();
+	void doPrintConsole();
 signals:
 	void run(QString line);
 	void cancel();

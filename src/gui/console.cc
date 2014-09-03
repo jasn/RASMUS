@@ -25,6 +25,9 @@
 #include "settings.hh"
 #include <vector>
 
+#include <QPrinter>
+#include <QPrintDialog>
+
 class ConsolePrivate {
 public:
 	std::vector<QString> history;
@@ -112,6 +115,15 @@ void Console::gotoEnd() {
 	ensureCursorVisible();
 }
 
+void Console::doPrintConsole() {
+	QPrinter *printer = new QPrinter();
+	QPrintDialog *pdlg = new QPrintDialog(printer, this);
+	pdlg->setWindowTitle(tr("Print Console"));
+
+	if (!pdlg->exec() == QDialog::Accepted) return;
+
+	print(printer);
+}
 
 void Console::keyPressEvent(QKeyEvent *e) {
 	if (isReadOnly()) {

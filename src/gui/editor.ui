@@ -47,6 +47,8 @@
     <addaction name="actionSaveAs"/>
     <addaction name="actionRun"/>
     <addaction name="separator"/>
+    <addaction name="actionPrint"/>
+    <addaction name="separator"/>
     <addaction name="actionClose"/>
    </widget>
    <widget class="QMenu" name="menu_Edit">
@@ -152,6 +154,11 @@
   <action name="actionAbout">
    <property name="text">
     <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="actionPrint">
+   <property name="text">
+    <string>&amp;Print</string>
    </property>
   </action>
  </widget>
@@ -356,6 +363,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionPrint</sender>
+   <signal>triggered()</signal>
+   <receiver>Editor</receiver>
+   <slot>doPrintEditor()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>save()</slot>
@@ -363,5 +386,6 @@
   <slot>run()</slot>
   <slot>showAbout()</slot>
   <slot>dirty(bool)</slot>
+  <slot>doPrintEditor()</slot>
  </slots>
 </ui>
