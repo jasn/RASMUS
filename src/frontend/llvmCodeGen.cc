@@ -26,7 +26,7 @@
 #include <iostream>
 #include <memory>
 #include <unordered_map>
-
+#include <array>
 #include <frontend/tokenizer.hh>
 
 #include <llvm/IR/IRBuilder.h>

@@ -35,6 +35,7 @@
 #include <QPrinter>
 #include <QPrinterInfo>
 #include <QPainter>
+#include <numeric>
 
 namespace rs = rasmus::stdlib;
 

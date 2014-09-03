@@ -19,6 +19,7 @@
 
 #include "promptLine.hh"
 #include <iostream>
+#include <cstdlib>
 
 PromptStatus promptLine(bool complete, std::string & str) {
 	std::cout << (complete?">>>> ":".... ");

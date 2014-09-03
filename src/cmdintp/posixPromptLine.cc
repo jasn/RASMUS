@@ -22,6 +22,7 @@
 #include <readline/history.h>
 #include <readline/readline.h>
 #include <string>
+#include <cstdlib>
 
 PromptStatus promptLine(bool complete, std::string & str) {
 	int fds[2];

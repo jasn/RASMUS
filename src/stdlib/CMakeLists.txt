@@ -29,8 +29,10 @@ else (RASMUS_STATIC)
 	stdlib 
 	SHARED
 	${LIB_FILES})
-   set_target_properties(stdlib PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../../)
-   install(TARGETS stdlib DESTINATION lib)
+    set_target_properties(stdlib PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../../)
+   if (NOT APPLE)
+       install(TARGETS stdlib DESTINATION lib)
+   endif()
 endif (RASMUS_STATIC)
 
 

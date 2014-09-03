@@ -9,4 +9,7 @@ endif(READLINE_FOUND)
 add_executable(rasmus-cmd main.cc promptLine.hh ${PROMPT})
 target_link_libraries(rasmus-cmd frontend ${Readline_LIBRARY} ${PLINK})
 set_target_properties(rasmus-cmd PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../../)	
-install(TARGETS rasmus-cmd RUNTIME DESTINATION bin)
+if (NOT APPLE)
+  install(TARGETS rasmus-cmd RUNTIME DESTINATION bin)
+endif()
+

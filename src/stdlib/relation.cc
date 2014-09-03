@@ -31,6 +31,7 @@
 #include <stdlib/anyvalue.hh>
 #include <stdlib/ile.hh>
 #include <stdlib/abort.hh>
+#include <numeric>
 
 namespace {
 using namespace rasmus::stdlib;
