@@ -215,6 +215,8 @@ public:
 		{
 			{"rm_print", functionType(voidType, {int8Type, int64Type})},
 			{"rm_checkAbort", functionType(voidType, {})},
+			{"rm_enterFunction", functionType(voidType, {})},
+			{"rm_exitFunction", functionType(voidType, {})},
 			{"rm_free", functionType(voidType, {voidPtrType})},
 			{"rm_concatText", functionType(voidPtrType, {voidPtrType, voidPtrType})},
 			{"rm_getConstText", functionType(voidPtrType, {pointerType(int8Type)})},
@@ -1565,6 +1567,7 @@ public:
     LLVMVal visit(std::shared_ptr<FuncInvocationExp> node) {
     
 		builder.CreateCall(getStdlibFunc("rm_checkAbort")); 
+		builder.CreateCall(getStdlibFunc("rm_enterFunction")); 
 	
 		FunctionType * ft = funcType(node->args.size());
 		
@@ -1586,6 +1589,7 @@ public:
 		
 		builder.SetInsertPoint(fblock);
 
+		builder.CreateCall(getStdlibFunc("rm_exitFunction")); 
 		builder.CreateCall4(getStdlibFunc("rm_emitArgCntError"), 
 							int32(node->charRange.lo), 
 							int32(node->charRange.hi),
@@ -1610,6 +1614,9 @@ public:
 		for (auto & a: ac)
 			disown(a, TAny);
 		disown(cap, TFunc);
+
+		builder.CreateCall(getStdlibFunc("rm_exitFunction")); 
+
 		return OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
 							builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1)));
 	}

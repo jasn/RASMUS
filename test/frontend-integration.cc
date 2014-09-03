@@ -156,26 +156,7 @@ void builtins(rasmus::teststream & ts) {
 	ts << "is-Atom8" << result(it("is-Atom((func()->(Any) \"foo\" end)())", "true"));
 	ts << "is-Atom9" << result(it("is-Atom((func()->(Any) rel(tup(a:1)) end)())", "false"));
 	ts << "is-Atom10" << result(it("is-Atom((func()->(Any) (func()->(Any) true end) end)())", "false"));
-	
-
 }
-
-/*
-		case TokenType::TK_ISATOM:
-			ICE("IMPLEMENT ME");
-		case TokenType::TK_ISBOOL:
-			return genIsExpression(node, TBool);
-		case TokenType::TK_ISINT:
-			return genIsExpression(node, TInt);
-		case TokenType::TK_ISTEXT:
-			return genIsExpression(node, TText);
-		case TokenType::TK_ISTUP:
-			return genIsExpression(node, TTup);
-		case TokenType::TK_ISREL:
-			return genIsExpression(node, TRel);
-		case TokenType::TK_ISFUNC:
-			return genIsExpression(node, TFunc);
-*/
 
 void base(rasmus::teststream & ts) {
     ts << "block" << result(it("(+val a=4 in a +)", "4"));

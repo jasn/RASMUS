@@ -15,6 +15,8 @@ set(LIB_FILES
 	text.hh
 	abort.cc
 	abort.hh
+	funcInvocation.cc
+	funcInvocation.hh
 	gil.hh
 	gil.cc
 	global.cc)

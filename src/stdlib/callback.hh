@@ -19,6 +19,8 @@
 #ifndef __CALLBACK_HH__
 #define __CALLBACK_HH__
 #include <stdlib/rm_object.hh>
+#include <stdlib/funcInvocation.hh>
+#include <iostream>
 #include <memory>
 
 namespace rasmus {
@@ -33,12 +35,14 @@ public:
  * Callback used by the stdlib to interact with the environment
  */
 class Callback {
+protected:
+	size_t funcInvocations = 0;
+
 public:
 	~Callback() {}
 	virtual void saveRelation(rm_object * o, const char * name) = 0;
 	virtual rm_object * loadRelation(const char * name) = 0;
 	virtual void deleteRelation(const char * name) = 0;
-
 
 	virtual void printInt(int64_t v) = 0;
 	virtual void printBool(int8_t v) = 0;
@@ -51,6 +55,21 @@ public:
 	virtual void reportMessage(std::string text) = 0;
 	virtual void environmentChanged(const char * /*name*/) {}
 	virtual void reportAbort [[noreturn]] () = 0;
+
+	virtual void reportMaxRecDepth () = 0;
+
+	void enterFunction(){
+		if(funcInvocations > MAX_RECURSION_DEPTH){
+			funcInvocations = 0;
+			reportMaxRecDepth();
+		}
+		funcInvocations++;
+	}
+
+	void exitFunction(){
+		funcInvocations--;
+	}
+
 };
 
 extern std::shared_ptr<Callback> callback;

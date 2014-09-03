@@ -105,10 +105,15 @@ public:
 	}
 	
 	void reportAbort() override {
+		funcInvocations = 0;
 		cb->report(MsgType::error, "Aborted");
 		throw ErrException();
 	}
 	
+	void reportMaxRecDepth() override {
+		cb->report(MsgType::error, "Maximum recursion depth exceeded");
+		throw ErrException();
+	}
 
 	void reportMessage(std::string text) override {
 		cb->report(MsgType::info, text);

@@ -82,6 +82,12 @@ public:
 		std::cerr << "Computation aborted" << std::endl;
 		exit(EXIT_FAILURE);
 	}
+
+	void reportMaxRecDepth() override {
+		std::cerr << "Maximum recursion depth exceeded" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
 };
 
 } //namespace stdlib

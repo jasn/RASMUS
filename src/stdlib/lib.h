@@ -289,5 +289,22 @@ void rm_clearAbort();
  */
 void rm_checkAbort();
 
+
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////  funcInvocation.cc  ///////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * \brief register a user-defined function's invocation
+ * This function is used to limit maximum allowed recursion depth
+ */
+void rm_enterFunction();
+
+/**
+ * \brief register a user-defined function's return
+ */
+void rm_exitFunction();
+
+
 } //extern C
 #endif //__LIB_H__
