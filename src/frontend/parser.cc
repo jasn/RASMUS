@@ -20,6 +20,7 @@
 #include <unordered_set>
 #include <vector>
 #include <iostream>
+#include <cassert>
 
 using lexer::TokenType;
 
@@ -69,23 +70,31 @@ public:
 		recoverStack.push_back(id);
 		try {
 			t();
+			assert(recoverStack.back() == id);
 			recoverStack.pop_back();
 		} catch(RecoverException e) {
+			assert(recoverStack.back() == id);
 			recoverStack.pop_back();
 			if (e.id != id) throw;
-		};
+		} catch(...) {
+			assert(recoverStack.back() == id);
+			recoverStack.pop_back();
+			throw;
+		}
 	}
 
 	
 	void doRecover() __attribute__ ((noreturn)) {
 		//Recover errors at the first token in list of tokens specified on the recovery stack
 		std::unordered_set<TokenType> r(recoverStack.begin(), recoverStack.end());
-		if (r.count(currentToken.id)) 
+		if (r.count(currentToken.id)) {
 			throw RecoverException(currentToken.id);
+		}
 		consumeToken();
 		while (r.count(currentToken.id) == 0) {
-			if (currentToken.id == TokenType::END_OF_FILE)
+			if (currentToken.id == TokenType::END_OF_FILE) {
 				throw RecoverException(TokenType::END_OF_FILE);
+			}
 			else if (currentToken.id == TokenType::INVALID)
 				parseError("Invalid token");
 			consumeToken();
