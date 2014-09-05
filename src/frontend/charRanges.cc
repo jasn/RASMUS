@@ -131,7 +131,7 @@ public:
 
     void visit(std::shared_ptr<ProjectExp> node) {
         visitNode(node->lhs);
-        node->charRange = u(node->lhs->charRange, r(node->names[-1]));
+        node->charRange = u(node->lhs->charRange, r(node->names.back()));
 	}
 
     void visit(std::shared_ptr<BinaryOpExp> node) {
