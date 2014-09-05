@@ -8,7 +8,7 @@ option(RASMUS_STATIC "Build rasmus static" OFF)
 
 find_package(Qt4 4.4.3 COMPONENTS QtCore QtGui)
 if (QT_FOUND)
-   include(UseQT4)
+   include(${QT_USE_FILE})
 endif (QT_FOUND)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules/")

@@ -29,13 +29,14 @@
 
 class EditorPrivate {
 public:
+	EditorPrivate(Settings * settings): settings(settings) {}
 	Ui::Editor ui;
 	QFileInfo path;
 	Settings * settings;
 };
 
 Editor::Editor(Settings * settings) {
-	d = new EditorPrivate();
+	d = new EditorPrivate(settings);
 	d->ui.setupUi(this);
 	d->ui.edit->highlighter = new Highlighter(d->ui.edit->document());
 	dirty(false);
@@ -44,7 +45,7 @@ Editor::Editor(Settings * settings) {
 }
 
 Editor::Editor(Settings * settings, QString path, QString content) {
-	d = new EditorPrivate();
+	d = new EditorPrivate(settings);
 	d->path = path;
 	
 	d->ui.setupUi(this);
