@@ -88,6 +88,37 @@ public:
 
 };
 
+void Console::pasteContinue() {
+	QTextCursor c = textCursor();
+	pasteActive = true;
+	int index = pasteIndex;
+	if (pasteBuffer[index].startsWith(">>> ") || pasteBuffer[index].startsWith("... ")) {
+		pasteBuffer[index].remove(0, 4);
+	}
+	c.insertText(pasteBuffer[index]);
+	QString tmp = c.document()->lastBlock().text().right(c.document()->lastBlock().text().size() -4);
+	if (index+1 == pasteBuffer.size()) {
+		pasteActive = false;
+		return;
+	}
+	++pasteIndex;
+	runLine(tmp);	
+}
+
+void Console::insertFromMimeData(const QMimeData *source) {
+
+	if (!source->hasText()) return;
+
+	gotoEnd();
+	QString txt = source->text();
+	pasteBuffer.clear();
+	pasteBuffer = txt.split("\n");
+	pasteIndex = 0;
+	if (pasteBuffer.size() > 0) {
+		pasteContinue();
+	}
+
+}
 
 void Console::visualUpdate(Settings *s) {
 	setFont(s->font(Fonts::console));
@@ -97,9 +128,6 @@ void Console::visualUpdate(Settings *s) {
 	setPalette(p);
 	d->settings = s;
 }
-
-
-
 
 void Console::doCancel() {
 	if (isReadOnly()) rm_abort();
@@ -201,13 +229,7 @@ void Console::keyPressEvent(QKeyEvent *e) {
 			}
 		} else {
 			QString tmp = c.document()->lastBlock().text().right(c.document()->lastBlock().text().size() -4);
-			rm_clearAbort();
-			emit run(tmp);
-			d->currHistoryPosition = 0;
-			d->history[d->history.size()-1] = tmp;
-			d->history.push_back(QString::fromStdString(""));
-		
-			gotoEnd();
+			runLine(tmp);
 		}
 		break;
       
@@ -218,6 +240,16 @@ void Console::keyPressEvent(QKeyEvent *e) {
 
 }
 
+void Console::runLine(const QString &tmp) {
+	rm_clearAbort();
+	emit run(tmp);
+	d->currHistoryPosition = 0;
+	d->history[d->history.size()-1] = tmp;
+	d->history.push_back(QString::fromStdString(""));
+
+	gotoEnd();
+}
+
 void Console::bussy(bool bussy) {
 	setReadOnly(bussy);
 }
@@ -225,11 +257,13 @@ void Console::bussy(bool bussy) {
 void Console::incomplete() {
 	d->incompleteState = true;
 	d->insertEmptyBlock();
+	if (pasteActive) pasteContinue();
 }
 
 void Console::complete() {
 	d->incompleteState = false;
 	d->insertEmptyBlock();
+	if (pasteActive) pasteContinue();
 }
 
 void Console::display(QString block) {
@@ -241,8 +275,9 @@ void Console::display(QString block) {
 }
 
 Console::Console(QWidget * parent)
-	: QPlainTextEdit(parent) {
+	: QPlainTextEdit(parent), pasteBuffer(QStringList()), pasteActive(false), pasteIndex(0) {
 	d = new ConsolePrivate(this);
+	d->history.push_back(QString(""));
 }
 
 Console::~Console() {

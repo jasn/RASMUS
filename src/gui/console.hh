@@ -40,12 +40,20 @@ public slots:
 	void bussy(bool);
 	void gotoEnd();
 	void doPrintConsole();
+	void insertFromMimeData(const QMimeData *) override;
 signals:
 	void run(QString line);
 	void cancel();
 	void quit();
 
 private:
+	void runLine(const QString &tmp);
+	void pasteContinue();
+
+	QStringList pasteBuffer;
+	bool pasteActive;
+	int pasteIndex;
+
 	ConsolePrivate * d;
 };
 
