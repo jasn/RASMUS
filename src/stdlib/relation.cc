@@ -2058,6 +2058,27 @@ uint8_t rm_tupHasEntry(rm_object * tup, const char * name) {
 }
 
 /**
+ * \Brief Checks whether the tuple's column with name 'name' has type 'type'
+ */
+uint8_t rm_tupEntryType(rm_object * _tup, const char * name, Type type, int64_t range ) {
+	if(_tup->type != LType::tuple)
+		ILE("Called with arguments of the wrong type");
+
+	Tuple * tup = static_cast<Tuple *>(_tup);
+	
+	for(auto & attribute : tup->schema->attributes)
+		if(name == attribute.name)
+			return type == attribute.type ? RM_TRUE : RM_FALSE;
+
+	// if we get here, the column was not found
+	std::vector<std::string> arg;
+	for(auto & attribute : tup->schema->attributes)
+		arg.push_back(attribute.name);
+	rm_emitTupColNameError(unpackCharRange(range).first, unpackCharRange(range).second, name, arg);
+	
+}
+
+/**
  * \Brief Checks whether or not the given relation's schema contains the given name
  */
 uint8_t rm_relHasEntry(rm_object * rel, const char * name) {
@@ -2074,6 +2095,29 @@ uint8_t rm_relHasEntry(rm_object * rel, const char * name) {
 	}
 
 	return RM_FALSE;
+}
+
+/**
+ * \Brief Checks whether the column in 'rel' with name 'name' has type 'type'
+ */
+uint8_t rm_relEntryType(rm_object * rel, const char * name, int8_t type, int64_t range) {
+
+	if(rel->type != LType::relation)
+		ILE("Called with arguments of the wrong type");
+
+	Relation * relation = static_cast<Relation *>(rel);
+	if(!relation) ILE("Null relation passed to rm_relHasEntry");
+	if(!relation->schema) ILE("Null schema for relation passed to rm_relHasEntry");
+
+	for(auto & attribute : relation->schema->attributes)
+		if(name == attribute.name) 
+			return type == attribute.type ? RM_TRUE : RM_FALSE;
+
+	// if we get here, the column 'name' was not found
+	std::vector<std::string> arg;
+	for(auto & attribute : relation->schema->attributes)
+		arg.push_back(attribute.name);
+	rm_emitColNameError(unpackCharRange(range).first, unpackCharRange(range).second, name, arg);
 }
 
 /**

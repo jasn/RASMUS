@@ -114,6 +114,11 @@ void builtins(rasmus::teststream & ts) {
 	ts << "is-Bool9" << result(it("is-Bool((func()->(Any) 42 end)())", "false"));
 	ts << "is-Bool10" << result(it("is-Bool((func()->(Any) \"foo\" end)())", "false"));
 	ts << "is-Bool11" << result(it("is-Bool((func()->(Any) rel(tup(a:1)) end)())", "false"));
+	ts << "is-Bool12" << result(it("a := rel(tup(a:1, b:true, c:\"\")); is-Bool(a, a)", "false"));
+	ts << "is-Bool13" << result(it("a := rel(tup(a:1, b:true, c:\"\")); is-Bool(a, b)", "true"));
+	ts << "is-Bool14" << result(it("a := rel(tup(a:1, b:true, c:\"\")); is-Bool(a, c)", "false"));
+	ts << "is-Bool15" << result(it("a := tup(a:1, b:true, c:\"\"); is-Bool(a, b)", "true"));
+	ts << "is-Bool16" << result(it("a := tup(a:1, b:true, c:\"\"); is-Bool(a, c)", "false"));
 	ts << "is-Int1" << result(it("is-Int(1234)", "true"));
 	ts << "is-Int2" << result(it("is-Int(0)", "true"));
 	ts << "is-Int3" << result(it("is-Int(-1234565432)", "true"));
@@ -123,12 +128,18 @@ void builtins(rasmus::teststream & ts) {
 	ts << "is-Int7" << result(it("is-Int(rel(tup(a:1)))", "false"));
 	ts << "is-Int8" << result(it("is-Int((func()->(Any) true end)())", "false"));
 	ts << "is-Int9" << result(it("is-Int((func()->(Any) 42 end)())", "true"));
+	ts << "is-Int10" << result(it("a := rel(tup(a:1, b:true, c:\"\")); is-Int(a, a)", "true"));
+	ts << "is-Int11" << result(it("a := rel(tup(a:1, b:true, c:\"\")); is-Int(a, b)", "false"));
+	ts << "is-Int12" << result(it("a := rel(tup(a:1, b:true, c:\"\")); is-Int(a, c)", "false"));
 	ts << "is-Text1" << result(it("is-Text(true)", "false"));
 	ts << "is-Text2" << result(it("is-Text(\"foo\")", "true"));
 	ts << "is-Text3" << result(it("is-Text(?-Text)", "true"));
 	ts << "is-Text4" << result(it("is-Text(42)", "false"));
 	ts << "is-Text5" << result(it("is-Text((func()->(Any) true end)())", "false"));
 	ts << "is-Text6" << result(it("is-Text((func()->(Any) \"foo\" end)())", "true"));
+	ts << "is-Text7" << result(it("a := rel(tup(a:1, b:true, c:\"\")); is-Text(a, a)", "false"));
+	ts << "is-Text8" << result(it("a := rel(tup(a:1, b:true, c:\"\")); is-Text(a, b)", "false"));
+	ts << "is-Text9" << result(it("a := rel(tup(a:1, b:true, c:\"\")); is-Text(a, c)", "true"));
 	ts << "is-Tup1" << result(it("is-Tup(true)", "false"));
 	ts << "is-Tup2" << result(it("is-Tup(tup(a:1))", "true"));
 	ts << "is-Tup3" << result(it("is-Tup(42)", "false"));
@@ -156,6 +167,11 @@ void builtins(rasmus::teststream & ts) {
 	ts << "is-Atom8" << result(it("is-Atom((func()->(Any) \"foo\" end)())", "true"));
 	ts << "is-Atom9" << result(it("is-Atom((func()->(Any) rel(tup(a:1)) end)())", "false"));
 	ts << "is-Atom10" << result(it("is-Atom((func()->(Any) (func()->(Any) true end) end)())", "false"));
+	ts << "is-*-error1" << result(it("a := rel(tup(a:1, b:true, c:\"\")); is-Bool(a, q)", "", true));
+	ts << "is-*-error2" << result(it("a := rel(tup(a:1, b:true, c:\"\")); is-Text(a, q)", "", true));
+	ts << "is-*-error3" << result(it("a := rel(tup(a:1, b:true, c:\"\")); is-Int(a, q)", "", true));
+	ts << "is-*-error4" << result(it("a := rel(tup(a:1, b:true, c:\"\")); is-Int(a, b, c)", "", true));
+
 }
 
 void base(rasmus::teststream & ts) {

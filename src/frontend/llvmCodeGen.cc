@@ -247,6 +247,8 @@ public:
 			{"rm_tupRemove", functionType(voidPtrType, {voidPtrType, pointerType(int8Type), int64Type})},
 			{"rm_tupHasEntry", functionType(int8Type, {voidPtrType, pointerType(int8Type)})},
 			{"rm_relHasEntry", functionType(int8Type, {voidPtrType, pointerType(int8Type)})},
+			{"rm_tupEntryType", functionType(int8Type, {voidPtrType, pointerType(int8Type), int8Type, int64Type})},
+			{"rm_relEntryType", functionType(int8Type, {voidPtrType, pointerType(int8Type), int8Type, int64Type})},
 			{"rm_equalText", functionType(int8Type, {voidPtrType, voidPtrType})},
 			{"rm_equalRel", functionType(int8Type, {voidPtrType, voidPtrType})},
 			{"rm_equalTup", functionType(int8Type, {voidPtrType, voidPtrType})},
@@ -1327,7 +1329,31 @@ public:
 	}
 
 	LLVMVal genIsExpression(std::shared_ptr<BuiltInExp> & node, ::Type wantedType){
-		if(node->args[0]->type == TAny){
+		if((node->args[0]->type == TRel || node->args[0]->type == TTup)
+		   && node->args.size() > 1){
+			return opImp(
+				{
+					dOp([this, node, wantedType](BorrowedLLVMVal v) -> OwnedLLVMVal {
+							return builder.CreateCall4(
+								getStdlibFunc("rm_tupEntryType"), 
+								v.value, 
+								globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
+								typeRepr(wantedType),
+								packCharRange(node));
+						}, TBool, TTup),
+						dOp([this, node, wantedType](BorrowedLLVMVal v) -> OwnedLLVMVal {
+								return builder.CreateCall4(
+									getStdlibFunc("rm_relEntryType"), 
+									v.value, 
+									globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
+									typeRepr(wantedType),
+									packCharRange(node));
+							}, TBool, TRel)
+				}, 
+				node,
+				node->args[0]);
+		}
+		else if(node->args[0]->type == TAny){
 			LLVMVal v = castVisit(node->args[0], TAny);
 			LLVMVal r = cast(OwnedLLVMVal(builder.CreateSelect(
 											  builder.CreateICmpEQ(v.type, typeRepr(wantedType)),
