@@ -1539,7 +1539,7 @@ rm_object * rm_projectPlusRel(rm_object * rel_, uint32_t name_count, const char 
 
 /** \Brief Projects rel into all names except the given set of names
  */
-rm_object * rm_projectMinusRel(rm_object * rel_, uint32_t name_count, const char ** names) {
+rm_object * rm_projectMinusRel(rm_object * rel_, uint32_t name_count, const char ** names, uint64_t range) {
 	checkAbort();
 	if(rel_->type != LType::relation)
         ILE("Called with arguments of the wrong type");
@@ -1564,11 +1564,19 @@ rm_object * rm_projectMinusRel(rm_object * rel_, uint32_t name_count, const char
 
 	// find the indices in the relation of the names we want to keep
 	std::vector<size_t> indices;
-	for(size_t i = 0, j = 0; i < schemaNames.size(); i++){
+	size_t i = 0, j = 0;
+	for(; i < schemaNames.size(); i++){
 		if(j < inputNames.size() && schemaNames[i].first == inputNames[j])
 			j++;
 		else
 			indices.push_back(schemaNames[i].second);
+	}
+
+	// were all columns found?
+	if(j < inputNames.size()){
+		std::vector<std::string> arg;
+		for(size_t k = 0; k < schemaNames.size(); k++) arg.push_back(schemaNames[k].first);
+		rm_emitColNameError(unpackCharRange(range).first, unpackCharRange(range).second, inputNames[j], arg);
 	}
 
 	// project the relation onto the found indices

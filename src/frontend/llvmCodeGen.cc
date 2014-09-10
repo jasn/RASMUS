@@ -235,7 +235,7 @@ public:
 			{"rm_selectRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
 			{"rm_projectPlusRel", functionType(voidPtrType, {voidPtrType, int32Type, pointerType(pointerType(int8Type)), int64Type})},
 			{"rm_renameRel", functionType(voidPtrType, {voidPtrType, int32Type, pointerType(pointerType(int8Type)), int64Type})},
-			{"rm_projectMinusRel", functionType(voidPtrType, {voidPtrType, int32Type, pointerType(pointerType(int8Type))})},
+			{"rm_projectMinusRel", functionType(voidPtrType, {voidPtrType, int32Type, pointerType(pointerType(int8Type)), int64Type})},
 			{"rm_substrText", functionType(voidPtrType, {voidPtrType, int64Type, int64Type})},
 			{"rm_createFunction", functionType(voidPtrType, {int32Type})},
 			{"rm_loadGlobalAny", functionType(voidType, {pointerType(int8Type), pointerType(anyRetType)})},
@@ -1686,7 +1686,7 @@ public:
 		LLVMVal ret;
 		switch (exp->projectionToken.id) {
 		case TokenType::TK_PROJECT_MINUS:
-			ret=OwnedLLVMVal(builder.CreateCall3(getStdlibFunc("rm_projectMinusRel"), rel.value, int32(exp->names.size()), names));
+			ret=OwnedLLVMVal(builder.CreateCall4(getStdlibFunc("rm_projectMinusRel"), rel.value, int32(exp->names.size()), names, packCharRange(exp)));
 			break;
 		case TokenType::TK_PROJECT_PLUS:
 			ret=OwnedLLVMVal(builder.CreateCall4(getStdlibFunc("rm_projectPlusRel"), rel.value, int32(exp->names.size()), names, packCharRange(exp)));
