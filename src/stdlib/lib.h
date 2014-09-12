@@ -143,6 +143,15 @@ void rm_print(uint8_t t, int64_t v);
 void rm_emitTypeError [[ noreturn ]] (uint32_t start, uint32_t end, uint8_t got, uint8_t expect);
 
 /**
+ * Emit a type error for an is-* expression
+ *
+ * @param start the first character in the source where the error occurs
+ * @param end the last character in the source where the error occurs
+ * @param got the Type we found
+ */
+void rm_emitIsTypeError [[ noreturn ]] (uint32_t start, uint32_t end, uint8_t got);
+
+/**
  * Emit an argument count error
  *
  * @param start the first character in the source where the error occurs

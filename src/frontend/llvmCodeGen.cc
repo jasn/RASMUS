@@ -221,6 +221,7 @@ public:
 			{"rm_concatText", functionType(voidPtrType, {voidPtrType, voidPtrType})},
 			{"rm_getConstText", functionType(voidPtrType, {pointerType(int8Type)})},
 			{"rm_emitTypeError", functionType(voidType, {int32Type, int32Type, int8Type, int8Type})},
+			{"rm_emitIsTypeError", functionType(voidType, {int32Type, int32Type, int8Type})},
 			{"rm_emitArgCntError", functionType(voidType, {int32Type, int32Type, int16Type, int16Type})},
 			{"rm_unionRel", functionType(voidPtrType, {voidPtrType, voidPtrType, int64Type})},
 			{"rm_joinRel", functionType(voidPtrType, {voidPtrType, voidPtrType, int64Type})},
@@ -1329,29 +1330,124 @@ public:
 	}
 
 	LLVMVal genIsExpression(std::shared_ptr<BuiltInExp> & node, ::Type wantedType){
-		if((node->args[0]->type == TRel || node->args[0]->type == TTup)
-		   && node->args.size() > 1){
-			return opImp(
-				{
-					dOp([this, node, wantedType](BorrowedLLVMVal v) -> OwnedLLVMVal {
-							return builder.CreateCall4(
-								getStdlibFunc("rm_tupEntryType"), 
-								v.value, 
-								globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
-								typeRepr(wantedType),
-								packCharRange(node));
-						}, TBool, TTup),
+
+		// this is a special case which is only supported
+		// for the atomic operators; we expect the first 
+		// argument to be of type TRel or TTup, otherwise we 
+		// emit an error. If it's a TAny, though, we need to
+		// perform the check on runtime
+		if(node->args.size() > 1){
+			if(node->args[0]->type == TRel || node->args[0]->type == TTup){
+				// in this case we just delegate to the standard library
+				return opImp(
+					{
 						dOp([this, node, wantedType](BorrowedLLVMVal v) -> OwnedLLVMVal {
 								return builder.CreateCall4(
-									getStdlibFunc("rm_relEntryType"), 
+									getStdlibFunc("rm_tupEntryType"), 
 									v.value, 
-									globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
+									globalString(std::static_pointer_cast<VariableExp>(
+													 node->args[1])->nameToken.getText(code)),
 									typeRepr(wantedType),
 									packCharRange(node));
-							}, TBool, TRel)
-				}, 
-				node,
-				node->args[0]);
+							}, TBool, TTup),
+							dOp([this, node, wantedType](BorrowedLLVMVal v) -> OwnedLLVMVal {
+									return builder.CreateCall4(
+										getStdlibFunc("rm_relEntryType"), 
+										v.value, 
+										globalString(std::static_pointer_cast<VariableExp>(
+														 node->args[1])->nameToken.getText(code)),
+										typeRepr(wantedType),
+										packCharRange(node));
+								}, TBool, TRel)
+							}, node, node->args[0]);
+					
+			}
+			else if(node->args[0]->type == TAny){
+				// in this case we must check the type at runtime
+
+				LLVMVal v = castVisit(node->args[0], TAny);
+				BorrowedLLVMVal r(builder.CreateIntToPtr(v.value, voidPtrType, "rel"));
+				BorrowedLLVMVal t(builder.CreateIntToPtr(v.value, voidPtrType, "tup"));
+
+				BasicBlock * b1 = newBlock();		
+				BasicBlock * b2 = newBlock();
+				BasicBlock * b3 = newBlock();		
+				BasicBlock * b4 = newBlock();
+				BasicBlock * bend = newBlock();
+				BasicBlock * c1 = newBlock();
+				BasicBlock * c2 = newBlock();
+				builder.CreateCondBr(builder.CreateICmpEQ(v.type, typeRepr(TRel)), b1, b2);
+							
+				builder.SetInsertPoint(b1);
+				// we get here if the type is TRel
+				Value * v1 = builder.CreateCall4(
+					getStdlibFunc("rm_relEntryType"), 
+					r.value,
+					globalString(std::static_pointer_cast<VariableExp>(
+									 node->args[1])->nameToken.getText(code)),
+					typeRepr(wantedType),
+					packCharRange(node));
+
+				builder.CreateBr(bend);
+							
+				builder.SetInsertPoint(b2);
+
+				builder.CreateCondBr(builder.CreateICmpEQ(v.type, typeRepr(TTup)), b3, b4);
+
+				builder.SetInsertPoint(b3);
+				// we get here if the type is TTup
+				Value * v2 = builder.CreateCall4(
+					getStdlibFunc("rm_tupEntryType"), 
+					t.value,
+					globalString(std::static_pointer_cast<VariableExp>(
+									 node->args[1])->nameToken.getText(code)),
+					typeRepr(wantedType),
+					packCharRange(node));
+
+				builder.CreateBr(bend);
+
+				builder.SetInsertPoint(b4);
+
+				// this is a hack. The value -1 tells us later that
+				// the type isn't TRel/TTup, so we can emit an error
+				// and abort. But we cannot abort directly inside blocks with
+				// a following phi node; each block is required by llvm
+				// to return a value to the phinode
+				// Any suggestions for a better way? This will break if we
+				// ever use -1 as internal value for booleans
+				Value * v3 = int8(-1);
+
+				builder.CreateBr(bend);
+
+				builder.SetInsertPoint(bend);
+							
+				PHINode * phi = builder.CreatePHI(int8Type, 3, "istype");
+				phi->addIncoming(v1, b1);
+				phi->addIncoming(v2, b3);
+				phi->addIncoming(v3, b4);
+
+				// finally check if type was bad
+				builder.CreateCondBr(builder.CreateICmpEQ(phi, int8(-1)), c1, c2);
+				builder.SetInsertPoint(c1);
+				builder.CreateCall3(getStdlibFunc("rm_emitIsTypeError"),
+									int32(node->charRange.lo), int32(node->charRange.hi),
+									v.type);
+				builder.CreateUnreachable();				
+				builder.SetInsertPoint(c2);
+
+				disown(v, TAny);
+
+				return OwnedLLVMVal(phi);
+
+
+			}
+			else{
+				// not a TAny nor a TRel/TTup,
+				// emit an error at compiletime
+				rm_emitIsTypeError(node->charRange.lo, node->charRange.hi,
+					node->args[0]->type);
+				__builtin_unreachable();
+			}
 		}
 		else if(node->args[0]->type == TAny){
 			LLVMVal v = castVisit(node->args[0], TAny);
