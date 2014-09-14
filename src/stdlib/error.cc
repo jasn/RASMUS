@@ -46,6 +46,13 @@ void rm_emitIsTypeError [[noreturn]] (uint32_t start, uint32_t end, uint8_t got)
 	__builtin_unreachable();
 }
 
+void rm_emitIfError [[noreturn]] (uint32_t start, uint32_t end) {
+	std::stringstream ss;
+	ss << "No branched taken in if experssion, and return type does not have a default value.";
+	callback->reportError(start, end, ss.str());
+	__builtin_unreachable();
+}
+
 void rm_emitArgCntError [[noreturn]] (int32_t start, int32_t end, int16_t got, int16_t expect) {
 	std::stringstream ss;
 	ss << "Expected " << expect << " arguments but got " << got << ".";

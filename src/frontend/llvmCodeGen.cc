@@ -221,6 +221,7 @@ public:
 			{"rm_concatText", functionType(voidPtrType, {voidPtrType, voidPtrType})},
 			{"rm_getConstText", functionType(voidPtrType, {pointerType(int8Type)})},
 			{"rm_emitTypeError", functionType(voidType, {int32Type, int32Type, int8Type, int8Type})},
+			{"rm_emitIfError", functionType(voidType, {int32Type, int32Type})},
 			{"rm_emitIsTypeError", functionType(voidType, {int32Type, int32Type, int8Type})},
 			{"rm_emitArgCntError", functionType(voidType, {int32Type, int32Type, int16Type, int16Type})},
 			{"rm_unionRel", functionType(voidPtrType, {voidPtrType, voidPtrType, int64Type})},
@@ -508,6 +509,21 @@ public:
 		case TTup:
 		default:
 			ICE("Unhandled undef", t);
+		}
+	}
+
+	bool hasUndef(::Type t) {
+		switch(t) {
+		case TInt:
+		case TBool:
+		case TText:
+			return true;
+		case TFunc:
+		case TAny:
+		case TRel:
+		case TTup:
+		default:
+			return false;
 		}
 	}
 
@@ -1081,6 +1097,7 @@ public:
 		case TText:
 		case TRel:
 		case TTup:
+		case TFunc:
 			value = builder.CreateAlloca(voidPtrType);
 			break;
 		case TBool:
@@ -1135,11 +1152,19 @@ public:
 		}
 		
 		if (!done) {
-			LLVMVal v=takeOwnership(getUndef(node->type), node->type);
-			builder.CreateStore(v.value, value);
-			if (type) builder.CreateStore(v.type, type);
-			forgetOwnership(v);			
-			builder.CreateBr(end);
+			if (hasUndef(node->type)) {
+				LLVMVal v=takeOwnership(getUndef(node->type), node->type);
+				builder.CreateStore(v.value, value);
+				if (type) builder.CreateStore(v.type, type);
+				forgetOwnership(v);			
+				builder.CreateBr(end);
+				error->reportWarning("if might have none of the branches taken, and the return type has no default value.", node->ifToken, {node->charRange});
+			} else {
+				builder.CreateCall2(getStdlibFunc("rm_emitIfError"),
+									int32(node->charRange.lo), int32(node->charRange.hi));
+				builder.CreateUnreachable();
+				
+			}
 		}
 		builder.SetInsertPoint(end);
 	

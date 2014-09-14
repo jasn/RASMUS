@@ -293,6 +293,14 @@ void ifs(rasmus::teststream & ts) {
 	ts << "none-bool" << result(it("if false -> true fi", "?-Bool"));
 	ts << "none-text" << result(it("if false -> \"abe\" fi", "?-Text"));
 	ts << "none-any" << result(it("(+ val ident=func()->(Any) 0 end in if false -> x() fi +)", "", true));
+	ts << "rel1" << result(it("(+ val f=func()->(Bool)true end in if f() -> zero fi +);0", "0"));
+	ts << "rel2" << result(it("(+ val f=func()->(Bool)false end in if f() -> zero fi +)", "", true));
+	ts << "tup1" << result(it("(+ val f=func()->(Bool)true end in if f() -> tup() fi +)", "()"));
+	ts << "tup2" << result(it("(+ val f=func()->(Bool)false end in if f() -> tup() fi +)", "", true));
+	ts << "any1" << result(it("(+ val f=func()->(Bool)true end val g=func()->(Any)0 end in if f() -> g() fi +)", "0"));
+	ts << "any2" << result(it("(+ val f=func()->(Bool)false end val g=func()->(Any)0 end in if f() -> g() fi +)", "", true));
+	ts << "func1" << result(it("(+ val f=func()->(Bool)true end in if f() -> f fi +);0", "0"));
+	ts << "func2" << result(it("(+ val f=func()->(Bool)false end in if f() -> f fi +)", "", true));
 	ts << "err" << result(it("if 42 -> true fi","",true));
 }
 	
