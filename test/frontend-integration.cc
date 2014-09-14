@@ -409,6 +409,7 @@ void tuple(rasmus::teststream & ts) {
 	ts << "rem3" << result(it("tup(a:1,b:true,c:\"fo\")\\b", "(a: 1, c: \"fo\")"));
 	ts << "rem4" << result(it("tup(a:1,b:true,c:\"fo\")\\c", "(a: 1, b: true)"));
 	ts << "rem5" << result(it("(((tup(a:1,b:2,c:3)\\a)\\b)\\c) = tup()", "true"));
+	ts << "rem6" << result(it("tup(a:1, b:2)\\a\\b = tup()", "true"));
 	ts << "rem_error1" << result(it("tup(abe: 4, kat: ?-Text)\\baz", "", true));
 	ts << "rem_error2" << result(it("tup()\\a", "", true));
 	ts << "rem_error3" << result(it("tup(a:1,b:2,c:3)\\abc", "", true));

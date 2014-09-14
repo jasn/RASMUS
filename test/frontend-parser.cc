@@ -257,6 +257,7 @@ void base(rasmus::teststream & ts) {
     ts << "dot2" << result(pt("tup(b: 4).b", "(. (tup b 4) b)"));
     ts << "remove1" << result(pt("a\\b", "(\\ a b)"));
     ts << "remove2" << result(pt("tup(b: 4)\\b", "(\\ (tup b 4) b)"));
+    ts << "remove3" << result(pt("a\\b\\c", "(\\ (\\ a b) c)"));
     //ts << "extend(self):
     ts << "concat" << result(pt("a++b", "(++ a b)"));
     ts << "proj1" << result(pt("a |+ a, b", "(|+ a a b)"));

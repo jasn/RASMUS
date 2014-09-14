@@ -491,15 +491,17 @@ public:
 
     NodePtr parseDotExp() {
         NodePtr n = parseRenameExp();
-		if (currentToken.id == TokenType::TK_ONE_DOT) {
-			Token t=consumeToken();
-            n = std::make_shared<DotExp>(n, t, assertTokenConsume(TokenType::TK_NAME));
-		} else if (currentToken.id == TokenType::TK_SET_MINUS) {
+		while (currentToken.id == TokenType::TK_SET_MINUS) {
 			Token t=consumeToken();
 			n = std::make_shared<TupMinus>(n, t, assertTokenConsume(TokenType::TK_NAME));
 		}
+		if (currentToken.id == TokenType::TK_ONE_DOT) {
+			Token t=consumeToken();
+            n = std::make_shared<DotExp>(n, t, assertTokenConsume(TokenType::TK_NAME));
+		}
         return n;
 	}
+
 
     NodePtr parseOpExtendAndOverwriteExp() {
         NodePtr n = parseDotExp();
