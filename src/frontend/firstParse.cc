@@ -178,6 +178,12 @@ public:
 
     void visit(std::shared_ptr<AssignmentExp> node) {
         visitNode(node->valueExp);
+
+		if (scopes.back().node) {
+            error->reportError("Assignment is currently only supported in global scope", node->nameToken, {node->charRange});
+		}
+			
+
 		// Possibly check that the type was not changes since the last binding of the same name
 		if (!(scopes.back().node)) 
 			node->globalId = globalId++;
