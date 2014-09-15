@@ -38,7 +38,7 @@ public:
 Editor::Editor(Settings * settings) {
 	d = new EditorPrivate(settings);
 	d->ui.setupUi(this);
-	d->ui.edit->highlighter = new Highlighter(d->ui.edit->document());
+	d->ui.edit->highlighter = new Highlighter(d->ui.edit->document(), settings);
 	dirty(false);
 	setAttribute(Qt::WA_DeleteOnClose);
 	visualUpdate(settings);
@@ -49,7 +49,7 @@ Editor::Editor(Settings * settings, QString path, QString content) {
 	d->path = path;
 	
 	d->ui.setupUi(this);
-	d->ui.edit->highlighter = new Highlighter(d->ui.edit->document());
+	d->ui.edit->highlighter = new Highlighter(d->ui.edit->document(), settings);
 	d->ui.edit->document()->setPlainText(content);
 	dirty(false);
 	setAttribute(Qt::WA_DeleteOnClose);

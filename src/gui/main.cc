@@ -67,7 +67,6 @@ public:
 		interpreter = new Interpreter(nullptr, &s);
 		interpreter->moveToThread(&interpreterThread);
 
-
 		QObject::connect(ui.console, SIGNAL(run(QString)), interpreter, SLOT(run(QString)));
 		QObject::connect(interpreter, SIGNAL(incomplete()), ui.console, SLOT(incomplete()));
 		QObject::connect(interpreter, SIGNAL(complete()), ui.console, SLOT(complete()));
@@ -100,7 +99,7 @@ public:
 		QObject::connect(this, SIGNAL(unset(QString)),
 						 interpreter, SLOT(unset(QString)));
 
-		s.load();
+		s.load();		
 
 		ui.console->complete();
 	}

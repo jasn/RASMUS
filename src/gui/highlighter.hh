@@ -52,7 +52,7 @@ class Highlighter : public QSyntaxHighlighter {
 	Q_OBJECT
 
 public:
-	Highlighter(QTextDocument *parent = 0);
+	Highlighter(QTextDocument *parent = 0, Settings * settings = 0);
 	~Highlighter();
 
 	std::string getIssue(size_t block, size_t index);

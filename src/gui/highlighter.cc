@@ -115,7 +115,12 @@ void Intellisense::process(std::vector<std::string> * blocks) {
 			if ((s[k] & 0xc0) != 0x80) ++j; 
 		}
 	}
-	
+	std::vector<Issue> * issues = new std::vector<Issue>();
+	if (str.empty()) {
+		delete blocks;
+		emit this->issues(issues);
+		return;
+	}
 	std::vector<RIssue> rIssues;
 	std::shared_ptr<f::Code> code=std::make_shared<f::Code>(str, "");
 	std::shared_ptr<f::Error> error=std::make_shared<MyErr>(rIssues);
@@ -128,21 +133,23 @@ void Intellisense::process(std::vector<std::string> * blocks) {
 	if (n) charRanges->run(n);
 	if (n) firstParse->run(n);
 
-	std::vector<Issue> * issues = new std::vector<Issue>();
+	
+	
+
 	for (auto r: rIssues) {
-		r.start = std::max<size_t>(0, std::min<size_t>(str.size(), r.start));
-		r.end = std::max<size_t>(0, std::min<size_t>(str.size(), r.end));
-		r.end = std::max<size_t>(r.start, r.end);
+		r.start = std::min<size_t>(str.size()-1, r.start);
+		r.end = std::min<size_t>(str.size(), r.end);
+		if (r.start >= r.end) continue;
 		Issue i;
 		std::tie(i.block, i.start) = locations[r.start];
 		i.message = r.message;
 		i.type = r.type;
-		while (i.block != locations[r.end].first) {
+		while (i.block != locations[r.end-1].first) {
 			i.end = blocks[i.block].size(); //TODO utf fix
 			issues->push_back(i);
 			i.start = 0;
 		}
-		i.end = locations[r.end].second;
+		i.end = locations[r.end-1].second+1;
 		issues->push_back(i);
 	}
 	delete blocks;
@@ -150,8 +157,8 @@ void Intellisense::process(std::vector<std::string> * blocks) {
 }
 
 
-Highlighter::Highlighter(QTextDocument *parent)
-	: QSyntaxHighlighter(parent), intellisense(nullptr), intellinensing(false), upToDate(true), noIntelli(false) {
+Highlighter::Highlighter(QTextDocument *parent, Settings * settings)
+	: QSyntaxHighlighter(parent), intellisense(nullptr), intellinensing(false), upToDate(true), noIntelli(false), settings(settings) {
 	intellisenseThread.start();
 	intellisense = new Intellisense();
 	intellisense->moveToThread(&intellisenseThread);
@@ -161,7 +168,7 @@ Highlighter::Highlighter(QTextDocument *parent)
 
 	QObject::connect(intellisense, SIGNAL(issues(std::vector<Issue>*)),
 					 this, SLOT(registerIssues(std::vector<Issue>*)));
-
+	
 }
 
 Highlighter::~Highlighter() {

@@ -22,6 +22,7 @@
 #include "ui_settings.h"
 #include <QAbstractButton>
 #include <QDebug>
+#include <iostream>
 
 class SettingsPrivate {
 public:
@@ -29,7 +30,7 @@ public:
 	QString path;
 	Ui::Settings ui;
 
-	SettingsPrivate(): settings("AU", "RASMUS") {}
+	SettingsPrivate(): settings("AU", "RASMUS") { }
 
 	void setPath(QString path) {
 		this->path = path;
