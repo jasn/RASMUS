@@ -1,9 +1,12 @@
 if (READLINE_FOUND)
-	add_executable(rasmus-cmd main.cc)
+  set(PROMPT posixPromptLine.cc)
+  set(PLINK -lncurses -pthread)
+else(READLINE_FOUND)
+  set(PROMPT basicPromptLine.cc)
+  set(PLINK)
+endif(READLINE_FOUND)
 
-	target_link_libraries(rasmus-cmd frontend ${Readline_LIBRARY} -lncurses -pthread)
-
-	set_target_properties(rasmus-cmd PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../../)	
-
-	install(TARGETS rasmus-cmd RUNTIME DESTINATION bin)
-endif (READLINE_FOUND)
+add_executable(rasmus-cmd main.cc promptLine.hh ${PROMPT})
+target_link_libraries(rasmus-cmd frontend ${Readline_LIBRARY} ${PLINK})
+set_target_properties(rasmus-cmd PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../../)	
+install(TARGETS rasmus-cmd RUNTIME DESTINATION bin)

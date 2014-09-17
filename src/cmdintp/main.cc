@@ -17,10 +17,15 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #include <frontend/interpreter.hh>
-#include <readline/history.h>
-#include <readline/readline.h>
+#include <stdlib/lib.h>
 #include <iostream>
 #include <fstream>
+#include "promptLine.hh"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <signal.h>
 
 void usage(std::ostream & out) {
 	out << "Usage: rm [OPTIONS] [FILE]" << std::endl
@@ -44,6 +49,10 @@ void version(std::ostream & out) {
 		<< "There is NO WARRANTY, to the extent permitted by law." << std::endl
 		<< std::endl
 		<< "Written by Thomas Engelbrecht Hybel, Jesper Asbjørn Sindahl Nielsen and Jakob Truelsen" << std::endl;
+}
+
+void abortComputation(int) {
+	rm_abort();
 }
 
 int main(int /*argc*/, char ** argv) {
@@ -149,18 +158,32 @@ int main(int /*argc*/, char ** argv) {
 			exit(EXIT_FAILURE);
 	}
 
+	signal(SIGINT, SIG_IGN);
 	while (true) {
 		std::string line;
-		char * rl = readline(interperter->complete()?">>>> ":".... ");
-		if (!rl) break;
-		if (!rl[0]) {
-			free(rl); 
-			continue;
+		PromptStatus s = promptLine(interperter->complete(), line);
+		bool done=false;
+		switch (s) {
+		case PromptStatus::NORMAL:
+			signal(SIGINT, abortComputation);
+			interperter->runLine(line);
+			signal(SIGINT, SIG_IGN);
+			rm_clearAbort();
+			break;
+		case PromptStatus::CANCEL:
+			if (interperter->complete())
+				printf("\nPress CTRL+D to stop rasmus\n");
+			else 
+				printf("\n");
+			interperter->cancel();
+			break;
+		case PromptStatus::EMPTY:
+			break;
+		case PromptStatus::DONE:
+			done=true;
+			break;
 		}
-		add_history(rl);
-		line = rl;
-		free(rl); 
-		interperter->runLine(line);
+		if (done) break;
 	}
 	printf("\n");
 	exit(EXIT_SUCCESS);
