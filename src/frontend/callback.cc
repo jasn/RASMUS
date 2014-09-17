@@ -58,7 +58,7 @@ void Callback::printText(rm_object * o) {
 
 void Callback::printFunc(rm_object * o) {
 	std::stringstream ss;
-	ss << "func(" << o << ")";
+	ss << "func";
 	print(TFunc, ss.str());
 }
 
