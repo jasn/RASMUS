@@ -28,13 +28,143 @@
 #include <frontend/callback.hh>
 #include <algorithm>
 #include <set>
+#include "table.hh"
 
-Highlighter::Highlighter(QTextDocument *parent)
-	: QSyntaxHighlighter(parent) {
+
+namespace f=rasmus::frontend;
+
+struct RIssue {
+	size_t start;
+	size_t end;
+	std::string message;
+	IssueType type;
+};
+
+
+class MyErr: public f::Error {
+public:
+	std::vector<RIssue> & rIssues;
+	MyErr(std::vector<RIssue> & rIssues): rIssues(rIssues) {}
+	size_t cnt;
+
+	void report(std::string message, f::Token mainToken, std::initializer_list<f::CharRange> ranges, 
+				IssueType type) {
+		int lo = std::numeric_limits<int>::max();
+		int hi = std::numeric_limits<int>::min();
+		if (mainToken) {
+			lo = std::min<int>(lo, mainToken.start);
+			hi = std::max<int>(hi, mainToken.length + mainToken.start);
+		}
+		for (auto r: ranges) {
+			lo = std::min<int>(lo, r.lo);
+			hi = std::max<int>(hi, r.hi);
+		}
+		RIssue i;
+		i.start= lo;
+		i.end = hi;
+		i.type = type;
+		i.message = message;
+		rIssues.push_back(i);
+	}
+	
+	void reportWarning(std::string message,
+					   f::Token mainToken,
+					   std::initializer_list<f::CharRange> ranges) override {
+		report(message, mainToken, ranges, IssueType::WARNING);
+	}
+	
+	void reportError(std::string message,
+					 f::Token mainToken,
+					 std::initializer_list<f::CharRange> ranges={}) override {
+		report(message, mainToken, ranges, IssueType::ERROR);
+		++cnt;
+	}
+
+	size_t count() const override {return cnt;}
+};
+
+class MyCallback: public f::Callback {
+public:
+	void report(f::MsgType,
+				std::shared_ptr<f::Code>,
+				std::string,
+				f::Token,
+				std::vector<f::CharRange>) {}
+	
+	void report(f::MsgType, std::string) {}
+	
+	void print(Type, std::string) {}
+	
+	void saveRelation(rm_object *, const char *) {}
+	rm_object * loadRelation(const char *) {}
+	bool hasRelation(const char *) {return false;}
+};
+
+void Intellisense::process(std::vector<std::string> * blocks) {
+	std::vector< std::pair<int, int> > locations;
+	std::string str;
+	for (size_t i=0; i < blocks->size(); ++i) {
+		size_t j=0;
+		std::string s = (*blocks)[i]+'\n';
+		for (size_t k=0; k < s.size(); ++k) {
+			str.push_back(s[k]);
+			locations.push_back(std::make_pair(i, j));
+			if ((s[k] & 0xc0) != 0x80) ++j; 
+		}
+	}
+	
+	std::vector<RIssue> rIssues;
+	std::shared_ptr<f::Code> code=std::make_shared<f::Code>(str, "");
+	std::shared_ptr<f::Error> error=std::make_shared<MyErr>(rIssues);
+	std::shared_ptr<f::Callback> callback=std::make_shared<MyCallback>();
+	std::shared_ptr<f::Lexer> lexer=std::make_shared<f::Lexer>(code);
+	std::shared_ptr<f::Parser> parser=f::makeParser(lexer, error, false);
+	std::shared_ptr<f::CharRanges > charRanges=f::makeCharRanges();
+	std::shared_ptr<f::FirstParse> firstParse=f::makeFirstParse(error, code, callback, TAny);
+	f::NodePtr n=parser->parse();
+	if (n) charRanges->run(n);
+	if (n) firstParse->run(n);
+
+	std::vector<Issue> * issues = new std::vector<Issue>();
+	for (auto r: rIssues) {
+		r.start = std::max<size_t>(0, std::min<size_t>(str.size(), r.start));
+		r.end = std::max<size_t>(0, std::min<size_t>(str.size(), r.end));
+		r.end = std::max<size_t>(r.start, r.end);
+		Issue i;
+		std::tie(i.block, i.start) = locations[r.start];
+		i.message = r.message;
+		i.type = r.type;
+		while (i.block != locations[r.end].first) {
+			i.end = blocks[i.block].size(); //TODO utf fix
+			issues->push_back(i);
+			i.start = 0;
+		}
+		i.end = locations[r.end].second;
+		issues->push_back(i);
+	}
+	delete blocks;
+	emit this->issues(issues);
 }
 
+
+Highlighter::Highlighter(QTextDocument *parent)
+	: QSyntaxHighlighter(parent), intellisense(nullptr), intellinensing(false), upToDate(true), noIntelli(false) {
+	intellisenseThread.start();
+	intellisense = new Intellisense();
+	intellisense->moveToThread(&intellisenseThread);
+
+	QObject::connect(this, SIGNAL(runIntellisense(std::vector<std::string>*)), 
+					 intellisense, SLOT(process(std::vector<std::string>*)));
+
+	QObject::connect(intellisense, SIGNAL(issues(std::vector<Issue>*)),
+					 this, SLOT(registerIssues(std::vector<Issue>*)));
+
+}
+
+
+
 enum class StyleType {
-	NORMAL, TEXT, KEYWORD, ERROR
+	NORMAL, TEXT, KEYWORD, ERROR, WARNING, COMMENT, INVALID
 };
 
 struct Style {
@@ -47,182 +177,144 @@ struct Style {
 	}
 };
 
-namespace f=rasmus::frontend;
-
-class MyErr: public f::Error {
-public:
-	std::vector<Style> & styles;
-	MyErr(std::vector<Style> & styles): styles(styles) {}
-
-
-	void reportWarning(std::string message,
-					   f::Token mainToken,
-					   std::initializer_list<f::CharRange> ranges) override {
-
-	}
-	
-	void reportError(std::string message,
-					 f::Token mainToken,
-					 std::initializer_list<f::CharRange> ranges={}) override {
-		int lo = std::numeric_limits<int>::max();
-		int hi = std::numeric_limits<int>::min();
-		if (mainToken) {
-			lo = std::min<int>(lo, mainToken.start);
-			hi = std::max<int>(hi, mainToken.length + mainToken.start);
-		}
-		for (auto r: ranges) {
-			lo = std::min<int>(lo, r.lo);
-			hi = std::max<int>(hi, r.hi);
-		}
-		Style s;
-		s.start= lo;
-		s.end = hi;
-		s.type = StyleType::ERROR;
-		s.message = message;
-		styles.push_back(s);
-	}
-
-	size_t count() const override {
-		return 0;
-	}
-};
-
-
-
-class MyCallback: public f::Callback {
-public:
-	void report(f::MsgType type, 
-				std::shared_ptr<f::Code> code,
-				std::string message,
-				f::Token mainToken,
-				std::vector<f::CharRange> ranges) {}
-	
-	void report(f::MsgType type, std::string message) {}
-	
-	void print(Type type, std::string repr) {}
-	
-	void saveRelation(rm_object * o, const char * name) {}
-	rm_object * loadRelation(const char * name) {}
-	bool hasRelation(const char * name) {return false;}
-};
 
 void Highlighter::highlightBlock(const QString &text) {
-	std::shared_ptr<f::Code> code = std::make_shared<f::Code>(
-		text.toUtf8().constData(), "hat");
-	
+	int state=0;
+	/*int state =previousBlockState();
+	  if (state == -1) state = lexer::initialState;*/
+
 	std::vector<Style> styles;
-	{
-		f::Lexer l(code);
-		bool done=false;
-		while (!done) {
-			f::Token t=l.getNext();
+
+	std::string s=text.toUtf8().constData();
+	s += '\n';
+	
+	size_t j=0;
+	size_t start=j;
+	for (size_t i=0; i < s.size(); ++i)  {
+		state=lexer::table[state][(uint8_t)s[i]];
+		if (state >= (int)lexer::TableTokenType::INVALID) {
 			Style s;
-			s.start=t.start;
-			s.end=t.start+t.length;
-			s.type=StyleType::ERROR;
-			switch (t.id) {
-			case lexer::TokenType::TK_TEXT:
-				s.type=StyleType::TEXT;
+			s.type = StyleType::NORMAL;
+			switch ((lexer::TableTokenType)state) {
+			case lexer::TableTokenType::TK_TEXT: 
+				s.type=StyleType::TEXT; 
 				break;
-			case lexer::TokenType::TK_ISANY:
-			case lexer::TokenType::TK_ISATOM:
-			case lexer::TokenType::TK_ISBOOL:
-			case lexer::TokenType::TK_ISFUNC:
-			case lexer::TokenType::TK_ISINT:
-			case lexer::TokenType::TK_ISREL:
-			case lexer::TokenType::TK_ISTEXT:
-			case lexer::TokenType::TK_ISTUP:
-			case lexer::TokenType::TK_STDBOOL:
-			case lexer::TokenType::TK_STDINT:
-			case lexer::TokenType::TK_STDTEXT:
-			case lexer::TokenType::TK_ADD:
-			case lexer::TokenType::TK_AFTER:
-			case lexer::TokenType::TK_AND:
-			case lexer::TokenType::TK_BEFORE:
-			case lexer::TokenType::TK_CLOSE:
-			case lexer::TokenType::TK_COUNT:
-			case lexer::TokenType::TK_DATE:
-			case lexer::TokenType::TK_DAYS:
-			case lexer::TokenType::TK_END:
-			case lexer::TokenType::TK_FALSE:
-			case lexer::TokenType::TK_FI:
-			case lexer::TokenType::TK_FUNC:
-			case lexer::TokenType::TK_HAS:
-			case lexer::TokenType::TK_IF:
-			case lexer::TokenType::TK_IN:
-			case lexer::TokenType::TK_MAX:
-			case lexer::TokenType::TK_MIN:
-			case lexer::TokenType::TK_MOD:
-			case lexer::TokenType::TK_MULT:
-			case lexer::TokenType::TK_NOT:
-			case lexer::TokenType::TK_ONE:
-			case lexer::TokenType::TK_OPEN:
-			case lexer::TokenType::TK_OR:
-			case lexer::TokenType::TK_REL:
-			case lexer::TokenType::TK_SYSTEM:
-			case lexer::TokenType::TK_TODAY:
-			case lexer::TokenType::TK_TRUE:
-			case lexer::TokenType::TK_TUP:
-			case lexer::TokenType::TK_TYPE_ANY:
-			case lexer::TokenType::TK_TYPE_ATOM:
-			case lexer::TokenType::TK_TYPE_BOOL:
-			case lexer::TokenType::TK_TYPE_FUNC:
-			case lexer::TokenType::TK_TYPE_INT:
-			case lexer::TokenType::TK_TYPE_REL:
-			case lexer::TokenType::TK_TYPE_TEXT:
-			case lexer::TokenType::TK_TYPE_TUP:
-			case lexer::TokenType::TK_VAL:
-			case lexer::TokenType::TK_WRITE:
-			case lexer::TokenType::TK_ZERO:
-			case lexer::TokenType::TK_PRINT:
-				s.type=StyleType::KEYWORD;
+			case lexer::TableTokenType::TK_ISANY:
+			case lexer::TableTokenType::TK_ISATOM:
+			case lexer::TableTokenType::TK_ISBOOL:
+			case lexer::TableTokenType::TK_ISFUNC:
+			case lexer::TableTokenType::TK_ISINT:
+			case lexer::TableTokenType::TK_ISREL:
+			case lexer::TableTokenType::TK_ISTEXT:
+			case lexer::TableTokenType::TK_ISTUP:
+			case lexer::TableTokenType::TK_STDBOOL:
+			case lexer::TableTokenType::TK_STDINT:
+			case lexer::TableTokenType::TK_STDTEXT:
+			case lexer::TableTokenType::TK_ADD:
+			case lexer::TableTokenType::TK_AFTER:
+			case lexer::TableTokenType::TK_AND:
+			case lexer::TableTokenType::TK_BEFORE:
+			case lexer::TableTokenType::TK_CLOSE:
+			case lexer::TableTokenType::TK_COUNT:
+			case lexer::TableTokenType::TK_DATE:
+			case lexer::TableTokenType::TK_DAYS:
+			case lexer::TableTokenType::TK_END:
+			case lexer::TableTokenType::TK_FALSE:
+			case lexer::TableTokenType::TK_FI:
+			case lexer::TableTokenType::TK_FUNC:
+			case lexer::TableTokenType::TK_HAS:
+			case lexer::TableTokenType::TK_IF:
+			case lexer::TableTokenType::TK_IN:
+			case lexer::TableTokenType::TK_MAX:
+			case lexer::TableTokenType::TK_MIN:
+			case lexer::TableTokenType::TK_MOD:
+			case lexer::TableTokenType::TK_MULT:
+			case lexer::TableTokenType::TK_NOT:
+			case lexer::TableTokenType::TK_ONE:
+			case lexer::TableTokenType::TK_OPEN:
+			case lexer::TableTokenType::TK_OR:
+			case lexer::TableTokenType::TK_REL:
+			case lexer::TableTokenType::TK_SYSTEM:
+			case lexer::TableTokenType::TK_TODAY:
+			case lexer::TableTokenType::TK_TRUE:
+			case lexer::TableTokenType::TK_TUP:
+			case lexer::TableTokenType::TK_TYPE_ANY:
+			case lexer::TableTokenType::TK_TYPE_ATOM:
+			case lexer::TableTokenType::TK_TYPE_BOOL:
+			case lexer::TableTokenType::TK_TYPE_FUNC:
+			case lexer::TableTokenType::TK_TYPE_INT:
+			case lexer::TableTokenType::TK_TYPE_REL:
+			case lexer::TableTokenType::TK_TYPE_TEXT:
+			case lexer::TableTokenType::TK_TYPE_TUP:
+			case lexer::TableTokenType::TK_VAL:
+			case lexer::TableTokenType::TK_WRITE:
+			case lexer::TableTokenType::TK_ZERO:
+			case lexer::TableTokenType::TK_PRINT:
+				s.type = StyleType::KEYWORD;
 				break;
-			case lexer::TokenType::END_OF_FILE:
-				done=true;
+			case lexer::TableTokenType::INVALID:
+				s.type = StyleType::INVALID;
+				break;
+			case lexer::TableTokenType::_TK_COMMENT:
+				s.type = StyleType::COMMENT;
 				break;
 			default:
-				s.type=StyleType::NORMAL;
 				break;
 			}
-			if (s.type != StyleType::ERROR)
-				styles.push_back(std::move(s));
+			if (s.type != StyleType::NORMAL) {
+				s.start=start;
+				s.end=j;
+				styles.push_back(s);
+			}
+			
+			state = lexer::initialState;
+			// We need to reprocess the current char
+			if (j != start) { 
+				--i;
+				start=j;
+				continue;
+			}
+			// A new token starts here
+			start=j;
 		}
+		//If this is not a utf8 continuation char, increase the logical char count
+		if ((s[i] & 0xc0) != 0x80) ++j; 
 	}
 
-	{
-		std::shared_ptr<f::Error> error=std::make_shared<MyErr>(styles);
-		std::shared_ptr<f::Callback> callback=std::make_shared<MyCallback>();
-		std::shared_ptr<f::Lexer> lexer=std::make_shared<f::Lexer>(code);
-		std::shared_ptr<f::Parser> parser=f::makeParser(lexer, error, false);
-		std::shared_ptr<f::CharRanges > charRanges=f::makeCharRanges();
-		std::shared_ptr<f::FirstParse> firstParse=f::makeFirstParse(error, code, callback,
-																	TAny);
-		f::NodePtr n=parser->parse();
-		if (n) charRanges->run(n);
-		if (n) firstParse->run(n);
-	}
+	setCurrentBlockState(state);
+
+	auto x=issues.find(currentBlock().blockNumber());
+	if (x != issues.end()) 
+		for(auto i: x->second) {
+			Style s;
+			s.start = i.start;
+			s.end = i.end;
+			s.message =i.message;
+			switch(i.type) {
+			case IssueType::ERROR: s.type=StyleType::ERROR; break;
+			case IssueType::WARNING: s.type=StyleType::WARNING; break;
+			}
+			styles.push_back(s);
+		}
+
 	std::sort(styles.begin(), styles.end(), 
 			  [](const Style & a, const Style & b) {
 				  return a.start > b.start;
 			  });
-
+	
 	std::set<Style> currentStyles;
 	size_t prev=0;
 	QTextCharFormat format;
-	format.setForeground(Qt::red);
-	format.setUnderlineColor(Qt::red);
 	while (!currentStyles.empty() || !styles.empty()) {
 		size_t cur=std::numeric_limits<size_t>::max();
 		if (!currentStyles.empty())
 			cur=std::min(cur, currentStyles.begin()->end);
 		if (!styles.empty())
 			cur=std::min(cur, styles.back().start);
-
 		while (!styles.empty() && styles.back().start <= cur) {
 			currentStyles.insert(styles.back());
 			styles.pop_back();
 		}
-
 		while (!currentStyles.empty() && currentStyles.begin()->end <= cur)
 			currentStyles.erase(currentStyles.begin());
 
@@ -230,11 +322,11 @@ void Highlighter::highlightBlock(const QString &text) {
 		prev=cur;
 
 		format = QTextCharFormat();
-		format.setForeground(Qt::red);
 		for(const Style & s: currentStyles) {
 			switch(s.type) {
-			case StyleType::NORMAL:
-				format.setForeground(Qt::black);
+			case StyleType::INVALID:
+			case StyleType::COMMENT:
+				format.setForeground(Qt::red);
 				break;
 			case StyleType::TEXT:
 				format.setForeground(Qt::green);				
@@ -247,12 +339,50 @@ void Highlighter::highlightBlock(const QString &text) {
 				format.setUnderlineColor(Qt::red);
 				format.setUnderlineStyle(QTextCharFormat::WaveUnderline);
 				break;
+			case StyleType::WARNING:
+				format.setToolTip(QString::fromUtf8(s.message.c_str()));
+				format.setUnderlineColor(Qt::green);
+				format.setUnderlineStyle(QTextCharFormat::WaveUnderline);
+				break;
+			case StyleType::NORMAL:
+				break;
 			}
 		}
 	}
-	setFormat(prev, 123123123, format);
+	setFormat(prev, currentBlock().length(), format);
+
+	doIntellisense();
 }
 
+void Highlighter::doIntellisense() {
+	if (noIntelli) return;
 
-void Highlighter::highlightAll() {
+	if (intellinensing) {
+		upToDate=false;
+		return;
+	}
+	upToDate=true;
+	intellinensing=true;
+
+	std::vector<std::string> * blocks = new std::vector<std::string>();
+	for(auto block=document()->begin(); block != document()->end(); block=block.next())
+		blocks->push_back(block.text().toUtf8().constData());
+	
+	emit runIntellisense(blocks);
+}
+
+void Highlighter::registerIssues(std::vector<Issue> * issues) {
+	intellinensing=false;
+	
+	this->issues.clear();
+	for (Issue i: *issues)
+		this->issues[i.block].push_back(i);
+	delete issues;
+
+	//Trigger redraw
+	noIntelli=true;
+	rehighlight();
+	noIntelli=false;
+	
+	if (!upToDate) doIntellisense();
 }

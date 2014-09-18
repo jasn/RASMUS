@@ -21,9 +21,31 @@
 #define __SRC_GUI_HIGHLIGHTER_H__
 
 #include <QTextDocument>
-/*#include <QRegExp>
-  #include <QTextCharFormat>*/
+#include <QThread>
 #include <QSyntaxHighlighter>
+#include <map>
+
+class QTextDocument;
+
+
+enum class IssueType {WARNING,ERROR};
+
+struct Issue {
+	size_t block;
+	size_t start;
+	size_t end;
+	std::string message;
+	IssueType type;
+};
+
+class Intellisense: public QObject {
+	Q_OBJECT
+public slots:
+	void process(std::vector<std::string> * blocks);
+signals:
+	void issues(std::vector<Issue> * issues);
+};
+
 
 class Highlighter : public QSyntaxHighlighter {
 	Q_OBJECT
@@ -34,8 +56,21 @@ public:
 protected:
 	void highlightBlock(const QString &text);
 
+signals:
+	void runIntellisense(std::vector<std::string> * blocks);
+
 public slots:
-    void highlightAll();
+	void registerIssues(std::vector<Issue> * issues);
+
+private:
+	void doIntellisense();
+
+	QThread intellisenseThread;
+	Intellisense * intellisense;
+	std::map<size_t, std::vector<Issue> > issues;
+	bool intellinensing;
+	bool upToDate;
+	bool noIntelli;
 };
 
 
