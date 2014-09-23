@@ -1,5 +1,10 @@
 include(${QT_USE_FILE})
 
+if (WIN32)
+
+   set(QT_USE_QTMAIN TRUE)
+endif(WIN32)
+
 include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
 QT4_WRAP_UI(UISrs main.ui settings.ui editor.ui about.ui relation.ui colorSelector.ui fontSelector.ui)
