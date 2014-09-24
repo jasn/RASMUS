@@ -63,7 +63,6 @@ public slots:
 	void save();
 	void load();
 	void restoreDefaults();
-	void clicked(QAbstractButton * button);
 signals:
 	void visualUpdate(Settings *);
 private:

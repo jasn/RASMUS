@@ -101,9 +101,14 @@ public:
 			settings.value("relation/textColor", QColor(Qt::black)).value<QColor>());
 		ui.relationBackgroundColor->setColor(
 			settings.value("relation/backgroundColor", QColor(Qt::white)).value<QColor>());
-				
+
+		QString path=QCoreApplication::applicationDirPath()+"/relations";		
+		#ifdef __APPLE__
+		if (!QDir(path).exists()) path=QCoreApplication::applicationDirPath()+"/../../../relations";
+		#endif
+
 		setPath(
-			settings.value("path",  QCoreApplication::applicationDirPath()+"/relations").value<QString>());
+			settings.value("path",  QDir(path).absolutePath()).value<QString>());
 	}
 
 };
@@ -111,6 +116,8 @@ public:
 Settings::Settings() {
 	d = new SettingsPrivate();
 	d->ui.setupUi(this);
+	QPushButton * restoreButton = d->ui.buttonBox->button(QDialogButtonBox::RestoreDefaults);
+	connect(restoreButton, SIGNAL(clicked()), this, SLOT(restoreDefaults()));
 	load();
 }
 
@@ -123,11 +130,6 @@ void Settings::selectPath() {
 void Settings::restoreDefaults() {
 	d->settings.clear();
 	d->load();
-}
-
-void Settings::clicked(QAbstractButton * button) {
-	QDialogButtonBox::StandardButton standardButton = d->ui.buttonBox->standardButton(button);
-	if (standardButton == QDialogButtonBox::RestoreDefaults) restoreDefaults();
 }
 
 void Settings::load() {
