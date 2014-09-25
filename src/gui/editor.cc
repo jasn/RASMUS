@@ -42,6 +42,7 @@ Editor::Editor(Settings * settings) {
 	dirty(false);
 	setAttribute(Qt::WA_DeleteOnClose);
 	visualUpdate(settings);
+	connect(settings, SIGNAL(visualUpdate(Settings *)), this, SLOT(visualUpdate(Settings *)));
 }
 
 Editor::Editor(Settings * settings, QString path, QString content) {
@@ -54,6 +55,7 @@ Editor::Editor(Settings * settings, QString path, QString content) {
 	dirty(false);
 	setAttribute(Qt::WA_DeleteOnClose);
 	visualUpdate(settings);
+	connect(settings, SIGNAL(visualUpdate(Settings *)), this, SLOT(visualUpdate(Settings *)));
 }
 
 Editor::~Editor() {
