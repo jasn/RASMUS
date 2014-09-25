@@ -45,7 +45,7 @@ public:
 		while (true) {
 			switch (*c) {
 			case '<': o << "&lt;"; break;
-			case '>': o << "&ge;"; break;
+			case '>': o << "&gt;"; break;
 			case ' ': o << "&nbsp;"; break;
 			case '"': o << "&quot;"; break;
 			case '\'': o << "&apos;"; break;
