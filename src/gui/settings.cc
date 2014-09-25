@@ -118,6 +118,8 @@ Settings::Settings() {
 	d->ui.setupUi(this);
 	QPushButton * restoreButton = d->ui.buttonBox->button(QDialogButtonBox::RestoreDefaults);
 	connect(restoreButton, SIGNAL(clicked()), this, SLOT(restoreDefaults()));
+	QPushButton * applyButton = d->ui.buttonBox->button(QDialogButtonBox::Apply);
+	connect(applyButton, SIGNAL(clicked()), this, SLOT(save()));
 	load();
 }
 

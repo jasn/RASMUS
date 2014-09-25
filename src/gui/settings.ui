@@ -368,7 +368,6 @@
       <zorder>environmentBox</zorder>
       <zorder>groupBox_2</zorder>
       <zorder>groupBox_3</zorder>
-      <zorder>buttonBox</zorder>
      </widget>
     </widget>
    </item>
@@ -383,7 +382,7 @@
         <enum>Qt::Horizontal</enum>
        </property>
        <property name="standardButtons">
-        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::RestoreDefaults</set>
+        <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::RestoreDefaults</set>
        </property>
       </widget>
      </item>
