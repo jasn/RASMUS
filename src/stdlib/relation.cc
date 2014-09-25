@@ -159,7 +159,11 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
 	out << VER_BAR;
 	i = 0;
 	for(auto & attribute : schema->attributes){
-		out << ' ' << std::left << std::setw(widths[i]) << attribute.name <<  ' ' << VER_BAR;
+		out << ' ' << attribute.name
+			<< std::string(std::max(0, 
+									(int)widths[i]
+									-(int)utf8strlen(attribute.name)), ' ')
+			<<  ' ' << VER_BAR;
 		i++;
 	}
 	out << std::endl;
@@ -197,10 +201,12 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
 					break;
 				case TText:
 				{
-					out << ' ' << std::left << std::setw(widths[i]);
 					std::string text = textToString(value.objectValue.getAs<TextBase>());
 					escapeNewlines(text);
-					out << text;
+					out << ' ' << text 
+						<< std::string(std::max(0, 
+												(int)widths[i]
+												-(int)utf8strlen(text)), ' ');
 					break;
 				}
 				default:
