@@ -132,10 +132,7 @@ void Intellisense::process(std::vector<std::string> * blocks) {
 	f::NodePtr n=parser->parse();
 	if (n) charRanges->run(n);
 	if (n) firstParse->run(n);
-
 	
-	
-
 	for (auto r: rIssues) {
 		r.start = std::min<size_t>(str.size()-1, r.start);
 		r.end = std::min<size_t>(str.size(), r.end);
@@ -148,6 +145,7 @@ void Intellisense::process(std::vector<std::string> * blocks) {
 			i.end = blocks[i.block].size(); //TODO utf fix
 			issues->push_back(i);
 			i.start = 0;
+			i.block++;
 		}
 		i.end = locations[r.end-1].second+1;
 		issues->push_back(i);
