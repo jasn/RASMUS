@@ -150,6 +150,10 @@ public:
 
 		// If we cannot find the variable, then it must be an external relation
 		if (!lookedUp) {
+			if (missingType == TAny) {
+				node->type = missingType;
+				return;
+			}
 			if (callback->hasRelation(name.c_str())) {
 				node->type = missingType;
 				return;
