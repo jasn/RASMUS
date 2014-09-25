@@ -63,7 +63,7 @@ public:
 	
 	void load() {
 		ui.consoleFont->setFont(
-			settings.value("console/font", QFont("Courier", 12)).value<QFont>());
+			settings.value("console/font", QFont("Courier New", 12)).value<QFont>());
 		ui.consoleTextColor->setColor(
 			settings.value("console/textColor", QColor("#DDDDDD")).value<QColor>());
 		ui.consoleBackgroundColor->setColor(
@@ -78,7 +78,7 @@ public:
 			settings.value("console/codeColor", QColor(Qt::green)).value<QColor>());
 
 		ui.editorFont->setFont(
-			settings.value("editor/font", QFont("Courier", 12)).value<QFont>());
+			settings.value("editor/font", QFont("Courier New", 12)).value<QFont>());
 		ui.editorNormalColor->setColor(
 			settings.value("editor/normalColor", QColor(Qt::black)).value<QColor>());
 		ui.editorBackgroundColor->setColor(
