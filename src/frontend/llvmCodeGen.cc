@@ -35,11 +35,15 @@
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Module.h>
+#if LLVM_VERSION_MAJOR > 3 || LLVM_VERSION_MINOR >= 5
+#include <llvm/IR/Verifier.h>
+#else
 #include <llvm/Analysis/Verifier.h>
+#include <llvm/Assembly/PrintModulePass.h>
+#endif
 #include <llvm/Analysis/Passes.h>
 #include <llvm/IR/DataLayout.h>
 #include <llvm/PassManager.h>
-#include <llvm/Assembly/PrintModulePass.h>
 #include <llvm/IR/Instructions.h>
 
 #include <llvm/Transforms/Scalar.h>
