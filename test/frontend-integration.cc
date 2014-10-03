@@ -986,6 +986,9 @@ void relation(rasmus::teststream & ts) {
 	ts << "forall_error9" << result(it("!(rel(tup(a:1))) : \"foo\"", "", true));
 }
 
+void order(rasmus::teststream & ts) {
+    ts << "func" << result(it("func()->(Func) func()->(Int) 42 end end ()()", "42"));
+}
 
 bool relation_external() {
 	std::shared_ptr<TestCallback> cb = std::make_shared<TestCallback>();
@@ -1042,6 +1045,7 @@ int main(int argc, char **argv) {
 		.multi_test(relation, "relation")
 		.multi_test(ifs, "if")
 		.multi_test(crash, "crash")
+		.multi_test(order, "order")
 		.test(comments, "comments")
 		.test(relation_external, "relation_external");
 }
