@@ -269,7 +269,7 @@ void base(rasmus::teststream & ts) {
     ts << "plus" << result(pt("a + b", "(+ a b)"));
     ts << "minus" << result(pt("a - b", "(- a b)"));
     ts << "or" << result(pt("a or b", "(or a b)"));
-    ts << "select" << result(pt("a ? b", "(? a (func (# Tup) Bool b))"));
+    ts << "select" << result(pt("a ?(b)", "(?( a (func (# Tup) Bool b))"));
     //compares
     ts << "sequence" << result(pt("a;b;c", "(; a b c)"));
 

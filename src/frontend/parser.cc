@@ -144,7 +144,7 @@ public:
 		Token nameToken = consumeToken();
 		if (currentToken.id == TokenType::TK_ASSIGN) {
 			Token t=consumeToken();
-			return std::make_shared<AssignmentExp>(nameToken, t, parseSelectExp());
+			return std::make_shared<AssignmentExp>(nameToken, t, parseOr());
 		}
 		return std::make_shared<VariableExp>(nameToken);
 	}
@@ -529,6 +529,30 @@ public:
 				n=e;
 				break;
 			}
+			case TokenType::TK_SELECT: {
+				Token t=consumeToken();			
+				
+				recover(TokenType::TK_RPAREN, [&]() {
+						std::shared_ptr<FuncExp> f = std::make_shared<FuncExp>(
+							Token(TokenType::TK_FUNC, "func"),
+							Token(TokenType::TK_LPAREN, "("));
+						
+						f->args.push_back(std::make_shared<FuncArg>(
+											  Token(TokenType::TK_NAME, "#"),
+											  Token(TokenType::TK_COLON, ":"),
+											  Token(TokenType::TK_TYPE_TUP, "Tup")));
+						f->rparenToken = Token(TokenType::TK_RPAREN, ")");
+						f->arrowToken = Token(TokenType::TK_RIGHTARROW, "->");
+						f->lparen2Token = Token(TokenType::TK_LPAREN, "(");
+						f->returnTypeToken = Token(TokenType::TK_TYPE_BOOL, "Bool");
+						f->rparen2Token = Token(TokenType::TK_RPAREN, ")");
+						f->body = parseExp();
+						f->endToken = Token(TokenType::TK_END, "end");
+						assertTokenConsume(TokenType::TK_RPAREN);
+						n = std::make_shared<BinaryOpExp>(t, n, f);
+					});
+				break;
+			}
 			default:
 				return n;
 			}
@@ -587,37 +611,10 @@ public:
 		return n;
 	}
 
-    NodePtr parseSelectExp() {
-        NodePtr n = parseOr();
-		while (currentToken.id == TokenType::TK_QUESTION) {
-			Token t=consumeToken();			
-			
-			std::shared_ptr<FuncExp> f = std::make_shared<FuncExp>(
-				Token(TokenType::TK_FUNC, "func"),
-				Token(TokenType::TK_LPAREN, "("));
-			
-			f->args.push_back(std::make_shared<FuncArg>(
-								  Token(TokenType::TK_NAME, "#"),
-								  Token(TokenType::TK_COLON, ":"),
-								  Token(TokenType::TK_TYPE_TUP, "Tup")));
-			f->rparenToken = Token(TokenType::TK_RPAREN, ")");
-			f->arrowToken = Token(TokenType::TK_RIGHTARROW, "->");
-			f->lparen2Token = Token(TokenType::TK_LPAREN, "(");
-			f->returnTypeToken = Token(TokenType::TK_TYPE_BOOL, "Bool");
-			f->rparen2Token = Token(TokenType::TK_RPAREN, ")");
-			f->body = parseOr();
-			f->endToken = Token(TokenType::TK_END, "end");
-			
-			n = std::make_shared<BinaryOpExp>(t, n, f);
-		}
-        return n;
-	}
-
-
     NodePtr parseSequenceExp() {
         NodePtr n=std::make_shared<InvalidExp>();
 		recover(TokenType::TK_SEMICOLON, [&]() {
-				n=parseSelectExp();
+				n=parseOr();
 				if (thingsThatMayComeAfterParseExp.count(currentToken.id) == 0) 
 					unexpectedToken();
 			});
@@ -630,7 +627,7 @@ public:
         while (currentToken.id == TokenType::TK_SEMICOLON) {
             consumeToken();
 			recover(TokenType::TK_SEMICOLON, [&]() {
-					s->sequence.push_back(parseSelectExp());
+					s->sequence.push_back(parseOr());
 					if (thingsThatMayComeAfterParseExp.count(currentToken.id) == 0) 
 						unexpectedToken();
 				});

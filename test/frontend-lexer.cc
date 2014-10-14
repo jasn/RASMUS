@@ -97,7 +97,7 @@ void base(rasmus::teststream & ts) {
     ts << "semicolon" << result(lt(";", {TokenType::TK_SEMICOLON}));
     ts << "pipe" << result(lt("|", {TokenType::TK_PIPE}));
     ts << "dot" << result(lt("...", {TokenType::TK_TWO_DOTS, TokenType::TK_ONE_DOT}));
-    ts << "question" << result(lt("?", {TokenType::TK_QUESTION}));
+    ts << "select" << result(lt("?(", {TokenType::TK_SELECT}));
     ts << "project" << result(lt("||+|--", {TokenType::TK_PIPE, TokenType::TK_PROJECT_PLUS, TokenType::TK_PROJECT_MINUS, TokenType::TK_MINUS}));
     ts << "bracket" << result(lt("[]", {TokenType::TK_LBRACKET, TokenType::TK_RBRACKET}));
     ts << "buildin" << result(lt("max min count add mult days before after today date open close write system has", {TokenType::TK_MAX, TokenType::TK_MIN, TokenType::TK_COUNT, TokenType::TK_ADD, TokenType::TK_MULT, TokenType::TK_DAYS, TokenType::TK_BEFORE, TokenType::TK_AFTER, TokenType::TK_TODAY, TokenType::TK_DATE, TokenType::TK_OPEN, TokenType::TK_CLOSE, TokenType::TK_WRITE, TokenType::TK_SYSTEM, TokenType::TK_HAS}));

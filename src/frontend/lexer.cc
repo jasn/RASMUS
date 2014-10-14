@@ -63,7 +63,7 @@ const std::vector<std::pair<lexer::TokenType, std::string> > operators = {
     {lexer::TokenType::TK_PLUS, "+"},
     {lexer::TokenType::TK_PROJECT_MINUS, "|-"},
     {lexer::TokenType::TK_PROJECT_PLUS, "|+"},
-    {lexer::TokenType::TK_QUESTION, "?"},
+    {lexer::TokenType::TK_SELECT, "?("},
     {lexer::TokenType::TK_RBRACKET, "]"},
     {lexer::TokenType::TK_RIGHTARROW, "->"},
     {lexer::TokenType::TK_RPAREN, ")"}, 

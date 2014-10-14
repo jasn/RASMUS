@@ -593,7 +593,7 @@ public:
 		case TokenType::TK_TILDE:
 			binopTypeCheck(node, { {TText, TText, TBool} });
 			break;
-		case TokenType::TK_QUESTION:
+		case TokenType::TK_SELECT:
 			binopTypeCheck(node, { {TRel, TFunc, TRel} });
 			break;
 		case TokenType::TK_OPEXTEND:

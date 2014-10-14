@@ -1982,7 +1982,7 @@ public:
 							return builder.CreateOr(lhs.value, rhs.value);
 						}, TBool, TBool, TBool)
 						});
-		case TokenType::TK_QUESTION:
+		case TokenType::TK_SELECT:
 			return binopImpl(node, {
 					dOp([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateCall2(getStdlibFunc("rm_selectRel"), lhs.value, 
