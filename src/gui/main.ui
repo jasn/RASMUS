@@ -334,12 +334,12 @@
     <string>&amp;Manual</string>
    </property>
   </action>
-  <action name="actionToturial">
+  <action name="actionTutorial">
    <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>&amp;Toturial</string>
+    <string>&amp;Tutorial</string>
    </property>
   </action>
   <action name="actionCancel">
