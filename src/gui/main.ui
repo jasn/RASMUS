@@ -220,7 +220,7 @@
     <property name="title">
      <string>&amp;Help</string>
     </property>
-    <addaction name="actionToturial"/>
+    <addaction name="actionTutorial"/>
     <addaction name="actionManual"/>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
