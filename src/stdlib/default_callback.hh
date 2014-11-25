@@ -48,6 +48,10 @@ public:
 		std::cout << v << std::endl;
 	}
 
+	void printFloat(double v) override {
+		std::cout << v << std::endl;
+	}
+
 	void printBool(int8_t v) override {
 		std::cout << (v?"true":"false") << std::endl;
 	}

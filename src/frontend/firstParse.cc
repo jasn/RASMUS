@@ -125,6 +125,7 @@ public:
         case TokenType::TK_TYPE_BOOL: return TBool;
 		case TokenType::TK_TYPE_FUNC: return TFunc;
 		case TokenType::TK_TYPE_INT: return TInt;
+		case TokenType::TK_TYPE_FLOAT: return TFloat;
 		case TokenType::TK_TYPE_REL: return TRel;
 		case TokenType::TK_TYPE_TEXT: return TText;
 		case TokenType::TK_TYPE_TUP: return TTup;
@@ -271,6 +272,7 @@ public:
 			break;
         case TokenType::TK_ISBOOL:
 		case TokenType::TK_ISINT:
+		case TokenType::TK_ISFLOAT:
 		case TokenType::TK_ISTEXT:
             returnType = TBool;
 			argumentTypes.push_back({TAny});
@@ -372,6 +374,9 @@ public:
         case TokenType::TK_STDINT:
 			node->type = TInt;
 			break;
+        case TokenType::TK_STDFLOAT:
+			node->type = TFloat;
+			break;
 		case TokenType::TK_BADINT:
 			error->reportWarning(
 				"Integers should not start with 0 (we do not support octals)",
@@ -384,10 +389,10 @@ public:
 			node->type = TInt;
 			break;
 		case TokenType::TK_FLOAT:
-			error->reportError(
+			error->reportWarning(
 				"Floating point values are not supported",
 				node->valueToken);
-			node->type = TInvalid;
+			node->type = TFloat;
 			break;
 		default:
 			internalError(node->valueToken, std::string("Invalid constant type ")+getTokenName(node->valueToken.id));
@@ -430,8 +435,8 @@ public:
 			node->type = TBool;
 			break;
 		case TokenType::TK_MINUS:
-            typeCheck(node->opToken, node->exp, {TInt});
-            node->type = TInt;
+            typeCheck(node->opToken, node->exp, {TInt, TFloat});
+            node->type = node->exp->type;
 			break;
 		default:
             internalError(node->opToken, "Bad unary operator");
@@ -564,11 +569,20 @@ public:
 		case TokenType::TK_MUL:
 		case TokenType::TK_MINUS:
 			binopTypeCheck(node, {
+					{TFloat, TInt,   TFloat},
+					{TFloat, TFloat, TFloat},
+					{TInt,   TFloat, TFloat},
 					{TInt, TInt, TInt},
 					{TRel, TRel, TRel}
 				});
 			break;
 		case TokenType::TK_DIV:
+			binopTypeCheck(node, {
+					{TFloat, TInt,   TFloat},
+					{TFloat, TFloat, TFloat},
+					{TInt,   TFloat, TFloat},
+					{TInt,   TInt,   TInt} });
+			break;
 		case TokenType::TK_MOD:
 			binopTypeCheck(node, { {TInt, TInt, TInt} });
 			break;
@@ -583,13 +597,19 @@ public:
 		case TokenType::TK_LESS:
 		case TokenType::TK_GREATER:
 		case TokenType::TK_GREATEREQUAL:
-			binopTypeCheck(node, { 
+			binopTypeCheck(node, {
+					{TFloat, TInt,   TBool},
+					{TFloat, TFloat, TBool},
+					{TInt,   TFloat, TBool},
 					{TInt, TInt, TBool},
 					{TBool, TBool, TBool} });
 			break;
 		case TokenType::TK_EQUAL:
 		case TokenType::TK_DIFFERENT:
-			binopTypeCheck(node, { 
+			binopTypeCheck(node, {
+					{TFloat, TInt,   TBool},
+					{TFloat, TFloat, TBool},
+					{TInt,   TFloat, TBool},
 					{TInt, TInt, TBool},
 					{TBool, TBool, TBool},
 					{TText, TText, TBool},

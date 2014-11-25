@@ -47,6 +47,7 @@ inline std::ostream & operator << (std::ostream & o, LType t) {
 enum Type {
 	TBool=0,
 	TInt=1,
+	TFloat,
 	TText,
 	TRel,
 	TTup,
@@ -61,6 +62,7 @@ inline const char * typeName(Type t) {
 	switch(t) {
 	case TBool: return "Bool";
 	case TInt: return "Int";
+	case TFloat: return "Float";
 	case TInvalid: return "Invalid";
 	case TText: return "Text";
 	case TRel: return "Rel";

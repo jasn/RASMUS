@@ -42,7 +42,7 @@ const std::unordered_set<TokenType> thingsThatMayComeAfterParseExp =
  TokenType::TK_VAL, TokenType::TK_TWO_DOTS, TokenType::END_OF_FILE, TokenType::TK_SEMICOLON, TokenType::TK_BLOCKEND};
 
 const std::unordered_set<TokenType> types=
-{TokenType::TK_TYPE_BOOL,TokenType::TK_TYPE_INT, TokenType::TK_TYPE_TEXT,TokenType::TK_TYPE_ATOM, TokenType::TK_TYPE_TUP,TokenType::TK_TYPE_REL, TokenType::TK_TYPE_FUNC,TokenType::TK_TYPE_ANY};
+{TokenType::TK_TYPE_BOOL,TokenType::TK_TYPE_INT,TokenType::TK_TYPE_FLOAT, TokenType::TK_TYPE_TEXT,TokenType::TK_TYPE_ATOM, TokenType::TK_TYPE_TUP,TokenType::TK_TYPE_REL, TokenType::TK_TYPE_FUNC,TokenType::TK_TYPE_ANY};
 	
 class TheParser: public Parser {
 public:
@@ -387,6 +387,7 @@ public:
 		case TokenType::TK_DATE:
 		case TokenType::TK_ISBOOL:
 		case TokenType::TK_ISINT:
+		case TokenType::TK_ISFLOAT:
 		case TokenType::TK_ISTEXT:
 		case TokenType::TK_PRINT:
             return parseBuiltIn();
@@ -412,6 +413,7 @@ public:
 		case TokenType::TK_ONE:
 		case TokenType::TK_STDBOOL:
 		case TokenType::TK_STDINT:
+		case TokenType::TK_STDFLOAT:
 		case TokenType::TK_STDTEXT:
 		case TokenType::TK_TEXT:
 		case TokenType::TK_BADINT:

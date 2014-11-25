@@ -172,6 +172,7 @@ public:
 	llvm::IntegerType * int16Type = llvm::Type::getInt16Ty(getGlobalContext());
 	llvm::IntegerType * int32Type = llvm::Type::getInt32Ty(getGlobalContext());
 	llvm::IntegerType * int64Type = llvm::Type::getInt64Ty(getGlobalContext());
+	llvm::Type * doubleType = llvm::Type::getDoubleTy(getGlobalContext());
 	llvm::PointerType * pointerType(llvm::Type * t) {return PointerType::getUnqual(t);}
 	llvm::PointerType * voidPtrType = pointerType(int8Type);
 
@@ -283,6 +284,7 @@ public:
 		switch (t) {
 		case TBool: return int8Type;
 		case TInt: return int64Type;
+		case TFloat: return doubleType;
 		case TFunc: 
 		case TText: 
 		case TRel: 
@@ -297,12 +299,13 @@ public:
 	llvm::ConstantInt * int16(uint16_t value) {return llvm::ConstantInt::get(int16Type, value);}
 	llvm::ConstantInt * int32(uint32_t value) {return llvm::ConstantInt::get(int32Type, value);}
 	llvm::ConstantInt * int64(int64_t value) {return llvm::ConstantInt::get(int64Type, value);}
+	llvm::Constant  * fp(double value) {return llvm::ConstantFP::get(doubleType, value);}
 
 	llvm::ConstantInt * undefInt = int64(std::numeric_limits<int64_t>::min());
 	llvm::ConstantInt * trueBool = int8(3);
 	llvm::ConstantInt * undefBool = int8(2);
 	llvm::ConstantInt * falseBool = int8(0);
-
+	llvm::Constant * undefFloat = fp(std::nan(""));
 
 	llvm::ConstantInt * packCharRange(std::shared_ptr<Node> node) {
 		return int64(node->charRange.lo | (uint64_t(node->charRange.hi) << 32));
@@ -396,6 +399,7 @@ public:
 		switch (type) {
 		case TInt:
 		case TBool:
+		case TFloat:
 			break;
 		case TFunc:
 		case TRel:
@@ -441,6 +445,7 @@ public:
 		switch (type) {
 		case TInt:
 		case TBool:
+		case TFloat:
 			break;
 		case TFunc:
 		case TRel:
@@ -501,6 +506,8 @@ public:
 		switch(t) {
 		case TInt:
 			return BorrowedLLVMVal(undefInt);
+		case TFloat:
+			return BorrowedLLVMVal(undefFloat);
 		case TBool:
 			return BorrowedLLVMVal(undefBool);
 		case TAny:
@@ -521,6 +528,7 @@ public:
 		case TInt:
 		case TBool:
 		case TText:
+		case TFloat:
 			return true;
 		case TFunc:
 		case TAny:
@@ -545,6 +553,8 @@ public:
 			switch(tfrom) {
 			case TInt:
 				return BorrowedLLVMVal(value.value, typeRepr(tfrom));
+			case TFloat:
+				return BorrowedLLVMVal(builder.CreateBitCast(value.value, int64Type), typeRepr(tfrom));
 			case TBool:
 				return BorrowedLLVMVal(builder.CreateZExt(value.value, int64Type), typeRepr(tfrom));
 			case TText:
@@ -573,6 +583,8 @@ public:
 			switch (tto) {
 			case TInt:
 				return BorrowedLLVMVal(value.value);
+			case TFloat:
+				return BorrowedLLVMVal(builder.CreateBitCast(value.value, llvmType(tto)));
 			case TBool:
 				return BorrowedLLVMVal(builder.CreateTruncOrBitCast(value.value, llvmType(tto)));
 			case TText:
@@ -634,6 +646,8 @@ public:
 		switch (type) {
 		case TInt:
 			return BorrowedLLVMVal(builder.CreateLoad(builder.CreateGEP(v, GEP, "int_addr"), "int"));
+		case TFloat:
+			return BorrowedLLVMVal(builder.CreateLoad(builder.CreateGEP(v, GEP, "float_addr"), "float"));
 		case TBool:
 			return BorrowedLLVMVal(builder.CreateLoad(builder.CreateGEP(v, GEP, "bool_addr"), "bool"));
 		case TText:
@@ -663,6 +677,9 @@ public:
 		switch (type) {
 		case TInt:
 			builder.CreateStore(v.value, builder.CreateGEP(dst, GEP, "int_addr"));
+			break;
+		case TFloat:
+			builder.CreateStore(v.value, builder.CreateGEP(dst, GEP, "float_addr"));
 			break;
 		case TBool:
 			builder.CreateStore(v.value, builder.CreateGEP(dst, GEP, "bool_addr"));
@@ -942,6 +959,9 @@ public:
 			case TInt:
 				value = builder.CreateAlloca(int64Type);
 				break;
+			case TFloat:
+				value = builder.CreateAlloca(doubleType);
+				break;
 			case TAny:
 				value = builder.CreateAlloca(int64Type);
 				type = builder.CreateAlloca(int8Type);
@@ -967,6 +987,9 @@ public:
 				switch (a->types[i]) {
 				case TInt:
 					args[i] = BorrowedLLVMVal(vals[i].value);
+					break;
+				case TFloat:
+					args[i] = BorrowedLLVMVal(builder.CreateBitCast(vals[i].value, doubleType));
 					break;
 				case TBool:
 					args[i] = BorrowedLLVMVal(builder.CreateTruncOrBitCast(vals[i].value, int8Type));
@@ -1109,6 +1132,9 @@ public:
 			break;
 		case TInt:
 			value = builder.CreateAlloca(int64Type);
+			break;
+		case TFloat:
+			value = builder.CreateAlloca(doubleType);
 			break;
 		case TAny:
 			value = builder.CreateAlloca(int64Type);
@@ -1585,18 +1611,22 @@ public:
 												  builder.CreateICmpEQ(v.type, typeRepr(TInt)),
 												  trueBool,
 												  builder.CreateSelect(
-													  builder.CreateICmpEQ(v.type, typeRepr(TBool)),
+													  builder.CreateICmpEQ(v.type, typeRepr(TFloat)),
 													  trueBool,
 													  builder.CreateSelect(
-														  builder.CreateICmpEQ(v.type, typeRepr(TText)),
+														  builder.CreateICmpEQ(v.type, typeRepr(TBool)),
 														  trueBool,
-														  falseBool
-														  )))), TBool, node->type, node);
+														  builder.CreateSelect(
+															  builder.CreateICmpEQ(v.type, typeRepr(TText)),
+															  trueBool,
+															  falseBool
+															  ))))), TBool, node->type, node);
 				disown(v, TAny);
 				return r;
 			}
 			else if(node->args[0]->type == TBool || 
 					node->args[0]->type == TInt || 
+					node->args[0]->type == TFloat || 
 					node->args[0]->type == TText)
 				return OwnedLLVMVal(trueBool);
 			else
@@ -1607,6 +1637,8 @@ public:
 			return genIsExpression(node, TBool);
 		case TokenType::TK_ISINT:
 			return genIsExpression(node, TInt);
+		case TokenType::TK_ISFLOAT:
+			return genIsExpression(node, TFloat);
 		case TokenType::TK_ISTEXT:
 			return genIsExpression(node, TText);
 		case TokenType::TK_ISTUP:
@@ -1632,6 +1664,8 @@ public:
 		case TokenType::TK_INT:
 		case TokenType::TK_BADINT:
 			return OwnedLLVMVal(int64(atol(node->valueToken.getText(code).c_str())));
+		case TokenType::TK_FLOAT:
+			return OwnedLLVMVal(fp(atof(node->valueToken.getText(code).c_str())));
 		case TokenType::TK_TEXT: {
 			std::string text=node->valueToken.getText(code);
 			std::string ans;
@@ -1653,6 +1687,8 @@ public:
 			return getUndef(TText);
         case TokenType::TK_STDINT:
 			return getUndef(TInt);
+        case TokenType::TK_STDFLOAT:
+			return getUndef(TFloat);
         case TokenType::TK_ZERO:
 			return extGlobalObject("zero_rel");
 		case TokenType::TK_ONE:
@@ -1685,6 +1721,7 @@ public:
 		}
 		case TokenType::TK_MINUS:
 		{
+			//TODO float?
 			LLVMVal v=castVisit(node->exp, TInt);
 			LLVMVal r=cast(OwnedLLVMVal(builder.CreateNeg(v.value)), TInt, node->type, node);
 			disown(v, TInt);
@@ -1870,6 +1907,16 @@ public:
 					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateAdd(lhs.value, rhs.value);
 						}, TInt, TInt, TInt),
+					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+							return builder.CreateFAdd(lhs.value, rhs.value);
+						}, TFloat, TFloat, TFloat),
+					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+							return builder.CreateFAdd(
+								builder.CreateSIToFP(lhs.value, doubleType), rhs.value);
+						}, TInt, TFloat, TFloat),
+					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+							return builder.CreateFAdd(lhs.value, builder.CreateSIToFP(rhs.value, doubleType));
+						}, TFloat, TInt, TFloat),
 						dCallR("rm_unionRel", node, TRel, TRel, TRel)	
 						});
 		case TokenType::TK_MUL:
@@ -1877,6 +1924,17 @@ public:
 					dOpU([this, node](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateMul(lhs.value, rhs.value);
 						}, TInt, TInt, TInt),
+						dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+							return builder.CreateFMul(lhs.value, rhs.value);
+						}, TFloat, TFloat, TFloat),
+					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+							return builder.CreateFMul(
+								builder.CreateSIToFP(lhs.value, doubleType), rhs.value);
+						}, TInt, TFloat, TFloat),
+					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+							return builder.CreateFMul(lhs.value, builder.CreateSIToFP(rhs.value, doubleType));
+						}, TFloat, TInt, TFloat),
+
 						dCallR("rm_joinRel", node, TRel, TRel, TRel)
 						});
 		case TokenType::TK_MINUS:
@@ -1884,6 +1942,16 @@ public:
 					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateSub(lhs.value, rhs.value);
 						}, TInt, TInt, TInt),
+					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+							return builder.CreateFSub(lhs.value, rhs.value);
+						}, TFloat, TFloat, TFloat),
+					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+							return builder.CreateFSub(
+								builder.CreateSIToFP(lhs.value, doubleType), rhs.value);
+						}, TInt, TFloat, TFloat),
+					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+							return builder.CreateFSub(lhs.value, builder.CreateSIToFP(rhs.value, doubleType));
+						}, TFloat, TInt, TFloat),
 						dCallR("rm_diffRel", node, TRel, TRel, TRel)
 				});
 		case TokenType::TK_DIV:

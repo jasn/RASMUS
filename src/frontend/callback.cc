@@ -44,6 +44,12 @@ void Callback::printInt(int64_t v) {
 	print(TInt, ss.str());
 }
 
+void Callback::printFloat(double v) {
+	std::stringstream ss;
+	rasmus::stdlib::printFloatToStream(v, ss);
+	print(TFloat, ss.str());
+}
+
 void Callback::printBool(int8_t v) {
 	std::stringstream ss;
 	rasmus::stdlib::printBoolToStream(v, ss);

@@ -73,6 +73,10 @@ public:
 		cb->printInt(v);
 	}
 
+	void printFloat(double v) override {
+		cb->printFloat(v);
+	}
+
 	void printBool(int8_t v) override {
 		cb->printBool(v);
 	}

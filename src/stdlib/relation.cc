@@ -457,6 +457,17 @@ void printIntToStream(int64_t val, std::ostream & out){
 }
 
 /**
+ * \Brief Prints an integer to a stream
+ * Handles the special case where the integer is ?-Int
+ */
+void printFloatToStream(double val, std::ostream & out){
+	if (std::isnan(val)) 
+		out << "?-Float";
+	else
+		out << val;
+}
+
+/**
  * \Brief prints the given tuple to the out stream
  */
 void printTupleToStream(rm_object * ptr, std::ostream & out) {

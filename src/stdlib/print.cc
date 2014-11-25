@@ -34,6 +34,9 @@ void rm_print(uint8_t t, int64_t v) {
     case TInt:
 		callback->printInt(v);
 		break;
+    case TFloat:
+		callback->printFloat(*(const double*)&v);
+		break;
     case TText: //It's a Text
 		callback->printText((rm_object*)v);
 		break;

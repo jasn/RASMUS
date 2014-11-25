@@ -45,6 +45,7 @@ public:
 	virtual void deleteRelation(const char * name) = 0;
 
 	virtual void printInt(int64_t v) = 0;
+	virtual void printFloat(double v) = 0;
 	virtual void printBool(int8_t v) = 0;
 	virtual void printText(rm_object * o) = 0;
 	virtual void printFunc(rm_object * o) = 0;
