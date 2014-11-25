@@ -383,6 +383,12 @@ public:
             //atoi(code->code.substr(node->valueToken.start, node->valueToken.length).c_str());
 			node->type = TInt;
 			break;
+		case TokenType::TK_FLOAT:
+			error->reportError(
+				"Floating point values are not supported",
+				node->valueToken);
+			node->type = TInvalid;
+			break;
 		default:
 			internalError(node->valueToken, std::string("Invalid constant type ")+getTokenName(node->valueToken.id));
             node->type = TInvalid;

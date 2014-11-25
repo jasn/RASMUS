@@ -416,6 +416,7 @@ public:
 		case TokenType::TK_TEXT:
 		case TokenType::TK_BADINT:
 		case TokenType::TK_INT:
+		case TokenType::TK_FLOAT:
 		case TokenType::TK_TRUE:
 		case TokenType::TK_FALSE:
             return std::make_shared<ConstantExp>(consumeToken());
