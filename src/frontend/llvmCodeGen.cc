@@ -28,6 +28,8 @@
 #include <unordered_map>
 #include <array>
 #include <frontend/tokenizer.hh>
+#include <sstream>
+#include <locale>
 
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/DerivedTypes.h>
@@ -523,7 +525,7 @@ public:
 		}
 	}
 
-	bool hasUndef(::Type t) {
+	static bool hasUndef(::Type t) {
 		switch(t) {
 		case TInt:
 		case TBool:
@@ -789,6 +791,35 @@ public:
 		return rt{rtype, {types...}, func};
 	}
 
+
+	llvm::Value * handleUndef(llvm::Value * v, ::Type) {
+		return v;
+	}
+
+	/**
+	 * \brief Handles undefined values
+	 * If any of the arguments v1, vs... has the undefined values their corresponding types t1, ts...
+	 * return the undefined valued of ret, otherwize return v
+	 */
+	template <typename T, typename ...TS>
+	llvm::Value * handleUndef(llvm::Value * v, ::Type ret, 
+							  T t1, TS... ts,
+							  BorrowedLLVMVal v1, typename bwh<TS>::t... vs) {
+		llvm::Value * res=handleUndef(v, ret, ts..., vs...);
+		if (!hasUndef(t1)) 
+			return res;
+		else if (t1 == TFloat)
+			return builder.CreateSelect(
+				builder.CreateFCmpUNO(v1.value, v1.value),
+				getUndef(ret).value,
+				res);
+		else
+			return builder.CreateSelect(
+				builder.CreateICmpEQ(v1.value, getUndef(t1).value),
+				getUndef(ret).value,
+				res);
+	}
+
 	/**
 	 * \brief Declare a typed operation which is a simple comparator
 	 * \parm in The type the comparator operates on
@@ -797,35 +828,41 @@ public:
 	OpImpl<::Type, ::Type> dComp(::Type in, llvm::CmpInst::Predicate pred) {
 		return OpImpl<::Type, ::Type>{TBool, {in, in}, 
 				[this, in, pred](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) -> OwnedLLVMVal {
-					return builder.CreateSelect(
-						builder.CreateICmpEQ(lhs.value, getUndef(in).value),
-						undefBool,
+					return handleUndef<::Type, ::Type>(
 						builder.CreateSelect(
-							builder.CreateICmpEQ(rhs.value, getUndef(in).value),
-							undefBool,
-							builder.CreateSelect(
-								builder.CreateICmp(pred, lhs.value, rhs.value),
-								trueBool,
-								falseBool)));
+							builder.CreateICmp(pred, lhs.value, rhs.value),
+							trueBool,
+							falseBool),
+						TBool, in, in, lhs, rhs);
 				}};
 	}
+
+	OpImpl<::Type, ::Type> dFComp(::Type in1, ::Type in2, llvm::CmpInst::Predicate pred) {
+		return OpImpl<::Type, ::Type>{TBool, {in1, in2}, 
+				[this, in1, in2, pred](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) -> OwnedLLVMVal {
+					return handleUndef<::Type, ::Type>(
+						builder.CreateSelect(
+							builder.CreateFCmp(
+								pred, 
+								(in1 == TFloat)?lhs.value:builder.CreateSIToFP(lhs.value, doubleType),
+								(in2 == TFloat)?rhs.value:builder.CreateSIToFP(rhs.value, doubleType)),
+							trueBool,
+							falseBool),
+						TBool, in1, in2, lhs, rhs);
+				}};
+	}	
 
 	/**
 	 * \brief Declare a typed operation which returns undef in any of the arguments are undef
 	 * See \ref{dOp}
 	 */
-	template <typename Func>
-	OpImpl<::Type, ::Type> dOpU(Func func, ::Type ret, ::Type tlhs, ::Type trhs) {
-		return OpImpl<::Type, ::Type>{ret, {tlhs, trhs}, 
-				[this, func, tlhs, trhs, ret](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) -> OwnedLLVMVal {
-					LLVMVal v=func(lhs, rhs);
-					OwnedLLVMVal r=builder.CreateSelect(
-						builder.CreateICmpEQ(lhs.value, getUndef(tlhs).value),
-						getUndef(ret).value,
-						builder.CreateSelect(
-							builder.CreateICmpEQ(rhs.value, getUndef(trhs).value),
-							getUndef(ret).value,
-							v.value));
+	template <typename Func, typename ...T>
+	OpImpl<typename th<T>::t...> dOpU(Func func, ::Type ret, T... types) {
+		return OpImpl<typename th<T>::t...>{ret, {types...}, 
+				[this, func, types..., ret](
+					typename bwh<T>::t... vals) -> OwnedLLVMVal {
+					LLVMVal v=func(vals...);
+					OwnedLLVMVal r = handleUndef<T...>(v.value, ret, types..., vals...);
 					disown(v, ret);
 					return r;
 				}};
@@ -1664,8 +1701,14 @@ public:
 		case TokenType::TK_INT:
 		case TokenType::TK_BADINT:
 			return OwnedLLVMVal(int64(atol(node->valueToken.getText(code).c_str())));
-		case TokenType::TK_FLOAT:
-			return OwnedLLVMVal(fp(atof(node->valueToken.getText(code).c_str())));
+		case TokenType::TK_FLOAT: 
+		{
+			double val= 0.0f;
+			std::istringstream istr(node->valueToken.getText(code));
+			istr.imbue(std::locale("C"));
+			istr >> val;
+			return OwnedLLVMVal(fp(val));
+		}
 		case TokenType::TK_TEXT: {
 			std::string text=node->valueToken.getText(code);
 			std::string ans;
@@ -1707,26 +1750,27 @@ public:
 		return OwnedLLVMVal(trueBool);
 	}
 
+
+	
 	LLVMVal visit(std::shared_ptr<UnaryOpExp> node) {
 		switch (node->opToken.id) {
-		case TokenType::TK_NOT: {
-			LLVMVal v=castVisit(node->exp, TBool);
-			LLVMVal r=cast(OwnedLLVMVal(
-							   builder.CreateSelect(
-								   builder.CreateICmpEQ(v.value, undefBool),
-								   undefBool,
-								   builder.CreateSub(trueBool, v.value))), TBool, node->type, node);
-			disown(v, TBool);
-			return r;
-		}
+		case TokenType::TK_NOT: 
+			return opImp({
+					dOpU([this](BorrowedLLVMVal exp)->OwnedLLVMVal {
+							return builder.CreateSub(trueBool, exp.value);
+						}, TBool, TBool)},
+				node, node->exp
+				);
 		case TokenType::TK_MINUS:
-		{
-			//TODO float?
-			LLVMVal v=castVisit(node->exp, TInt);
-			LLVMVal r=cast(OwnedLLVMVal(builder.CreateNeg(v.value)), TInt, node->type, node);
-			disown(v, TInt);
-			return r;
-		}
+			return opImp({
+					dOpU([this](BorrowedLLVMVal exp)->OwnedLLVMVal {
+							return builder.CreateNeg(exp.value);
+						}, TInt, TInt),
+					dOpU([this](BorrowedLLVMVal exp)->OwnedLLVMVal {
+							return builder.CreateFNeg(exp.value);
+						}, TFloat, TFloat)
+				}, node, node->exp
+				);
 		default:
 			ICE("Unhandled operator", node->opToken.id, node);
 		}
@@ -1885,6 +1929,51 @@ public:
 		disown(rel, TRel);
 		return ret;
 	}
+
+
+	template <bool mod, ::Type lt, ::Type rt>
+	OpImpl<::Type, ::Type> dDivMod() {
+		const bool fval=(lt == TFloat || rt == TFloat);
+		return dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+				const bool fval=(lt == TFloat || rt == TFloat);
+				llvm::Value * left = (!fval || lt==TFloat)?lhs.value:builder.CreateSIToFP(lhs.value, doubleType);
+				llvm::Value * right = (!fval || rt==TFloat)?rhs.value:builder.CreateSIToFP(rhs.value, doubleType);
+				BasicBlock * b1 = newBlock();		
+				BasicBlock * b2 = newBlock();
+				BasicBlock * bend = newBlock();
+				if (fval)
+					builder.CreateCondBr(builder.CreateFCmpUEQ(right, fp(0)), b1, b2);
+				else
+					builder.CreateCondBr(builder.CreateICmpEQ(right, int64(0)), b1, b2);
+				
+				builder.SetInsertPoint(b1);
+				Value * v1 = fval?undefFloat:undefInt;
+				builder.CreateBr(bend);
+				
+				builder.SetInsertPoint(b2);
+				Value * v2;
+				if (fval) {
+					if (mod)
+						v2=builder.CreateFRem(left, right);
+					else
+						v2=builder.CreateFDiv(left, right);
+				} else {
+					if (mod)
+						v2=builder.CreateSRem(left, right);
+					else
+						v2=builder.CreateSDiv(left, right);
+				}
+
+				builder.CreateBr(bend);
+				
+				builder.SetInsertPoint(bend);
+				
+				PHINode * phi = builder.CreatePHI(fval?doubleType:int64Type, 2, "div");
+				phi->addIncoming(v1, b1);
+				phi->addIncoming(v2, b2);
+				return phi;
+			}, fval?TFloat:TInt, lt, rt);
+	}
 	
 	/**
 	 * \brief Codegen a typed binary operation
@@ -1911,31 +2000,28 @@ public:
 							return builder.CreateFAdd(lhs.value, rhs.value);
 						}, TFloat, TFloat, TFloat),
 					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
-							return builder.CreateFAdd(
-								builder.CreateSIToFP(lhs.value, doubleType), rhs.value);
-						}, TInt, TFloat, TFloat),
+							return builder.CreateFAdd(builder.CreateSIToFP(lhs.value, doubleType), rhs.value);
+						}, TFloat, TInt, TFloat),
 					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateFAdd(lhs.value, builder.CreateSIToFP(rhs.value, doubleType));
-						}, TFloat, TInt, TFloat),
-						dCallR("rm_unionRel", node, TRel, TRel, TRel)	
+						}, TFloat, TFloat, TInt),
+					dCallR("rm_unionRel", node, TRel, TRel, TRel)	
 						});
 		case TokenType::TK_MUL:
 			return binopImpl(node, {
 					dOpU([this, node](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateMul(lhs.value, rhs.value);
 						}, TInt, TInt, TInt),
-						dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
+					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateFMul(lhs.value, rhs.value);
 						}, TFloat, TFloat, TFloat),
 					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
-							return builder.CreateFMul(
-								builder.CreateSIToFP(lhs.value, doubleType), rhs.value);
-						}, TInt, TFloat, TFloat),
+							return builder.CreateFMul(builder.CreateSIToFP(lhs.value, doubleType), rhs.value);
+						}, TFloat, TInt, TFloat),
 					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateFMul(lhs.value, builder.CreateSIToFP(rhs.value, doubleType));
-						}, TFloat, TInt, TFloat),
-
-						dCallR("rm_joinRel", node, TRel, TRel, TRel)
+						}, TFloat, TFloat, TInt),
+					dCallR("rm_joinRel", node, TRel, TRel, TRel)
 						});
 		case TokenType::TK_MINUS:
 			return binopImpl(node, {
@@ -1946,84 +2032,64 @@ public:
 							return builder.CreateFSub(lhs.value, rhs.value);
 						}, TFloat, TFloat, TFloat),
 					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
-							return builder.CreateFSub(
-								builder.CreateSIToFP(lhs.value, doubleType), rhs.value);
-						}, TInt, TFloat, TFloat),
+							return builder.CreateFSub(builder.CreateSIToFP(lhs.value, doubleType), rhs.value);
+						}, TFloat, TInt, TFloat),
 					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 							return builder.CreateFSub(lhs.value, builder.CreateSIToFP(rhs.value, doubleType));
-						}, TFloat, TInt, TFloat),
-						dCallR("rm_diffRel", node, TRel, TRel, TRel)
+						}, TFloat, TFloat, TInt),
+					dCallR("rm_diffRel", node, TRel, TRel, TRel)
 				});
 		case TokenType::TK_DIV:
 			return binopImpl(node, {
-					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
-							BasicBlock * b1 = newBlock();		
-							BasicBlock * b2 = newBlock();
-							BasicBlock * bend = newBlock();
-							builder.CreateCondBr(builder.CreateICmpEQ(rhs.value, int64(0)), b1, b2);
-							
-							builder.SetInsertPoint(b1);
-							Value * v1 = undefInt;
-							builder.CreateBr(bend);
-							
-							builder.SetInsertPoint(b2);
-							Value * v2 = builder.CreateSDiv(lhs.value, rhs.value);
-							builder.CreateBr(bend);
-							
-							builder.SetInsertPoint(bend);
-							
-							PHINode * phi = builder.CreatePHI(int64Type, 2, "div");
-							phi->addIncoming(v1, b1);
-							phi->addIncoming(v2, b2);
-							return phi;
-						}, TInt, TInt, TInt)
+					dDivMod<false, TInt, TInt>(),
+					dDivMod<false, TFloat, TInt>(),
+					dDivMod<false, TInt, TFloat>(),
+					dDivMod<false, TFloat, TFloat>()
 						});
 		case TokenType::TK_MOD:
 			return binopImpl(node, {
-					dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
-							BasicBlock * b1 = newBlock();		
-							BasicBlock * b2 = newBlock();
-							BasicBlock * bend = newBlock();
-							builder.CreateCondBr(builder.CreateICmpEQ(rhs.value, int64(0)), b1, b2);
-							
-							builder.SetInsertPoint(b1);
-							Value * v1 = undefInt;
-							builder.CreateBr(bend);
-							
-							builder.SetInsertPoint(b2);
-							Value * v2 = builder.CreateSRem(lhs.value, rhs.value);
-							builder.CreateBr(bend);
-							
-							builder.SetInsertPoint(bend);
-							
-							PHINode * phi = builder.CreatePHI(int64Type, 2, "mod");
-							phi->addIncoming(v1, b1);
-							phi->addIncoming(v2, b2);
-							return phi;
-						}, TInt, TInt, TInt)
+					dDivMod<true, TInt, TInt>(),
+					dDivMod<true, TFloat, TInt>(),
+					dDivMod<true, TInt, TFloat>(),
+					dDivMod<true, TFloat, TFloat>()
 						});
 		case TokenType::TK_LESS:
 			return binopImpl(node, { 
+					dFComp(TInt, TFloat, llvm::CmpInst::FCMP_OLT),
+					dFComp(TFloat, TInt, llvm::CmpInst::FCMP_OLT),
+					dFComp(TFloat, TFloat, llvm::CmpInst::FCMP_OLT),
 					dComp(TInt, llvm::CmpInst::ICMP_SLT),
 					dComp(TBool, llvm::CmpInst::ICMP_SLT)
 					});
 		case TokenType::TK_LESSEQUAL:
 			return binopImpl(node, { 
+					dFComp(TInt, TFloat, llvm::CmpInst::FCMP_OLE),
+					dFComp(TFloat, TInt, llvm::CmpInst::FCMP_OLE),
+					dFComp(TFloat, TFloat, llvm::CmpInst::FCMP_OLE),
 					dComp(TInt, llvm::CmpInst::ICMP_SLE),
 					dComp(TBool, llvm::CmpInst::ICMP_SLE)
 						});
 		case TokenType::TK_GREATER:
 			return binopImpl(node, { 
+					dFComp(TInt, TFloat, llvm::CmpInst::FCMP_OGT),
+					dFComp(TFloat, TInt, llvm::CmpInst::FCMP_OGT),
+					dFComp(TFloat, TFloat, llvm::CmpInst::FCMP_OGT),
 					dComp(TInt, llvm::CmpInst::ICMP_SGT),
 					dComp(TBool, llvm::CmpInst::ICMP_SGT)
 						});
 		case TokenType::TK_GREATEREQUAL:
 			return binopImpl(node, { 
+					dFComp(TInt, TFloat, llvm::CmpInst::FCMP_OGE),
+					dFComp(TFloat, TInt, llvm::CmpInst::FCMP_OGE),
+					dFComp(TFloat, TFloat, llvm::CmpInst::FCMP_OGE),
 					dComp(TInt, llvm::CmpInst::ICMP_SGE),
 					dComp(TBool, llvm::CmpInst::ICMP_SGE)
 						});
 		case TokenType::TK_EQUAL:
 			return binopImpl(node, { 
+					dFComp(TInt, TFloat, llvm::CmpInst::FCMP_OEQ),
+					dFComp(TFloat, TInt, llvm::CmpInst::FCMP_OEQ),
+					dFComp(TFloat, TFloat, llvm::CmpInst::FCMP_OEQ),
 					dComp(TInt, llvm::CmpInst::ICMP_EQ),
 					dComp(TBool, llvm::CmpInst::ICMP_EQ),
 					dCall("rm_equalRel", TBool, TRel, TRel),
@@ -2032,6 +2098,9 @@ public:
 						});
 		case TokenType::TK_DIFFERENT:
 			return binopImpl(node, { 
+					dFComp(TInt, TFloat, llvm::CmpInst::FCMP_ONE),
+					dFComp(TFloat, TInt, llvm::CmpInst::FCMP_ONE),
+					dFComp(TFloat, TFloat, llvm::CmpInst::FCMP_ONE),
 					dComp(TInt, llvm::CmpInst::ICMP_NE),
 					dComp(TBool, llvm::CmpInst::ICMP_NE),
 					dBInv(dCall("rm_equalRel", TBool, TRel, TRel)),

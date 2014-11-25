@@ -44,7 +44,7 @@ execute_process(
   OUTPUT_VARIABLE LLVM_MODULE_LIBS
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
-set(LLVM_CFLAGS "${LLVM_CFLAGS} -fexceptions")
-set(LLVM_LFLAGS ${LLVM_LFLAGS} -lpthread -lz -ldl -lcurses)
+set(LLVM_CFLAGS "${LLVM_CFLAGS} -fexceptions -std=c++11")
+set(LLVM_LFLAGS "${LLVM_LFLAGS} -lpthread -lz -ldl -lcurses")
 
  

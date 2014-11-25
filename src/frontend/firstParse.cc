@@ -389,9 +389,6 @@ public:
 			node->type = TInt;
 			break;
 		case TokenType::TK_FLOAT:
-			error->reportWarning(
-				"Floating point values are not supported",
-				node->valueToken);
 			node->type = TFloat;
 			break;
 		default:
@@ -584,7 +581,11 @@ public:
 					{TInt,   TInt,   TInt} });
 			break;
 		case TokenType::TK_MOD:
-			binopTypeCheck(node, { {TInt, TInt, TInt} });
+			binopTypeCheck(node, { 
+					{TFloat, TInt,   TFloat},
+					{TFloat, TFloat, TFloat},
+					{TInt,   TFloat, TFloat},
+					{TInt, TInt, TInt} });
 			break;
 		case TokenType::TK_AND:
 		case TokenType::TK_OR:
