@@ -346,6 +346,9 @@
    <property name="text">
     <string>Cancel</string>
    </property>
+   <property name="shortcut">
+    <string>Esc</string>
+   </property>
   </action>
   <action name="actionDelete_2">
    <property name="text">

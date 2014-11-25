@@ -22,6 +22,7 @@
 #include <vector>
 #include <stdlib/lib.h>
 #include <QScrollBar>
+#include <QDebug>
 #include "settings.hh"
 #include <vector>
 
@@ -154,15 +155,21 @@ void Console::doPrintConsole() {
 }
 
 void Console::keyPressEvent(QKeyEvent *e) {
+	if (e->key() == Qt::Key_Control ||
+		e->key() == Qt::Key_Alt ||
+		e->key() == Qt::Key_Shift ||
+		(e->modifiers() == Qt::ControlModifier && e->key() == Qt::Key_C)) {
+		QPlainTextEdit::keyPressEvent(e);
+		return;
+	}
+
 	if (isReadOnly()) {
 		if (e->key() == Qt::Key_Escape && e->modifiers() == Qt::NoModifier)
-			doCancel();
-		if (e->key() == Qt::Key_C && e->modifiers() == Qt::ControlModifier) 
 			doCancel();
 		return;
 	}
 	QTextCursor c = textCursor();
-    
+	
 	int firstInLastBlock = c.document()->lastBlock().position() + 4;
 
 	if (c.selectionStart() < firstInLastBlock)
@@ -176,14 +183,6 @@ void Console::keyPressEvent(QKeyEvent *e) {
 			// do stuff.
 			doCancel();
 		}
-		break;
-	case Qt::Key_C:
-		if (e->modifiers() == Qt::ControlModifier) {
-			doCancel();
-			break;
-		}
-		QPlainTextEdit::keyPressEvent(e);
-		d->updateHistory();
 		break;
 	case Qt::Key_D:
 		if (e->modifiers() == Qt::ControlModifier) {
