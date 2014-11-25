@@ -28,7 +28,7 @@ execute_process(
 )
 
 execute_process(
-  COMMAND ${LLVM_CONFIG_EXECUTABLE} --cppflags
+  COMMAND ${LLVM_CONFIG_EXECUTABLE} --cxxflags
   OUTPUT_VARIABLE LLVM_CFLAGS
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
@@ -40,7 +40,11 @@ execute_process(
 )
 
 execute_process(
-  COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs  core jit mcjit native engine interpreter
+  COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs core jit mcjit native engine interpreter
   OUTPUT_VARIABLE LLVM_MODULE_LIBS
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
+set(LLVM_CFLAGS "${LLVM_CFLAGS} -fexceptions")
+set(LLVM_LFLAGS ${LLVM_LFLAGS} -lpthread -lz -ldl -lcurses)
+
+ 

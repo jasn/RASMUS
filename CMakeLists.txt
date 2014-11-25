@@ -16,7 +16,7 @@ find_package(LLVM REQUIRED)
 find_package(Readline)
 find_package(PythonInterp REQUIRED)
 
-SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${LLVM_CFLAGS} -std=c++11 -Wall -Wextra")
+SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${LLVM_CFLAGS} -Wall -Wextra")
 include_directories(src)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/src ${LLVM_INCLUDE_DIR})
 link_directories(${LLVM_LIBRARY_DIR})
