@@ -314,6 +314,8 @@ void rm_enterFunction();
  */
 void rm_exitFunction();
 
+extern rm_object *rm_floor, *rm_ceil, *rm_round;
+extern rm_object *rm_cos, *rm_sin, *rm_tan, *rm_acos, *rm_asin, *rm_atan, *rm_atan2, *rm_pow, *rm_sqrt, *rm_abs;
 
 } //extern C
 #endif //__LIB_H__

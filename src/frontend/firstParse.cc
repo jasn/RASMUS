@@ -159,9 +159,26 @@ public:
 				node->type = missingType;
 				return;
 			} else {
-				std::stringstream ss;
-				ss << "Unknown variable " << name;
-				error->reportError(ss.str(), node->nameToken);
+				node->type = TFunc;
+				if (false) ;
+				else if (name == "acos") node->buildin = BuildIn::acos;
+				else if (name == "asin") node->buildin = BuildIn::asin;
+				else if (name == "atan") node->buildin = BuildIn::atan;
+				else if (name == "atan2") node->buildin = BuildIn::atan2;
+				else if (name == "ceil") node->buildin = BuildIn::ceil;
+				else if (name == "cos") node->buildin = BuildIn::cos;
+				else if (name == "floor") node->buildin = BuildIn::floor;
+				else if (name == "pow") node->buildin = BuildIn::pow;
+				else if (name == "round") node->buildin = BuildIn::round;
+				else if (name == "sin") node->buildin = BuildIn::sin;
+				else if (name == "sqrt") node->buildin = BuildIn::sqrt;
+				else if (name == "tan") node->buildin = BuildIn::tan;
+				else {
+					std::stringstream ss;
+					ss << "Unknown variable " << name;
+					error->reportError(ss.str(), node->nameToken);
+					node->type = TInvalid;
+				}
 				return;
 			}
 		}

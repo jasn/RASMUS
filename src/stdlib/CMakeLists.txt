@@ -19,7 +19,9 @@ set(LIB_FILES
 	funcInvocation.hh
 	gil.hh
 	gil.cc
-	global.cc)
+	global.cc
+	buildin.cc
+	)
 
 if (RASMUS_STATIC)
    add_library(

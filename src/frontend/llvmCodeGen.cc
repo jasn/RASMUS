@@ -201,8 +201,26 @@ public:
 	// arguments to the function given by funcptr are: FuncBase *, anyRetType *, (uint64_t value, uint8_t type) zero or more times
 	llvm::StructType * funcBase = structType("FuncBase", {int32Type, int16Type, int16Type, voidPtrType, voidPtrType} );;
 	llvm::StructType * objectBaseType = structType("ObjectBase", {int32Type, int16Type});
-
 	
+	std::vector<GlobalVariable *> buildins;
+	
+	void loadBuildin(BuildIn buildin, std::string name) {
+		if (buildins.size() <= (size_t)buildin)
+			buildins.resize((size_t)buildin*2+1, nullptr);
+		
+		buildins[(size_t)buildin] = new GlobalVariable(*module,
+													   pointerType(funcBase),
+													   false,
+													   llvm::GlobalValue::ExternalLinkage,
+													   nullptr,
+													   name,
+													   nullptr,
+													   llvm::GlobalVariable::NotThreadLocal,
+													   0,
+													   true);
+		/*return builder.CreateConstGEP2_32(gv, 0, 0);*/
+	}
+
 	CodeGen(std::shared_ptr<Error> error, std::shared_ptr<Code> code,
 			llvm::Module * module, bool dumpRawFunctions,
 			bool dumpOptFunctions): error(error), code(code), module(module),
@@ -216,6 +234,19 @@ public:
 		//fpm.add(createGVNPass());
 //		fpm.add(createCFGSimplificationPass());
 		fpm.doInitialization();
+
+		loadBuildin(BuildIn::acos, "rm_acos");
+		loadBuildin(BuildIn::asin, "rm_asin");
+		loadBuildin(BuildIn::atan, "rm_atan");
+		loadBuildin(BuildIn::atan2, "rm_atan2");
+		loadBuildin(BuildIn::ceil, "rm_ceil");
+		loadBuildin(BuildIn::cos, "rm_cos");
+		loadBuildin(BuildIn::floor, "rm_floor");
+		loadBuildin(BuildIn::pow, "rm_pow");
+		loadBuildin(BuildIn::round, "rm_round");
+		loadBuildin(BuildIn::sin, "rm_sin");
+		loadBuildin(BuildIn::sqrt, "rm_sqrt");
+		loadBuildin(BuildIn::tan, "rm_tan");
 
 		//Define all functions in the standard library
 		std::vector< std::pair<std::string, FunctionType *> > fs =
@@ -1131,7 +1162,12 @@ public:
 	
 	/** \brief Codegen for a valiable */
 	LLVMVal visit(std::shared_ptr<VariableExp> node) {
-		return readNamedVariable(node->nameToken, node->store, node);
+		if(node->buildin == BuildIn::invalid)
+			return readNamedVariable(node->nameToken, node->store, node);
+		GlobalVariable * gv = buildins[(size_t)node->buildin];
+		if (gv == nullptr)
+			ICE("Unhandled buildin", node);
+		return BorrowedLLVMVal(builder.CreateLoad(gv));
 	} 
 	
 	/** \brief Codegen for an assignment */

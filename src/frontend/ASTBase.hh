@@ -35,6 +35,23 @@ struct Value;
 namespace rasmus {
 namespace frontend {
 
+enum class BuildIn {
+	invalid, 
+		acos,
+		asin,
+		atan,
+		atan2,
+		ceil,
+		cos,
+		floor,
+		pow,
+		round,
+		sin,
+		sqrt, 
+		tan,
+};
+
+
 typedef size_t GlobalId;
 const GlobalId NOT_GLOBAL=std::numeric_limits<GlobalId>::max();
 
@@ -75,7 +92,8 @@ public:
 	CharRange charRange;
 	Type type;
 	OwnedLLVMVal llvmVal;
-	Node(NodeType t): nodeType(t), tainted(false), type(TInvalid) {}
+	BuildIn buildin;
+	Node(NodeType t): nodeType(t), tainted(false), type(TInvalid), buildin(BuildIn::invalid) {}
 	virtual ~Node() {}
 };
 typedef std::shared_ptr<Node> NodePtr;
