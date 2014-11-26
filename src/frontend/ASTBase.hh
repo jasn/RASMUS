@@ -27,7 +27,7 @@
 #include <frontend/nodetype.hh>
 #include <shared/type.hh>
 #include <frontend/ice.hh>
-
+#include <frontend/strongType.hh>
 namespace llvm {
 struct Value;
 };
@@ -91,6 +91,7 @@ public:
 	bool tainted;
 	CharRange charRange;
 	Type type;
+	strongType::Ptr strongType;
 	OwnedLLVMVal llvmVal;
 	BuildIn buildin;
 	Node(NodeType t): nodeType(t), tainted(false), type(TInvalid), buildin(BuildIn::invalid) {}

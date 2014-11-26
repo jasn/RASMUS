@@ -102,7 +102,7 @@ public:
 			cb->report(MsgType::error, code,
 					   text,
 					   Token(),
-					   {{start, end}});
+					   {{start, end}},"");
 		else
 			cb->report(MsgType::error, text);
 		throw ErrException();
@@ -234,7 +234,7 @@ public:
 			return;
 		} catch (ICEException e) {
 			if (e.mainToken || e.ranges.size())
-				callback->report(MsgType::error, code, e.what(), e.mainToken, e.ranges);
+				callback->report(MsgType::error, code, e.what(), e.mainToken, e.ranges, "");
 			else
 				callback->report(MsgType::error, e.what());
 			return;
@@ -294,7 +294,7 @@ public:
 			return false; //Error in code execution
 		} catch (ICEException e) {
 			if (e.mainToken || e.ranges.size())
-				callback->report(MsgType::error, code, e.what(), e.mainToken, e.ranges);
+				callback->report(MsgType::error, code, e.what(), e.mainToken, e.ranges, "");
 			else
 				callback->report(MsgType::error, e.what());
 			return false;

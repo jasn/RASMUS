@@ -87,7 +87,8 @@ public:
 						std::shared_ptr<rf::Code> code,
 						std::string message,
 						rf::Token mainToken,
-						std::vector<rf::CharRange> ranges) override {
+						std::vector<rf::CharRange> ranges, 
+						std::string additional) override {
 
 		int lo = std::numeric_limits<int>::max();
 		int hi = std::numeric_limits<int>::min();
@@ -146,6 +147,8 @@ public:
 			   << settings->color(Colors::consoleMessage).name().toStdString()
 			   << "\">" << escaped(i) << "</span>";
 		}
+		if (!additional.empty()) 
+			ss << "<br>" << escaped(additional);
 		interperter->doDisplay(QString::fromUtf8(ss.str().c_str()));
 	}
 

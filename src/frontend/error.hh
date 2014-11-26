@@ -37,8 +37,8 @@ public:
 	
 	virtual void reportError(std::string message,
 							 Token mainToken=Token(),
-							 std::initializer_list<CharRange> ranges={}) = 0;
-
+							 std::initializer_list<CharRange> ranges={},
+							 std::string additional="") = 0;
 	virtual size_t count() const = 0;
 };
 

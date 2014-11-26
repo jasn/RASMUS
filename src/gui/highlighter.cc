@@ -48,7 +48,7 @@ public:
 	size_t cnt;
 
 	void report(std::string message, f::Token mainToken, std::initializer_list<f::CharRange> ranges, 
-				IssueType type) {
+				IssueType type, std::string additional) {
 		int lo = std::numeric_limits<int>::max();
 		int hi = std::numeric_limits<int>::min();
 		if (mainToken) {
@@ -70,13 +70,13 @@ public:
 	void reportWarning(std::string message,
 					   f::Token mainToken,
 					   std::initializer_list<f::CharRange> ranges) override {
-		report(message, mainToken, ranges, IssueType::WARNING);
+		report(message, mainToken, ranges, IssueType::WARNING, "");
 	}
 	
 	void reportError(std::string message,
 					 f::Token mainToken,
-					 std::initializer_list<f::CharRange> ranges={}) override {
-		report(message, mainToken, ranges, IssueType::ERROR);
+					 std::initializer_list<f::CharRange> ranges={}, std::string additional="") override {
+		report(message, mainToken, ranges, IssueType::ERROR, additional);
 		++cnt;
 	}
 
@@ -89,7 +89,9 @@ public:
 				std::shared_ptr<f::Code>,
 				std::string,
 				f::Token,
-				std::vector<f::CharRange>) {}
+				std::vector<f::CharRange>,
+				std::string
+		) {}
 	
 	void report(f::MsgType, std::string) {}
 	

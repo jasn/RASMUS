@@ -34,14 +34,15 @@ public:
 	virtual void reportWarning(std::string message,
 							   Token mainToken,
 							   std::initializer_list<CharRange> ranges) override {
-		callback->report(MsgType::warning, code, message, mainToken, ranges);
+		callback->report(MsgType::warning, code, message, mainToken, ranges, "");
 	}
 	
 	virtual void reportError(std::string message,
 							 Token mainToken,
-							 std::initializer_list<CharRange> ranges) override {
+							 std::initializer_list<CharRange> ranges, 
+							 std::string additional) override {
 		++numberOfErrors;
-		callback->report(MsgType::error, code, message, mainToken, ranges);
+		callback->report(MsgType::error, code, message, mainToken, ranges, additional);
 	}
 
 	virtual size_t count() const {return numberOfErrors;}
@@ -60,7 +61,7 @@ public:
 	
 	virtual void reportError(std::string,
 							 Token,
-							 std::initializer_list<CharRange>) override {
+							 std::initializer_list<CharRange>, std::string) override {
 		++numberOfErrors;
 	}
 

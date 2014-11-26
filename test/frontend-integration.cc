@@ -31,7 +31,8 @@ public:
 				std::shared_ptr<Code>,
 				std::string message,
 				Token,
-				std::vector<CharRange>) override {
+				std::vector<CharRange>,
+				std::string) override {
 		report(type, message);
 	}
 	

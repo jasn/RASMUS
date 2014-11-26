@@ -31,6 +31,9 @@ add_library(frontend
   astPrinter.cc
   tokenizer.hh
   tokenizer.cc
+
+  strongType.hh
+  strongType.cc
 )
 
 target_link_libraries(frontend -L${LLVM_LIBRARY_DIR} ${LLVM_MODULE_LIBS} ${LLVM_LFLAGS} -lm stdlib)

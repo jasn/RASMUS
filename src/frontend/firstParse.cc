@@ -171,7 +171,10 @@ public:
 				else if (name == "pow") node->buildin = BuildIn::pow;
 				else if (name == "round") node->buildin = BuildIn::round;
 				else if (name == "sin") node->buildin = BuildIn::sin;
-				else if (name == "sqrt") node->buildin = BuildIn::sqrt;
+				else if (name == "sqrt") {
+					node->buildin = BuildIn::sqrt;
+					node->strongType = strongType::func(strongType::fp(), strongType::fp());
+				}
 				else if (name == "tan") node->buildin = BuildIn::tan;
 				else {
 					std::stringstream ss;
@@ -469,12 +472,84 @@ public:
 		typeCheck(node->leftPipeToken, node->exp, {TText, TRel, TTup});
         node->type = TInt;
 	}
+	
+	bool getFunctions(strongType::Ptr ft, std::vector<strongType::Ptr> & ans) {
+		bool afunc=false;
+		switch (ft->type()) {
+		case strongType::BaseType::AFunc:
+			afunc=true;
+			break;
+		case strongType::BaseType::Func:
+			ans.push_back(ft);
+			break;
+		case strongType::BaseType::Disjunction:
+			for (auto e: ft.getAs<strongType::Disjunction>()->entries) 
+				afunc = afunc || getFunctions(e, ans);
+			break;
+		default:
+			break;
+		}
 
+		return afunc;
+	}
+	
     void visit(std::shared_ptr<FuncInvocationExp> node) {
         visitNode(node->funcExp);
         visitAll(node->args);
-        node->type = TAny;
-        typeCheck(node->lparenToken, node->funcExp, {TFunc});
+		if (node->funcExp->strongType.get() && node->funcExp->type != TInvalid) {
+			std::vector<strongType::Ptr> argTypes;
+			for (auto arg: node->args) {
+				if (arg->strongType.get())
+					argTypes.push_back(arg->strongType);
+				else
+					argTypes.push_back(strongType::strong(arg->type));
+			}
+			std::vector<strongType::Ptr> fts;
+			if (getFunctions(node->funcExp->strongType, fts)) { //One of the functions is an any func
+				node->type = TAny;
+
+			} else if(fts.size() == 0) {
+				error->reportError("Tried to call none function", node->lparenToken, {node->funcExp->charRange});
+				node->type = TInvalid;
+			} else {
+				std::vector<strongType::Ptr> matchTypes;
+				for (auto f: fts) {
+					strongType::Func * ff=f.getAs<strongType::Func>();
+					if (ff->args.size() != argTypes.size()) continue;
+					bool ok=true;
+					for (size_t i=0; i < ff->args.size(); ++i) {
+						if (!strongType::match(argTypes[i], ff->args[i])) {
+							ok=false;
+							break;
+						}
+					}
+					if (!ok) continue;
+					matchTypes.push_back(ff->ret);	
+				}
+				
+				if (matchTypes.size() == 0) { //There where no functions we could call
+					std::stringstream ss;
+					ss << "Call (";
+					for (size_t i=0; i != argTypes.size(); ++i) {
+						if (i != 0) ss << ", ";
+						strongType::output(ss, argTypes[i]);
+					}
+					ss << "), does not match:\n";
+					for (size_t i=0; i < fts.size(); ++i) {
+						if (i != 0) ss << " or \n";
+						strongType::output(ss, fts[i]);
+					}
+					error->reportError("Invalid function call", node->lparenToken, {node->charRange}, ss.str());
+
+				} else {
+					node->strongType = strongType::disjunction(matchTypes);
+					node->type = strongType::plain(node->strongType);
+				}
+			}
+		} else {
+			node->type = TAny;
+			typeCheck(node->lparenToken, node->funcExp, {TFunc});
+		}
 	}
 
     void visit(std::shared_ptr<SubstringExp> node) {

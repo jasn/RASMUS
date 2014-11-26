@@ -84,7 +84,8 @@ void TerminalCallback::report(MsgType type,
 							  std::shared_ptr<Code> code,
 							  std::string message,
 							  Token mainToken,
-							  std::vector<CharRange> ranges) {
+							  std::vector<CharRange> ranges, 
+							  std::string additional) {
 	int lo = std::numeric_limits<int>::max();
 	int hi = std::numeric_limits<int>::min();
 	if (mainToken) {
@@ -139,8 +140,10 @@ void TerminalCallback::report(MsgType type,
 			i[std::max<int>(size_t(0), std::min<int>(mainToken.start + (mainToken.length-1) / 2 - startOfLine, endOfLine-startOfLine-1))] = '^';
 		std::cerr << blue << i << reset << std::endl;
 	}
+	if (!additional.empty()) 
+		std::cerr << additional << std::endl;
 }
-	
+
 void TerminalCallback::report(MsgType type, std::string message) {
 	switch (type) {
 	case MsgType::error:
