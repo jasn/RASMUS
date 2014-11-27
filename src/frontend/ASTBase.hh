@@ -90,8 +90,7 @@ public:
 	const NodeType nodeType;
 	bool tainted;
 	CharRange charRange;
-	/*Type type;*/
-	StrongType strongType;
+	Type type;
 	OwnedLLVMVal llvmVal;
 	BuildIn buildin;
 	Node(NodeType t): nodeType(t), tainted(false), buildin(BuildIn::invalid) {}

@@ -27,7 +27,7 @@
 namespace rasmus {
 namespace frontend {
 
-class StrongType {
+class Type {
 public:
 	class Container {
 	public: 
@@ -38,14 +38,14 @@ public:
 		Invalid, Any, Int, Float, Bool, Text, ARel, ATup, AFunc, Rel, Func, Tup, Disjunction
 	};
 
-	StrongType(): bits(0) {}
-	~StrongType() {reset(0);}
-	StrongType(StrongType && o): bits(o.bits) {o.bits = 0;}
-	StrongType(const StrongType & o): bits(0) {reset(o.bits); }
-	StrongType & operator=(const StrongType & o) {reset(o.bits); return *this; }
-	StrongType & operator=(StrongType && o) {reset(o.bits);	return *this; }
+	Type(): bits(0) {}
+	~Type() {reset(0);}
+	Type(Type && o): bits(o.bits) {o.bits = 0;}
+	Type(const Type & o): bits(0) {reset(o.bits); }
+	Type & operator=(const Type & o) {reset(o.bits); return *this; }
+	Type & operator=(Type && o) {reset(o.bits);	return *this; }
 
-	explicit StrongType(PlainType t): bits(0) {
+	explicit Type(PlainType t): bits(0) {
 		switch (t) {
 		case TAny: bits = (uint64_t)Any << 56; break;
 		case TInt: bits = (uint64_t)Int << 56; break;
@@ -85,28 +85,28 @@ public:
 
 	bool valid() const {return base() != Invalid;}
 
-	const StrongType & funcRet() const;
-	const std::vector<StrongType> & funcArgs() const;
+	const Type & funcRet() const;
+	const std::vector<Type> & funcArgs() const;
 	// We guarentee that disjunctions are relativly minimal, and that they do not contain other disjunctions
-	const std::vector<StrongType> & disjunctionParts() const;
-	const std::map<std::string, StrongType> & relTubSchema() const;
+	const std::vector<Type> & disjunctionParts() const;
+	const std::map<std::string, Type> & relTubSchema() const;
 	
-	static StrongType invalid() {return StrongType((uint64_t)Invalid << 56);}
-	static StrongType any() {return StrongType((uint64_t)Any << 56);}
-	static StrongType integer() {return StrongType((uint64_t)Int << 56);}
-	static StrongType fp() {return StrongType((uint64_t)Float << 56);}
-	static StrongType fpOrInt() {return disjunction({fp(), integer()});}
-	static StrongType boolean() {return StrongType((uint64_t)Bool << 56);}
-	static StrongType text() {return StrongType((uint64_t)Text << 56);}
-	static StrongType aRel() {return StrongType((uint64_t)ARel << 56);}
-	static StrongType aTup() {return StrongType((uint64_t)ATup << 56);}
-	static StrongType aFunc() {return StrongType((uint64_t)AFunc << 56);}
-	static StrongType rel(std::map<std::string, StrongType> schema);
-	static StrongType tup(std::map<std::string, StrongType> schema);
-	static StrongType func(StrongType ret, std::vector<StrongType> args);
-	static StrongType disjunction(std::vector<StrongType> parts);
+	static Type invalid() {return Type((uint64_t)Invalid << 56);}
+	static Type any() {return Type((uint64_t)Any << 56);}
+	static Type integer() {return Type((uint64_t)Int << 56);}
+	static Type fp() {return Type((uint64_t)Float << 56);}
+	static Type fpOrInt() {return disjunction({fp(), integer()});}
+	static Type boolean() {return Type((uint64_t)Bool << 56);}
+	static Type text() {return Type((uint64_t)Text << 56);}
+	static Type aRel() {return Type((uint64_t)ARel << 56);}
+	static Type aTup() {return Type((uint64_t)ATup << 56);}
+	static Type aFunc() {return Type((uint64_t)AFunc << 56);}
+	static Type rel(std::map<std::string, Type> schema);
+	static Type tup(std::map<std::string, Type> schema);
+	static Type func(Type ret, std::vector<Type> args);
+	static Type disjunction(std::vector<Type> parts);
 
-	static bool match(const StrongType & lhs, const StrongType & rhs);
+	static bool match(const Type & lhs, const Type & rhs);
 private:
 	// We assume that only the bottom 56-bits of a pointer are none-zero
 	// See http://en.wikipedia.org/wiki/X86-64#Virtual_address_space_details
@@ -146,12 +146,12 @@ private:
 	PlainType disjunctionPlain() const; 
 	void destroy();
 
-	StrongType(uint64_t b): bits(b) {}
+	Type(uint64_t b): bits(b) {}
 
 	uint64_t bits;
 };
 
-std::ostream & operator<<(std::ostream &, const StrongType &);
+std::ostream & operator<<(std::ostream &, const Type &);
 
 } //namespace frontend
 } //namespace rasmus

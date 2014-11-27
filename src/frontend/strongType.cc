@@ -25,36 +25,36 @@ namespace frontend {
 
 namespace {
 
-class FuncC: public StrongType::Container {
+class FuncC: public Type::Container {
 public:
-	StrongType ret;
-	std::vector<StrongType> args;
-	FuncC(StrongType ret, std::vector<StrongType> && args)
+	Type ret;
+	std::vector<Type> args;
+	FuncC(Type ret, std::vector<Type> && args)
 		: ret(ret)
 		, args(std::move(args)) {
 		refCnt=1;
 	}
 };
 
-class SchemaC: public StrongType::Container {
+class SchemaC: public Type::Container {
 public:
-	std::map<std::string, StrongType> entries;
-	SchemaC(std::map<std::string, StrongType> && entries)
+	std::map<std::string, Type> entries;
+	SchemaC(std::map<std::string, Type> && entries)
 		: entries(std::move(entries)) {
 		refCnt=1;
 	}
 };
 
-class DisjunctionC: public StrongType::Container {
+class DisjunctionC: public Type::Container {
 public:
-	DisjunctionC(std::vector<StrongType> && parts)
+	DisjunctionC(std::vector<Type> && parts)
 		: parts(std::move(parts)) {
 		refCnt=1;
 	}
-	std::vector<StrongType> parts;
+	std::vector<Type> parts;
 };
 
-void outputSchema(std::ostream &o, const std::map<std::string, StrongType> & entries) {
+void outputSchema(std::ostream &o, const std::map<std::string, Type> & entries) {
 	o << "(";
 	bool first = true;
 	for (const auto & p: entries) {
@@ -67,55 +67,52 @@ void outputSchema(std::ostream &o, const std::map<std::string, StrongType> & ent
 
 } //Nameless namespace
 
-const StrongType & StrongType::funcRet() const {
+const Type & Type::funcRet() const {
 	assert(base() == Func);
 	return static_cast<const FuncC*>(p())->ret;
 }
 
-const std::vector<StrongType> & StrongType::funcArgs() const {
+const std::vector<Type> & Type::funcArgs() const {
 	assert(base() == Func);
 	return static_cast<const FuncC*>(p())->args;
 }
 
-const std::vector<StrongType> & StrongType::disjunctionParts() const {
+const std::vector<Type> & Type::disjunctionParts() const {
 	assert(base() == Disjunction);
 	return static_cast<const DisjunctionC*>(p())->parts;
 }
 
-const std::map<std::string, StrongType> & StrongType::relTubSchema() const {
+const std::map<std::string, Type> & Type::relTubSchema() const {
 	assert(base() == Tub || base() == Rel);
 	return static_cast<const SchemaC*>(p())->entries;
 }
 
-StrongType StrongType::rel(std::map<std::string, StrongType> schema) {
+Type Type::rel(std::map<std::string, Type> schema) {
 	union {uint64_t bb; Container * pp; };
 	pp = new SchemaC(std::move(schema));
 	assert((bb >> 56) == 0);
 	bb |= (uint64_t)Rel << 56;
-	return StrongType(bb);
+	return Type(bb);
 }
 
-StrongType StrongType::tup(std::map<std::string, StrongType> schema) {
+Type Type::tup(std::map<std::string, Type> schema) {
 	union {uint64_t bb; Container * pp; };
 	pp = new SchemaC(std::move(schema));
 	assert((bb >> 56) == 0);
 	bb |= (uint64_t)Tup << 56;
-	return StrongType(bb);
+	return Type(bb);
 }
 
-StrongType StrongType::func(StrongType ret, std::vector<StrongType> args) {
+Type Type::func(Type ret, std::vector<Type> args) {
 	union {uint64_t bb; Container * pp; };
 	pp = new FuncC(std::move(ret), std::move(args));
 	assert((bb >> 56) == 0);
 	bb |= (uint64_t)Func << 56;
-	return StrongType(bb);
+	return Type(bb);
 }
 
-
-
-
-StrongType StrongType::disjunction(std::vector<StrongType> parts) {
-	std::vector<StrongType> rparts;
+Type Type::disjunction(std::vector<Type> parts) {
+	std::vector<Type> rparts;
 	for (auto && part: parts) {
 		if (part.base() == Disjunction) 
 			for (const auto & p: part.disjunctionParts())
@@ -153,7 +150,7 @@ StrongType StrongType::disjunction(std::vector<StrongType> parts) {
 			break;
 		}
 	}
-	std::vector<StrongType> ret;
+	std::vector<Type> ret;
 	if ((has & HANY) == HANY) return any();
 	if (has & HBOOL) ret.push_back(boolean());
 	if (has & HFLOAT) ret.push_back(fp());
@@ -188,10 +185,10 @@ StrongType StrongType::disjunction(std::vector<StrongType> parts) {
 	pp = new DisjunctionC(std::move(ret));
 	assert((bb >> 56) == 0);
 	bb |= (uint64_t)Disjunction << 56;
-	return StrongType(bb);
+	return Type(bb);
 }
 
-PlainType StrongType::disjunctionPlain() const {
+PlainType Type::disjunctionPlain() const {
 	assert(base() == Disjunction);
 	const int HBOOL=1;
 	const int HFLOAT=2;
@@ -235,7 +232,7 @@ PlainType StrongType::disjunctionPlain() const {
 	}
 }
 
-void StrongType::destroy() {
+void Type::destroy() {
 	switch(base()) {
 	case Func:
 		assert(p()->refCnt==0);
@@ -255,22 +252,22 @@ void StrongType::destroy() {
 	}
 }
 
-std::ostream & operator<<(std::ostream & o, const StrongType & t) {
+std::ostream & operator<<(std::ostream & o, const Type & t) {
 	switch (t.base()) {
-	case StrongType::Invalid: return o << "Invalid";
-	case StrongType::Any: return o << "Any";
-	case StrongType::Int: return o << "Int";
-	case StrongType::Float: return o << "Float";
-	case StrongType::Bool: return o << "Bool";
-	case StrongType::Text: return o << "Text";
-	case StrongType::ARel: return o << "Rel";
-	case StrongType::ATup: return o << "Tup";
-	case StrongType::AFunc: return o << "Func";
-	case StrongType::Rel: 
+	case Type::Invalid: return o << "Invalid";
+	case Type::Any: return o << "Any";
+	case Type::Int: return o << "Int";
+	case Type::Float: return o << "Float";
+	case Type::Bool: return o << "Bool";
+	case Type::Text: return o << "Text";
+	case Type::ARel: return o << "Rel";
+	case Type::ATup: return o << "Tup";
+	case Type::AFunc: return o << "Func";
+	case Type::Rel: 
 		o << "Rel";
 		outputSchema(o, t.relTubSchema());
 		return o;
-	case StrongType::Func: {
+	case Type::Func: {
 		o << "Func(";
 		bool first=true;
 		for (const auto & e: t.funcArgs()) {
@@ -280,11 +277,11 @@ std::ostream & operator<<(std::ostream & o, const StrongType & t) {
 		}
 		return o << ")->(" << t.funcRet() << ")";
 	}
-	case StrongType::Tup: 
+	case Type::Tup: 
 		o << "Rel";
 		outputSchema(o, t.relTubSchema());
 		return o;
-	case StrongType::Disjunction: {
+	case Type::Disjunction: {
  		bool first=true;
  		for (const auto & e: t.disjunctionParts()) {
  			if (first) first=false;
@@ -298,14 +295,14 @@ std::ostream & operator<<(std::ostream & o, const StrongType & t) {
 }
 
 bool matchSchema(
-	const std::map<std::string, StrongType> & lhs, 
-	const std::map<std::string, StrongType> & rhs) {
+	const std::map<std::string, Type> & lhs, 
+	const std::map<std::string, Type> & rhs) {
 
 	auto il=lhs.begin();
 	auto ir=rhs.begin();
 	while (il != lhs.end() && ir != rhs.end()) {
 		if (il->first != ir->first) return false;
-		if (!StrongType::match(il->second, ir->second)) return false;
+		if (!Type::match(il->second, ir->second)) return false;
 		++il;
 		++ir;
 	}
@@ -313,7 +310,7 @@ bool matchSchema(
 }
 						
 
-bool StrongType::match(const StrongType & lhs, const StrongType & rhs) {
+bool Type::match(const Type & lhs, const Type & rhs) {
 	const Base lb=lhs.base();
 	const Base rb=rhs.base();
 	if (lb == Disjunction) {

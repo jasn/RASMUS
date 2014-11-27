@@ -659,7 +659,7 @@ public:
 	 * \brief Visit a child node, and cast the result to a given type
 	 */
 	LLVMVal castVisit(NodePtr node, ::PlainType tto) {
-		return cast(visitNode(node), node->strongType.plain(), tto, node);
+		return cast(visitNode(node), node->type.plain(), tto, node);
 	}
 
 	/**
@@ -989,11 +989,11 @@ public:
 		if (i == N) {
 			if (ops.size() > 1) ICE("Multiple identical binops", node);
 			LLVMVal v=doCall(typename gens<N>::type(), ops[0].func, args);
-			LLVMVal r(cast(std::move(v), ops[0].ret, node->strongType.plain(), node));
+			LLVMVal r(cast(std::move(v), ops[0].ret, node->type.plain(), node));
 			return r;
 		}
 		
-		::PlainType type=childs[i]->strongType.plain();
+		::PlainType type=childs[i]->type.plain();
 		
 		if (type != TAny) {
 			std::vector<oi_t> matches;
@@ -1015,7 +1015,7 @@ public:
 			
 			Value * value=nullptr;
 			Value * type=nullptr;
-			switch (node->strongType.plain()) {
+			switch (node->type.plain()) {
 			case TText:
 			case TRel:
 			case TTup:
@@ -1035,7 +1035,7 @@ public:
 				type = builder.CreateAlloca(int8Type);
 				break;
 			default:
-				ICE("Unhandled", node->strongType.plain(), node);
+				ICE("Unhandled", node->type.plain(), node);
 			}
 
 
@@ -1069,7 +1069,7 @@ public:
 					args[i] = BorrowedLLVMVal(builder.CreateIntToPtr(vals[i].value, voidPtrType));
 					break;
 				default:
-					ICE("Unhandled", node->strongType.plain(), node);
+					ICE("Unhandled", node->type.plain(), node);
 			
 				};
 				
@@ -1124,7 +1124,7 @@ public:
 		for (auto op: ops) {
 			bool ok=true;
 			for (size_t i=0; i < N; ++i)
-				ok = ok && (childs[i]->strongType.plain() == op.types[i] || childs[i]->strongType.plain() == TAny);
+				ok = ok && (childs[i]->type.plain() == op.types[i] || childs[i]->type.plain() == TAny);
 			if (!ok) continue;
 			matches.push_back(op);
 		}
@@ -1134,7 +1134,7 @@ public:
 			vals[i]=visitNode(childs[i]);
 		LLVMVal r=opImp_<oi_t, N>(0, matches, node, vals, childs, args);
 		for (size_t i=0; i < N; ++i)
-			disown(vals[i], childs[i]->strongType.plain());
+			disown(vals[i], childs[i]->type.plain());
 		return  r;
 	}
 
@@ -1156,7 +1156,7 @@ public:
 		return takeOwnership(cast(BorrowedLLVMVal(
 								 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0, "value_addr"), "value"), 
 								 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1, "type_addr"), "type")),
-								  TAny, node->strongType.plain(), node), node->strongType.plain());
+								  TAny, node->type.plain(), node), node->type.plain());
 			
 	}
 	
@@ -1172,14 +1172,14 @@ public:
 	
 	/** \brief Codegen for an assignment */
 	LLVMVal visit(std::shared_ptr<AssignmentExp> node) {
-		LLVMVal val = castVisit(node->valueExp, node->strongType.plain());
+		LLVMVal val = castVisit(node->valueExp, node->type.plain());
 		if (node->globalId == NOT_GLOBAL) {
-			node->llvmVal=takeOwnership(borrow(val), node->strongType.plain());
+			node->llvmVal=takeOwnership(borrow(val), node->type.plain());
 			return val;
 		}
 
 		{
-			BorrowedLLVMVal v2 = cast(borrow(val), node->strongType.plain(), TAny, node);
+			BorrowedLLVMVal v2 = cast(borrow(val), node->type.plain(), TAny, node);
 			builder.CreateCall3(getStdlibFunc("rm_saveGlobalAny"), 
 								globalString(node->nameToken),
 								v2.value,
@@ -1193,7 +1193,7 @@ public:
 	LLVMVal visit(std::shared_ptr<IfExp> node) {
 		Value * value=nullptr;
 		Value * type=nullptr;
-		switch (node->strongType.plain()) {
+		switch (node->type.plain()) {
 		case TText:
 		case TRel:
 		case TTup:
@@ -1214,7 +1214,7 @@ public:
 			type = builder.CreateAlloca(int8Type);
 			break;
 		default:
-			ICE("Unhandled", node->strongType.plain(), node);
+			ICE("Unhandled", node->type.plain(), node);
 		}
 
 
@@ -1231,7 +1231,7 @@ public:
 		 	}
 
 			if (ci && ci->equalsInt(3)) {
-				LLVMVal v=takeOwnership(castVisit(choice->value, node->strongType.plain()), node->strongType.plain());
+				LLVMVal v=takeOwnership(castVisit(choice->value, node->type.plain()), node->type.plain());
 				builder.CreateStore(v.value, value);
 				if (type) builder.CreateStore(v.type, type);
 				forgetOwnership(v);
@@ -1243,7 +1243,7 @@ public:
 				builder.CreateCondBr(builder.CreateICmpEQ(cond.value, trueBool), b1, b2);
 				
 				builder.SetInsertPoint(b1);
-				LLVMVal v=takeOwnership(castVisit(choice->value, node->strongType.plain()), node->strongType.plain());
+				LLVMVal v=takeOwnership(castVisit(choice->value, node->type.plain()), node->type.plain());
 				builder.CreateStore(v.value, value);
 				if (type) builder.CreateStore(v.type, type);
 				forgetOwnership(v);
@@ -1255,8 +1255,8 @@ public:
 		}
 		
 		if (!done) {
-			if (hasUndef(node->strongType.plain())) {
-				LLVMVal v=takeOwnership(getUndef(node->strongType.plain()), node->strongType.plain());
+			if (hasUndef(node->type.plain())) {
+				LLVMVal v=takeOwnership(getUndef(node->type.plain()), node->type.plain());
 				builder.CreateStore(v.value, value);
 				if (type) builder.CreateStore(v.type, type);
 				forgetOwnership(v);			
@@ -1315,7 +1315,7 @@ public:
 			pointerType(ft), //Function ptr
 		};
 		for (auto cap: node->captures)
-			captureContent.push_back(llvmType(cap->strongType.plain()));
+			captureContent.push_back(llvmType(cap->type.plain()));
 		
 		StructType * captureType = StructType::create(getGlobalContext(), captureContent);
 		assert(captureType->isSized());
@@ -1340,8 +1340,8 @@ public:
 
 			//go through the capture list and abandon all
 			for (size_t i=0; i < node->captures.size(); ++i) {
-				OwnedLLVMVal val(stealOwnership(loadValue(selfv, {0, 5+(int)i}, node->captures[i]->strongType.plain())));
-				disown(val, node->captures[i]->strongType.plain());
+				OwnedLLVMVal val(stealOwnership(loadValue(selfv, {0, 5+(int)i}, node->captures[i]->type.plain())));
+				disown(val, node->captures[i]->type.plain());
 			}
 
 			builder.CreateRetVoid();
@@ -1374,15 +1374,15 @@ public:
 				++arg;
 				Value * t = &(*arg);
 				++arg;
-				a->llvmVal = stealOwnership(cast(BorrowedLLVMVal(v, t), TAny, a->strongType.plain(), a));
+				a->llvmVal = stealOwnership(cast(BorrowedLLVMVal(v, t), TAny, a->type.plain(), a));
 			}
 
 			for (size_t i=0; i < node->captures.size(); ++i)
-				node->captures[i]->llvmVal = stealOwnership(loadValue(selfv, {0, 5+(int)i}, node->captures[i]->strongType.plain()));
+				node->captures[i]->llvmVal = stealOwnership(loadValue(selfv, {0, 5+(int)i}, node->captures[i]->type.plain()));
         
 			// Build function code
 			OwnedLLVMVal x = cast(
-				takeOwnership(visitNode(node->body), node->body->strongType.plain()), node->body->strongType.plain(), TAny, node->body);
+				takeOwnership(visitNode(node->body), node->body->type.plain()), node->body->type.plain(), TAny, node->body);
 			
 			for (auto a: node->args)
 				forgetOwnership(a->llvmVal);
@@ -1414,8 +1414,8 @@ public:
 		for (size_t i=0; i < node->captures.size(); ++i) {
 			std::shared_ptr<FuncCaptureValue> fcv = node->captures[i];
 			LLVMVal v=readNamedVariable(fcv->nameToken, fcv->store, fcv);
-			saveValue(p, {0, 5+(int)i}, borrow(v), fcv->strongType.plain());
-			disown(v, fcv->strongType.plain());
+			saveValue(p, {0, 5+(int)i}, borrow(v), fcv->type.plain());
+			disown(v, fcv->type.plain());
 		}
 
 		return OwnedLLVMVal(builder.CreatePointerCast(p, voidPtrType, "func"));
@@ -1429,7 +1429,7 @@ public:
 		for (size_t i=0; i < exp->items.size(); ++i) {
 			auto item = exp->items[i];
 			values.push_back( visitNode(item->exp) );
-			BorrowedLLVMVal v = cast(borrow(values.back()), item->exp->strongType.plain(), TAny, item->exp);
+			BorrowedLLVMVal v = cast(borrow(values.back()), item->exp->type.plain(), TAny, item->exp);
 			
 			builder.CreateStore(globalString(item->nameToken), builder.CreateConstGEP2_32(entries, i, 0)); //name
 			builder.CreateStore(v.value, builder.CreateConstGEP2_32(entries, i, 1)); //value
@@ -1440,20 +1440,20 @@ public:
 										   entries, packCharRange(exp)));
 		
 		for (size_t i=0; i < exp->items.size(); ++i)
-			disown(values[i], exp->items[i]->exp->strongType.plain());
+			disown(values[i], exp->items[i]->exp->type.plain());
 		return LLVMVal(std::move(r));
 	}
 
 	/** \brief Codegen for a block */
 	LLVMVal visit(std::shared_ptr<BlockExp> node) {
 		for (auto v: node->vals)
-			v->exp->llvmVal = takeOwnership(visitNode(v->exp), v->exp->strongType.plain());
+			v->exp->llvmVal = takeOwnership(visitNode(v->exp), v->exp->type.plain());
 
 		// This could be a reference to one of the vals, so we take ownership
-		OwnedLLVMVal r = takeOwnership(visitNode(node->inExp), node->inExp->strongType.plain()); 
+		OwnedLLVMVal r = takeOwnership(visitNode(node->inExp), node->inExp->type.plain()); 
 		
 		for (auto v: node->vals) 
-			disown(v->exp->llvmVal, v->exp->strongType.plain());
+			disown(v->exp->llvmVal, v->exp->type.plain());
 		
 		return LLVMVal(std::move(r));
 	}
@@ -1466,7 +1466,7 @@ public:
 		// emit an error. If it's a TAny, though, we need to
 		// perform the check on runtime
 		if(node->args.size() > 1){
-			if(node->args[0]->strongType.plain() == TRel || node->args[0]->strongType.plain() == TTup){
+			if(node->args[0]->type.plain() == TRel || node->args[0]->type.plain() == TTup){
 				// in this case we just delegate to the standard library
 				return opImp(
 					{
@@ -1491,7 +1491,7 @@ public:
 							}, node, node->args[0]);
 					
 			}
-			else if(node->args[0]->strongType.plain() == TAny){
+			else if(node->args[0]->type.plain() == TAny){
 				// in this case we must check the type at runtime
 
 				LLVMVal v = castVisit(node->args[0], TAny);
@@ -1574,20 +1574,20 @@ public:
 				// not a TAny nor a TRel/TTup,
 				// emit an error at compiletime
 				rm_emitIsTypeError(node->charRange.lo, node->charRange.hi,
-					node->args[0]->strongType.plain());
+					node->args[0]->type.plain());
 				__builtin_unreachable();
 			}
 		}
-		else if(node->args[0]->strongType.plain() == TAny){
+		else if(node->args[0]->type.plain() == TAny){
 			LLVMVal v = castVisit(node->args[0], TAny);
 			LLVMVal r = cast(OwnedLLVMVal(builder.CreateSelect(
 											  builder.CreateICmpEQ(v.type, typeRepr(wantedType)),
 											  trueBool,
-											  falseBool)), TBool, node->strongType.plain(), node);
+											  falseBool)), TBool, node->type.plain(), node);
 			disown(v, TAny);
 			return r;
 		}
-		else if(node->args[0]->strongType.plain() == wantedType)
+		else if(node->args[0]->type.plain() == wantedType)
 			return OwnedLLVMVal(trueBool);
 		else
 			return OwnedLLVMVal(falseBool);
@@ -1679,7 +1679,7 @@ public:
 		}
 		case TokenType::TK_ISATOM:
 		{
-			if(node->args[0]->strongType.plain() == TAny){
+			if(node->args[0]->type.plain() == TAny){
 				LLVMVal v = castVisit(node->args[0], TAny);
 				LLVMVal r = cast(OwnedLLVMVal(builder.CreateSelect(
 												  builder.CreateICmpEQ(v.type, typeRepr(TInt)),
@@ -1694,14 +1694,14 @@ public:
 															  builder.CreateICmpEQ(v.type, typeRepr(TText)),
 															  trueBool,
 															  falseBool
-															  ))))), TBool, node->strongType.plain(), node);
+															  ))))), TBool, node->type.plain(), node);
 				disown(v, TAny);
 				return r;
 			}
-			else if(node->args[0]->strongType.plain() == TBool || 
-					node->args[0]->strongType.plain() == TInt || 
-					node->args[0]->strongType.plain() == TFloat || 
-					node->args[0]->strongType.plain() == TText)
+			else if(node->args[0]->type.plain() == TBool || 
+					node->args[0]->type.plain() == TInt || 
+					node->args[0]->type.plain() == TFloat || 
+					node->args[0]->type.plain() == TText)
 				return OwnedLLVMVal(trueBool);
 			else
 				return OwnedLLVMVal(falseBool);
@@ -1895,7 +1895,7 @@ public:
 		LLVMVal s = castVisit(node->stringExp, TText);
 		LLVMVal f = castVisit(node->fromExp, TInt);
 		LLVMVal t = castVisit(node->toExp, TInt);
-		LLVMVal r = cast(OwnedLLVMVal(builder.CreateCall3(getStdlibFunc("rm_substrText"), s.value, f.value, t.value)), TText, node->strongType.plain(), node);
+		LLVMVal r = cast(OwnedLLVMVal(builder.CreateCall3(getStdlibFunc("rm_substrText"), s.value, f.value, t.value)), TText, node->type.plain(), node);
 		disown(s, TText);
 		disown(f, TInt);
 		disown(t, TInt);
@@ -1925,7 +1925,7 @@ public:
 		
 		OwnedLLVMVal r=cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
 										 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1))),
-							TAny, node->strongType.plain(), node);
+							TAny, node->type.plain(), node);
 		disown(tup, TTup);
 		return LLVMVal(std::move(r));
 	}
@@ -2177,7 +2177,7 @@ public:
 		for(auto n: node->sequence) {
 			disown(x, t);
 			x = visitNode(n);
-			t=n->strongType.plain();
+			t=n->type.plain();
 		}
 		
 		LLVMVal ret=takeOwnership(std::move(x), t);
@@ -2186,7 +2186,7 @@ public:
 			if (n->nodeType != NodeType::AssignmentExp) continue;
 			std::shared_ptr<AssignmentExp> a=std::static_pointer_cast<AssignmentExp>(n);
 			if (a->globalId != NOT_GLOBAL) continue;
-			disown(a->llvmVal, a->strongType.plain());
+			disown(a->llvmVal, a->type.plain());
 		}
 
 		return ret;
@@ -2204,7 +2204,7 @@ public:
 		BasicBlock * block = BasicBlock::Create(getGlobalContext(), "entry", function);
 		builder.SetInsertPoint(block);
 		LLVMVal val=visitNode(ast);
-		disown(val, ast->strongType.plain());
+		disown(val, ast->type.plain());
 		builder.CreateRetVoid();
 		finishFunction(function);
 		return function ;

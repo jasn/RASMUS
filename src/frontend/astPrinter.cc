@@ -103,7 +103,7 @@ public:
 				s.dumper.doPropHead("node");
 				o << s.name;
 				s.dumper.doPropHead("type");
-				o << s.node->strongType;
+				o << s.node->type;
 			}
 			return o;
 		}
