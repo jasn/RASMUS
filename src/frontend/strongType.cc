@@ -68,22 +68,22 @@ void outputSchema(std::ostream &o, const std::map<std::string, Type> & entries) 
 } //Nameless namespace
 
 const Type & Type::funcRet() const {
-	assert(base() == Func);
+	assert(kind() == Func);
 	return static_cast<const FuncC*>(p())->ret;
 }
 
 const std::vector<Type> & Type::funcArgs() const {
-	assert(base() == Func);
+	assert(kind() == Func);
 	return static_cast<const FuncC*>(p())->args;
 }
 
 const std::vector<Type> & Type::disjunctionParts() const {
-	assert(base() == Disjunction);
+	assert(kind() == Disjunction);
 	return static_cast<const DisjunctionC*>(p())->parts;
 }
 
 const std::map<std::string, Type> & Type::relTubSchema() const {
-	assert(base() == Tub || base() == Rel);
+	assert(kind() == Tub || kind() == Rel);
 	return static_cast<const SchemaC*>(p())->entries;
 }
 
@@ -111,10 +111,11 @@ Type Type::func(Type ret, std::vector<Type> args) {
 	return Type(bb);
 }
 
+
 Type Type::disjunction(std::vector<Type> parts) {
 	std::vector<Type> rparts;
 	for (auto && part: parts) {
-		if (part.base() == Disjunction) 
+		if (part.kind() == Disjunction) 
 			for (const auto & p: part.disjunctionParts())
 				rparts.push_back(p);
 		else
@@ -131,7 +132,7 @@ Type Type::disjunction(std::vector<Type> parts) {
 	const int HANY=127;
 	int has=0;
 	for (const auto & part: rparts) {
-		switch(part.base()) {
+		switch(part.kind()) {
 		case Invalid: return invalid();
 		case Any: has |= HANY; break;
 		case Int: has |= HINT; break;
@@ -161,7 +162,7 @@ Type Type::disjunction(std::vector<Type> parts) {
 	if (has & HAFUNC) ret.push_back(aFunc());
 
 	for (auto && part: rparts) {
-		switch(part.base()) {
+		switch(part.kind()) {
 		case Rel: 
 			if ((has & HAREL) == 0) ret.emplace_back(std::move(part));
 			break;
@@ -189,7 +190,7 @@ Type Type::disjunction(std::vector<Type> parts) {
 }
 
 PlainType Type::disjunctionPlain() const {
-	assert(base() == Disjunction);
+	assert(kind() == Disjunction);
 	const int HBOOL=1;
 	const int HFLOAT=2;
 	const int HINT=4;
@@ -200,7 +201,7 @@ PlainType Type::disjunctionPlain() const {
 	const int HANY=127;
 	int has=0;
 	for (const auto & part: disjunctionParts()) {
-		switch(part.base()) {
+		switch(part.kind()) {
 		case Invalid: return TInvalid;
 		case Any: has |= HANY; break;
 		case Int: has |= HINT; break;
@@ -233,7 +234,7 @@ PlainType Type::disjunctionPlain() const {
 }
 
 void Type::destroy() {
-	switch(base()) {
+	switch(kind()) {
 	case Func:
 		assert(p()->refCnt==0);
 		delete static_cast<FuncC*>(p());
@@ -253,7 +254,7 @@ void Type::destroy() {
 }
 
 std::ostream & operator<<(std::ostream & o, const Type & t) {
-	switch (t.base()) {
+	switch (t.kind()) {
 	case Type::Invalid: return o << "Invalid";
 	case Type::Any: return o << "Any";
 	case Type::Int: return o << "Int";
@@ -311,8 +312,8 @@ bool matchSchema(
 						
 
 bool Type::match(const Type & lhs, const Type & rhs) {
-	const Base lb=lhs.base();
-	const Base rb=rhs.base();
+	const Kind lb=lhs.kind();
+	const Kind rb=rhs.kind();
 	if (lb == Disjunction) {
 		for (const auto & part: lhs.disjunctionParts()) 
 			if (match(part, rhs)) return true;

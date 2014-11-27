@@ -34,7 +34,7 @@ public:
 		uint64_t refCnt;
 	};
 
-	enum Base : int8_t {
+	enum Kind : int8_t {
 		Invalid, Any, Int, Float, Bool, Text, ARel, ATup, AFunc, Rel, Func, Tup, Disjunction
 	};
 
@@ -61,12 +61,12 @@ public:
 		}
 	}
 	
-	Base base() const {
-		return (Base)(bits >> 56);
+	Kind kind() const {
+		return (Kind)(bits >> 56);
 	}
 	
 	PlainType plain() const {
-		switch (base()) {
+		switch (Kind()) {
 		case Any: return TAny;
 		case Int: return TInt;
 		case Float: return TFloat;
@@ -83,7 +83,7 @@ public:
 		}
 	}
 
-	bool valid() const {return base() != Invalid;}
+	bool valid() const {return kind() != Invalid;}
 
 	const Type & funcRet() const;
 	const std::vector<Type> & funcArgs() const;
@@ -119,7 +119,7 @@ private:
 
 	void reset(uint64_t newBits) {
 		if (newBits == bits) return;
-		switch (base()) {
+		switch (kind()) {
 		case Func:
 		case Disjunction:
 		case Rel:
@@ -131,7 +131,7 @@ private:
 			break;
 		}
 		bits = newBits;
-		switch (base()) {
+		switch (kind()) {
 		case Func:
 		case Disjunction:
 		case Rel:

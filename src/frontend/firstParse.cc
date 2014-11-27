@@ -85,7 +85,7 @@ public:
 			return true;
 
 		std::stringstream ss;
-		if (t.base() == Type::Disjunction)
+		if (t.kind() == Type::Disjunction)
 			ss << "Expected one of ";
 		else
 			ss << "Expected type ";
@@ -475,7 +475,7 @@ public:
 	
 	bool getFunctions(Type ft, std::vector<Type> & ans) {
 		bool afunc=false;
-		switch (ft.base()) {
+		switch (ft.kind()) {
 		case Type::AFunc:
 			afunc=true;
 			break;
@@ -496,12 +496,12 @@ public:
         visitNode(node->funcExp);
         visitAll(node->args);
 
-		if (node->funcExp->type.base() == Type::Any) {
+		if (node->funcExp->type.kind() == Type::Any) {
 			node->type = Type::any();
 			return;
 		}
 		
-		if (node->funcExp->type.base() == Type::Invalid) {
+		if (node->funcExp->type.kind() == Type::Invalid) {
 			node->type = Type::invalid();
 			return;
 		}
