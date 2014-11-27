@@ -91,7 +91,7 @@ public:
 	bool tainted;
 	CharRange charRange;
 	Type type;
-	strongType::Ptr strongType;
+	StrongType strongType;
 	OwnedLLVMVal llvmVal;
 	BuildIn buildin;
 	Node(NodeType t): nodeType(t), tainted(false), type(TInvalid), buildin(BuildIn::invalid) {}

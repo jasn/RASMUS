@@ -23,87 +23,137 @@
 #include <shared/type.hh>
 #include <stdlib.h>
 #include <vector>
-
+#include <map>
 namespace rasmus {
 namespace frontend {
-namespace strongType {
 
-enum class BaseType {
-	Any, Int, Float, Bool, Text, ARel, ATup, AFunc, Func, Rel, Tup, Disjunction, None
-};
-
-class Base {
+class StrongType {
 public:
-	Base(BaseType type): m_type(type), ref_cnt(0) {}
-	
-	void incref() {
-		ref_cnt++;
+	class Container {
+	public: 
+		uint64_t refCnt;
+	};
+
+	enum Base : int8_t {
+		None, Any, Int, Float, Bool, Text, ARel, ATup, AFunc, Rel, Func, Tup, Disjunction
+	};
+
+	StrongType(): bits(0) {}
+	~StrongType() {reset(0);}
+	StrongType(StrongType && o): bits(o.bits) {o.bits = 0;}
+	StrongType(const StrongType & o): bits(0) {reset(o.bits); }
+	StrongType & operator=(const StrongType & o) {reset(o.bits); return *this; }
+	StrongType & operator=(StrongType && o) {reset(o.bits);	return *this; }
+
+	explicit StrongType(Type t): bits(0) {
+		switch (t) {
+		case TAny: bits = (uint64_t)Any << 56; break;
+		case TInt: bits = (uint64_t)Int << 56; break;
+		case TFloat: bits = (uint64_t)Float << 56; break;
+		case TBool: bits = (uint64_t)Bool << 56; break;
+		case TText: bits = (uint64_t)Text << 56; break;
+		case TRel: bits = (uint64_t)ARel << 56; break;
+		case TTup: bits = (uint64_t)ATup << 56; break;
+		case TFunc: bits = (uint64_t)AFunc << 56; break;
+		case TInvalid:
+		case TAtom:
+		case TNAMEQ:
+			bits = (uint64_t)None << 56;
+			break;
+		}
 	}
 	
-	void decref() {
-		--ref_cnt;
-		if (ref_cnt == 0)
-			destroy();
+	Base base() const {
+		return (Base)(bits >> 56);
 	}
 	
-	void destroy();
-	
-	BaseType type() const {
-		return m_type;
+	Type plain() const {
+		switch (base()) {
+		case Any: return TAny;
+		case Int: return TInt;
+		case Float: return TFloat;
+		case Bool: return TBool;
+		case Text: return TText;
+		case ARel: return TRel;
+		case Rel: return TRel;
+		case ATup: return TTup;
+		case Tup: return TTup;
+		case AFunc: return TFunc;
+		case Func: return TFunc;
+		case Disjunction: return disjunctionPlain();
+		default: return TInvalid;
+		}
 	}
+
+	bool valid() const {return base() != None;}
+
+	const StrongType & funcRet() const;
+	const std::vector<StrongType> & funcArgs() const;
+	// We guarentee that disjunctions are relativly minimal, and that they do not contain other disjunctions
+	const std::vector<StrongType> & disjunctionParts() const;
+	const std::map<std::string, StrongType> & relTubSchema() const;
 	
+	static StrongType none() {return StrongType((uint64_t)None << 56);}
+	static StrongType any() {return StrongType((uint64_t)Any << 56);}
+	static StrongType integer() {return StrongType((uint64_t)Int << 56);}
+	static StrongType fp() {return StrongType((uint64_t)Float << 56);}
+	static StrongType boolean() {return StrongType((uint64_t)Bool << 56);}
+	static StrongType text() {return StrongType((uint64_t)Text << 56);}
+	static StrongType aRel() {return StrongType((uint64_t)ARel << 56);}
+	static StrongType aTup() {return StrongType((uint64_t)ATup << 56);}
+	static StrongType aFunc() {return StrongType((uint64_t)AFunc << 56);}
+	static StrongType rel(std::map<std::string, StrongType> schema);
+	static StrongType tup(std::map<std::string, StrongType> schema);
+	static StrongType func(StrongType ret, std::vector<StrongType> args);
+	static StrongType disjunction(std::vector<StrongType> parts);
+
+	static bool match(const StrongType & lhs, const StrongType & rhs);
 private:
-	BaseType m_type;
-	size_t ref_cnt;
+	// We assume that only the bottom 56-bits of a pointer are none-zero
+	// See http://en.wikipedia.org/wiki/X86-64#Virtual_address_space_details
+
+	Container * p() const {
+		union {uint64_t bb; Container * pp; };
+		bb = bits & 0x7FFFFFFFFFFFFFll;
+		return pp;
+	}
+
+	void reset(uint64_t newBits) {
+		if (newBits == bits) return;
+		switch (base()) {
+		case Func:
+		case Disjunction:
+		case Rel:
+		case Tup:
+			p()->refCnt--;
+			if (p()->refCnt == 0) destroy();
+			break;
+		default:
+			break;
+		}
+		bits = newBits;
+		switch (base()) {
+		case Func:
+		case Disjunction:
+		case Rel:
+		case Tup:
+			p()->refCnt++;
+			break;
+		default:
+			break;
+		}
+	}
+
+	Type disjunctionPlain() const; 
+	void destroy();
+
+	StrongType(uint64_t b): bits(b) {}
+
+	uint64_t bits;
 };
 
-typedef stdlib::RefPtr<Base> Ptr;
+std::ostream & operator<<(std::ostream &, const StrongType &);
 
-class Func: public Base {
-public:
-	Ptr ret;
-	std::vector<Ptr> args;  
-	template <typename ...T>
-	Func(Ptr ret, T...ts): Base(BaseType::Func), ret(ret), args({ts...}) {}
-};
-
-// Logical constructs
-class Disjunction: public Base {
-public:
-	std::vector<Ptr> entries;
-  
-	Disjunction(std::vector<Ptr> entries): Base(BaseType::Disjunction), entries(entries) {}
-};
-
-template <typename ...T>
-Ptr func(Ptr ret, T ... args) {return Ptr(new Func(ret, args...));}
-
-inline Ptr fp() {return Ptr(new Base(BaseType::Float));}
-inline Ptr none() {return Ptr(new Base(BaseType::None));}
-inline Ptr any() {return Ptr(new Base(BaseType::Any));}
-inline Ptr integer() {return Ptr(new Base(BaseType::Int));}
-inline Ptr boolean() {return Ptr(new Base(BaseType::Bool));}
-inline Ptr text() {return Ptr(new Base(BaseType::Text));}
-inline Ptr aTup() {return Ptr(new Base(BaseType::ATup));}
-inline Ptr aFunc() {return Ptr(new Base(BaseType::AFunc));}
-inline Ptr aRel() {return Ptr(new Base(BaseType::ARel));}
-inline Ptr disjunction(std::vector<Ptr> p) {
-	if (p.size() == 0) 
-		return none();
-	else if (p.size() == 1)
-		return p.front();
-	else
-		return Ptr(new Disjunction(p));
-}
-
-Ptr returnType(const Ptr & type);
-Type plain(const Ptr & type);
-Ptr strong(Type type);
-void output(std::ostream & o, const Ptr & type);
-bool match(const Ptr & lhs, const Ptr & rhs);
-void check(const Ptr & lhs, const Ptr & rhs);
-
-} //namespace strongType
 } //namespace frontend
 } //namespace rasmus
 
