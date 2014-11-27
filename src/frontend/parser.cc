@@ -533,8 +533,8 @@ public:
 				break;
 			}
 			case TokenType::TK_SELECT: {
-				Token t=consumeToken();			
-				
+				Token t=consumeToken();
+				assertTokenConsume(TokenType::TK_LPAREN);				
 				recover(TokenType::TK_RPAREN, [&]() {
 						std::shared_ptr<FuncExp> f = std::make_shared<FuncExp>(
 							Token(TokenType::TK_FUNC, "func"),

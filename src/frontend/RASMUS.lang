@@ -1,5 +1,5 @@
 TK_NAME := [_a-zA-Z][_a-zA-Z0-9]*
-TK_FLOAT := [0-9]*\.[0-9]+(e[0-9]+)?
+TK_FLOAT := ((([1-9][0-9]*)|0)e[+\-]?[0-9]+)|((([1-9][0-9]*)|0)?\.[0-9]+(e[+\-]?[0-9]+)?)
 TK_BADINT := [0-9]+
 TK_INT := 0|[1-9][0-9]*
 TK_TEXT := "([^"\\]|[\\][^])*"
@@ -44,7 +44,7 @@ TK_PIPE := |
 TK_PLUS := \+
 TK_PROJECT_MINUS := |-
 TK_PROJECT_PLUS := |\+
-TK_SELECT := ?\(
+TK_SELECT := ?
 TK_RBRACKET := \]
 TK_RIGHTARROW := ->
 TK_RPAREN := \)
@@ -57,7 +57,6 @@ TK_STDFLOAT := ?-Float
 TK_STDTEXT := ?-Text
 TK_TILDE := ~
 TK_TWO_DOTS := \.\.
-
 TK_ADD := add
 TK_AFTER := after
 TK_AND := and

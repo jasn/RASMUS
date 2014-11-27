@@ -70,10 +70,18 @@ void base(rasmus::teststream & ts) {
     ts << "truefalse" << result(lt("false-true truee", {TokenType::TK_FALSE, TokenType::TK_MINUS, TokenType::TK_TRUE, TokenType::TK_NAME}));
     ts << "paren" << result(lt("((++ )+)", {TokenType::TK_LPAREN, TokenType::TK_BLOCKSTART, TokenType::TK_PLUS, TokenType::TK_RPAREN, TokenType::TK_BLOCKEND}));
     ts << "val" << result(lt("val", {TokenType::TK_VAL}));
+	ts << "float1" << result(lt("0.3", {TokenType::TK_FLOAT}));
+	ts << "float2" << result(lt(".1", {TokenType::TK_FLOAT}));
+	ts << "float3" << result(lt(".1e-1", {TokenType::TK_FLOAT}));
+	ts << "float4" << result(lt(".1e+1", {TokenType::TK_FLOAT}));
+	ts << "float5" << result(lt(".1e1", {TokenType::TK_FLOAT}));
+	ts << "float6" << result(lt("1e1", {TokenType::TK_FLOAT}));
+	ts << "float7" << result(lt("1.1e1", {TokenType::TK_FLOAT}));
     ts << "in" << result(lt("in", {TokenType::TK_IN}));
     ts << "name" << result(lt("namee", {TokenType::TK_NAME}));
     ts << "colon" << result(lt(":", {TokenType::TK_COLON}));
     ts << "int" << result(lt("1234", {TokenType::TK_INT}));
+    ts << "int" << result(lt("00", {TokenType::TK_BADINT}));
     ts << "text" << result(lt("\"hello\"", {TokenType::TK_TEXT}));
     ts << "text2" << result(lt("\"hel\\\"lo\"", {TokenType::TK_TEXT}));
     ts << "zero" << result(lt("zero", {TokenType::TK_ZERO}));
@@ -97,7 +105,9 @@ void base(rasmus::teststream & ts) {
     ts << "semicolon" << result(lt(";", {TokenType::TK_SEMICOLON}));
     ts << "pipe" << result(lt("|", {TokenType::TK_PIPE}));
     ts << "dot" << result(lt("...", {TokenType::TK_TWO_DOTS, TokenType::TK_ONE_DOT}));
-    ts << "select" << result(lt("?(", {TokenType::TK_SELECT}));
+	ts << "dot2" << result(lt("\"hat\"(1 .. 2)", {TokenType::TK_TEXT, TokenType::TK_LPAREN, TokenType::TK_INT,
+					TokenType::TK_TWO_DOTS, TokenType::TK_INT, TokenType::TK_RPAREN}));
+    ts << "select" << result(lt("?(", {TokenType::TK_SELECT, TokenType::TK_LPAREN}));
     ts << "project" << result(lt("||+|--", {TokenType::TK_PIPE, TokenType::TK_PROJECT_PLUS, TokenType::TK_PROJECT_MINUS, TokenType::TK_MINUS}));
     ts << "bracket" << result(lt("[]", {TokenType::TK_LBRACKET, TokenType::TK_RBRACKET}));
     ts << "buildin" << result(lt("max min count add mult days before after today date open close write system has", {TokenType::TK_MAX, TokenType::TK_MIN, TokenType::TK_COUNT, TokenType::TK_ADD, TokenType::TK_MULT, TokenType::TK_DAYS, TokenType::TK_BEFORE, TokenType::TK_AFTER, TokenType::TK_TODAY, TokenType::TK_DATE, TokenType::TK_OPEN, TokenType::TK_CLOSE, TokenType::TK_WRITE, TokenType::TK_SYSTEM, TokenType::TK_HAS}));
