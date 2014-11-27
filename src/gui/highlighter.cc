@@ -130,7 +130,7 @@ void Intellisense::process(std::vector<std::string> * blocks) {
 	std::shared_ptr<f::Lexer> lexer=std::make_shared<f::Lexer>(code);
 	std::shared_ptr<f::Parser> parser=f::makeParser(lexer, error, false);
 	std::shared_ptr<f::CharRanges > charRanges=f::makeCharRanges();
-	std::shared_ptr<f::FirstParse> firstParse=f::makeFirstParse(error, code, callback, TAny);
+	std::shared_ptr<f::FirstParse> firstParse=f::makeFirstParse(error, code, callback, true);
 	f::NodePtr n=parser->parse();
 	if (n) charRanges->run(n);
 	if (n) firstParse->run(n);

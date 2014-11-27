@@ -37,7 +37,7 @@ std::shared_ptr<FirstParse> makeFirstParse(
 	std::shared_ptr<Error> error, 
 	std::shared_ptr<Code> code,
 	std::shared_ptr<Callback> callback,
-	Type missingType=TRel);
+	bool missingIsAny=false);
 
 } //namespace frontend
 } //namespace rasmus

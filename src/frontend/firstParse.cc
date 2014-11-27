@@ -64,13 +64,14 @@ public:
 	std::vector<Scope> scopes;
 	std::shared_ptr<Callback> callback;
 	GlobalId globalId;
-	Type missingType;
+	bool missingIsAny;
+
 	FirstParseImpl(std::shared_ptr<Error> error, 
 				   std::shared_ptr<Code> code, 
 				   std::shared_ptr<Callback> callback,
-				   Type missingType)
+				   bool missingIsAny)
 		: error(error), code(code)
-		, callback(callback), missingType(missingType) {
+		, callback(callback), missingIsAny(missingIsAny) {
 		scopes.push_back(Scope());
 		globalId=0;
 	}
@@ -78,60 +79,35 @@ public:
     void internalError(Token token, std::string message) {
         error->reportError(std::string("Internal error: ")+message, token);
 	}
-        
-	bool typeCheck(Token token, NodePtr expr, const std::vector<Type> & t) {
-		if (expr->type == TInvalid || expr->type == TAny) 
+	
+	bool typeCheck(Token token, NodePtr expr, const StrongType & t) {
+		if (StrongType::match(expr->strongType, t)) 
 			return true;
-		for(Type i: t) 
-			if (i == TAny || i == expr->type)
-				return true;
 
 		std::stringstream ss;
-		if (t.size() > 1) 
+		if (t.base() == StrongType::Disjunction)
 			ss << "Expected one of ";
 		else
 			ss << "Expected type ";
-		bool first=true;
-		for(Type x: t) {
-			if (first) first=false;
-			else ss << ", ";
-			ss << x;
-		}
-		ss << " but found " << expr->type;
+		
+		ss << t << " but found " << expr->strongType;
 		error->reportError(ss.str(), token, {expr->charRange});
 		return false;
 	}
-	
-	bool typeMatch(Token token, NodePtr e1, NodePtr e2, 
-				   const std::vector<Type> & possibleTypes={TAny}) {
-		bool leftOk = typeCheck(token, e1, possibleTypes);
-		bool rightOk = typeCheck(token, e2, possibleTypes);
-		if (!leftOk || !rightOk) 
-			return false;
-		
-		if (e1->type == e2->type || e1->type == TAny || e2->type == TAny)
-			return true;
 
-		std::stringstream ss;
-		ss << "Expected identical types but found " << e1->type << " and " << e2->type;
-		error->reportError(ss.str(), token, {e1->charRange, e2->charRange});
-		return false;
-	}
-
-	Type tokenToType(Token token) {
+	StrongType tokenToType(Token token) {
 		switch(token.id) {
-		case TokenType::TK_TYPE_ANY: return TAny;
-		case TokenType::TK_TYPE_ATOM: return TAtom;
-        case TokenType::TK_TYPE_BOOL: return TBool;
-		case TokenType::TK_TYPE_FUNC: return TFunc;
-		case TokenType::TK_TYPE_INT: return TInt;
-		case TokenType::TK_TYPE_FLOAT: return TFloat;
-		case TokenType::TK_TYPE_REL: return TRel;
-		case TokenType::TK_TYPE_TEXT: return TText;
-		case TokenType::TK_TYPE_TUP: return TTup;
+		case TokenType::TK_TYPE_ANY: return StrongType::any();
+        case TokenType::TK_TYPE_BOOL: return StrongType::boolean();
+		case TokenType::TK_TYPE_FUNC: return StrongType::aFunc();
+		case TokenType::TK_TYPE_INT: return StrongType::integer();
+		case TokenType::TK_TYPE_FLOAT: return StrongType::fp();
+		case TokenType::TK_TYPE_REL: return StrongType::aRel();
+		case TokenType::TK_TYPE_TEXT: return StrongType::text();
+		case TokenType::TK_TYPE_TUP: return StrongType::aTup();
 		default:
 			internalError(token, "Invalid call to tokenToType");
-			return TAny;
+			return StrongType::none();
 		}
 	}
 
@@ -151,36 +127,56 @@ public:
 
 		// If we cannot find the variable, then it must be an external relation
 		if (!lookedUp) {
-			if (missingType == TAny) {
-				node->type = missingType;
+			if (missingIsAny) {
+				node->strongType = StrongType::any();
 				return;
 			}
 			if (callback->hasRelation(name.c_str())) {
-				node->type = missingType;
+				node->strongType = StrongType::aRel(); // Todo find the actual relation type
 				return;
 			} else {
-				node->type = TFunc;
 				if (false) ;
-				else if (name == "acos") node->buildin = BuildIn::acos;
-				else if (name == "asin") node->buildin = BuildIn::asin;
-				else if (name == "atan") node->buildin = BuildIn::atan;
-				else if (name == "atan2") node->buildin = BuildIn::atan2;
-				else if (name == "ceil") node->buildin = BuildIn::ceil;
-				else if (name == "cos") node->buildin = BuildIn::cos;
-				else if (name == "floor") node->buildin = BuildIn::floor;
-				else if (name == "pow") node->buildin = BuildIn::pow;
-				else if (name == "round") node->buildin = BuildIn::round;
-				else if (name == "sin") node->buildin = BuildIn::sin;
-				else if (name == "sqrt") {
+				else if (name == "acos") {
+					node->buildin = BuildIn::acos;
+					node->strongType = StrongType::func(StrongType::fp(), {StrongType::fpOrInt()});
+				} else if (name == "asin") {
+					node->buildin = BuildIn::asin;
+					node->strongType = StrongType::func(StrongType::fp(), {StrongType::fpOrInt()});
+				} else if (name == "atan") {
+					node->buildin = BuildIn::atan;
+					node->strongType = StrongType::func(StrongType::fp(), {StrongType::fpOrInt()});
+				} else if (name == "atan2") {
+					node->buildin = BuildIn::atan2;
+					node->strongType = StrongType::func(StrongType::fp(), {StrongType::fpOrInt(), StrongType::fpOrInt()});
+				} else if (name == "ceil") {
+					node->buildin = BuildIn::ceil;
+					node->strongType = StrongType::func(StrongType::fp(), {StrongType::fpOrInt()});
+				} else if (name == "cos") {
+					node->buildin = BuildIn::cos;
+					node->strongType = StrongType::func(StrongType::fp(), {StrongType::fpOrInt()});
+				} else if (name == "floor") {
+					node->buildin = BuildIn::floor;
+					node->strongType = StrongType::func(StrongType::integer(), {StrongType::fpOrInt()});
+				} else if (name == "pow") {
+					node->buildin = BuildIn::pow;
+					node->strongType = StrongType::func(StrongType::fp(), {StrongType::fpOrInt()});
+				} else if (name == "round") {
+					node->buildin = BuildIn::round;
+					node->strongType = StrongType::func(StrongType::integer(), {StrongType::fpOrInt()});
+				} else if (name == "sin") {
+					node->buildin = BuildIn::sin;
+					node->strongType = StrongType::func(StrongType::fp(), {StrongType::fpOrInt()});
+				} else if (name == "sqrt") {
 					node->buildin = BuildIn::sqrt;
-					node->strongType = StrongType::func(StrongType::fp(), {StrongType::fp()});
-				}
-				else if (name == "tan") node->buildin = BuildIn::tan;
-				else {
+					node->strongType = StrongType::func(StrongType::fp(), {StrongType::fpOrInt()});
+				} else if (name == "tan") {
+					node->buildin = BuildIn::tan;
+					node->strongType = StrongType::func(StrongType::fp(), {StrongType::fpOrInt()});
+				} else {
 					std::stringstream ss;
 					ss << "Unknown variable " << name;
 					error->reportError(ss.str(), node->nameToken);
-					node->type = TInvalid;
+					node->strongType = StrongType::none();
 				}
 				return;
 			}
@@ -189,7 +185,7 @@ public:
 		for (auto lu: reversed(funcs)) {
 			std::shared_ptr<FuncCaptureValue> cap = 
 				std::make_shared<FuncCaptureValue>(node->nameToken); 
-			cap->type = lookedUp->type;
+			cap->strongType = lookedUp->strongType;
 			cap->store = lookedUp;
 			lu->bind[name] = cap;
 			lu->bind[name] = cap;
@@ -197,7 +193,7 @@ public:
 			lookedUp = cap;
 		}
 
-        node->type = lookedUp->type;  
+        node->strongType = lookedUp->strongType;  
 		node->store = lookedUp;
 	}
 
@@ -213,7 +209,7 @@ public:
 		if (!(scopes.back().node)) 
 			node->globalId = globalId++;
 		scopes.back().bind[node->nameToken.getText(code)] = node;
-        node->type = node->valueExp->type;
+        node->strongType = node->valueExp->strongType;
 	}
 
     void visit(std::shared_ptr<IfExp> node) {
@@ -222,49 +218,47 @@ public:
 			visitNode(choice->value);
 		}
 				
-        NodePtr texp;
+		std::vector<StrongType> types;
 		for (auto choice: node->choices) {
-            typeCheck(choice->arrowToken, choice->condition, {TBool});
-            if (!texp && choice->value->type != TInvalid) 
-				texp = choice->value;
+            typeCheck(choice->arrowToken, choice->condition, StrongType::boolean());
+			types.push_back(choice->strongType);
 		}
-        if (texp) {
-            bool good=true;
-            for (auto choice: node->choices) {
-                if (!typeMatch(choice->arrowToken, texp, choice->value))
-                    good=false;
-			}
-			if (good) node->type = texp->type;
-		}
+		node->strongType = StrongType::disjunction(types);
 	}
 	
     void visit(std::shared_ptr<ForallExp> node) {		
 		visitAll(node->listExps);
-		for(auto exp : node->listExps){
-			typeCheck(node->typeToken, exp, {TRel});
-		}
+		for(auto exp : node->listExps)
+			typeCheck(node->typeToken, exp, StrongType::aRel());
 		visitNode(node->exp);
-		typeCheck(node->colonToken, node->exp, {TFunc});
-		node->type = TRel;
-
+		// TODO we can do much better typechecking here
+		typeCheck(node->colonToken, node->exp, StrongType::aFunc()); 
+		// TODO use the return type of the func in node
+		node->strongType = StrongType::aRel();
+		
 	}
 
     void visit(std::shared_ptr<FuncExp> node) {
         scopes.push_back(Scope(node));
-        node->type = TFunc;
+		std::vector<StrongType> argTypes;
         for (auto a: node->args) {
 			scopes.back().bind[a->nameToken.getText(code)] = a;
-			a->type = tokenToType(a->typeToken);
+			a->strongType = tokenToType(a->typeToken);
+			argTypes.push_back(a->strongType);
 		}
-        node->rtype = tokenToType(node->returnTypeToken);
+		StrongType rtype=tokenToType(node->returnTypeToken);
         visitNode(node->body);
-        typeCheck(node->funcToken, node->body, {node->rtype});
+		typeCheck(node->funcToken, node->body, rtype);
+		// TODO make rtype the conjunction of the types of rtype and node->body type
+				
+		node->strongType = StrongType::func(rtype, argTypes);
 		scopes.pop_back();
 	}
 
     void visit(std::shared_ptr<TupExp> node) {
         for (auto item: node->items) visitNode(item->exp);
-        node->type = TTup;
+		// TODO make strong type
+        node->strongType = StrongType::aTup();
 	}
 
     void visit(std::shared_ptr<BlockExp> node) {
@@ -274,105 +268,107 @@ public:
             scopes.back().bind[val->nameToken.getText(code)] = val->exp;
 		}
         visitNode(node->inExp);
-        node->type = node->inExp->type;
+        node->strongType = node->inExp->strongType;
 		scopes.pop_back();
 	}
 
     void visit(std::shared_ptr<BuiltInExp> node) {
-		Type returnType=TInvalid;
-		std::vector<std::vector<Type> > argumentTypes;
+		StrongType returnType=StrongType::none();
+		std::vector<StrongType> argumentTypes;
+		bool secondIsName=false;
 		switch (node->nameToken.id) {
 		case TokenType::TK_ISATOM:
 		case TokenType::TK_ISTUP:
 		case TokenType::TK_ISREL:
 		case TokenType::TK_ISFUNC:
 		case TokenType::TK_ISANY:
-            returnType = TBool;
-            argumentTypes.push_back({TAny});
+            returnType = StrongType::boolean();;
+            argumentTypes.push_back(StrongType::any());
 			break;
         case TokenType::TK_ISBOOL:
 		case TokenType::TK_ISINT:
 		case TokenType::TK_ISFLOAT:
 		case TokenType::TK_ISTEXT:
-            returnType = TBool;
-			argumentTypes.push_back({TAny});
-            if (node->args.size() >= 2) argumentTypes.push_back({TNAMEQ});
+            returnType = StrongType::boolean();
+            argumentTypes.push_back(StrongType::any());
+            if (node->args.size() >= 2) secondIsName = true;
 			break;
         case TokenType::TK_SYSTEM:
-            returnType = TInt;
-            argumentTypes.push_back({TText});
+			returnType = StrongType::integer();
+            argumentTypes.push_back(StrongType::text());
 			break;
         case TokenType::TK_OPEN:
 		case TokenType::TK_WRITE:
-            returnType = TBool;
-            argumentTypes.push_back({TText});
+			returnType = StrongType::boolean();
+            argumentTypes.push_back(StrongType::text());
 			break;
         case TokenType::TK_CLOSE:
-            returnType = TBool;
+			returnType = StrongType::boolean();
 			break;
         case TokenType::TK_HAS:
-            returnType = TBool;
-            argumentTypes.push_back({TTup, TRel});
-			argumentTypes.push_back({TNAMEQ});
+			returnType = StrongType::boolean();
+            argumentTypes.push_back(StrongType::disjunction({StrongType::aRel(), StrongType::aTup()}));
+			secondIsName = true;
 			break;
 		case TokenType::TK_MAX:
 		case TokenType::TK_MIN:
 		case TokenType::TK_COUNT:
 		case TokenType::TK_ADD:
 		case TokenType::TK_MULT:
-            returnType = TInt;
-			argumentTypes.push_back({TRel});
-			argumentTypes.push_back({TNAMEQ});
+			returnType = StrongType::integer();
+            argumentTypes.push_back(StrongType::aRel());
+			secondIsName = true;
 			break;
 		case TokenType::TK_DAYS:
-            returnType = TInt;
-            argumentTypes.push_back({TText});
-			argumentTypes.push_back({TText});
+			returnType = StrongType::integer();
+            argumentTypes.push_back(StrongType::text());
+			argumentTypes.push_back(StrongType::text());
 			break;
 		case TokenType::TK_BEFORE:
 		case TokenType::TK_AFTER:
-            returnType = TText;
-            argumentTypes.push_back({TText});
-			argumentTypes.push_back({TText});
+			returnType = StrongType::text();
+            argumentTypes.push_back(StrongType::text());
+			argumentTypes.push_back(StrongType::text());
 			break;
 		case TokenType::TK_DATE:
-            returnType = TText;
-            argumentTypes.push_back({TText});
-			argumentTypes.push_back({TInt});
+			returnType = StrongType::text();
+            argumentTypes.push_back(StrongType::text());
+			argumentTypes.push_back(StrongType::integer());
 			break;
         case TokenType::TK_TODAY:
-            returnType = TText;
+			returnType = StrongType::text();
 			break;
 		case TokenType::TK_PRINT:
-            returnType = TBool;
-            argumentTypes.push_back({TAny});
+			returnType = StrongType::boolean();
+            argumentTypes.push_back(StrongType::any());
 			break;
 		default:
             error->reportError("Unknown buildin", node->nameToken, {node->charRange});
 			break;
 		}
 		
-        node->type=returnType;
-        if (node->args.size() != argumentTypes.size()) {
+        node->strongType=returnType;
+		size_t expectedArgs=argumentTypes.size() + (secondIsName?1:0);
+        if (node->args.size() != expectedArgs) {
 			// too few args
 			std::stringstream ss;
 			ss << "Too "
 			   << (node->args.size() < argumentTypes.size()?"few":"many")
 			   << " arguments to builtin function, received " << node->args.size() 
-			   << " but expected " << argumentTypes.size();
+			   << " but expected " << expectedArgs;
 			error->reportError(ss.str(), node->nameToken, {node->charRange});
 		}
 		
-		
 		for (size_t i=0; i < node->args.size(); ++i) {
-            if (i >= argumentTypes.size() || argumentTypes[i] != std::vector<Type>{TNAMEQ})
-                visitNode(node->args[i]);
-            if (i < argumentTypes.size() && argumentTypes[i] != std::vector<Type>{TNAMEQ})
-                typeCheck(node->nameToken, node->args[i], argumentTypes[i]);
-            if (i < argumentTypes.size() && argumentTypes[i] == std::vector<Type>{TNAMEQ}) {
+			if (i == 1 && secondIsName) {
+				// TODO check if the name in actually in the schema
 				if (node->args[i]->nodeType != NodeType::VariableExp) 
 					error->reportError("Expected identifier", Token(), {node->args[i]->charRange});
+				continue;
 			}
+			visitNode(node->args[i]);
+			if (i < argumentTypes.size())
+				typeCheck(node->nameToken, node->args[i], argumentTypes[i]);
 		}
 	}
 
@@ -381,45 +377,46 @@ public:
 		case TokenType::TK_FALSE:
         case TokenType::TK_TRUE:
         case TokenType::TK_STDBOOL:
-            node->type = TBool;
+            node->strongType = StrongType::boolean();
 			break;
 		case TokenType::TK_TEXT:
         case TokenType::TK_STDTEXT:
-			node->type = TText;
+            node->strongType = StrongType::text();
 			break;
         case TokenType::TK_ZERO:
         case TokenType::TK_ONE:
-			node->type = TRel;
+            node->strongType = StrongType::rel({});
 			break;
         case TokenType::TK_STDINT:
-			node->type = TInt;
+			node->strongType = StrongType::integer();
 			break;
         case TokenType::TK_STDFLOAT:
-			node->type = TFloat;
+			node->strongType = StrongType::fp();
 			break;
 		case TokenType::TK_BADINT:
 			error->reportWarning(
 				"Integers should not start with 0 (we do not support octals)",
 				node->valueToken);
-			node->type = TInt;
+			node->strongType = StrongType::integer();
 			break;
 		case TokenType::TK_INT:
 			//TODO Validate the integer and check its range
             //atoi(code->code.substr(node->valueToken.start, node->valueToken.length).c_str());
-			node->type = TInt;
+			node->strongType = StrongType::integer();
 			break;
 		case TokenType::TK_FLOAT:
-			node->type = TFloat;
+			// TODO Validate range
+			node->strongType = StrongType::fp();
 			break;
 		default:
 			internalError(node->valueToken, std::string("Invalid constant type ")+getTokenName(node->valueToken.id));
-            node->type = TInvalid;
+			node->strongType = StrongType::none();
 			break;
 		}
 	}   
 
     void visit(std::shared_ptr<UnsetExp> node) {
-		node->type = TBool;
+		node->strongType = StrongType::boolean();
 		if (scopes.size() == 1) {
 			node->isGlobal = true;
 		}
@@ -448,29 +445,31 @@ public:
         visitNode(node->exp);
 		switch (node->opToken.id) {
 		case TokenType::TK_NOT:
-			typeCheck(node->opToken, node->exp, {TBool});
-			node->type = TBool;
+			typeCheck(node->opToken, node->exp, StrongType::boolean());
+			node->strongType = StrongType::boolean();
 			break;
 		case TokenType::TK_MINUS:
-            typeCheck(node->opToken, node->exp, {TInt, TFloat});
-            node->type = node->exp->type;
+            typeCheck(node->opToken, node->exp, StrongType::fpOrInt());
+            node->strongType = node->exp->strongType;
 			break;
 		default:
             internalError(node->opToken, "Bad unary operator");
-            node->type = TInvalid;
+            node->strongType = StrongType::none();
 		}
 	}
 
     void visit(std::shared_ptr<RelExp> node) {
-        node->type = TRel;
+		// TODO stronger type here
+        node->strongType = StrongType::aRel(); 
         visitNode(node->exp);
-        typeCheck(node->relToken, node->exp, {TTup});
+        typeCheck(node->relToken, node->exp, StrongType::aTup());
 	}
 	
     void visit(std::shared_ptr<LenExp> node) {
         visitNode(node->exp);
-		typeCheck(node->leftPipeToken, node->exp, {TText, TRel, TTup});
-        node->type = TInt;
+		typeCheck(node->leftPipeToken, node->exp, 
+				  StrongType::disjunction({StrongType::text(), StrongType::aRel(), StrongType::aTup()}));
+        node->strongType = StrongType::integer();
 	}
 	
 	bool getFunctions(StrongType ft, std::vector<StrongType> & ans) {
@@ -495,58 +494,59 @@ public:
     void visit(std::shared_ptr<FuncInvocationExp> node) {
         visitNode(node->funcExp);
         visitAll(node->args);
-		if (node->funcExp->strongType.valid() && node->funcExp->type != TInvalid) {
-			std::vector<StrongType> argTypes;
-			for (auto arg: node->args) {
-				if (arg->strongType.valid())
-					argTypes.push_back(arg->strongType);
-				else
-					argTypes.push_back(StrongType(arg->type));
-			}
-			std::vector<StrongType> fts;
-			if (getFunctions(node->funcExp->strongType, fts)) { //One of the functions is an any func
-				node->type = TAny;
 
-			} else if(fts.size() == 0) {
-				error->reportError("Tried to call none function", node->lparenToken, {node->funcExp->charRange});
-				node->type = TInvalid;
-			} else {
-				std::vector<StrongType> matchTypes;
-				for (const auto & f: fts) {
-					if (f.funcArgs().size() != argTypes.size()) continue;
-					bool ok=true;
-					for (size_t i=0; i < argTypes.size(); ++i) {
-						if (!StrongType::match(argTypes[i], f.funcArgs()[i])) {
-							ok=false;
-							break;
-						}
-					}
-					if (!ok) continue;
-					matchTypes.push_back(f.funcRet());
-				}
-				
-				if (matchTypes.size() == 0) { //There where no functions we could call
-					std::stringstream ss;
-					ss << "Call (";
-					for (size_t i=0; i != argTypes.size(); ++i) {
-						if (i != 0) ss << ", ";
-						ss << argTypes[i];
-					}
-					ss << "), does not match:\n";
-					for (size_t i=0; i < fts.size(); ++i) {
-						if (i != 0) ss << " or \n";
-						ss << fts[i];
-					}
-					error->reportError("Invalid function call", node->lparenToken, {node->charRange}, ss.str());
-
-				} else {
-					node->strongType = StrongType::disjunction(matchTypes);
-					node->type = node->strongType.plain();
-				}
-			}
+		if (node->funcExp->strongType.base() == StrongType::Any) {
+			node->strongType = StrongType::any();
+			return;
+		}
+		
+		if (node->funcExp->strongType.base() == StrongType::None) {
+			node->strongType = StrongType::none();
+			return;
+		}
+		
+		std::vector<StrongType> argTypes;
+		for (auto arg: node->args)
+			argTypes.push_back(arg->strongType);
+		std::vector<StrongType> fts;
+		if (getFunctions(node->funcExp->strongType, fts)) { //One of the functions is an any func
+			node->strongType = StrongType::any();
+			
+		} else if(fts.size() == 0) {
+			error->reportError("Tried to call none function", node->lparenToken, {node->funcExp->charRange});
+			node->strongType = StrongType::none();
 		} else {
-			node->type = TAny;
-			typeCheck(node->lparenToken, node->funcExp, {TFunc});
+			std::vector<StrongType> matchTypes;
+			for (const auto & f: fts) {
+				if (f.funcArgs().size() != argTypes.size()) continue;
+				bool ok=true;
+				for (size_t i=0; i < argTypes.size(); ++i) {
+					if (!StrongType::match(argTypes[i], f.funcArgs()[i])) {
+						ok=false;
+						break;
+					}
+				}
+				if (!ok) continue;
+				matchTypes.push_back(f.funcRet());
+			}
+			
+			if (matchTypes.size() == 0) { //There where no functions we could call
+				std::stringstream ss;
+				ss << "Call (";
+				for (size_t i=0; i != argTypes.size(); ++i) {
+					if (i != 0) ss << ", ";
+					ss << argTypes[i];
+				}
+				ss << "), does not match:\n";
+				for (size_t i=0; i < fts.size(); ++i) {
+					if (i != 0) ss << " or \n";
+					ss << fts[i];
+				}
+				error->reportError("Invalid function call", node->lparenToken, {node->charRange}, ss.str());
+				
+			} else {
+				node->strongType = StrongType::disjunction(matchTypes);
+			}
 		}
 	}
 
@@ -554,44 +554,53 @@ public:
         visitNode(node->stringExp);
         visitNode(node->fromExp);
         visitNode(node->toExp);
-		typeCheck(node->lparenToken, node->stringExp, {TText});
-		typeCheck(node->lparenToken, node->fromExp, {TInt});
-		typeCheck(node->lparenToken, node->toExp, {TInt});
-        node->type = TText;
+		typeCheck(node->lparenToken, node->stringExp, StrongType::text());
+		typeCheck(node->lparenToken, node->fromExp, StrongType::integer());
+		typeCheck(node->lparenToken, node->toExp, StrongType::integer());
+		
+		node->strongType = StrongType::text();
 	}
 
     void visit(std::shared_ptr<RenameExp> node) {
         visitNode(node->lhs);
-        typeCheck(node->lbracketToken, node->lhs, {TRel});
-        node->type = TRel;
+		// TODO Stronger type check
+        typeCheck(node->lbracketToken, node->lhs, StrongType::aRel());
+		// TODO Stronger return type
+        node->strongType = StrongType::aRel();
 	}
 
     void visit(std::shared_ptr<DotExp> node) {
         visitNode(node->lhs);
-        typeCheck(node->dotToken, node->lhs, {TTup});
-        node->type = TAny;
+		// TODO Stronger type check
+        typeCheck(node->dotToken, node->lhs, StrongType::aTup());
+		// TODO Stronger return type
+        node->strongType = StrongType::any();
 	}
 
     void visit(std::shared_ptr<TupMinus> node) {
         visitNode(node->lhs);
-        typeCheck(node->opToken, node->lhs, {TTup});
-        node->type = TTup;
+		// TODO Stronger type check
+        typeCheck(node->opToken, node->lhs, StrongType::aTup());
+		// TODO Stronger return type
+        node->strongType = StrongType::aTup();
 	}
 
     void visit(std::shared_ptr<ProjectExp> node) {
         visitNode(node->lhs);
-        typeCheck(node->projectionToken, node->lhs, {TRel});
-        node->type = TRel;
+		// TODO Stronger type check
+        typeCheck(node->projectionToken, node->lhs, StrongType::aRel());
+		// TODO Stronger return type
+        node->strongType = StrongType::aRel();
 	}
 
     void visit(std::shared_ptr<InvalidExp> node) {
-        node->type = TInvalid;
+        node->strongType = StrongType::none();
 	}
 
 	struct BinopHelp {
-		::Type lhsType;
-		::Type rhsType;
-		::Type resType;
+		StrongType lhsType;
+		StrongType rhsType;
+		StrongType resType;
 	};
 
 
@@ -599,54 +608,35 @@ public:
 						std::initializer_list<BinopHelp> ops) {
         visitNode(node->lhs);
         visitNode(node->rhs);
-		::Type lhst=node->lhs->type;
-		::Type rhst=node->rhs->type;
+		StrongType lhst=node->lhs->strongType;
+		StrongType rhst=node->rhs->strongType;
 		
-		std::vector<BinopHelp> matches;
+		std::vector<StrongType> matches;
 		for(auto h: ops) {
-			if (h.lhsType != lhst && lhst != TAny && lhst != TInvalid) continue;
-			if (h.rhsType != rhst && rhst != TAny && rhst != TInvalid) continue;
-			matches.push_back(h);
+			if (!StrongType::match(h.lhsType, lhst)) continue;
+			if (!StrongType::match(h.rhsType, rhst)) continue;
+			matches.push_back(h.resType);
 		}
 		
 		if (matches.size() == 0) {
 			if (ops.size() == 1) {
-				typeCheck(node->opToken, node->lhs, {ops.begin()->lhsType});
-				typeCheck(node->opToken, node->rhs, {ops.begin()->rhsType});
+				typeCheck(node->opToken, node->lhs, ops.begin()->lhsType);
+				typeCheck(node->opToken, node->rhs, ops.begin()->rhsType);
 			} else {
-				bool allMatch = true;
-				std::vector<Type> matchTypes;
+				std::stringstream ss;
+				ss << "Invalid operator use, the types (" << lhst << ", " << rhst
+				   << ") does not match any of ";
+				bool first=true;
 				for(auto h: ops) {
-					if (h.lhsType != h.rhsType) {
-						allMatch=false;
-						break;
-					}
-					matchTypes.push_back(h.lhsType);
+					if (first) first=false;
+					else ss << ", ";
+					ss << "(" << h.lhsType << ", " << h.rhsType << ")";
 				}
-				if (allMatch) 
-					typeMatch(node->opToken, node->lhs, node->rhs, matchTypes);
-				else {
-					std::stringstream ss;
-					ss << "Invalid operator use, the types (" << lhst << ", " << rhst
-					   << ") does not match any of ";
-					bool first=true;
-					for(auto h: ops) {
-						if (first) first=false;
-						else ss << ", ";
-						ss << "(" << h.lhsType << ", " << h.rhsType << ")";
-					}
-					error->reportError(ss.str(), node->opToken, {node->lhs->charRange, node->rhs->charRange});
-				}
+				error->reportError(ss.str(), node->opToken, {node->lhs->charRange, node->rhs->charRange});
 			}
 			return;
 		}
-
-		::Type rtype=matches[0].resType;
-		for (auto h: matches) {
-			if (h.resType == rtype) continue;
-			rtype = TAny;
-		}
-		node->type = rtype;
+		node->strongType = StrongType::disjunction(matches);
 	}
 
 	
@@ -656,69 +646,74 @@ public:
 		case TokenType::TK_MUL:
 		case TokenType::TK_MINUS:
 			binopTypeCheck(node, {
-					{TFloat, TInt,   TFloat},
-					{TFloat, TFloat, TFloat},
-					{TInt,   TFloat, TFloat},
-					{TInt, TInt, TInt},
-					{TRel, TRel, TRel}
+					{StrongType::fp(), StrongType::integer(),   StrongType::fp()},
+					{StrongType::fp(), StrongType::fp(), StrongType::fp()},
+					{StrongType::integer(),   StrongType::fp(), StrongType::fp()},
+					{StrongType::integer(), StrongType::integer(), StrongType::integer()},
+						// TODO better type checking
+					{StrongType::aRel(), StrongType::aRel(), StrongType::aRel()}
 				});
 			break;
 		case TokenType::TK_DIV:
 			binopTypeCheck(node, {
-					{TFloat, TInt,   TFloat},
-					{TFloat, TFloat, TFloat},
-					{TInt,   TFloat, TFloat},
-					{TInt,   TInt,   TInt} });
+					{StrongType::fp(), StrongType::integer(),   StrongType::fp()},
+					{StrongType::fp(), StrongType::fp(), StrongType::fp()},
+					{StrongType::integer(),   StrongType::fp(), StrongType::fp()},
+					{StrongType::integer(),   StrongType::integer(),   StrongType::integer()} });
 			break;
 		case TokenType::TK_MOD:
 			binopTypeCheck(node, { 
-					{TFloat, TInt,   TFloat},
-					{TFloat, TFloat, TFloat},
-					{TInt,   TFloat, TFloat},
-					{TInt, TInt, TInt} });
+					{StrongType::fp(), StrongType::integer(),   StrongType::fp()},
+					{StrongType::fp(), StrongType::fp(), StrongType::fp()},
+					{StrongType::integer(),   StrongType::fp(), StrongType::fp()},
+					{StrongType::integer(), StrongType::integer(), StrongType::integer()} });
 			break;
 		case TokenType::TK_AND:
 		case TokenType::TK_OR:
-			binopTypeCheck(node, { {TBool, TBool, TBool} });
+			binopTypeCheck(node, { {StrongType::boolean(), StrongType::boolean(), StrongType::boolean()} });
 			break;
         case TokenType::TK_CONCAT:
-			binopTypeCheck(node, { {TText, TText, TText} });
+			binopTypeCheck(node, { {StrongType::text(), StrongType::text(), StrongType::text()} });
 			break;
 		case TokenType::TK_LESSEQUAL:
 		case TokenType::TK_LESS:
 		case TokenType::TK_GREATER:
 		case TokenType::TK_GREATEREQUAL:
 			binopTypeCheck(node, {
-					{TFloat, TInt,   TBool},
-					{TFloat, TFloat, TBool},
-					{TInt,   TFloat, TBool},
-					{TInt, TInt, TBool},
-					{TBool, TBool, TBool} });
+					{StrongType::fp(), StrongType::integer(),   StrongType::boolean()},
+					{StrongType::fp(), StrongType::fp(), StrongType::boolean()},
+					{StrongType::integer(),   StrongType::fp(), StrongType::boolean()},
+					{StrongType::integer(), StrongType::integer(), StrongType::boolean()},
+					{StrongType::boolean(), StrongType::boolean(), StrongType::boolean()} });
 			break;
 		case TokenType::TK_EQUAL:
 		case TokenType::TK_DIFFERENT:
 			binopTypeCheck(node, {
-					{TFloat, TInt,   TBool},
-					{TFloat, TFloat, TBool},
-					{TInt,   TFloat, TBool},
-					{TInt, TInt, TBool},
-					{TBool, TBool, TBool},
-					{TText, TText, TBool},
-					{TTup, TTup, TBool},
-					{TRel, TRel, TBool}});
+					{StrongType::fp(), StrongType::integer(),   StrongType::boolean()},
+					{StrongType::fp(), StrongType::fp(), StrongType::boolean()},
+					{StrongType::integer(),   StrongType::fp(), StrongType::boolean()},
+					{StrongType::integer(), StrongType::integer(), StrongType::boolean()},
+					{StrongType::boolean(), StrongType::boolean(), StrongType::boolean()},
+					{StrongType::text(), StrongType::text(), StrongType::boolean()},
+					// TODO better type checking
+					{StrongType::aTup(), StrongType::aTup(), StrongType::boolean()},
+					// TODO better type checking
+					{StrongType::aRel(), StrongType::aRel(), StrongType::boolean()}});
 			break;
 		case TokenType::TK_TILDE:
-			binopTypeCheck(node, { {TText, TText, TBool} });
+			binopTypeCheck(node, { {StrongType::text(), StrongType::text(), StrongType::boolean()} });
 			break;
 		case TokenType::TK_SELECT:
-			binopTypeCheck(node, { {TRel, TFunc, TRel} });
+			// TODO better type checking
+			binopTypeCheck(node, { {StrongType::aRel(), StrongType::aFunc(), StrongType::aRel()} });
 			break;
 		case TokenType::TK_OPEXTEND:
-			binopTypeCheck(node, { {TTup, TTup, TTup} });
+			// TODO better type checking
+			binopTypeCheck(node, { {StrongType::aTup(), StrongType::aTup(), StrongType::aTup()} });
 			break;
 		default:
             internalError(node->opToken, std::string("Invalid operator")+getTokenName(node->opToken.id));
-            node->type = TInvalid;
+            node->strongType = StrongType::none();
 			break;
 		}
 	}
@@ -726,9 +721,9 @@ public:
     void visit(std::shared_ptr<SequenceExp> node) {
         visitAll(node->sequence);
         if (node->sequence.empty())
-			node->type = TInvalid;
+			node->strongType = StrongType::none();
         else
-            node->type = node->sequence.back()->type;
+            node->strongType = node->sequence.back()->strongType;
 	}
     
 
@@ -754,8 +749,8 @@ namespace frontend {
 std::shared_ptr<FirstParse> makeFirstParse(std::shared_ptr<Error> error, 
 										   std::shared_ptr<Code> code,
 										   std::shared_ptr<Callback> callback,
-										   Type missingType) {
-	return std::make_shared<FirstParseImpl>(error, code, callback, missingType);
+										   bool missingIsAny) {
+	return std::make_shared<FirstParseImpl>(error, code, callback, missingIsAny);
 }
 
 } //namespace rasmus

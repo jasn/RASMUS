@@ -97,6 +97,7 @@ public:
 	static StrongType any() {return StrongType((uint64_t)Any << 56);}
 	static StrongType integer() {return StrongType((uint64_t)Int << 56);}
 	static StrongType fp() {return StrongType((uint64_t)Float << 56);}
+	static StrongType fpOrInt() {return disjunction({fp(), integer()});}
 	static StrongType boolean() {return StrongType((uint64_t)Bool << 56);}
 	static StrongType text() {return StrongType((uint64_t)Text << 56);}
 	static StrongType aRel() {return StrongType((uint64_t)ARel << 56);}

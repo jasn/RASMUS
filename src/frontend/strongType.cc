@@ -323,7 +323,7 @@ bool StrongType::match(const StrongType & lhs, const StrongType & rhs) {
 	}
 	if (rb == Disjunction) {
 		for (const auto & part: rhs.disjunctionParts()) 
-			if (match(part, rhs)) return true;
+			if (match(lhs, part)) return true;
 		return false;
 	}
 	if (lb == Any || rb == Any || rb == None || rb == None) 

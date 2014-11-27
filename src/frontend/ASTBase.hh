@@ -90,11 +90,11 @@ public:
 	const NodeType nodeType;
 	bool tainted;
 	CharRange charRange;
-	Type type;
+	/*Type type;*/
 	StrongType strongType;
 	OwnedLLVMVal llvmVal;
 	BuildIn buildin;
-	Node(NodeType t): nodeType(t), tainted(false), type(TInvalid), buildin(BuildIn::invalid) {}
+	Node(NodeType t): nodeType(t), tainted(false), buildin(BuildIn::invalid) {}
 	virtual ~Node() {}
 };
 typedef std::shared_ptr<Node> NodePtr;
