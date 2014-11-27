@@ -241,7 +241,7 @@ public slots:
 
 			rm_loadGlobalAny(name, &value);
 			
-			switch (Type(value.type)) {
+			switch (PlainType(value.type)) {
 			case TBool:
 				rasmus::stdlib::printBoolToStream(int8_t(value.value), repr);
 				break;

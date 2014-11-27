@@ -221,8 +221,9 @@ public:
 		std::vector<StrongType> types;
 		for (auto choice: node->choices) {
             typeCheck(choice->arrowToken, choice->condition, StrongType::boolean());
-			types.push_back(choice->strongType);
+			types.push_back(choice->value->strongType);
 		}
+
 		node->strongType = StrongType::disjunction(types);
 	}
 	

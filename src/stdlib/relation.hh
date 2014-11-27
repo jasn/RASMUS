@@ -31,7 +31,7 @@ namespace stdlib {
    a schema consists of one or more such attributes
 */
 struct Attribute {
-	Type type;
+	PlainType type;
 	std::string name;
 };
 

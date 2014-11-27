@@ -157,7 +157,7 @@ void TerminalCallback::report(MsgType type, std::string message) {
 	}
 }
 
-void TerminalCallback::print(Type, std::string repr) {
+void TerminalCallback::print(PlainType, std::string repr) {
 	std::cout << repr << std::endl;
 }
 

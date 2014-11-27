@@ -32,7 +32,7 @@ namespace stdlib {
    of AnyValues which can either be a TInt, TText or TBool
  */
 struct AnyValue {
-	Type type;
+	PlainType type;
 	union {
 		int64_t intValue;
 		int8_t boolValue;
@@ -42,7 +42,7 @@ struct AnyValue {
 	AnyValue(): type(TInvalid) {}
 	AnyValue(int64_t value): type(TInt), intValue(value) {}
 	AnyValue(int8_t value): type(TBool), boolValue(value) {}
-	AnyValue(Type type, RefPtr<rm_object> value): type(type), objectValue(value) {}
+	AnyValue(PlainType type, RefPtr<rm_object> value): type(type), objectValue(value) {}
 
 	AnyValue(const AnyValue & other): type(other.type) {
 		switch(type){

@@ -95,7 +95,7 @@ public:
 	
 	void report(f::MsgType, std::string) {}
 	
-	void print(Type, std::string) {}
+	void print(PlainType, std::string) {}
 	
 	void saveRelation(rm_object *, const char *) {}
 	rm_object * loadRelation(const char *) {return nullptr;}

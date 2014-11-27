@@ -1800,7 +1800,7 @@ int64_t rm_addRel(rm_object * lhs, const char * name, uint64_t range) {
 
 	if(rel->schema->attributes[index].type != TInt)
 		rm_emitBadCalcTypeError(unpackCharRange(range).first, unpackCharRange(range).second,
-								name, Type(rel->schema->attributes[index].type), "addition");
+								name, PlainType(rel->schema->attributes[index].type), "addition");
 
 	int64_t ret = 0;
 	for(auto tup : rel->tuples)
@@ -1822,7 +1822,7 @@ int64_t rm_multRel(rm_object * lhs, const char * name, uint64_t range) {
 
 	if(rel->schema->attributes[index].type != TInt)
 		rm_emitBadCalcTypeError(unpackCharRange(range).first, unpackCharRange(range).second,
-								name, Type(rel->schema->attributes[index].type), "multiplication");
+								name, PlainType(rel->schema->attributes[index].type), "multiplication");
 
 	int64_t ret = 1;
 	for(auto tup : rel->tuples)
@@ -1881,7 +1881,7 @@ rm_object * rm_createTup(uint32_t count, TupEntry * entries, int64_t range) {
 		// add entry to the tuple's schema 
 		TupEntry te = entries[i];
 		Attribute attribute {
-			(Type) te.type, te.name
+			(PlainType) te.type, te.name
 		};
 		schema->attributes.push_back(attribute);
 		
@@ -1897,7 +1897,7 @@ rm_object * rm_createTup(uint32_t count, TupEntry * entries, int64_t range) {
 		{
 			TextBase * text = reinterpret_cast<TextBase *>(te.value);
 			RefPtr<rm_object> ref(text);
-			t->values.emplace_back((Type) te.type, std::move(ref));
+			t->values.emplace_back((PlainType) te.type, std::move(ref));
 			break;
 		}
 		default:
@@ -2077,7 +2077,7 @@ uint8_t rm_tupHasEntry(rm_object * tup, const char * name) {
 /**
  * \Brief Checks whether the tuple's column with name 'name' has type 'type'
  */
-uint8_t rm_tupEntryType(rm_object * _tup, const char * name, Type type, int64_t range ) {
+uint8_t rm_tupEntryType(rm_object * _tup, const char * name, PlainType type, int64_t range ) {
 	if(_tup->type != LType::tuple)
 		ILE("Called with arguments of the wrong type");
 

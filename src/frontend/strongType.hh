@@ -45,7 +45,7 @@ public:
 	StrongType & operator=(const StrongType & o) {reset(o.bits); return *this; }
 	StrongType & operator=(StrongType && o) {reset(o.bits);	return *this; }
 
-	explicit StrongType(Type t): bits(0) {
+	explicit StrongType(PlainType t): bits(0) {
 		switch (t) {
 		case TAny: bits = (uint64_t)Any << 56; break;
 		case TInt: bits = (uint64_t)Int << 56; break;
@@ -56,8 +56,6 @@ public:
 		case TTup: bits = (uint64_t)ATup << 56; break;
 		case TFunc: bits = (uint64_t)AFunc << 56; break;
 		case TInvalid:
-		case TAtom:
-		case TNAMEQ:
 			bits = (uint64_t)None << 56;
 			break;
 		}
@@ -67,7 +65,7 @@ public:
 		return (Base)(bits >> 56);
 	}
 	
-	Type plain() const {
+	PlainType plain() const {
 		switch (base()) {
 		case Any: return TAny;
 		case Int: return TInt;
@@ -145,7 +143,7 @@ private:
 		}
 	}
 
-	Type disjunctionPlain() const; 
+	PlainType disjunctionPlain() const; 
 	void destroy();
 
 	StrongType(uint64_t b): bits(b) {}

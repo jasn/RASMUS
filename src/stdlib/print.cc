@@ -27,7 +27,7 @@ using namespace rasmus::stdlib;
 
 
 void rm_print(uint8_t t, int64_t v) {
-    switch (Type(t)) {
+    switch (PlainType(t)) {
     case TBool:
 		callback->printBool(v);
 		break;

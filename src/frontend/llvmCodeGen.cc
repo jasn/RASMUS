@@ -313,7 +313,7 @@ public:
 	/**
 	 * \brief Get the llvm type of a rasmus type
 	 */
-	llvm::Type * llvmType(::Type t) {
+	llvm::Type * llvmType(::PlainType t) {
 		switch (t) {
 		case TBool: return int8Type;
 		case TInt: return int64Type;
@@ -348,7 +348,7 @@ public:
 	/**
 	 * \Brief get the runtime type represetnation for a static type
 	 */
-	llvm::Value * typeRepr(::Type t) {
+	llvm::Value * typeRepr(::PlainType t) {
 		return int8(t);
 	}
 	
@@ -424,7 +424,7 @@ public:
 	/**
 	 * \Brief take ownership of a value of a given static type, increffing when needed
 	 */
-	OwnedLLVMVal takeOwnership(LLVMVal val, ::Type type) {
+	OwnedLLVMVal takeOwnership(LLVMVal val, ::PlainType type) {
  		OwnedLLVMVal value(val.value, val.type);
 		bool owned=val.owned;
 		forgetOwnership(val);
@@ -467,14 +467,14 @@ public:
 	/**
 	 * \Brief take ownership of a value of a given static type, increffing when needed
 	 */
-	OwnedLLVMVal takeOwnership(BorrowedLLVMVal value, ::Type type) {
+	OwnedLLVMVal takeOwnership(BorrowedLLVMVal value, ::PlainType type) {
 		return takeOwnership(LLVMVal(value), type);
 	}
 
 	/**
 	 * \Brief drop ownership of a value of a given static type, decreffing when needed
 	 */
-	void disown(OwnedLLVMVal & value, ::Type type) {
+	void disown(OwnedLLVMVal & value, ::PlainType type) {
 		switch (type) {
 		case TInt:
 		case TBool:
@@ -524,7 +524,7 @@ public:
 	/**
 	 * \Brief drop ownership of a value of a given static type, decreffing when needed
 	 */
-	void disown(LLVMVal & value, ::Type type) {
+	void disown(LLVMVal & value, ::PlainType type) {
 		if (value.owned) {
 			OwnedLLVMVal v(value.value, value.type);
 			disown(v, type);
@@ -535,7 +535,7 @@ public:
 	/**
 	 * \Brief return the undefined value of a given static type
 	 */
-	BorrowedLLVMVal getUndef(::Type t) {
+	BorrowedLLVMVal getUndef(::PlainType t) {
 		switch(t) {
 		case TInt:
 			return BorrowedLLVMVal(undefInt);
@@ -556,7 +556,7 @@ public:
 		}
 	}
 
-	static bool hasUndef(::Type t) {
+	static bool hasUndef(::PlainType t) {
 		switch(t) {
 		case TInt:
 		case TBool:
@@ -580,7 +580,7 @@ public:
 	 * from a TAny to anything else
 	 * and from anything to a TAny
 	 */
-	BorrowedLLVMVal cast(BorrowedLLVMVal value, ::Type tfrom, ::Type tto, NodePtr node) {
+	BorrowedLLVMVal cast(BorrowedLLVMVal value, ::PlainType tfrom, ::PlainType tto, NodePtr node) {
 		if (tfrom == tto) return BorrowedLLVMVal(value.value, value.type);
 		if (tto == TAny) {
 			switch(tfrom) {
@@ -638,7 +638,7 @@ public:
 	/**
 	 * \brief Cast a llvmval
 	 */
-	LLVMVal cast(LLVMVal value, ::Type tfrom, ::Type tto, NodePtr node) {
+	LLVMVal cast(LLVMVal value, ::PlainType tfrom, ::PlainType tto, NodePtr node) {
 		BorrowedLLVMVal s=cast(borrow(value), tfrom, tto, node);
 		value.value = s.value;
 		value.type = s.type;
@@ -648,7 +648,7 @@ public:
 	/**
 	 * \brief Cast an owned llvmcal
 	 */
-	OwnedLLVMVal cast(OwnedLLVMVal value, ::Type tfrom, ::Type tto, NodePtr node) {
+	OwnedLLVMVal cast(OwnedLLVMVal value, ::PlainType tfrom, ::PlainType tto, NodePtr node) {
 		BorrowedLLVMVal s=cast(borrow(value), tfrom, tto, node);
 		value.value = s.value;
 		value.type = s.type;
@@ -658,7 +658,7 @@ public:
 	/**
 	 * \brief Visit a child node, and cast the result to a given type
 	 */
-	LLVMVal castVisit(NodePtr node, ::Type tto) {
+	LLVMVal castVisit(NodePtr node, ::PlainType tto) {
 		return cast(visitNode(node), node->strongType.plain(), tto, node);
 	}
 
@@ -673,7 +673,7 @@ public:
 	}
 
 	
-	BorrowedLLVMVal loadValue(Value * v, std::initializer_list<int> gep, ::Type type) {
+	BorrowedLLVMVal loadValue(Value * v, std::initializer_list<int> gep, ::PlainType type) {
 		std::vector<Value *> GEP;
 		for (int x: gep) GEP.push_back(int32(x));
 		switch (type) {
@@ -703,7 +703,7 @@ public:
 		}
 	}
 
-	void saveValue(Value * dst, std::initializer_list<int> gep, LLVMVal _v, ::Type type) {
+	void saveValue(Value * dst, std::initializer_list<int> gep, LLVMVal _v, ::PlainType type) {
 		OwnedLLVMVal v=takeOwnership(std::move(_v), type);
 		std::vector<Value *> GEP;
 		for (int x: gep) GEP.push_back(int32(x));
@@ -790,7 +790,7 @@ public:
 	 */
 	template <typename T>
 	struct th {
-		typedef ::Type t;
+		typedef ::PlainType t;
 	};
 
 
@@ -800,9 +800,9 @@ public:
 	template <typename ...T>
 	struct OpImpl {
 		/** \brief The return type */
-		::Type ret;
+		::PlainType ret;
 		/** \brief The argument types */
-		std::array<::Type, sizeof...(T)> types;
+		std::array<::PlainType, sizeof...(T)> types;
 		/** \brief The function to call to emit code for the operation */
 		std::function<LLVMVal(typename bwh<T>::t ...)> func;
 	};
@@ -816,14 +816,14 @@ public:
 	template <typename F, typename ...T>
 	OpImpl<typename th<T>::t...> dOp(
 		F func, 
-		::Type rtype, 
+		::PlainType rtype, 
 		T... types) {
 		typedef OpImpl<typename th<T>::t...> rt; 
 		return rt{rtype, {types...}, func};
 	}
 
 
-	llvm::Value * handleUndef(llvm::Value * v, ::Type) {
+	llvm::Value * handleUndef(llvm::Value * v, ::PlainType) {
 		return v;
 	}
 
@@ -833,7 +833,7 @@ public:
 	 * return the undefined valued of ret, otherwize return v
 	 */
 	template <typename T, typename ...TS>
-	llvm::Value * handleUndef(llvm::Value * v, ::Type ret, 
+	llvm::Value * handleUndef(llvm::Value * v, ::PlainType ret, 
 							  T t1, TS... ts,
 							  BorrowedLLVMVal v1, typename bwh<TS>::t... vs) {
 		llvm::Value * res=handleUndef(v, ret, ts..., vs...);
@@ -856,10 +856,10 @@ public:
 	 * \parm in The type the comparator operates on
 	 * \param pred The predicate to use for comparison
 	 */
-	OpImpl<::Type, ::Type> dComp(::Type in, llvm::CmpInst::Predicate pred) {
-		return OpImpl<::Type, ::Type>{TBool, {in, in}, 
+	OpImpl<::PlainType, ::PlainType> dComp(::PlainType in, llvm::CmpInst::Predicate pred) {
+		return OpImpl<::PlainType, ::PlainType>{TBool, {in, in}, 
 				[this, in, pred](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) -> OwnedLLVMVal {
-					return handleUndef<::Type, ::Type>(
+					return handleUndef<::PlainType, ::PlainType>(
 						builder.CreateSelect(
 							builder.CreateICmp(pred, lhs.value, rhs.value),
 							trueBool,
@@ -868,10 +868,10 @@ public:
 				}};
 	}
 
-	OpImpl<::Type, ::Type> dFComp(::Type in1, ::Type in2, llvm::CmpInst::Predicate pred) {
-		return OpImpl<::Type, ::Type>{TBool, {in1, in2}, 
+	OpImpl<::PlainType, ::PlainType> dFComp(::PlainType in1, ::PlainType in2, llvm::CmpInst::Predicate pred) {
+		return OpImpl<::PlainType, ::PlainType>{TBool, {in1, in2}, 
 				[this, in1, in2, pred](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs) -> OwnedLLVMVal {
-					return handleUndef<::Type, ::Type>(
+					return handleUndef<::PlainType, ::PlainType>(
 						builder.CreateSelect(
 							builder.CreateFCmp(
 								pred, 
@@ -888,7 +888,7 @@ public:
 	 * See \ref{dOp}
 	 */
 	template <typename Func, typename ...T>
-	OpImpl<typename th<T>::t...> dOpU(Func func, ::Type ret, T... types) {
+	OpImpl<typename th<T>::t...> dOpU(Func func, ::PlainType ret, T... types) {
 		return OpImpl<typename th<T>::t...>{ret, {types...}, 
 				[this, func, types..., ret](
 					typename bwh<T>::t... vals) -> OwnedLLVMVal {
@@ -906,7 +906,7 @@ public:
 	template <typename ...T>
 	OpImpl<typename th<T>::t...> dCall(
 		const char * name, 
-		::Type rtype, 
+		::PlainType rtype, 
 		T ... types) {
 		typedef OpImpl<typename th<T>::t...> rt;
 		return rt{rtype, {types...},
@@ -925,7 +925,7 @@ public:
 	OpImpl<typename th<T>::t...> dCallR(
 		const char * name, 
 		std::shared_ptr<Node> node, 
-		::Type rtype, 
+		::PlainType rtype, 
 		T ... types) {
 		typedef OpImpl<typename th<T>::t...> rt;
 		return rt{rtype, {types...},
@@ -993,7 +993,7 @@ public:
 			return r;
 		}
 		
-		::Type type=childs[i]->strongType.plain();
+		::PlainType type=childs[i]->strongType.plain();
 		
 		if (type != TAny) {
 			std::vector<oi_t> matches;
@@ -1261,8 +1261,9 @@ public:
 				if (type) builder.CreateStore(v.type, type);
 				forgetOwnership(v);			
 				builder.CreateBr(end);
-				error->reportWarning("if might have none of the branches taken, and the return type has no default value.", node->ifToken, {node->charRange});
 			} else {
+				error->reportWarning("if might have none of the branches taken, and the return type has no default value.", node->ifToken, {node->charRange});
+
 				builder.CreateCall2(getStdlibFunc("rm_emitIfError"),
 									int32(node->charRange.lo), int32(node->charRange.hi));
 				builder.CreateUnreachable();
@@ -1457,7 +1458,7 @@ public:
 		return LLVMVal(std::move(r));
 	}
 
-	LLVMVal genIsExpression(std::shared_ptr<BuiltInExp> & node, ::Type wantedType){
+	LLVMVal genIsExpression(std::shared_ptr<BuiltInExp> & node, ::PlainType wantedType){
 
 		// this is a special case which is only supported
 		// for the atomic operators; we expect the first 
@@ -1967,8 +1968,8 @@ public:
 	}
 
 
-	template <bool mod, ::Type lt, ::Type rt>
-	OpImpl<::Type, ::Type> dDivMod() {
+	template <bool mod, ::PlainType lt, ::PlainType rt>
+	OpImpl<::PlainType, ::PlainType> dDivMod() {
 		const bool fval=(lt == TFloat || rt == TFloat);
 		return dOpU([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
 				const bool fval=(lt == TFloat || rt == TFloat);
@@ -2016,7 +2017,7 @@ public:
 	 * \param ops The possible operations
 	 */
 	LLVMVal binopImpl(std::shared_ptr<BinaryOpExp> node, 
-					  std::initializer_list<OpImpl<::Type, ::Type> > ops) {
+					  std::initializer_list<OpImpl<::PlainType, ::PlainType> > ops) {
 		return opImp(ops, node, node->lhs, node->rhs);
 	}
 	
@@ -2171,7 +2172,7 @@ public:
 
 	/** \brief Codegen a sequence */
 	LLVMVal visit(std::shared_ptr<SequenceExp> node) {
-		::Type t=TInvalid;
+		::PlainType t=TInvalid;
 		LLVMVal x;
 		for(auto n: node->sequence) {
 			disown(x, t);

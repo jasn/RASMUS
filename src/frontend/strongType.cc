@@ -191,7 +191,7 @@ StrongType StrongType::disjunction(std::vector<StrongType> parts) {
 	return StrongType(bb);
 }
 
-Type StrongType::disjunctionPlain() const {
+PlainType StrongType::disjunctionPlain() const {
 	assert(base() == Disjunction);
 	const int HBOOL=1;
 	const int HFLOAT=2;

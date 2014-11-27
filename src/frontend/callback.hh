@@ -45,7 +45,7 @@ public:
 						std::string additional) = 0;
 	virtual void report(MsgType type, std::string message) = 0;
 
-	virtual void print(Type type, std::string repr) = 0;
+	virtual void print(PlainType type, std::string repr) = 0;
 
 	virtual void saveRelation(rm_object * o, const char * name) = 0;
 	virtual rm_object * loadRelation(const char * name) = 0;
@@ -76,7 +76,7 @@ public:
 	
 	virtual void report(MsgType type, std::string message) override;
 
-	virtual void print(Type type, std::string repr) override;
+	virtual void print(PlainType type, std::string repr) override;
 	
 	virtual void saveRelation(rm_object * o, const char * name) override;
 	virtual rm_object * loadRelation(const char * name) override;

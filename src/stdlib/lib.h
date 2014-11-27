@@ -179,7 +179,7 @@ void rm_emitColCntError [[noreturn]] (int32_t start, int32_t end, size_t given, 
  * Emit an error because e.g. multiplication was attempted on non-integers
  */
 void rm_emitBadCalcTypeError [[noreturn]] (int32_t start, int32_t end, std::string name,
-										   Type type, std::string calcType);
+										   PlainType type, std::string calcType);
 
 /**
  * Emit an error because the schemas in two relations returned by factor were different
@@ -199,7 +199,7 @@ void rm_factorMissingColError [[noreturn]] (uint32_t begin, uint32_t end, std::s
 void rm_emitSchemaSizeError [[noreturn]] (int32_t start, int32_t end, size_t s1, size_t s2);
 void rm_emitMissingColError [[noreturn]] (int32_t start, int32_t end, std::string missing_name);
 void rm_emitBadColTypeError [[noreturn]] (int32_t start, int32_t end, std::string name,
-										  Type t1, Type t2);
+										  PlainType t1, PlainType t2);
 
 
 /**

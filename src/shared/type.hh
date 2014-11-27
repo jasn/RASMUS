@@ -44,9 +44,9 @@ inline std::ostream & operator << (std::ostream & o, LType t) {
 	return o << ltypeName(t);
 }
 
-enum Type {
-	TBool=0,
-	TInt=1,
+enum PlainType {
+	TBool,
+	TInt,
 	TFloat,
 	TText,
 	TRel,
@@ -54,11 +54,9 @@ enum Type {
 	TFunc,
 	TInvalid,
 	TAny,
-	TAtom,
-	TNAMEQ,
 };
 
-inline const char * typeName(Type t) {
+inline const char * plainTypeName(PlainType t) {
 	switch(t) {
 	case TBool: return "Bool";
 	case TInt: return "Int";
@@ -69,14 +67,12 @@ inline const char * typeName(Type t) {
 	case TTup: return "Tup";
 	case TFunc: return "Func";
 	case TAny: return "Any";
-	case TAtom: return "Atom";
-	case TNAMEQ: return "NAMEQ";
 	}
 	return "Unknown";
 }
 
-inline std::ostream & operator<<(std::ostream & o, Type t) {
-	return o << typeName(t);
+inline std::ostream & operator<<(std::ostream & o, PlainType t) {
+	return o << plainTypeName(t);
 }
 
 #endif //__type_hh__

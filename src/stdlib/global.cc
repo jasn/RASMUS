@@ -52,7 +52,7 @@ bool rm_existsGlobalAny(const char * name) {
 }
 
 void rm_deleteGlobalAny(const char * name) {
-	if (globals.count(name) == 0 || TRel == Type(globals[name].type)) {
+	if (globals.count(name) == 0 || TRel == PlainType(globals[name].type)) {
 		rm_deleteRel(name);
 	}
 	globals.erase(name);
@@ -99,7 +99,7 @@ void rm_saveGlobalAny(const char * name, int64_t value, int8_t type) {
 								 RefPtr<rm_object>(reinterpret_cast<rm_object*>(value)));
 		break;
 	default:
-		globals[name] = AnyValue((Type)type, 
+		globals[name] = AnyValue((PlainType)type, 
 			RefPtr<rm_object>(reinterpret_cast<rm_object*>(value))
 				);
 		break;

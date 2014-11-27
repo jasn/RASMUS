@@ -172,7 +172,7 @@ public:
 		interperter->doDisplay(QString::fromUtf8(ss.str().c_str()));
 	}
 
-	virtual void print(Type type, std::string repr) override {
+	virtual void print(PlainType type, std::string repr) override {
 		std::stringstream ss;
 		ss /*<< "<span style=\"color: green\">=&nbsp;</span>" */
 			<< escaped(repr);

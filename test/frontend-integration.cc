@@ -43,12 +43,12 @@ public:
 		case MsgType::info: log_info() << message << std::endl; break;
 		}
 	}
-	Type printType;
+	PlainType printType;
 	std::string printText;
 	size_t errors;
 	std::map<std::string, std::string> relations;
 	
-	void print(Type type, std::string repr) override {
+	void print(PlainType type, std::string repr) override {
 		printType = type;
 		printText = repr;
 	}

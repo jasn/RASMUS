@@ -34,14 +34,14 @@ using namespace rasmus::stdlib;
 
 void rm_emitTypeError [[noreturn]] (uint32_t start, uint32_t end, uint8_t got, uint8_t expect) {
 	std::stringstream ss;
-	ss << "Expected type " << Type(expect) << " but got " << Type(got) << ".";
+	ss << "Expected type " << PlainType(expect) << " but got " << PlainType(got) << ".";
 	callback->reportError(start, end, ss.str());
 	__builtin_unreachable();
 }
 
 void rm_emitIsTypeError [[noreturn]] (uint32_t start, uint32_t end, uint8_t got) {
 	std::stringstream ss;
-	ss << "Expected type " << Type(TRel) << " or " << Type(TTup) << " but got " << Type(got) << ".";
+	ss << "Expected type " << PlainType(TRel) << " or " << PlainType(TTup) << " but got " << PlainType(got) << ".";
 	callback->reportError(start, end, ss.str());
 	__builtin_unreachable();
 }
@@ -125,7 +125,7 @@ void rm_emitColCntError [[noreturn]] (int32_t start, int32_t end, size_t given, 
 }
 
 void rm_emitBadCalcTypeError [[noreturn]] (int32_t start, int32_t end, std::string name,
-										   Type type, std::string calcType) {
+										   PlainType type, std::string calcType) {
 	std::stringstream ss;
 	ss << "The given column " << name << " has type " << type
 	   << " but " << calcType << " is only supported for integers.";
@@ -151,7 +151,7 @@ void rm_emitMissingColError [[noreturn]] (int32_t start, int32_t end, std::strin
 }
 
 void rm_emitBadColTypeError [[noreturn]] (int32_t start, int32_t end, std::string name,
-										  Type t1, Type t2) {
+										  PlainType t1, PlainType t2) {
 	std::stringstream ss;
 	ss << "The two relations' schemas are not identical. The column named "
 	   << name << " has varying types "
