@@ -135,7 +135,7 @@ StrongType StrongType::disjunction(std::vector<StrongType> parts) {
 	int has=0;
 	for (const auto & part: rparts) {
 		switch(part.base()) {
-		case None: return none();
+		case Invalid: return invalid();
 		case Any: has |= HANY; break;
 		case Int: has |= HINT; break;
 		case Float: has |= HFLOAT; break;
@@ -180,7 +180,7 @@ StrongType StrongType::disjunction(std::vector<StrongType> parts) {
 	}
 
 	if (ret.size() == 0) 
-		return none();
+		return invalid();
 	if (ret.size() == 1) 
 		return std::move(ret[0]);
 	
@@ -204,7 +204,7 @@ PlainType StrongType::disjunctionPlain() const {
 	int has=0;
 	for (const auto & part: disjunctionParts()) {
 		switch(part.base()) {
-		case None: return TInvalid;
+		case Invalid: return TInvalid;
 		case Any: has |= HANY; break;
 		case Int: has |= HINT; break;
 		case Float: has |= HFLOAT; break;
@@ -257,7 +257,7 @@ void StrongType::destroy() {
 
 std::ostream & operator<<(std::ostream & o, const StrongType & t) {
 	switch (t.base()) {
-	case StrongType::None: return o << "Invalid";
+	case StrongType::Invalid: return o << "Invalid";
 	case StrongType::Any: return o << "Any";
 	case StrongType::Int: return o << "Int";
 	case StrongType::Float: return o << "Float";
@@ -326,12 +326,12 @@ bool StrongType::match(const StrongType & lhs, const StrongType & rhs) {
 			if (match(lhs, part)) return true;
 		return false;
 	}
-	if (lb == Any || rb == Any || rb == None || rb == None) 
+	if (lb == Any || rb == Any || rb == Invalid || rb == Invalid) 
 		return true;
 
 	switch (lb) {
 	case Disjunction:
-	case None:
+	case Invalid:
 	case Any:
 		assert(false);
 		return true;
@@ -361,43 +361,6 @@ bool StrongType::match(const StrongType & lhs, const StrongType & rhs) {
 	assert(false);
 	return true;
 }
-
-
-// bool match(const Ptr & lhs, const Ptr & rhs) {
-// 	switch (rhs->type()) {
-// 	case BaseType::Any:
-// 		return true;
-// 	case BaseType::Int:
-// 		return lhs->type() == BaseType::Int;
-// 	case BaseType::Float:
-// 		return lhs->type() == BaseType::Float;
-// 	case BaseType::Bool:
-// 		return lhs->type() == BaseType::Bool;
-// 	case BaseType::Text:
-// 		return lhs->type() == BaseType::Text;
-// 	case BaseType::ARel:
-// 		return lhs->type() == BaseType::ARel || lhs->type() == BaseType::Rel;
-// 	case BaseType::Rel:
-// 		// TODO
-// 		return lhs->type() == BaseType::ARel || lhs->type() == BaseType::Rel;
-// 	case BaseType::ATup:
-// 		return lhs->type() == BaseType::ATup || lhs->type() == BaseType::Tup;
-// 	case BaseType::Tup:
-// 		// TODO
-// 		return lhs->type() == BaseType::ATup || lhs->type() == BaseType::Tup;
-// 	case BaseType::AFunc:
-// 		return lhs->type() == BaseType::AFunc || lhs->type() == BaseType::Func;
-// 	case BaseType::Func:
-// 		// TODO
-// 		return lhs->type() == BaseType::AFunc || lhs->type() == BaseType::Func;
-// 	case BaseType::None:
-// 		return false;
-// 	case BaseType::Disjunction:
-// 		for (auto e: rhs.getAs<Disjunction>()->entries) 
-// 			if (match(lhs, e)) return true;
-// 		return false;
-// 	}
-// }
 
 } //namespace frontend
 } //namespace rasmus

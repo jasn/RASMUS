@@ -107,7 +107,7 @@ public:
 		case TokenType::TK_TYPE_TUP: return StrongType::aTup();
 		default:
 			internalError(token, "Invalid call to tokenToType");
-			return StrongType::none();
+			return StrongType::invalid();
 		}
 	}
 
@@ -176,7 +176,7 @@ public:
 					std::stringstream ss;
 					ss << "Unknown variable " << name;
 					error->reportError(ss.str(), node->nameToken);
-					node->strongType = StrongType::none();
+					node->strongType = StrongType::invalid();
 				}
 				return;
 			}
@@ -274,7 +274,7 @@ public:
 	}
 
     void visit(std::shared_ptr<BuiltInExp> node) {
-		StrongType returnType=StrongType::none();
+		StrongType returnType=StrongType::invalid();
 		std::vector<StrongType> argumentTypes;
 		bool secondIsName=false;
 		switch (node->nameToken.id) {
@@ -411,7 +411,7 @@ public:
 			break;
 		default:
 			internalError(node->valueToken, std::string("Invalid constant type ")+getTokenName(node->valueToken.id));
-			node->strongType = StrongType::none();
+			node->strongType = StrongType::invalid();
 			break;
 		}
 	}   
@@ -455,7 +455,7 @@ public:
 			break;
 		default:
             internalError(node->opToken, "Bad unary operator");
-            node->strongType = StrongType::none();
+            node->strongType = StrongType::invalid();
 		}
 	}
 
@@ -501,8 +501,8 @@ public:
 			return;
 		}
 		
-		if (node->funcExp->strongType.base() == StrongType::None) {
-			node->strongType = StrongType::none();
+		if (node->funcExp->strongType.base() == StrongType::Invalid) {
+			node->strongType = StrongType::invalid();
 			return;
 		}
 		
@@ -515,7 +515,7 @@ public:
 			
 		} else if(fts.size() == 0) {
 			error->reportError("Tried to call none function", node->lparenToken, {node->funcExp->charRange});
-			node->strongType = StrongType::none();
+			node->strongType = StrongType::invalid();
 		} else {
 			std::vector<StrongType> matchTypes;
 			for (const auto & f: fts) {
@@ -595,7 +595,7 @@ public:
 	}
 
     void visit(std::shared_ptr<InvalidExp> node) {
-        node->strongType = StrongType::none();
+        node->strongType = StrongType::invalid();
 	}
 
 	struct BinopHelp {
@@ -714,7 +714,7 @@ public:
 			break;
 		default:
             internalError(node->opToken, std::string("Invalid operator")+getTokenName(node->opToken.id));
-            node->strongType = StrongType::none();
+            node->strongType = StrongType::invalid();
 			break;
 		}
 	}
@@ -722,7 +722,7 @@ public:
     void visit(std::shared_ptr<SequenceExp> node) {
         visitAll(node->sequence);
         if (node->sequence.empty())
-			node->strongType = StrongType::none();
+			node->strongType = StrongType::invalid();
         else
             node->strongType = node->sequence.back()->strongType;
 	}

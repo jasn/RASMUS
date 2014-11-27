@@ -35,7 +35,7 @@ public:
 	};
 
 	enum Base : int8_t {
-		None, Any, Int, Float, Bool, Text, ARel, ATup, AFunc, Rel, Func, Tup, Disjunction
+		Invalid, Any, Int, Float, Bool, Text, ARel, ATup, AFunc, Rel, Func, Tup, Disjunction
 	};
 
 	StrongType(): bits(0) {}
@@ -56,7 +56,7 @@ public:
 		case TTup: bits = (uint64_t)ATup << 56; break;
 		case TFunc: bits = (uint64_t)AFunc << 56; break;
 		case TInvalid:
-			bits = (uint64_t)None << 56;
+			bits = (uint64_t)Invalid << 56;
 			break;
 		}
 	}
@@ -83,7 +83,7 @@ public:
 		}
 	}
 
-	bool valid() const {return base() != None;}
+	bool valid() const {return base() != Invalid;}
 
 	const StrongType & funcRet() const;
 	const std::vector<StrongType> & funcArgs() const;
@@ -91,7 +91,7 @@ public:
 	const std::vector<StrongType> & disjunctionParts() const;
 	const std::map<std::string, StrongType> & relTubSchema() const;
 	
-	static StrongType none() {return StrongType((uint64_t)None << 56);}
+	static StrongType invalid() {return StrongType((uint64_t)Invalid << 56);}
 	static StrongType any() {return StrongType((uint64_t)Any << 56);}
 	static StrongType integer() {return StrongType((uint64_t)Int << 56);}
 	static StrongType fp() {return StrongType((uint64_t)Float << 56);}
