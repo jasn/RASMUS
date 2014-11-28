@@ -82,8 +82,8 @@ const std::vector<Type> & Type::disjunctionParts() const {
 	return static_cast<const DisjunctionC*>(p())->parts;
 }
 
-const std::map<std::string, Type> & Type::relTubSchema() const {
-	assert(kind() == Tub || kind() == Rel);
+const std::map<std::string, Type> & Type::relTupSchema() const {
+	assert(kind() == Tup || kind() == Rel);
 	return static_cast<const SchemaC*>(p())->entries;
 }
 
@@ -266,7 +266,7 @@ std::ostream & operator<<(std::ostream & o, const Type & t) {
 	case Type::AFunc: return o << "Func";
 	case Type::Rel: 
 		o << "Rel";
-		outputSchema(o, t.relTubSchema());
+		outputSchema(o, t.relTupSchema());
 		return o;
 	case Type::Func: {
 		o << "Func(";
@@ -279,8 +279,8 @@ std::ostream & operator<<(std::ostream & o, const Type & t) {
 		return o << ")->(" << t.funcRet() << ")";
 	}
 	case Type::Tup: 
-		o << "Rel";
-		outputSchema(o, t.relTubSchema());
+		o << "Tup";
+		outputSchema(o, t.relTupSchema());
 		return o;
 	case Type::Disjunction: {
  		bool first=true;
@@ -341,9 +341,9 @@ bool Type::match(const Type & lhs, const Type & rhs) {
 	case ATup: return rb == Tup || rb == ATup;
 	case AFunc: return rb == Func || rb == AFunc;
 	case Rel:
-		return rb == ARel || (rb == Rel && matchSchema(lhs.relTubSchema(), rhs.relTubSchema()));
+		return rb == ARel || (rb == Rel && matchSchema(lhs.relTupSchema(), rhs.relTupSchema()));
 	case Tup:
-		return rb == ATup || (rb == Tup && matchSchema(lhs.relTubSchema(), rhs.relTubSchema()));
+		return rb == ATup || (rb == Tup && matchSchema(lhs.relTupSchema(), rhs.relTupSchema()));
 	case Func: {
 		if (rb == AFunc) return true;
 		if (rb != Func) return false;

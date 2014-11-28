@@ -90,7 +90,7 @@ public:
 	const std::vector<Type> & funcArgs() const;
 	// We guarentee that disjunctions are relativly minimal, and that they do not contain other disjunctions
 	const std::vector<Type> & disjunctionParts() const;
-	const std::map<std::string, Type> & relTubSchema() const;
+	const std::map<std::string, Type> & relTupSchema() const;
 	
 	static Type invalid() {return Type((uint64_t)Invalid << 56);}
 	static Type any() {return Type((uint64_t)Any << 56);}
@@ -102,6 +102,7 @@ public:
 	static Type aRel() {return Type((uint64_t)ARel << 56);}
 	static Type aTup() {return Type((uint64_t)ATup << 56);}
 	static Type aFunc() {return Type((uint64_t)AFunc << 56);}
+	static Type atomic() {return disjunction({fp(), integer(), text(), boolean()});}
 	static Type rel(std::map<std::string, Type> schema);
 	static Type tup(std::map<std::string, Type> schema);
 	static Type func(Type ret, std::vector<Type> args);
@@ -147,7 +148,7 @@ private:
 	PlainType disjunctionPlain() const; 
 	void destroy();
 
-	Type(uint64_t b): bits(b) {}
+	explicit Type(uint64_t b): bits(b) {}
 
 	uint64_t bits;
 };

@@ -26,6 +26,7 @@
 #include <iostream>
 #include <frontend/visitor.hh>
 #include <frontend/firstParse.hh>
+#include <cassert>
 
 using lexer::TokenType;
 
@@ -55,6 +56,34 @@ struct Scope {
 	Scope() {}
 	Scope(NodePtr node): node(node) {}
 };
+
+
+bool schemaHasName(const Type & t, const std::string & name) {
+	switch (t.kind()) {
+	case Type::Any:
+	case Type::ATup:
+	case Type::ARel:
+	case Type::Invalid:
+		return true;
+	case Type::Int:
+	case Type::Float:
+	case Type::Bool:
+	case Type::Text:
+	case Type::Func:
+	case Type::AFunc:
+		return false;
+	case Type::Rel:
+	case Type::Tup:
+		return t.relTupSchema().count(name);
+	case Type::Disjunction:
+		for (const auto & tt: t.disjunctionParts())
+			if (schemaHasName(tt, name))
+				return true;
+		return false;
+	}
+	assert(false);
+	return false;
+}
 
 class FirstParseImpl: public FirstParse, public VisitorCRTP<FirstParseImpl, void> {
 public:
@@ -257,9 +286,17 @@ public:
 	}
 
     void visit(std::shared_ptr<TupExp> node) {
-        for (auto item: node->items) visitNode(item->exp);
-		// TODO make strong type
-        node->type = Type::aTup();
+		std::map<std::string, Type> schema;
+        for (auto item: node->items) {
+			visitNode(item->exp);
+			Type it=Type::invalid();
+			if (typeCheck(item->colonToken, item->exp, Type::atomic()))
+				it = item->exp->type;
+			std::string name = item->nameToken.getText(code);
+			if (!schema.insert(std::make_pair(name, it)).second)
+				error->reportError("Duplicate name", item->nameToken);
+		}
+        node->type = Type::tup(schema);
 	}
 
     void visit(std::shared_ptr<BlockExp> node) {
@@ -430,16 +467,13 @@ public:
 			return;
 		}
 
-
 		// If we cannot find the variable, then it must be an external relation
-
 		if (scopes.size() != 1 || !callback->hasRelation(name.c_str())) {
 			std::stringstream ss;
 			ss << "Unknown variable " << name;
 			error->reportError(ss.str(), node->nameToken);
 			return;
 		}
-
 	}
 
     void visit(std::shared_ptr<UnaryOpExp> node) {
@@ -459,11 +493,65 @@ public:
 		}
 	}
 
+	static bool getTups(Type ft, std::vector<Type> & ans) {
+		bool atup=false;
+		switch (ft.kind()) {
+		case Type::Invalid:
+		case Type::Any:
+		case Type::ATup:
+			atup=true;
+			break;
+		case Type::Tup:
+			ans.push_back(ft);
+			break;
+		case Type::Disjunction:
+			for (const auto & e: ft.disjunctionParts())
+				atup = atup || getTups(e, ans);
+			break;
+		default:
+			break;
+		}
+		return atup;
+	}
+
+	static bool getRels(Type ft, std::vector<Type> & ans) {
+		bool arel=false;
+		switch (ft.kind()) {
+		case Type::Invalid:
+		case Type::Any:
+		case Type::ARel:
+			arel=true;
+			break;
+		case Type::Rel:
+			ans.push_back(ft);
+			break;
+		case Type::Disjunction:
+			for (const auto & e: ft.disjunctionParts())
+				arel = arel || getRels(e, ans);
+			break;
+		default:
+			break;
+		}
+		return arel;
+	}
+
     void visit(std::shared_ptr<RelExp> node) {
-		// TODO stronger type here
-        node->type = Type::aRel(); 
         visitNode(node->exp);
-        typeCheck(node->relToken, node->exp, Type::aTup());
+        if (!typeCheck(node->relToken, node->exp, Type::aTup())) {
+			node->type = Type::aRel();
+			return;
+		}
+		
+		std::vector<Type> tups;
+		if (getTups(node->exp->type, tups)) {
+			node->type = Type::aRel();
+			return;
+		}
+		assert(!tups.empty());
+		std::vector<Type> rels;
+		for (const auto & tup: tups)
+			rels.push_back(Type::rel(tup.relTupSchema()));
+		node->type = Type::disjunction(rels);
 	}
 	
     void visit(std::shared_ptr<LenExp> node) {
@@ -544,7 +632,6 @@ public:
 					ss << fts[i];
 				}
 				error->reportError("Invalid function call", node->lparenToken, {node->charRange}, ss.str());
-				
 			} else {
 				node->type = Type::disjunction(matchTypes);
 			}
@@ -572,10 +659,33 @@ public:
 
     void visit(std::shared_ptr<DotExp> node) {
         visitNode(node->lhs);
-		// TODO Stronger type check
-        typeCheck(node->dotToken, node->lhs, Type::aTup());
-		// TODO Stronger return type
-        node->type = Type::any();
+        if (!typeCheck(node->dotToken, node->lhs, Type::aTup())) {
+			node->type = Type::invalid();
+			return;
+		}
+		
+		std::vector<Type> rels;
+		if (getTups(node->lhs->type, rels)) {
+			// If the type is anytup then our type is just any
+			node->type = Type::any();
+			return;
+		}
+
+		std::vector<Type> types;
+		std::string name=node->nameToken.getText(code);
+		for (const auto & t: rels) {
+			auto x=t.relTupSchema().find(name);
+			if (x == t.relTupSchema().end()) continue;
+			types.push_back(x->second);
+		}
+		
+		if (types.empty()) {
+			error->reportError("Given name does not exist in schema", node->nameToken, {node->lhs->charRange});
+			node->type = Type::invalid();
+			return;
+		}
+		
+		node->type = Type::disjunction(types);
 	}
 
     void visit(std::shared_ptr<TupMinus> node) {
