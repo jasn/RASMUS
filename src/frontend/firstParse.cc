@@ -666,8 +666,8 @@ public:
 		
 		std::vector<Type> rels;
 		if (getTups(node->lhs->type, rels)) {
-			// If the type is anytup then our type is just any
-			node->type = Type::any();
+			// If the type is any tup then our type is atomic
+			node->type = Type::atomic();
 			return;
 		}
 
