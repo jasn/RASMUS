@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <map>
+#include <ostream>
 namespace rasmus {
 namespace frontend {
 
@@ -66,7 +67,7 @@ public:
 	}
 	
 	PlainType plain() const {
-		switch (Kind()) {
+		switch (kind()) {
 		case Any: return TAny;
 		case Int: return TInt;
 		case Float: return TFloat;

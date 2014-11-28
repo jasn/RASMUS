@@ -1886,8 +1886,9 @@ public:
 
 		builder.CreateCall(getStdlibFunc("rm_exitFunction")); 
 
-		return OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
-							builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1)));
+		return cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
+								 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1))),
+					TAny, node->type.plain(), node);
 	}
 
 	/** \brief Codegen for substring expressions */

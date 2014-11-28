@@ -247,7 +247,7 @@ void base(rasmus::teststream & ts) {
     ts << "false" << result(pt("false", "false"));
     ts << "sharp" << result(pt("#", "#"));
     ts << "not" << result(pt("not false", "(not false)"));
-    ts << "substr" << result(pt("\"hat\"(1..4)", "(.. \"hat\" 1 4)"));
+    ts << "substr" << result(pt("\"hat\"(1 .. 4)", "(.. \"hat\" 1 4)"));
     ts << "call1" << result(pt("hat(1, 4)", "(call hat 1 4)"));
     ts << "call2" << result(pt("hat()", "(call hat)"));
     ts << "call3" << result(pt("hat(1)", "(call hat 1)"));
