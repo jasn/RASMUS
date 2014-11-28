@@ -314,6 +314,8 @@ public:
 		Type returnType=Type::invalid();
 		std::vector<Type> argumentTypes;
 		bool secondIsName=false;
+		bool mustExist=true;
+		bool allowTup=false;
 		switch (node->nameToken.id) {
 		case TokenType::TK_ISATOM:
 		case TokenType::TK_ISTUP:
@@ -328,6 +330,7 @@ public:
 		case TokenType::TK_ISFLOAT:
 		case TokenType::TK_ISTEXT:
             returnType = Type::boolean();
+			allowTup = true;
             argumentTypes.push_back(Type::any());
             if (node->args.size() >= 2) secondIsName = true;
 			break;
@@ -346,6 +349,8 @@ public:
         case TokenType::TK_HAS:
 			returnType = Type::boolean();
             argumentTypes.push_back(Type::disjunction({Type::aRel(), Type::aTup()}));
+			allowTup = true;
+			mustExist=false;
 			secondIsName = true;
 			break;
 		case TokenType::TK_MAX:
@@ -405,11 +410,12 @@ public:
 			if (i == 1 && secondIsName) {
 				if (node->args[i]->nodeType != NodeType::VariableExp) 
 					error->reportError("Expected identifier", Token(), {node->args[i]->charRange});
-				else {
+				else if (mustExist) {
 					Token nt=std::static_pointer_cast<VariableExp>(node->args[i])->nameToken;
 					std::string name = nt.getText(code);
 					std::vector<Type> rels;
-					if (!getRels(node->args[0]->type, rels)) {
+					if (!getRels(node->args[0]->type, rels) &&
+						(!allowTup || !getTups(node->args[0]->type, rels))) {
 						bool found=false;
 						for (const auto & rel: rels)
 							if (rel.relTupSchema().count(name))
