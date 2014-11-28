@@ -273,7 +273,7 @@ public:
 		std::vector<Type> argTypes;
         for (auto a: node->args) {
 			scopes.back().bind[a->nameToken.getText(code)] = a;
-			a->type = tokenToType(a->typeToken);
+			if (!a->type.valid()) a->type = tokenToType(a->typeToken);
 			argTypes.push_back(a->type);
 		}
 		Type rtype=tokenToType(node->returnTypeToken);
@@ -350,9 +350,13 @@ public:
 			break;
 		case TokenType::TK_MAX:
 		case TokenType::TK_MIN:
-		case TokenType::TK_COUNT:
 		case TokenType::TK_ADD:
 		case TokenType::TK_MULT:
+			returnType = Type::integer(); //should be fpOrInt when the stdlib changes
+            argumentTypes.push_back(Type::aRel());
+			secondIsName = true;
+			break;
+		case TokenType::TK_COUNT:
 			returnType = Type::integer();
             argumentTypes.push_back(Type::aRel());
 			secondIsName = true;
@@ -399,9 +403,21 @@ public:
 		
 		for (size_t i=0; i < node->args.size(); ++i) {
 			if (i == 1 && secondIsName) {
-				// TODO check if the name in actually in the schema
 				if (node->args[i]->nodeType != NodeType::VariableExp) 
 					error->reportError("Expected identifier", Token(), {node->args[i]->charRange});
+				else {
+					Token nt=std::static_pointer_cast<VariableExp>(node->args[i])->nameToken;
+					std::string name = nt.getText(code);
+					std::vector<Type> rels;
+					if (!getRels(node->args[0]->type, rels)) {
+						bool found=false;
+						for (const auto & rel: rels)
+							if (rel.relTupSchema().count(name))
+								found = true;
+						if (!found)
+							error->reportError("Name not in schema", nt, {node->args[0]->charRange});
+					}
+				}
 				continue;
 			}
 			visitNode(node->args[i]);
@@ -750,7 +766,38 @@ public:
 		node->type = Type::disjunction(matches);
 	}
 
+	void visitSelect(std::shared_ptr<BinaryOpExp> node) { 
+		visitNode(node->lhs);
+		if (!typeCheck(node->opToken, node->lhs, Type::aRel())) {
+			node->type = Type::aRel();
+			visitNode(node->rhs);
+			typeCheck(node->opToken, node->rhs, Type::func(Type::boolean(), {Type::aTup()}));
+			return;
+		} 
 	
+		std::vector<Type> rels;
+		if (getRels(node->lhs->type, rels)) {
+			node->type = Type::aRel();
+			visitNode(node->rhs);
+			typeCheck(node->opToken, node->rhs, Type::func(Type::boolean(), {Type::aTup()}));
+			return;
+		}
+
+		std::vector<Type> tups;
+		for (const auto & rel: rels) 
+			tups.push_back(Type::tup(rel.relTupSchema()));
+		Type tup=Type::disjunction(tups);
+
+		assert(node->rhs->nodeType == NodeType::FuncExp);
+		std::shared_ptr<FuncExp> f = std::static_pointer_cast<FuncExp>(node->rhs);
+		assert(f->args.size() == 1);
+		f->args[0]->type = tup;
+
+		visitNode(node->rhs);
+		typeCheck(node->opToken, node->rhs, Type::func(Type::boolean(), {tup}));
+		node->type = node->lhs->type;
+	}
+
     void visit(std::shared_ptr<BinaryOpExp> node) {
 		switch(node->opToken.id) {
 		case TokenType::TK_PLUS:
@@ -816,7 +863,7 @@ public:
 			break;
 		case TokenType::TK_SELECT:
 			// TODO better type checking
-			binopTypeCheck(node, { {Type::aRel(), Type::aFunc(), Type::aRel()} });
+			visitSelect(node);
 			break;
 		case TokenType::TK_OPEXTEND:
 			// TODO better type checking
