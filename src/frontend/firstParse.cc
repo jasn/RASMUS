@@ -672,12 +672,102 @@ public:
 		node->type = Type::text();
 	}
 
-    void visit(std::shared_ptr<RenameExp> node) {
-        visitNode(node->lhs);
-		// TODO Stronger type check
-        typeCheck(node->lbracketToken, node->lhs, Type::aRel());
-		// TODO Stronger return type
-        node->type = Type::aRel();
+	static CharRange r(Token t) {
+		if (!t || t.length == 0) return CharRange();
+		return CharRange(t.start, t.start+t.length);
+	}
+	
+	void visit(std::shared_ptr<RenameExp> node) {
+		visitNode(node->lhs);
+		typeCheck(node->lbracketToken, node->lhs, Type::aRel());
+		std::vector<Type> rels;
+		if (getRels(node->lhs->type, rels)) {
+			node->type = Type::aRel();
+			return;
+		}
+
+		bool bad=false;
+		std::map<std::string, Token> froms;
+		std::map<std::string, Token> tos;
+		for (const auto & p: node->renames) {
+			Token from=p->fromNameToken;
+			Token to=p->toNameToken;
+			auto x=froms.insert(std::make_pair(from.getText(code), from));
+			if (!x.second) {
+				std::stringstream ss;
+				ss << "'" << from.getText(code) << "' has allready been renamed";
+				error->reportError(ss.str(), from, {r(x.first->second)});
+				bad = true;
+			}
+			auto y=tos.insert(std::make_pair(to.getText(code), to));
+			if (!y.second) {
+				std::stringstream ss;
+				ss << "'" << to.getText(code) << "' has allready been renamed to";
+				error->reportError(ss.str(), to, {r(y.first->second)});
+				bad = true;
+			}
+		};
+
+		if (bad) {
+			node->type = Type::aRel();
+			return;
+		}
+
+
+		std::vector<Type> newRels;
+		for (const Type & rel: rels) {
+			const auto & schema = rel.relTupSchema();
+			std::map<std::string, Type> newSchema = schema;
+			
+			bool bad=false;
+			for (const auto & p: froms) {
+				if (newSchema.erase(p.first)) continue;
+				bad=true;
+				if (rels.size() != 1) continue;
+				std::stringstream ss;
+				ss << "The name '" << p.first << "' is not defined in "
+				   << rels[0];
+				error->reportError(ss.str(), p.second, {node->lhs->charRange});
+			}
+
+			for (const auto & p: node->renames) {
+				Token from=p->fromNameToken;
+				Token to=p->toNameToken;
+				
+				auto x = schema.find(from.getText(code));
+				if (x == schema.end()) {
+					bad=true;
+					//This should also have been caught by the above loop}
+					continue;
+				}
+				
+				if (newSchema.insert(std::make_pair(to.getText(code), x->second)).second)
+					continue;
+								
+				bad=true;
+				if (rels.size() == 1) {
+					std::stringstream ss;
+					ss << "The name '" << to.getText(code) << "' is allredy in "
+					   << rels[0];
+					error->reportError(ss.str(), to, {node->lhs->charRange});
+				}
+			}
+			if (!bad)
+				newRels.push_back(Type::rel(std::move(newSchema)));
+		}
+
+		if (newRels.empty()) {
+			node->type = Type::aRel();
+			if (rels.size() != 1) {
+				std::stringstream ss;
+				ss << "The rename cannot be done on any of the possible relation types:";
+				for (const Type & rel: rels) 
+					ss << "\n  " << rel;
+				error->reportError("Invalid rename", node->lbracketToken, {node->charRange}, ss.str());
+			}
+		} else {
+			node->type = Type::disjunction(std::move(newRels));
+		}
 	}
 
     void visit(std::shared_ptr<DotExp> node) {
