@@ -279,8 +279,9 @@ public:
 		Type rtype=tokenToType(node->returnTypeToken);
         visitNode(node->body);
 		typeCheck(node->funcToken, node->body, rtype);
-		// TODO make rtype the conjunction of the types of rtype and node->body type
-				
+
+		Type nrtype=Type::conjunction({rtype, node->body->type});
+		if (nrtype.valid()) rtype=nrtype;				
 		node->type = Type::func(rtype, argTypes);
 		scopes.pop_back();
 	}
@@ -826,17 +827,25 @@ public:
     void visit(std::shared_ptr<BinaryOpExp> node) {
 		switch(node->opToken.id) {
 		case TokenType::TK_PLUS:
-		case TokenType::TK_MUL:
 		case TokenType::TK_MINUS:
 			binopTypeCheck(node, {
 					{Type::fp(), Type::integer(),   Type::fp()},
 					{Type::fp(), Type::fp(), Type::fp()},
 					{Type::integer(),   Type::fp(), Type::fp()},
 					{Type::integer(), Type::integer(), Type::integer()},
-					// TODO better type checking
 					{Type::aRel(), Type::aRel(), Type::aRel(), [](Type lhs, Type rhs)->Type {
 							return Type::conjunction({lhs, rhs});
 						}}
+				});
+			break;
+		case TokenType::TK_MUL:
+			binopTypeCheck(node, {
+					{Type::fp(), Type::integer(),   Type::fp()},
+					{Type::fp(), Type::fp(), Type::fp()},
+					{Type::integer(),   Type::fp(), Type::fp()},
+					{Type::integer(), Type::integer(), Type::integer()},
+					// Todo typecheck and figure out return type of natural join
+					{Type::aRel(), Type::aRel(), Type::aRel()}
 				});
 			break;
 		case TokenType::TK_DIV:
@@ -880,16 +889,13 @@ public:
 					{Type::integer(), Type::integer(), Type::boolean()},
 					{Type::boolean(), Type::boolean(), Type::boolean()},
 					{Type::text(), Type::text(), Type::boolean()},
-					// TODO better type checking
 					{Type::aTup(), Type::aTup(), Type::boolean()},
-					// TODO better type checking
 					{Type::aRel(), Type::aRel(), Type::boolean()}});
 			break;
 		case TokenType::TK_TILDE:
 			binopTypeCheck(node, { {Type::text(), Type::text(), Type::boolean()} });
 			break;
 		case TokenType::TK_SELECT:
-			// TODO better type checking
 			visitSelect(node);
 			break;
 		case TokenType::TK_OPEXTEND:
