@@ -734,6 +734,11 @@ public:
 		Type lhsType;
 		Type rhsType;
 		Type resType;
+		std::function<Type(Type, Type)> func;
+
+		BinopHelp(Type lhsType, Type rhsType, Type resType, 
+				  std::function<Type(Type, Type)> func=std::function<Type(Type, Type)>()):
+			lhsType(lhsType), rhsType(rhsType), resType(resType), func(func) {}
 	};
 
 
@@ -744,11 +749,11 @@ public:
 		Type lhst=node->lhs->type;
 		Type rhst=node->rhs->type;
 		
-		std::vector<Type> matches;
+		std::vector<BinopHelp> matches;
 		for(auto h: ops) {
 			if (!Type::match(h.lhsType, lhst)) continue;
 			if (!Type::match(h.rhsType, rhst)) continue;
-			matches.push_back(h.resType);
+			matches.push_back(h);
 		}
 		
 		if (matches.size() == 0) {
@@ -769,7 +774,21 @@ public:
 			}
 			return;
 		}
-		node->type = Type::disjunction(matches);
+
+		std::vector<Type> types;
+		for(auto h: matches) {
+			Type t = h.func? h.func(lhst, rhst): h.resType;
+			if (t.valid()) 
+				types.push_back(t);
+		}
+		if (types.empty()) {
+			for(auto h: matches) 
+				types.push_back(h.resType);
+			std::stringstream ss;
+			ss << "Invalid operator use with types " << lhst << " and " << rhst << ".";
+			error->reportError(ss.str(), node->opToken, {node->lhs->charRange, node->rhs->charRange});			
+		}
+		node->type = Type::disjunction(types);
 	}
 
 	void visitSelect(std::shared_ptr<BinaryOpExp> node) { 
@@ -814,8 +833,10 @@ public:
 					{Type::fp(), Type::fp(), Type::fp()},
 					{Type::integer(),   Type::fp(), Type::fp()},
 					{Type::integer(), Type::integer(), Type::integer()},
-						// TODO better type checking
-					{Type::aRel(), Type::aRel(), Type::aRel()}
+					// TODO better type checking
+					{Type::aRel(), Type::aRel(), Type::aRel(), [](Type lhs, Type rhs)->Type {
+							return Type::conjunction({lhs, rhs});
+						}}
 				});
 			break;
 		case TokenType::TK_DIV:

@@ -189,6 +189,185 @@ Type Type::disjunction(std::vector<Type> parts) {
 	return Type(bb);
 }
 
+static Type tupConjunction(const std::vector<Type> & parts) {
+	bool first=true;
+	std::map<std::string, std::vector<Type> > schemas;
+	for (const auto & part: parts) {
+		if (part.kind() != Type::Tup) continue;
+		const std::map<std::string, Type> & schema=part.relTupSchema();
+		if (first) {
+			for(const auto & p: schema)
+				schemas.insert(schemas.end(), std::make_pair(p.first, std::vector<Type>({p.second})));
+			first = false;
+		} else {
+			auto i=schema.begin();
+			auto j=schemas.begin();
+			for (; i != schema.end() && j != schemas.end(); ++i, ++j) {
+				if (i->first != i->first) return Type::invalid();
+				j->second.push_back(i->second);
+			}
+			if (i != schema.end() || j != schemas.end()) return Type::invalid();
+		}
+	}
+
+	std::map<std::string, Type> schema;
+	for (const auto & p: schemas) {
+		Type t=Type::conjunction(p.second);
+		if (!t.valid()) return Type::invalid();
+		schema.insert(schema.end(), std::make_pair(p.first, t));
+	}
+	return Type::tup(schema);
+}
+
+
+static Type relConjunction(const std::vector<Type> & parts) {
+	bool first=true;
+	std::map<std::string, std::vector<Type> > schemas;
+	for (const auto & part: parts) {
+		if (part.kind() != Type::Rel) continue;
+		const std::map<std::string, Type> & schema=part.relTupSchema();
+		if (first) {
+			for(const auto & p: schema)
+				schemas.insert(schemas.end(), std::make_pair(p.first, std::vector<Type>({p.second})));
+			first = false;
+		} else {
+			auto i=schema.begin();
+			auto j=schemas.begin();
+			for (; i != schema.end() && j != schemas.end(); ++i, ++j) {
+				if (i->first != i->first) return Type::invalid();
+				j->second.push_back(i->second);
+			}
+			if (i != schema.end() || j != schemas.end()) return Type::invalid();
+		}
+	}
+
+	std::map<std::string, Type> schema;
+	for (const auto & p: schemas) {
+		Type t=Type::conjunction(p.second);
+		if (!t.valid()) return Type::invalid();
+		schema.insert(schema.end(), std::make_pair(p.first, t));
+	}
+	return Type::rel(schema);
+}
+
+static Type funcConjunction(const std::vector<Type> & parts) {
+	bool first=true;
+	std::vector<std::vector<Type> > argss;
+	std::vector<Type> rets;
+	
+	for (const auto & part: parts) {
+		if (part.kind() != Type::Func) continue;
+		const std::vector<Type> & args=part.funcArgs();
+		if (first) {
+			argss.resize(args.size());
+			first = false;
+		} else if (args.size() != argss.size()) 
+			return Type::invalid();
+		rets.push_back(part.funcRet());
+		for (size_t i=0; i < args.size(); ++i)
+			argss[i].push_back(args[i]);
+	}
+	
+	std::vector<Type> args;
+	for (const auto & arg: argss) {
+		Type t=Type::conjunction(arg);
+		if (!t.valid()) return Type::invalid();
+		args.push_back(t);
+	}
+	Type ret=Type::conjunction(rets);
+	if (!ret.valid()) return Type::invalid();
+	
+	return Type::func(ret, args);
+}
+
+static Type conjunctionInner(std::vector<Type> & parts) {
+	// Recursive sub expression to get rid of disjunctions
+	for (auto & part: parts) {
+		if (part.kind() != Type::Disjunction) continue;
+		std::vector<Type> ans;
+		Type t=part;
+		for (const auto & p: t.disjunctionParts()) {
+			part=t; //Owerride the disjunction with one of its members
+			Type r=conjunctionInner(parts);
+			if (r.valid()) ans.emplace_back(std::move(r));
+		}
+		return Type::disjunction(ans);
+	}
+
+	Type::Kind kind=Type::Any;
+	
+	for (const auto & part: parts) {
+		switch(part.kind()) {
+		case Type::Any:
+			break;
+		case Type::Invalid: 
+			kind=Type::Invalid; 
+			break;
+		case Type::Int: 
+			kind = (kind == Type::Int || kind == Type::Any) ? Type::Int : Type::Invalid; 
+			break;
+		case Type::Float: 
+			kind = (kind == Type::Float || kind == Type::Any) ? Type::Float : Type::Invalid; 
+			break;
+		case Type::Bool: 
+			kind = (kind == Type::Bool || kind == Type::Any) ? Type::Bool : Type::Invalid; 
+			break;
+		case Type::Text: 
+			kind = (kind == Type::Text || kind == Type::Any) ? Type::Text : Type::Invalid; 
+			break;
+		case Type::ARel: 
+			if (kind == Type::Rel) kind = Type::Rel;
+			else if (kind == Type::ARel || kind == Type::Any) kind = Type::ARel;
+			else kind = Type::Invalid;
+			break;
+		case Type::ATup: 
+			if (kind == Type::Tup) kind = Type::Tup;
+			else if (kind == Type::ATup || kind == Type::Any) kind = Type::ATup;
+			else kind = Type::Invalid;
+			break;
+		case Type::AFunc: 
+			if (kind == Type::Func) kind = Type::Func;
+			else if (kind == Type::AFunc || kind == Type::Any) kind = Type::AFunc;
+			else kind = Type::Invalid;
+			break;
+		case Type::Rel:
+			kind = (kind == Type::Rel || kind == Type::ARel || kind == Type::Any) ? Type::Rel : Type::Invalid; 
+			break;
+		case Type::Tup: 
+			kind = (kind == Type::Tup || kind == Type::ATup || kind == Type::Any) ? Type::Tup : Type::Invalid; 
+			break;
+		case Type::Func: 
+			kind = (kind == Type::Func || kind == Type::AFunc || kind == Type::Any) ? Type::Func : Type::Invalid; 
+			break;
+		case Type::Disjunction:
+			assert(false);
+			break;
+		}
+	}
+
+	switch (kind) {
+	case Type::Invalid: return Type::invalid();
+	case Type::Any: return Type::any();
+	case Type::Int: return Type::integer();
+	case Type::Float: return Type::fp();
+	case Type::Bool: return Type::boolean();
+	case Type::Text: return Type::text();
+	case Type::ARel: return Type::aRel();
+	case Type::ATup: return Type::aTup();
+	case Type::AFunc: return Type::aFunc();
+	case Type::Disjunction: assert(false); break;
+	case Type::Tup: return tupConjunction(parts);
+	case Type::Rel: return relConjunction(parts);
+	case Type::Func: return funcConjunction(parts);
+	}
+	assert(false);
+	return Type::invalid();
+}
+
+Type Type::conjunction(std::vector<Type> parts) {
+	return conjunctionInner(parts);
+}
+
 PlainType Type::disjunctionPlain() const {
 	assert(kind() == Disjunction);
 	const int HBOOL=1;

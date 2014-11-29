@@ -107,6 +107,7 @@ public:
 	static Type tup(std::map<std::string, Type> schema);
 	static Type func(Type ret, std::vector<Type> args);
 	static Type disjunction(std::vector<Type> parts);
+	static Type conjunction(std::vector<Type> parts);
 
 	static bool match(const Type & lhs, const Type & rhs);
 private:
