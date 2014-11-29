@@ -287,7 +287,7 @@ static Type conjunctionInner(std::vector<Type> & parts) {
 		std::vector<Type> ans;
 		Type t=part;
 		for (const auto & p: t.disjunctionParts()) {
-			part=t; //Owerride the disjunction with one of its members
+			part=p; //Owerride the disjunction with one of its members
 			Type r=conjunctionInner(parts);
 			if (r.valid()) ans.emplace_back(std::move(r));
 		}

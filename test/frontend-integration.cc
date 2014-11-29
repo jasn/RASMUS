@@ -299,7 +299,7 @@ void ifs(rasmus::teststream & ts) {
 	ts << "tup1" << result(it("(+ val f=func()->(Bool)true end in if f() -> tup() fi +)", "()"));
 	ts << "tup2" << result(it("(+ val f=func()->(Bool)false end in if f() -> tup() fi +)", "", true));
 	ts << "any1" << result(it("(+ val f=func()->(Bool)true end val g=func()->(Any)0 end in if f() -> g() fi +)", "0"));
-	ts << "any2" << result(it("(+ val f=func()->(Bool)false end val g=func()->(Any)0 end in if f() -> g() fi +)", "", true));
+	ts << "any2" << result(it("(+ val f=func()->(Bool)false end val g=func()->(Any)0 end in if f() -> g() fi +)", "?-Int"));
 	ts << "func1" << result(it("(+ val f=func()->(Bool)true end in if f() -> f fi +);0", "0"));
 	ts << "func2" << result(it("(+ val f=func()->(Bool)false end in if f() -> f fi +)", "", true));
 	ts << "err" << result(it("if 42 -> true fi","",true));
