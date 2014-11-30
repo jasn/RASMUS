@@ -993,6 +993,56 @@ public:
 		node->type = node->lhs->type;
 	}
 
+	static Type typeNaturalJoin(Type lhs, Type rhs) {
+		std::vector<Type> lrels;
+		std::vector<Type> rrels;
+		if (getRels(lhs, lrels)) {
+			// If the lhs is anyrel
+			return Type::aRel();
+		}
+		if (getRels(rhs, rrels)) {
+			// If the rhs is anyrel
+			return Type::aRel();
+		}
+		
+		std::vector<Type> rels;
+		for (const auto lrel: lrels) {
+			const std::map<std::string, Type> & lschema=lrel.relTupSchema();
+			for (const auto rrel: rrels) {
+				const std::map<std::string, Type> & rschema=rrel.relTupSchema();
+				bool ok=true;
+				std::map<std::string, Type> schema;
+				
+				auto li=lschema.begin();
+				auto ri=rschema.begin();
+				while (li != lschema.end() && ri != rschema.end()) {
+					if (li->first < ri->first) {
+						schema.insert(schema.end(), *li);
+						++li;
+					} else if (ri->first < li->first) {
+						schema.insert(schema.end(), *ri);
+						++ri;
+					} else {
+						Type t=Type::conjunction({li->second, ri->second});
+						if (!t.valid()) 
+							ok=false;
+						else 
+							schema.insert(schema.end(), std::make_pair(li->first, t));
+						++li;
+						++ri;
+					}
+				}
+				
+				if (!ok) continue;
+				for (;li != lschema.end(); ++li) schema.insert(schema.end(), *li);
+				for (;ri != rschema.end(); ++ri) schema.insert(schema.end(), *ri);
+				rels.push_back(Type::rel(schema));
+			}
+		}
+
+		return Type::disjunction(rels);		
+	}
+
     void visit(std::shared_ptr<BinaryOpExp> node) {
 		switch(node->opToken.id) {
 		case TokenType::TK_PLUS:
@@ -1013,8 +1063,7 @@ public:
 					{Type::fp(), Type::fp(), Type::fp()},
 					{Type::integer(),   Type::fp(), Type::fp()},
 					{Type::integer(), Type::integer(), Type::integer()},
-					// Todo typecheck and figure out return type of natural join
-					{Type::aRel(), Type::aRel(), Type::aRel()}
+					{Type::aRel(), Type::aRel(), Type::aRel(), typeNaturalJoin}
 				});
 			break;
 		case TokenType::TK_DIV:
