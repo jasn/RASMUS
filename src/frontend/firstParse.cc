@@ -803,10 +803,48 @@ public:
 
     void visit(std::shared_ptr<TupMinus> node) {
         visitNode(node->lhs);
-		// TODO Stronger type check
-        typeCheck(node->opToken, node->lhs, Type::aTup());
-		// TODO Stronger return type
-        node->type = Type::aTup();
+		if (!typeCheck(node->opToken, node->lhs, Type::aTup())) {
+			node->type = Type::aTup();
+			return;
+		}
+		
+		std::vector<Type> tups;
+		if (getTups(node->lhs->type, tups)) {
+			// In case of aTub
+			node->type = Type::aTup();
+			return;
+		}
+		
+		std::string name=node->nameToken.getText(code);
+		
+		std::vector<Type> ntups;
+		for (const auto & tup: tups) {
+			std::map<std::string, Type> schema=tup.relTupSchema();
+			if (schema.erase(name)) {
+				ntups.push_back(Type::tup(std::move(schema)));
+				continue;
+			}
+			if (tups.size() == 1) {
+				std::stringstream ss;
+				ss << "The name '" << name << "' is not in the schema of "
+				   << tup;
+				error->reportError(ss.str(), node->nameToken, {node->lhs->charRange});
+			}
+		}
+		
+		if (!ntups.empty()) {
+			node->type = Type::disjunction(ntups);
+			return;
+		}
+		
+		node->type = Type::aTup();
+		if (tups.size() == 1) return;
+		
+		std::stringstream ss;
+		ss << "The name '" << name << "' is not in any of the possible tuple types:";
+		for (const Type & tup: tups) 
+			ss << "\n  " << tup;
+		error->reportError("Bad tuple remove", node->nameToken, {node->lhs->charRange}, ss.str());
 	}
 
     void visit(std::shared_ptr<ProjectExp> node) {
