@@ -811,10 +811,89 @@ public:
 
     void visit(std::shared_ptr<ProjectExp> node) {
         visitNode(node->lhs);
-		// TODO Stronger type check
-        typeCheck(node->projectionToken, node->lhs, Type::aRel());
-		// TODO Stronger return type
-        node->type = Type::aRel();
+		
+		std::map<std::string, Token> names;
+		for (const auto & t: node->names) {
+			std::string name=t.getText(code);
+			auto x=names.insert(std::make_pair(name, t));
+			if (x.second) continue;
+			
+			std::stringstream ss;
+			ss << "The column '" << name << "' has been specified twice";
+			error->reportError(ss.str(), t, {r(x.first->second)});
+		}
+
+        if (!typeCheck(node->projectionToken, node->lhs, Type::aRel())) {
+			node->type = Type::aRel();
+			return;
+		}
+		
+		std::vector<Type> rels;
+		if (getRels(node->lhs->type, rels)) {
+			// If we are anyrel and it is a project minus we know nothing
+			if (node->projectionToken.id == TokenType::TK_PROJECT_MINUS) {
+				node->type = Type::aRel();
+				return;
+			} 
+			// In the case of project plus atleast we know the names.
+			std::map<std::string, Type> schema;
+			for (const auto & p: names) 
+				schema.insert(schema.end(), std::make_pair(p.first, Type::atomic()));
+			node->type = Type::rel(std::move(schema));
+			return;
+		}
+
+		std::vector<Type> nrels;
+		if (node->projectionToken.id == TokenType::TK_PROJECT_MINUS) {
+			for(const auto & rel: rels) {
+				bool bad=false;
+				std::map<std::string, Type> schema=rel.relTupSchema();
+				for (const auto p: names) {
+					if (schema.erase(p.first)) continue;
+					bad=true;
+					if (rels.size() == 1) {
+						std::stringstream ss;
+						ss << "The column '" << p.first << "' is not in the relation of type " << rel;
+						error->reportError(ss.str(), p.second, {node->lhs->charRange});
+					}
+				}
+				if (!bad) nrels.push_back(Type::rel(std::move(schema)));
+			}
+		} else {
+			for(const auto & rel: rels) {
+				bool bad=false;
+				const std::map<std::string, Type> & schema=rel.relTupSchema();
+				std::map<std::string, Type> nschema;
+				for (const auto p: names) {
+					auto x=schema.find(p.first);
+					if (x != schema.end()) {
+						nschema.insert(nschema.end(), *x);
+						continue;
+					}
+					bad=true;
+					if (rels.size() == 1) {
+						std::stringstream ss;
+						ss << "The column '" << p.first << "' is not in the relation of type " << rel;
+						error->reportError(ss.str(), p.second, {node->lhs->charRange});
+					}
+				}
+				if (!bad) nrels.push_back(Type::rel(std::move(nschema)));
+			}
+		}
+		
+		if (!nrels.empty()) {
+			node->type = Type::disjunction(std::move(nrels));
+			return;
+		}
+		
+		if (rels.size() != 1) {
+			std::stringstream ss;
+			ss << "Possible schemas are:";
+			for (const auto & rel: rels) 
+				ss << "\n  " << rel;
+			error->reportError("The project does not match any of the possible schemas", 
+							   node->projectionToken, {node->charRange}, ss.str());
+		}
 	}
 
     void visit(std::shared_ptr<InvalidExp> node) {
