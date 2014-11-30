@@ -1155,8 +1155,21 @@ public:
 			visitSelect(node);
 			break;
 		case TokenType::TK_OPEXTEND:
-			// TODO better type checking
-			binopTypeCheck(node, { {Type::aTup(), Type::aTup(), Type::aTup()} });
+			binopTypeCheck(node, { {Type::aTup(), Type::aTup(), Type::aTup(), [](Type lhs, Type rhs)->Type {
+							std::vector<Type> lt;
+							std::vector<Type> rt;
+							if (getTups(lhs, lt) || getTups(rhs, rt)) 
+								return Type::aTup();
+							std::vector<Type> ans;
+							for (const auto & l: lt)
+								for (const auto & r: rt) {
+									std::map<std::string, Type> schema=r.relTupSchema();
+									for (const auto & p: l.relTupSchema()) 
+										schema.insert(p);
+									ans.push_back(Type::tup(schema));
+								}
+							return Type::disjunction(ans);
+						}}});
 			break;
 		default:
             internalError(node->opToken, std::string("Invalid operator")+getTokenName(node->opToken.id));
