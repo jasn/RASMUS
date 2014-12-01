@@ -258,14 +258,105 @@ public:
 	
     void visit(std::shared_ptr<ForallExp> node) {		
 		visitAll(node->listExps);
-		for(auto exp : node->listExps)
-			typeCheck(node->typeToken, exp, Type::aRel());
-		visitNode(node->exp);
-		// TODO we can do much better typechecking here
-		typeCheck(node->colonToken, node->exp, Type::aFunc()); 
-		// TODO use the return type of the func in node
-		node->type = Type::aRel();
+		std::map<std::string, Token> names;
+		for (const auto & token: node->names) {
+			std::string name = token.getText(code);			
+			auto x=names.insert(std::make_pair(name, token));
+			if (x.second) continue;
+			
+			std::stringstream ss;
+			ss << "The column '" << name << "' has been specified twice";
+			error->reportError(ss.str(), token, {r(x.first->second)});
+		}
+
+		std::vector<Type> types;
 		
+		if (names.size() == 0) {
+			// Forall
+			std::vector<Type> rels;
+			if (node->listExps.size() != 1) {
+				error->reportError("Forall can only be used on one exactly one relation", node->typeToken);
+				types.push_back(Type::aTup());
+			} else if (
+				!typeCheck(node->typeToken, node->listExps[0], Type::aRel())
+				|| getRels(node->listExps[0]->type, rels)) {
+				types.push_back(Type::aTup());
+			} else {
+				std::vector<Type> tups;
+				for (const auto & rel: rels) 
+					tups.push_back(Type::tup(rel.relTupSchema()));
+				types.push_back(Type::disjunction(tups));
+			}
+		} else {
+			std::map<std::string, std::vector<Type> > nameTypes;
+			
+			types.push_back(Type::invalid());
+			
+			for(auto exp : node->listExps) {
+				std::vector<Type> rels;
+				if (!typeCheck(node->typeToken, exp, Type::aRel())
+					|| getRels(exp->type, rels))
+					types.push_back(Type::aRel());
+				std::vector<Type> type;
+				
+				std::map<std::string, std::vector<Type> > expNameTypes;
+				
+				for (const auto & rel: rels) {
+					std::map<std::string, Type> schema=rel.relTupSchema();
+					for (const auto & p: names) {
+						auto x=schema.find(p.first);
+						if (x != schema.end()) {
+							expNameTypes[p.first].push_back(x->second);
+							schema.erase(x);
+							continue;
+						}
+						if (rels.size() != 1) continue;
+						std::stringstream ss;
+						ss << "The column '" << p.first << "' does not exist in "
+						   << rel;
+						error->reportError(ss.str(), p.second, {exp->charRange});
+					}
+					type.push_back(Type::rel(schema));
+				}
+				
+				for (const auto & p: names) {
+					const std::vector<Type> & t=expNameTypes[p.first];
+					if (!t.empty()) {
+						nameTypes[p.first].insert(
+							nameTypes[p.first].end(), t.begin(), t.end());
+						continue;
+					}
+					nameTypes[p.first].push_back(Type::atomic());
+					if (rels.size() == 1) continue;
+					std::stringstream ss1;
+					ss1 << "The column '" << p.first << "' is not pressent in any of the possible types";
+					std::stringstream ss2;
+					ss2 << "The possible types are:";
+					for (const auto & rel: rels)
+						ss2 << "\n  " << rel;
+					error->reportError(ss1.str(), p.second, {exp->charRange}, ss2.str());
+				}
+				types.push_back(Type::disjunction(std::move(type)));
+			}
+			
+			std::map<std::string, Type> schema;
+			for (const auto & p: nameTypes)
+				schema.insert(
+					schema.end(), 
+					std::make_pair(p.first, Type::disjunction(p.second)));
+			types[0] = Type::tup(std::move(schema));
+		}
+		assert(node->exp->nodeType == NodeType::FuncExp);
+		std::shared_ptr<FuncExp> f = std::static_pointer_cast<FuncExp>(node->exp);
+		assert(types.size() == f->args.size());
+		for (size_t i=0; i < types.size(); ++i)
+			f->args[i]->type = std::move(types[i]);
+		
+		visitNode(node->exp);		
+		if (typeCheck(node->colonToken, node->exp, Type::aFunc()))
+			node->type = node->exp->type.funcRet();
+		else
+			node->type = Type::aRel();
 	}
 
     void visit(std::shared_ptr<FuncExp> node) {
@@ -281,7 +372,7 @@ public:
 		typeCheck(node->funcToken, node->body, rtype);
 
 		Type nrtype=Type::conjunction({rtype, node->body->type});
-		if (nrtype.valid()) rtype=nrtype;				
+		if (nrtype.valid()) rtype=nrtype;
 		node->type = Type::func(rtype, argTypes);
 		scopes.pop_back();
 	}
@@ -712,7 +803,6 @@ public:
 			node->type = Type::aRel();
 			return;
 		}
-
 
 		std::vector<Type> newRels;
 		for (const Type & rel: rels) {
