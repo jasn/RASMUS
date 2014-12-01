@@ -19,7 +19,7 @@
 
 #include <frontend/strongType.hh>
 #include <cassert>
-
+#include <iostream>
 namespace rasmus {
 namespace frontend {
 
@@ -160,22 +160,66 @@ Type Type::disjunction(std::vector<Type> parts) {
 	if (has & HAREL) ret.push_back(aRel());
 	if (has & HATUP) ret.push_back(aTup());
 	if (has & HAFUNC) ret.push_back(aFunc());
+	
+	std::vector<Type> rels;
+	std::vector<Type> tups;
+	std::vector<Type> funcs;
 
 	for (auto && part: rparts) {
 		switch(part.kind()) {
 		case Rel: 
-			if ((has & HAREL) == 0) ret.emplace_back(std::move(part));
+			if ((has & HAREL) == 0) rels.emplace_back(std::move(part));
 			break;
 		case Tup:
-			if ((has & HATUP) == 0) ret.emplace_back(std::move(part));
+			if ((has & HATUP) == 0) tups.emplace_back(std::move(part));
 			break;
 		case Func:
-			if ((has & HAFUNC) == 0) ret.emplace_back(std::move(part));
+			if ((has & HAFUNC) == 0) funcs.emplace_back(std::move(part));
 			break;
 		default:
 			break;
 		}
 	}
+
+	for (size_t x=rels.size(); x != 0;) {
+		--x;
+		bool redundant=false;
+		for (size_t y=0; y+1 < rels.size(); ++y) {
+			if (!schemaSpecialization(rels[x], rels[y])) continue;
+			redundant=true;
+			break;
+		}
+		if (redundant)
+			rels.pop_back();
+	}
+
+	for (size_t x=tups.size(); x != 0;) {
+		--x;
+		bool redundant=false;
+		for (size_t y=0; y+1 < tups.size(); ++y) {
+			if (!schemaSpecialization(tups[x], tups[y])) continue;
+			redundant=true;
+			break;
+		}
+		if (redundant)
+			tups.pop_back();
+	}
+
+	for (size_t x=funcs.size(); x != 0;) {
+		--x;
+		bool redundant=false;
+		for (size_t y=0; y+1 < funcs.size(); ++y) {
+			if (!funcSpecialization(funcs[x], funcs[y])) continue;
+			redundant=true;
+			break;
+		}
+		if (redundant)
+			funcs.pop_back();
+	}
+	
+	ret.insert(ret.end(), rels.begin(), rels.end());
+	ret.insert(ret.end(), tups.begin(), tups.end());
+	ret.insert(ret.end(), funcs.begin(), funcs.end());
 
 	if (ret.size() == 0) 
 		return invalid();
@@ -536,6 +580,200 @@ bool Type::match(const Type & lhs, const Type & rhs) {
 	}
 	}
 	assert(false);
+	return true;
+}
+
+bool Type::schemaSpecialization(const Type & lhs, const Type & rhs) {
+	const std::map<std::string, Type> & l = lhs.relTupSchema();
+	const std::map<std::string, Type> & r = rhs.relTupSchema();
+	auto li=l.begin();
+	auto ri=r.begin();
+	for(; li != l.end() && ri != r.end(); ++li, ++ri) {
+		if (li->first != ri->first) return false;
+		Kind lk=li->second.kind();
+		Kind rk=ri->second.kind();
+		switch (rk) {
+		case Any: 
+			break;
+		case Int:
+			if (lk != Int) return false;
+			break;
+		case Float:
+			if (lk != Float) return false;
+			break;
+		case Text:
+			if (lk != Text) return false;
+			break;
+		case Bool:
+			if (lk != Bool) return false;
+			break;
+		default:
+			assert(false);
+		}
+	}
+	return li == l.end() && ri == r.end();
+}
+
+bool Type::funcSpecialization(const Type & lhs, const Type & rhs) {
+	assert(lhs.kind() = Func && rhs.kind() == Func);
+	const auto & largs=lhs.funcArgs();
+	const auto & rargs=rhs.funcArgs();
+
+	if (largs.size() != rargs.size()) 
+		return false;
+
+	for (size_t i=0; i < largs.size(); ++i)
+		if (!specialization(largs[i], rargs[i]))
+			return false;
+	
+	if (!specialization(lhs.funcRet(), rhs.funcRet())) 
+		return false;
+	
+	return true;
+}
+
+
+bool Type::specialization(const Type & lhs, const Type & rhs) {
+	std::vector<Type> lefts, rights; 
+	if (lhs.kind() == Disjunction)
+		lefts=lhs.disjunctionParts();
+	else
+		lefts.push_back(lhs); 
+	if (rhs.kind() == Disjunction)
+		rights = rhs.disjunctionParts();
+	else 
+		rights.push_back(rhs);
+
+	const int HBOOL=1;
+	const int HFLOAT=2;
+	const int HINT=4;
+	const int HTEXT=8;
+	const int HAREL=16;
+	const int HATUP=32;
+	const int HAFUNC=64;
+	const int HANY=127;
+	int has=0;
+	for (const auto & part: rights) {
+		switch(part.kind()) {
+		case Any: has |= HANY; break;
+		case Int: has |= HINT; break;
+		case Float: has |= HFLOAT; break;
+		case Bool: has |= HBOOL; break;
+		case Text: has |= HTEXT; break;
+		case ARel: has |= HAREL; break;
+		case ATup: has |= HATUP; break;
+		case AFunc: has |= HAFUNC; break;
+		case Rel: 
+		case Tup:
+		case Func:
+		case Invalid:
+			break;
+		case Disjunction:
+			assert(false);
+			break;
+		}
+	}
+	
+	// If right is any then we are happy
+	if ((has & HANY) == HANY) return true;
+
+	// Every member in left must be a specialization of one in right
+	for (const auto & l: lefts) {
+		switch (l.kind()) {
+		case Disjunction:
+			assert(false);
+		case Invalid:
+			return true;
+		case Any:
+			return false;
+		case Int:
+			if ((has & HINT) == 0) return false;
+			break;
+		case Float: 
+			if ((has & HFLOAT) == 0) return false;
+			break;
+		case Bool: 
+			if ((has & HBOOL) == 0) return false;
+			break;
+		case Text:
+			if ((has & HTEXT) == 0) return false;
+			break;
+		case ARel: 
+			if ((has & HAREL) == 0) return false;
+			break;
+		case ATup: 
+			if ((has & HATUP) == 0) return false;
+			break;
+		case AFunc:
+			if ((has & HAFUNC) == 0) return false;
+			break;
+		case Rel: {
+			if (has & HAREL) break;
+			bool ok=false;
+			for (const auto & r: rights) {
+				if (r.kind() != Rel) continue;
+				if (!schemaSpecialization(l, r)) continue;
+				ok=true;
+				break;
+			}
+			if (!ok) return false;
+			break;
+		}
+		case Tup: {
+			if (has & HATUP) break;
+			if (has & HAREL) break;
+			bool ok=false;
+			for (const auto & r: rights) {
+				if (r.kind() != Tup) continue;
+				if (!schemaSpecialization(l, r)) continue;
+				ok=true;
+				break;
+			}
+			if (!ok) return false;
+			break;
+		}
+		case Func: { 
+			if (has & HAFUNC) break;
+			bool ok=false;
+			for (const auto & r: rights) {
+				if (r.kind() != Func) continue;
+				if (!funcSpecialization(l, r)) continue;
+				ok=true;
+				break;
+			}
+			if (!ok) return false;
+		}
+		}
+	}
+	return true;
+}
+
+bool operator==(const Type & lhs, const Type & rhs) {
+	Type::Kind lk=lhs.kind();
+	Type::Kind rk=rhs.kind();
+	if (lk != rk) 
+		return false;
+	switch (lk) {
+	case Type::Rel: 
+	case Type::Tup:
+		return lhs.relTupSchema() == rhs.relTupSchema();
+	case Type::Func:
+		return lhs.funcRet() == rhs.funcRet() &&
+			lhs.funcArgs() == rhs.funcArgs();
+	case Type::Disjunction:
+		for(const auto & l: lhs.disjunctionParts()) {
+			bool ok=false;
+			for(const auto & r: rhs.disjunctionParts()) {
+				if (l != r) continue;
+				ok=true;
+				break;
+			} 
+			if (!ok) return false;
+		}
+		return true;
+	default:
+		return true;
+	}
 	return true;
 }
 

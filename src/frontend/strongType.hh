@@ -110,6 +110,19 @@ public:
 	static Type conjunction(std::vector<Type> parts);
 
 	static bool match(const Type & lhs, const Type & rhs);
+
+	/**
+	 * \brief Check if lhs is a specialization of rhs
+	 *
+	 * Check where the set of types lhs in a subset of the set of types rhs
+	 */
+	static bool specialization(const Type & lhs, const Type & rhs);
+
+
+	friend bool operator==(const Type & lhs, const Type & rhs);
+	inline friend bool operator!=(const Type & lhs, const Type & rhs) {
+		return !(lhs == rhs);
+	}
 private:
 	// We assume that only the bottom 56-bits of a pointer are none-zero
 	// See http://en.wikipedia.org/wiki/X86-64#Virtual_address_space_details
@@ -145,6 +158,9 @@ private:
 			break;
 		}
 	}
+
+	static bool schemaSpecialization(const Type & lhs, const Type & rhs);
+	static bool funcSpecialization(const Type & lhs, const Type & rhs);
 
 	PlainType disjunctionPlain() const; 
 	void destroy();
