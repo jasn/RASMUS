@@ -34,12 +34,14 @@ namespace stdlib {
 struct AnyValue {
 	PlainType type;
 	union {
+		double floatValue;
 		int64_t intValue;
 		int8_t boolValue;
 		RefPtr<rm_object> objectValue;
 	};
 	
 	AnyValue(): type(TInvalid) {}
+	AnyValue(double value): type(TFloat), floatValue(value) {}
 	AnyValue(int64_t value): type(TInt), intValue(value) {}
 	AnyValue(int8_t value): type(TBool), boolValue(value) {}
 	AnyValue(PlainType type, RefPtr<rm_object> value): type(type), objectValue(value) {}
@@ -52,13 +54,15 @@ struct AnyValue {
 		case TBool:
 			boolValue = other.boolValue;
 			break;
+		case TFloat:
+			floatValue = other.floatValue;
+			break;
 		case TInvalid:
 			break;
 		default:
 			new (&objectValue) RefPtr<rm_object>(other.objectValue);
 			break;
 		}
-
 	}
 	
 	AnyValue(AnyValue && other): type(other.type) {
@@ -68,6 +72,9 @@ struct AnyValue {
 			break;
 		case TBool:
 			boolValue = other.boolValue;
+			break;
+		case TFloat:
+			floatValue = other.floatValue;
 			break;
 		case TInvalid:
 			break;
@@ -96,6 +103,8 @@ struct AnyValue {
 			return intValue == other.intValue;
 		case TBool:
 			return boolValue == other.boolValue;
+		case TFloat:
+			return floatValue == other.floatValue;
 		case TText:
 			return rm_equalText(objectValue.getAs<TextBase>(), other.objectValue.getAs<TextBase>()) == RM_TRUE;
 		default:
@@ -110,6 +119,8 @@ struct AnyValue {
 			return intValue < other.intValue;
 		case TBool:
 			return boolValue < other.boolValue; 
+		case TFloat:
+			return floatValue < other.floatValue; 
 		case TText:
 			return rm_textLt(objectValue.getAs<TextBase>(), other.objectValue.getAs<TextBase>()) == RM_TRUE;
 		default:
@@ -121,6 +132,7 @@ struct AnyValue {
 		switch (type) {
 		case TInt:
 		case TBool:
+		case TFloat:
 		case TInvalid:
 			break;
 		default:

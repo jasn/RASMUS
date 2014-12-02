@@ -58,10 +58,12 @@ std::string printHelper(size_t row, size_t column, rasmus::stdlib::RefPtr<rasmus
 	std::stringstream ss;
 	rs::AnyValue av = rel->tuples[row]->values[column];
 	switch (av.type) {
-	case TInt: {
+	case TInt:
 		rs::printIntToStream(av.intValue, ss);
 		break;
-	}
+	case TFloat:
+		rs::printFloatToStream(av.floatValue, ss);
+		break;
 	case TBool:
 		rs::printBoolToStream(av.boolValue, ss);
 		break;

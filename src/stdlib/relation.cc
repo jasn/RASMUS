@@ -70,6 +70,9 @@ int rm_itemWidth(AnyValue av){
 	case TInt:
 		if(av.intValue == RM_NULLINT) return 5; // strlen("?-Int")
 		else return std::to_string(av.intValue).size();
+	case TFloat:
+		if(std::isnan(av.floatValue)) return 7; // strlen("?-Float")
+		else return std::to_string(av.floatValue).size();
 	case TText:
 	{
 		std::string str = textToString(av.objectValue.getAs<TextBase>());
@@ -195,6 +198,10 @@ void printRelationToStream(rm_object * ptr, std::ostream & out) {
 					out << ' ' << std::right << std::setw(widths[i]);
 					printIntToStream(value.intValue, out);
 					break;
+				case TFloat:
+					out << ' ' << std::right << std::setw(widths[i]);
+					printFloatToStream(value.floatValue, out);
+					break;
 				case TBool:
 					out << ' ' << std::left << std::setw(widths[i]);
 					printBoolToStream(value.boolValue, out);
@@ -263,6 +270,9 @@ void saveRelationToStream(rm_object * o, std::ostream & outFile){
 		case TInt:
 			outFile << "I ";
 			break;
+		case TFloat:
+			outFile << "F ";
+			break;
 		case TBool:
 			outFile << "B ";
 			break;
@@ -282,6 +292,13 @@ void saveRelationToStream(rm_object * o, std::ostream & outFile){
 			case TInt:
 				outFile << value.intValue << std::endl;
 				break;
+			case TFloat:
+			{
+				auto lo = outFile.imbue(std::locale("C"));
+				outFile << value.floatValue << std::endl;
+				outFile.imbue(lo);
+				break;
+			}
 			case TBool:
 				printBoolToStream(value.boolValue, outFile);
 				outFile << std::endl;
@@ -354,6 +371,9 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 		case 'I':
 			attribute.type = TInt;
 			break;
+		case 'F':
+			attribute.type = TFloat;
+			break;
 		case 'B':
 			attribute.type = TBool;
 			break;
@@ -413,6 +433,15 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 				tuple->values.emplace_back(value);
 				break;
 			}
+			case TFloat:
+			{
+				std::stringstream ss(line);
+				ss.imbue(std::locale("C"));
+				double value;
+				ss >> value;
+				tuple->values.emplace_back(value);
+				break;
+			}
 			case TBool:
 				tuple->values.emplace_back(rm_textToBool(line));
 				break;
@@ -463,8 +492,11 @@ void printIntToStream(int64_t val, std::ostream & out){
 void printFloatToStream(double val, std::ostream & out){
 	if (std::isnan(val)) 
 		out << "?-Float";
-	else
+	else { 
+		auto t=out.imbue(std::locale("C"));
 		out << val;
+		out.imbue(t);
+	}
 }
 
 /**
@@ -485,6 +517,9 @@ void printTupleToStream(rm_object * ptr, std::ostream & out) {
 		switch(schema->attributes[i].type){
 			case TInt:
 				printIntToStream(tup->values[i].intValue, out);
+				break;
+			case TFloat:
+				printFloatToStream(tup->values[i].floatValue, out);
 				break;
 			case TBool:
 				printBoolToStream(tup->values[i].boolValue, out);
@@ -616,6 +651,8 @@ const uint8_t UNK_TYPE = 0;
 const uint8_t BOOL_TYPE = 1;
 const uint8_t INT_TYPE = 2;
 const uint8_t TEXT_TYPE = 3;
+const uint8_t FLOAT_TYPE = 4;
+
 /**
  * \Brief returns the field-type of the given field
  * The types have the values they do because this allows 
@@ -630,10 +667,17 @@ uint8_t fieldType(std::string field){
 	strtol(field.c_str(), &p, 10);
 	if(*p == 0) // field is a valid int
 		return INT_TYPE;
-	else if(field == "true" || field == "false" || field == "?-Bool")
+
+	if(field == "true" || field == "false" || field == "?-Bool")
 		return BOOL_TYPE;
-	else 
-		return TEXT_TYPE;
+	
+	std::stringstream ss(field);
+	ss.imbue(std::locale("C"));
+	double v;
+	if (ss >> v) 
+		return FLOAT_TYPE;
+	
+	return TEXT_TYPE;
 }
 
 /**
@@ -668,9 +712,9 @@ rm_object * parseCSVToRelation(std::vector< std::vector<std::string> > rows){
 	bool other_rows_textual = true;
 	for(size_t j = 0; j < num_fields; j++){
 		uint8_t fr_type = fieldType(rows[0][j]);
-		if(fr_type == BOOL_TYPE || fr_type == INT_TYPE)
+		if(fr_type == BOOL_TYPE || fr_type == INT_TYPE || fr_type == FLOAT_TYPE)
 			first_row_textual = false;
-		if(types[j] == BOOL_TYPE || types[j] == INT_TYPE)
+		if(types[j] == BOOL_TYPE || types[j] == INT_TYPE || types[j] == FLOAT_TYPE)
 			other_rows_textual = false;
 	}
 	// note that if _all_ rows are purely textual,
@@ -686,6 +730,9 @@ rm_object * parseCSVToRelation(std::vector< std::vector<std::string> > rows){
 			break;
 		case INT_TYPE:
 			at.type = TInt;
+			break;
+		case FLOAT_TYPE:
+			at.type = TFloat;
 			break;
 		case TEXT_TYPE:
 		case UNK_TYPE:
@@ -725,6 +772,14 @@ rm_object * parseCSVToRelation(std::vector< std::vector<std::string> > rows){
 			{
 				std::stringstream iss(field);
 				int64_t value;
+				iss >> value;
+				tup->values.emplace_back(value);
+				break;
+			}
+			case TFloat:
+			{
+				std::stringstream iss(field);
+				double value;
 				iss >> value;
 				tup->values.emplace_back(value);
 				break;
@@ -825,6 +880,9 @@ void saveCSVRelationToStream(rm_object * o, std::ostream & stream){
 			switch(val.type){
 			case TInt:
 				printIntToStream(val.intValue, stream);
+				break;
+			case TFloat:
+				printFloatToStream(val.floatValue, stream);
 				break;
 			case TBool:
 				printBoolToStream(val.boolValue, stream);
@@ -1850,6 +1908,11 @@ int64_t rm_countRel(rm_object * lhs, const char * name, uint64_t range) {
 			if(tup->values[index].intValue != RM_NULLINT)
 				count++;
 		break;
+	case TFloat:
+		for(auto tup : rel->tuples)
+			if(!std::isnan(tup->values[index].intValue))
+				count++;
+		break;
 	case TBool:
 		for(auto tup : rel->tuples)
 			if(tup->values[index].boolValue != RM_NULLBOOL)
@@ -1890,6 +1953,15 @@ rm_object * rm_createTup(uint32_t count, TupEntry * entries, int64_t range) {
 		case TInt:
 			t->values.emplace_back(te.value);
 			break;
+		case TFloat: {
+			union {
+				double fpv;
+				int64_t iv;
+			};
+			iv=te.value;
+			t->values.emplace_back(fpv);
+			break;
+		}
 		case TBool:
 			t->values.emplace_back(static_cast<int8_t>(te.value));
 			break;
@@ -1969,6 +2041,9 @@ void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret, int64_t range
 	switch(val.type){
 	case TInt:
 		ret->value = val.intValue;
+		break;
+	case TFloat:
+		ret->value = val.floatValue;
 		break;
 	case TBool:
 		ret->value = val.boolValue;

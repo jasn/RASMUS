@@ -78,6 +78,9 @@ void rm_loadGlobalAny(const char * name,
 	case TBool:
 		ret->value = v.boolValue;
 		break;
+	case TFloat:
+		ret->value = v.floatValue;
+		break;
 	default:
 		ret->value = reinterpret_cast<int64_t>(v.objectValue.get());
 		break;
@@ -91,6 +94,9 @@ void rm_saveGlobalAny(const char * name, int64_t value, int8_t type) {
 		globals[name] = AnyValue(value);
 		break;
 	case TBool:
+		globals[name] = AnyValue(static_cast<int8_t>(value));
+		break;
+	case TFloat:
 		globals[name] = AnyValue(static_cast<int8_t>(value));
 		break;
 	case TRel:
