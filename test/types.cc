@@ -21,7 +21,7 @@
 using namespace rasmus;
 using namespace rasmus::frontend;
 
-Type inv=Type::invalid();
+Type inv=Type::empty();
 Type i=Type::integer();
 Type b=Type::boolean();
 Type a=Type::any();
@@ -43,7 +43,7 @@ Type r(std::map<std::string, Type> schema) {
 
 template <typename ...T>
 Type d(T ... t) {
-	return Type::disjunction({t...});
+	return Type::join({t...});
 }
 
 void eq(rasmus::teststream & ts, Type lhs,
@@ -76,20 +76,20 @@ void sp(rasmus::teststream & ts, Type lhs,
 		bool comparable=true) {
 	if (comparable) {
 		ts << lhs << " < " << rhs
-		   << result(Type::specialization(lhs,rhs));
+		   << result(Type::subset(lhs,rhs));
 		if (lhs != rhs) {
 			ts << rhs << " !< " << lhs
-			   << result(!Type::specialization(rhs,lhs));
+			   << result(!Type::subset(rhs,lhs));
 		} 
 	} else {
 		ts << lhs << " !< " << rhs
-		   << result(!Type::specialization(lhs,rhs));
+		   << result(!Type::subset(lhs,rhs));
 		ts << rhs << " !< " << lhs
-		   << result(!Type::specialization(rhs,lhs));
+		   << result(!Type::subset(rhs,lhs));
 	}
 } 
 
-void specialization(rasmus::teststream & ts) {
+void subset(rasmus::teststream & ts) {
 	sp(ts, i, i);
 	sp(ts, i, a);
 	sp(ts, i, d(i,f));
@@ -124,7 +124,7 @@ void specialization(rasmus::teststream & ts) {
 
 void dt(rasmus::teststream & ts, std::vector<Type> lhs, 		
 		Type rhs) {
-	ts << "disjunction(";
+	ts << "union(";
 	bool first=true;
 	for(auto t: lhs) { 
 		if (first) first = false;
@@ -135,7 +135,7 @@ void dt(rasmus::teststream & ts, std::vector<Type> lhs,
 } 
 
 
-void disjunction(rasmus::teststream & ts) {
+void join(rasmus::teststream & ts) {
 	dt(ts, {i, a}, a);
 	dt(ts, {i, i, f}, d(f, i));
 	Type x=tu({{"abe", i}});
@@ -147,18 +147,18 @@ void disjunction(rasmus::teststream & ts) {
 
 void ct(rasmus::teststream & ts, std::vector<Type> lhs, 		
 		Type rhs) {
-	ts << "conjunction(";
+	ts << "intersection(";
 	bool first=true;
 	for(auto t: lhs) { 
 		if (first) first = false;
 		else ts << ", ";
 		ts << t;
 	}
-	ts << ") == " << Type::conjunction(lhs) << " == " << rhs << result(Type::conjunction(lhs) == rhs);
+	ts << ") == " << Type::intersection(lhs) << " == " << rhs << result(Type::intersection(lhs) == rhs);
 } 
 
 
-void conjunction(rasmus::teststream & ts) {
+void intersection(rasmus::teststream & ts) {
 	ct(ts, {i, d(i, f)}, i);
 	ct(ts, {i, a}, i);
 	ct(ts, {fu(a, {a, i}), fu(b, {b, a})}, fu(b, {b, i}) );
@@ -170,7 +170,7 @@ void conjunction(rasmus::teststream & ts) {
 int main(int argc, char **argv) {
 	return rasmus::tests(argc, argv)
 	  .multi_test(equality, "equality")
-	  .multi_test(specialization, "specialization")
-	  .multi_test(disjunction, "disjunction")
-	  .multi_test(conjunction, "conjunction");
+	  .multi_test(subset, "subset")
+	  .multi_test(join, "union")
+	  .multi_test(intersection, "intersection");
 }

@@ -63,7 +63,7 @@ bool schemaHasName(const Type & t, const std::string & name) {
 	case Type::Any:
 	case Type::ATup:
 	case Type::ARel:
-	case Type::Invalid:
+	case Type::Empty:
 		return true;
 	case Type::Int:
 	case Type::Float:
@@ -75,8 +75,8 @@ bool schemaHasName(const Type & t, const std::string & name) {
 	case Type::Rel:
 	case Type::Tup:
 		return t.relTupSchema().count(name);
-	case Type::Disjunction:
-		for (const auto & tt: t.disjunctionParts())
+	case Type::Union:
+		for (const auto & tt: t.unionParts())
 			if (schemaHasName(tt, name))
 				return true;
 		return false;
@@ -110,11 +110,11 @@ public:
 	}
 	
 	bool typeCheck(Token token, NodePtr expr, const Type & t) {
-		if (Type::match(expr->type, t)) 
+		if (Type::intersects(expr->type, t)) 
 			return true;
 
 		std::stringstream ss;
-		if (t.kind() == Type::Disjunction)
+		if (t.kind() == Type::Union)
 			ss << "Expected one of ";
 		else
 			ss << "Expected type ";
@@ -136,7 +136,7 @@ public:
 		case TokenType::TK_TYPE_TUP: return Type::aTup();
 		default:
 			internalError(token, "Invalid call to tokenToType");
-			return Type::invalid();
+			return Type::empty();
 		}
 	}
 
@@ -167,45 +167,45 @@ public:
 				if (false) ;
 				else if (name == "acos") {
 					node->buildin = BuildIn::acos;
-					node->type = Type::func(Type::fp(), {Type::fpOrInt()});
+					node->type = Type::func(Type::fp(), {Type::fpAndInt()});
 				} else if (name == "asin") {
 					node->buildin = BuildIn::asin;
-					node->type = Type::func(Type::fp(), {Type::fpOrInt()});
+					node->type = Type::func(Type::fp(), {Type::fpAndInt()});
 				} else if (name == "atan") {
 					node->buildin = BuildIn::atan;
-					node->type = Type::func(Type::fp(), {Type::fpOrInt()});
+					node->type = Type::func(Type::fp(), {Type::fpAndInt()});
 				} else if (name == "atan2") {
 					node->buildin = BuildIn::atan2;
-					node->type = Type::func(Type::fp(), {Type::fpOrInt(), Type::fpOrInt()});
+					node->type = Type::func(Type::fp(), {Type::fpAndInt(), Type::fpAndInt()});
 				} else if (name == "ceil") {
 					node->buildin = BuildIn::ceil;
-					node->type = Type::func(Type::fp(), {Type::fpOrInt()});
+					node->type = Type::func(Type::fp(), {Type::fpAndInt()});
 				} else if (name == "cos") {
 					node->buildin = BuildIn::cos;
-					node->type = Type::func(Type::fp(), {Type::fpOrInt()});
+					node->type = Type::func(Type::fp(), {Type::fpAndInt()});
 				} else if (name == "floor") {
 					node->buildin = BuildIn::floor;
-					node->type = Type::func(Type::integer(), {Type::fpOrInt()});
+					node->type = Type::func(Type::integer(), {Type::fpAndInt()});
 				} else if (name == "pow") {
 					node->buildin = BuildIn::pow;
-					node->type = Type::func(Type::fp(), {Type::fpOrInt()});
+					node->type = Type::func(Type::fp(), {Type::fpAndInt()});
 				} else if (name == "round") {
 					node->buildin = BuildIn::round;
-					node->type = Type::func(Type::integer(), {Type::fpOrInt()});
+					node->type = Type::func(Type::integer(), {Type::fpAndInt()});
 				} else if (name == "sin") {
 					node->buildin = BuildIn::sin;
-					node->type = Type::func(Type::fp(), {Type::fpOrInt()});
+					node->type = Type::func(Type::fp(), {Type::fpAndInt()});
 				} else if (name == "sqrt") {
 					node->buildin = BuildIn::sqrt;
-					node->type = Type::func(Type::fp(), {Type::fpOrInt()});
+					node->type = Type::func(Type::fp(), {Type::fpAndInt()});
 				} else if (name == "tan") {
 					node->buildin = BuildIn::tan;
-					node->type = Type::func(Type::fp(), {Type::fpOrInt()});
+					node->type = Type::func(Type::fp(), {Type::fpAndInt()});
 				} else {
 					std::stringstream ss;
 					ss << "Unknown variable " << name;
 					error->reportError(ss.str(), node->nameToken);
-					node->type = Type::invalid();
+					node->type = Type::empty();
 				}
 				return;
 			}
@@ -253,7 +253,7 @@ public:
 			types.push_back(choice->value->type);
 		}
 
-		node->type = Type::disjunction(types);
+		node->type = Type::join(types);
 	}
 	
     void visit(std::shared_ptr<ForallExp> node) {		
@@ -285,12 +285,12 @@ public:
 				std::vector<Type> tups;
 				for (const auto & rel: rels) 
 					tups.push_back(Type::tup(rel.relTupSchema()));
-				types.push_back(Type::disjunction(tups));
+				types.push_back(Type::join(tups));
 			}
 		} else {
 			std::map<std::string, std::vector<Type> > nameTypes;
 			
-			types.push_back(Type::invalid());
+			types.push_back(Type::empty());
 			
 			for(auto exp : node->listExps) {
 				std::vector<Type> rels;
@@ -336,13 +336,13 @@ public:
 						ss2 << "\n  " << rel;
 					error->reportError(ss1.str(), p.second, {exp->charRange}, ss2.str());
 				}
-				types.push_back(Type::disjunction(std::move(type)));
+				types.push_back(Type::join(std::move(type)));
 			}
 
 			std::map<std::string, Type> schema;
 			for (const auto & p:names) {
-				Type t=Type::conjunction(nameTypes[p.first]);
-				if (!t.valid()) {
+				Type t=Type::intersection(nameTypes[p.first]);
+				if (t.isEmpty()) {
 					t = Type::aRel();
 					std::stringstream ss1;
 					ss1 << "The attribute '" << p.first << "' does not have a valid type.";
@@ -375,15 +375,15 @@ public:
 		std::vector<Type> argTypes;
         for (auto a: node->args) {
 			scopes.back().bind[a->nameToken.getText(code)] = a;
-			if (!a->type.valid()) a->type = tokenToType(a->typeToken);
+			if (a->type.isEmpty()) a->type = tokenToType(a->typeToken);
 			argTypes.push_back(a->type);
 		}
 		Type rtype=tokenToType(node->returnTypeToken);
         visitNode(node->body);
 		typeCheck(node->funcToken, node->body, rtype);
 
-		Type nrtype=Type::conjunction({rtype, node->body->type});
-		if (nrtype.valid()) rtype=nrtype;
+		Type nrtype=Type::intersection({rtype, node->body->type});
+		if (!nrtype.isEmpty()) rtype=nrtype;
 		node->type = Type::func(rtype, argTypes);
 		scopes.pop_back();
 	}
@@ -392,7 +392,7 @@ public:
 		std::map<std::string, Type> schema;
         for (auto item: node->items) {
 			visitNode(item->exp);
-			Type it=Type::invalid();
+			Type it=Type::empty();
 			if (typeCheck(item->colonToken, item->exp, Type::atomic()))
 				it = item->exp->type;
 			std::string name = item->nameToken.getText(code);
@@ -414,7 +414,7 @@ public:
 	}
 
     void visit(std::shared_ptr<BuiltInExp> node) {
-		Type returnType=Type::invalid();
+		Type returnType=Type::empty();
 		std::vector<Type> argumentTypes;
 		bool secondIsName=false;
 		bool mustExist=true;
@@ -451,7 +451,7 @@ public:
 			break;
         case TokenType::TK_HAS:
 			returnType = Type::boolean();
-            argumentTypes.push_back(Type::disjunction({Type::aRel(), Type::aTup()}));
+            argumentTypes.push_back(Type::join({Type::aRel(), Type::aTup()}));
 			allowTup = true;
 			mustExist=false;
 			secondIsName = true;
@@ -460,7 +460,7 @@ public:
 		case TokenType::TK_MIN:
 		case TokenType::TK_ADD:
 		case TokenType::TK_MULT:
-			returnType = Type::integer(); //should be fpOrInt when the stdlib changes
+			returnType = Type::integer(); //should be fpAndInt when the stdlib changes
             argumentTypes.push_back(Type::aRel());
 			secondIsName = true;
 			break;
@@ -573,7 +573,7 @@ public:
 			break;
 		default:
 			internalError(node->valueToken, std::string("Invalid constant type ")+getTokenName(node->valueToken.id));
-			node->type = Type::invalid();
+			node->type = Type::empty();
 			break;
 		}
 	}   
@@ -609,19 +609,19 @@ public:
 			node->type = Type::boolean();
 			break;
 		case TokenType::TK_MINUS:
-            typeCheck(node->opToken, node->exp, Type::fpOrInt());
+            typeCheck(node->opToken, node->exp, Type::fpAndInt());
             node->type = node->exp->type;
 			break;
 		default:
             internalError(node->opToken, "Bad unary operator");
-            node->type = Type::invalid();
+            node->type = Type::empty();
 		}
 	}
 
 	static bool getTups(Type ft, std::vector<Type> & ans) {
 		bool atup=false;
 		switch (ft.kind()) {
-		case Type::Invalid:
+		case Type::Empty:
 		case Type::Any:
 		case Type::ATup:
 			atup=true;
@@ -629,8 +629,8 @@ public:
 		case Type::Tup:
 			ans.push_back(ft);
 			break;
-		case Type::Disjunction:
-			for (const auto & e: ft.disjunctionParts())
+		case Type::Union:
+			for (const auto & e: ft.unionParts())
 				atup = atup || getTups(e, ans);
 			break;
 		default:
@@ -642,7 +642,7 @@ public:
 	static bool getRels(Type ft, std::vector<Type> & ans) {
 		bool arel=false;
 		switch (ft.kind()) {
-		case Type::Invalid:
+		case Type::Empty:
 		case Type::Any:
 		case Type::ARel:
 			arel=true;
@@ -650,8 +650,8 @@ public:
 		case Type::Rel:
 			ans.push_back(ft);
 			break;
-		case Type::Disjunction:
-			for (const auto & e: ft.disjunctionParts())
+		case Type::Union:
+			for (const auto & e: ft.unionParts())
 				arel = arel || getRels(e, ans);
 			break;
 		default:
@@ -676,13 +676,13 @@ public:
 		std::vector<Type> rels;
 		for (const auto & tup: tups)
 			rels.push_back(Type::rel(tup.relTupSchema()));
-		node->type = Type::disjunction(rels);
+		node->type = Type::join(rels);
 	}
 	
     void visit(std::shared_ptr<LenExp> node) {
         visitNode(node->exp);
 		typeCheck(node->leftPipeToken, node->exp, 
-				  Type::disjunction({Type::text(), Type::aRel(), Type::aTup()}));
+				  Type::join({Type::text(), Type::aRel(), Type::aTup()}));
         node->type = Type::integer();
 	}
 	
@@ -695,8 +695,8 @@ public:
 		case Type::Func:
 			ans.push_back(ft);
 			break;
-		case Type::Disjunction:
-			for (const auto & e: ft.disjunctionParts())
+		case Type::Union:
+			for (const auto & e: ft.unionParts())
 				afunc = afunc || getFunctions(e, ans);
 			break;
 		default:
@@ -714,8 +714,8 @@ public:
 			return;
 		}
 		
-		if (node->funcExp->type.kind() == Type::Invalid) {
-			node->type = Type::invalid();
+		if (node->funcExp->type.kind() == Type::Empty) {
+			node->type = Type::empty();
 			return;
 		}
 		
@@ -731,14 +731,14 @@ public:
 			ss << "The type is " << node->funcExp->type;
 			error->reportError("Tried to call none function", node->lparenToken, {node->funcExp->charRange},
 							   ss.str());
-			node->type = Type::invalid();
+			node->type = Type::empty();
 		} else {
 			std::vector<Type> matchTypes;
 			for (const auto & f: fts) {
 				if (f.funcArgs().size() != argTypes.size()) continue;
 				bool ok=true;
 				for (size_t i=0; i < argTypes.size(); ++i) {
-					if (!Type::match(argTypes[i], f.funcArgs()[i])) {
+					if (!Type::intersects(argTypes[i], f.funcArgs()[i])) {
 						ok=false;
 						break;
 					}
@@ -761,7 +761,7 @@ public:
 				}
 				error->reportError("Invalid function call", node->lparenToken, {node->charRange}, ss.str());
 			} else {
-				node->type = Type::disjunction(matchTypes);
+				node->type = Type::join(matchTypes);
 			}
 		}
 	}
@@ -870,14 +870,14 @@ public:
 				error->reportError("Invalid rename", node->lbracketToken, {node->charRange}, ss.str());
 			}
 		} else {
-			node->type = Type::disjunction(std::move(newRels));
+			node->type = Type::join(std::move(newRels));
 		}
 	}
 
     void visit(std::shared_ptr<DotExp> node) {
         visitNode(node->lhs);
         if (!typeCheck(node->dotToken, node->lhs, Type::aTup())) {
-			node->type = Type::invalid();
+			node->type = Type::empty();
 			return;
 		}
 		
@@ -898,11 +898,11 @@ public:
 		
 		if (types.empty()) {
 			error->reportError("Attribute does not exist in schema", node->nameToken, {node->lhs->charRange});
-			node->type = Type::invalid();
+			node->type = Type::empty();
 			return;
 		}
 		
-		node->type = Type::disjunction(types);
+		node->type = Type::join(types);
 	}
 
     void visit(std::shared_ptr<TupMinus> node) {
@@ -937,7 +937,7 @@ public:
 		}
 		
 		if (!ntups.empty()) {
-			node->type = Type::disjunction(ntups);
+			node->type = Type::join(ntups);
 			return;
 		}
 		
@@ -1024,7 +1024,7 @@ public:
 		}
 		
 		if (!nrels.empty()) {
-			node->type = Type::disjunction(std::move(nrels));
+			node->type = Type::join(std::move(nrels));
 			return;
 		}
 		
@@ -1039,7 +1039,7 @@ public:
 	}
 
     void visit(std::shared_ptr<InvalidExp> node) {
-        node->type = Type::invalid();
+        node->type = Type::empty();
 	}
 
 	struct BinopHelp {
@@ -1063,8 +1063,8 @@ public:
 		
 		std::vector<BinopHelp> matches;
 		for(auto h: ops) {
-			if (!Type::match(h.lhsType, lhst)) continue;
-			if (!Type::match(h.rhsType, rhst)) continue;
+			if (!Type::intersects(h.lhsType, lhst)) continue;
+			if (!Type::intersects(h.rhsType, rhst)) continue;
 			matches.push_back(h);
 		}
 		
@@ -1090,7 +1090,7 @@ public:
 		std::vector<Type> types;
 		for(auto h: matches) {
 			Type t = h.func? h.func(lhst, rhst): h.resType;
-			if (t.valid()) 
+			if (!t.isEmpty()) 
 				types.push_back(t);
 		}
 		if (types.empty()) {
@@ -1100,7 +1100,7 @@ public:
 			ss << "Invalid operator use with types " << lhst << " and " << rhst << ".";
 			error->reportError(ss.str(), node->opToken, {node->lhs->charRange, node->rhs->charRange});			
 		}
-		node->type = Type::disjunction(types);
+		node->type = Type::join(types);
 	}
 
 	void visitSelect(std::shared_ptr<BinaryOpExp> node) { 
@@ -1123,7 +1123,7 @@ public:
 		std::vector<Type> tups;
 		for (const auto & rel: rels) 
 			tups.push_back(Type::tup(rel.relTupSchema()));
-		Type tup=Type::disjunction(tups);
+		Type tup=Type::join(tups);
 
 		assert(node->rhs->nodeType == NodeType::FuncExp);
 		std::shared_ptr<FuncExp> f = std::static_pointer_cast<FuncExp>(node->rhs);
@@ -1165,8 +1165,8 @@ public:
 						schema.insert(schema.end(), *ri);
 						++ri;
 					} else {
-						Type t=Type::conjunction({li->second, ri->second});
-						if (!t.valid()) 
+						Type t=Type::intersection({li->second, ri->second});
+						if (t.isEmpty()) 
 							ok=false;
 						else 
 							schema.insert(schema.end(), std::make_pair(li->first, t));
@@ -1182,7 +1182,7 @@ public:
 			}
 		}
 
-		return Type::disjunction(rels);		
+		return Type::join(rels);		
 	}
 
     void visit(std::shared_ptr<BinaryOpExp> node) {
@@ -1195,7 +1195,7 @@ public:
 					{Type::integer(),   Type::fp(), Type::fp()},
 					{Type::integer(), Type::integer(), Type::integer()},
 					{Type::aRel(), Type::aRel(), Type::aRel(), [](Type lhs, Type rhs)->Type {
-							return Type::conjunction({lhs, rhs});
+							return Type::intersection({lhs, rhs});
 						}}
 				});
 			break;
@@ -1272,12 +1272,12 @@ public:
 										schema.insert(p);
 									ans.push_back(Type::tup(schema));
 								}
-							return Type::disjunction(ans);
+							return Type::join(ans);
 						}}});
 			break;
 		default:
             internalError(node->opToken, std::string("Invalid operator")+getTokenName(node->opToken.id));
-            node->type = Type::invalid();
+            node->type = Type::empty();
 			break;
 		}
 	}
@@ -1285,7 +1285,7 @@ public:
     void visit(std::shared_ptr<SequenceExp> node) {
         visitAll(node->sequence);
         if (node->sequence.empty())
-			node->type = Type::invalid();
+			node->type = Type::empty();
         else
             node->type = node->sequence.back()->type;
 	}

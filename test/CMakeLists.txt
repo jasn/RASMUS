@@ -10,7 +10,7 @@ endmacro(add_unittest)
 
 add_unittest(stdlib-text construct concat substring)
 add_unittest(frontend-lexer base)
-add_unittest(types equality specialization disjunction conjunction)
+add_unittest(types equality subset union intersection)
 add_unittest(frontend-parser base)
 add_unittest(frontend-integration builtins base integer bool comments relation if text tuple relation_external crash)
 add_unittest(stdlib-relation loadAndSave)

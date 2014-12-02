@@ -36,7 +36,7 @@ public:
 	};
 
 	enum Kind : int8_t {
-		Invalid, Any, Int, Float, Bool, Text, ARel, ATup, AFunc, Rel, Func, Tup, Disjunction
+		Empty, Any, Int, Float, Bool, Text, ARel, ATup, AFunc, Rel, Func, Tup, Union
 	};
 
 	Type(): bits(0) {}
@@ -48,22 +48,22 @@ public:
 
 	explicit Type(PlainType t): bits(0) {
 		switch (t) {
-		case TAny: bits = (uint64_t)Any << 56; break;
-		case TInt: bits = (uint64_t)Int << 56; break;
-		case TFloat: bits = (uint64_t)Float << 56; break;
-		case TBool: bits = (uint64_t)Bool << 56; break;
-		case TText: bits = (uint64_t)Text << 56; break;
-		case TRel: bits = (uint64_t)ARel << 56; break;
-		case TTup: bits = (uint64_t)ATup << 56; break;
-		case TFunc: bits = (uint64_t)AFunc << 56; break;
+		case TAny: bits = (uint64_t)Any << shift; break;
+		case TInt: bits = (uint64_t)Int << shift; break;
+		case TFloat: bits = (uint64_t)Float << shift; break;
+		case TBool: bits = (uint64_t)Bool << shift; break;
+		case TText: bits = (uint64_t)Text << shift; break;
+		case TRel: bits = (uint64_t)ARel << shift; break;
+		case TTup: bits = (uint64_t)ATup << shift; break;
+		case TFunc: bits = (uint64_t)AFunc << shift; break;
 		case TInvalid:
-			bits = (uint64_t)Invalid << 56;
+			bits = (uint64_t)Empty << shift;
 			break;
 		}
 	}
 	
 	Kind kind() const {
-		return (Kind)(bits >> 56);
+		return (Kind)(bits >> shift);
 	}
 	
 	PlainType plain() const {
@@ -79,44 +79,45 @@ public:
 		case Tup: return TTup;
 		case AFunc: return TFunc;
 		case Func: return TFunc;
-		case Disjunction: return disjunctionPlain();
+		case Union: return unionPlain();
 		default: return TInvalid;
 		}
 	}
 
-	bool valid() const {return kind() != Invalid;}
+	bool isEmpty() const {return kind() == Empty;}
+	bool isNoneEmpty() const {return kind() == Empty;}
 
 	const Type & funcRet() const;
 	const std::vector<Type> & funcArgs() const;
 	// We guarentee that disjunctions are relativly minimal, and that they do not contain other disjunctions
-	const std::vector<Type> & disjunctionParts() const;
+	const std::vector<Type> & unionParts() const;
 	const std::map<std::string, Type> & relTupSchema() const;
 	
-	static Type invalid() {return Type((uint64_t)Invalid << 56);}
-	static Type any() {return Type((uint64_t)Any << 56);}
-	static Type integer() {return Type((uint64_t)Int << 56);}
-	static Type fp() {return Type((uint64_t)Float << 56);}
-	static Type fpOrInt() {return disjunction({fp(), integer()});}
-	static Type boolean() {return Type((uint64_t)Bool << 56);}
-	static Type text() {return Type((uint64_t)Text << 56);}
-	static Type aRel() {return Type((uint64_t)ARel << 56);}
-	static Type aTup() {return Type((uint64_t)ATup << 56);}
-	static Type aFunc() {return Type((uint64_t)AFunc << 56);}
-	static Type atomic() {return disjunction({fp(), integer(), text(), boolean()});}
+	static Type empty() {return Type((uint64_t)Empty << shift);}
+	static Type any() {return Type((uint64_t)Any << shift);}
+	static Type integer() {return Type((uint64_t)Int << shift);}
+	static Type fp() {return Type((uint64_t)Float << shift);}
+	static Type fpAndInt() {return join({fp(), integer()});}
+	static Type boolean() {return Type((uint64_t)Bool << shift);}
+	static Type text() {return Type((uint64_t)Text << shift);}
+	static Type aRel() {return Type((uint64_t)ARel << shift);}
+	static Type aTup() {return Type((uint64_t)ATup << shift);}
+	static Type aFunc() {return Type((uint64_t)AFunc << shift);}
+	static Type atomic() {return join({fp(), integer(), text(), boolean()});}
 	static Type rel(std::map<std::string, Type> schema);
 	static Type tup(std::map<std::string, Type> schema);
 	static Type func(Type ret, std::vector<Type> args);
-	static Type disjunction(std::vector<Type> parts);
-	static Type conjunction(std::vector<Type> parts);
+	static Type join(std::vector<Type> parts);
+	static Type intersection(std::vector<Type> parts);
 
-	static bool match(const Type & lhs, const Type & rhs);
+	static bool intersects(const Type & lhs, const Type & rhs);
 
 	/**
 	 * \brief Check if lhs is a specialization of rhs
 	 *
 	 * Check where the set of types lhs in a subset of the set of types rhs
 	 */
-	static bool specialization(const Type & lhs, const Type & rhs);
+	static bool subset(const Type & lhs, const Type & rhs);
 
 
 	friend bool operator==(const Type & lhs, const Type & rhs);
@@ -124,6 +125,8 @@ public:
 		return !(lhs == rhs);
 	}
 private:
+	static const size_t shift=56;
+
 	// We assume that only the bottom 56-bits of a pointer are none-zero
 	// See http://en.wikipedia.org/wiki/X86-64#Virtual_address_space_details
 
@@ -137,7 +140,7 @@ private:
 		if (newBits == bits) return;
 		switch (kind()) {
 		case Func:
-		case Disjunction:
+		case Union:
 		case Rel:
 		case Tup:
 			p()->refCnt--;
@@ -149,7 +152,7 @@ private:
 		bits = newBits;
 		switch (kind()) {
 		case Func:
-		case Disjunction:
+		case Union:
 		case Rel:
 		case Tup:
 			p()->refCnt++;
@@ -159,14 +162,11 @@ private:
 		}
 	}
 
-	static bool schemaSpecialization(const Type & lhs, const Type & rhs);
-	static bool funcSpecialization(const Type & lhs, const Type & rhs);
-
-	PlainType disjunctionPlain() const; 
+	static bool schemaSubset(const Type & lhs, const Type & rhs);
+	static bool funcSubset(const Type & lhs, const Type & rhs);
+	PlainType unionPlain() const; 
 	void destroy();
-
 	explicit Type(uint64_t b): bits(b) {}
-
 	uint64_t bits;
 };
 
