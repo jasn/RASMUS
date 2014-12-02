@@ -92,3 +92,64 @@ end
 
 
 
+// eksempel 22
+func (ugenr:Int) -> (Rel)
+     (+ val Strip =
+     	    func (uge:Int) -> (Rel)
+	    	 ((Turnering * Tips) ? (#.Uge=uge)) |- Id,Uge
+            end
+	val X = Strip(ugenr)
+	in !(X): (+ val H = #.HjScore
+	   	    val U = #.UdeScore
+		    in rel(#\HjScore\UdeScore<<
+		              tup(Tegn: if U<H -> "1"
+			      		 & U=H -> "X"
+					 & U>H -> "2"
+					fi
+				 )
+			  )
+	         +)
+     +)
+end
+
+func (aar:Text, dato:Text) -> (Text)
+  if |dato|=4 -> aar++dato
+   & |dato|=3 -> aar++"0"++dato
+  fi
+end;
+
+func (K:Rel, hold:Text) -> (Rel)
+  if has(K,HjHold) -> K ? (#.HjHold=hold)
+   & true -> zero
+  fi
+end;
+
+func (K:Rel, hold:Text) -> (Rel)
+  if has(K,HjHold) and is-Text(K,HjHold) -> K ? (#.HjHold=hold)
+   & true -> zero
+  fi
+end;
+
+!(Turnering):
+  (+ val H = #.HjScore
+     val U = #.UdeScore
+     in if H<U -> rel(tup(Id:#.Id, Hold:#.UdeHold, Points:2))
+         & H=U -> rel(tup(Id:#.Id, Hold:#.UdeHold, Points:1)) +
+                  rel(tup(Id:#.Id, Hold:#.HjHold, Points:1))
+         & H>U -> rel(tup(Id:#.Id, Hold:#.HjHold, Points:2))
+        fi
+  +);
+
+(+ val AGF = EnkeltPoints ? (#.Hold="AGF")
+   val OB = EnkeltPoints ? (#.Hold="OB")
+   val AaB = EnkeltPoints ? (#.Hold="AaB")
+   val Lyngby = EnkeltPoints ? (#.Hold="Lyngby")
+   val Brondby = EnkeltPoints ? (#.Hold="Brndby")
+   val Frem = EnkeltPoints ? (#.Hold="Frem")
+   in rel(tup(Hold:"AGF", Points:add(AGF,Points)) +
+      rel(tup(Hold:"OB", Points:add(OB,Points)) +
+      rel(tup(Hold:"AaB", Points:add(AaB,Points)) +
+      rel(tup(Hold:"Lyngby", Points:add(Lyngby,Points)) +
+      rel(tup(Hold:"Br",Points:add(Brndby,Points)) +
+      rel(tup(Hold:"Frem", Points:add(Frem,Points))
++)

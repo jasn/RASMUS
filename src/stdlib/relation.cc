@@ -551,7 +551,7 @@ std::vector< std::vector<std::string> > parseCSV(std::string input){
 
 	bool more_rows = true;
 	size_t index = 0;
-  
+	
 	while(more_rows){
 	  
 		std::vector<std::string> row;		
@@ -563,7 +563,7 @@ std::vector< std::vector<std::string> > parseCSV(std::string input){
 				ILE("index out of bounds while parsing the CSV file");
 			char c = input[index];
 
-			if(!in_quotes){
+			if(!in_quotes) {
 				switch(c){
 				case '\x00':
 					more_fields = false;
@@ -616,9 +616,11 @@ std::vector< std::vector<std::string> > parseCSV(std::string input){
 						   (next == '\r' && input[index+2] == '\n'))
 							in_quotes = false;
 						else{
-							std::string errText =
-								"Could not parse CSV file because "
-								"a quoted field contains data outside its quotes.";
+							std::stringstream ss;
+							ss << "Could not parse CSV file because ";
+							ss << "a quoted field contains data outside its quotes." << std::endl;
+							ss << "Error on line " << ret.size() << std::endl;
+							std::string errText = ss.str();
 							std::cerr <<  errText << std::endl;
 							callback->reportError(0, 0, errText);
 						}
