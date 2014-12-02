@@ -115,6 +115,11 @@ void specialization(rasmus::teststream & ts) {
 	sp(ts, fu(i, {a, i}), fu(a, {a, i}));
 	sp(ts, fu(i, {a, i}), fu(i, {i, a}), false);
 	sp(ts, fu(i, {a, i}), fu(i, {i}), false);
+
+	sp(ts, tu({{"abe", d(i,f)}}), tu({{"abe", d(i,f)}}) );
+	sp(ts, tu({{"abe", i}}), tu({{"abe", d(i,f)}}));
+
+	sp(ts, tu({{"abe", d(i,f)}}), d(tu({{"abe", d(i,f)}}), tu({{"abe", i}})) );
 }
 
 void dt(rasmus::teststream & ts, std::vector<Type> lhs, 		
@@ -126,13 +131,16 @@ void dt(rasmus::teststream & ts, std::vector<Type> lhs,
 		else ts << ", ";
 		ts << t;
 	}
-	ts << ") == " << rhs << result(d(lhs) == rhs);
+	ts << ") == " << d(lhs) << " == " << rhs << result(d(lhs) == rhs);
 } 
 
 
 void disjunction(rasmus::teststream & ts) {
 	dt(ts, {i, a}, a);
 	dt(ts, {i, i, f}, d(f, i));
+	Type x=tu({{"abe", i}});
+	Type y=tu({{"abe", b}});
+	dt(ts, {x, y, x, x, y, y}, d(x, y)); 
 	dt(ts, {atu, tu({{"abe", i}})}, atu);
 	dt(ts, {tu({{"abe", d(i,f)}}), tu({{"abe", i}})}, tu({{"abe", d(i,f)}}));
 }
@@ -146,7 +154,7 @@ void ct(rasmus::teststream & ts, std::vector<Type> lhs,
 		else ts << ", ";
 		ts << t;
 	}
-	ts << ") == " << rhs << result(Type::conjunction(lhs) == rhs);
+	ts << ") == " << Type::conjunction(lhs) << " == " << rhs << result(Type::conjunction(lhs) == rhs);
 } 
 
 

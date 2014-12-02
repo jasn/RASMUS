@@ -181,40 +181,38 @@ Type Type::disjunction(std::vector<Type> parts) {
 		}
 	}
 
-	for (size_t x=rels.size(); x != 0;) {
-		--x;
-		bool redundant=false;
-		for (size_t y=0; y+1 < rels.size(); ++y) {
-			if (!schemaSpecialization(rels[x], rels[y])) continue;
-			redundant=true;
-			break;
+	
+	for (size_t x=0; x != rels.size();) {
+		for (size_t y=0; y != rels.size(); ++y) {
+			if (x == y || !schemaSpecialization(rels[x], rels[y])) continue;
+			rels.erase(rels.begin()+x);
+			goto next1;
 		}
-		if (redundant)
-			rels.pop_back();
+		++x;
+	next1:	
+		;
 	}
 
-	for (size_t x=tups.size(); x != 0;) {
-		--x;
-		bool redundant=false;
-		for (size_t y=0; y+1 < tups.size(); ++y) {
-			if (!schemaSpecialization(tups[x], tups[y])) continue;
-			redundant=true;
-			break;
+	for (size_t x=0; x != tups.size();) {
+		for (size_t y=0; y != tups.size(); ++y) {
+			if (x == y || !schemaSpecialization(tups[x], tups[y])) continue;
+			tups.erase(tups.begin()+x);
+			goto next2;
 		}
-		if (redundant)
-			tups.pop_back();
+		++x;
+	next2:	
+		;
 	}
 
-	for (size_t x=funcs.size(); x != 0;) {
-		--x;
-		bool redundant=false;
-		for (size_t y=0; y+1 < funcs.size(); ++y) {
-			if (!funcSpecialization(funcs[x], funcs[y])) continue;
-			redundant=true;
-			break;
+	for (size_t x=0; x != funcs.size();) {
+		for (size_t y=0; y != funcs.size(); ++y) {
+			if (x == y || !funcSpecialization(funcs[x], funcs[y])) continue;
+			funcs.erase(funcs.begin()+x);
+			goto next3;
 		}
-		if (redundant)
-			funcs.pop_back();
+		++x;
+	next3:	
+		;
 	}
 	
 	ret.insert(ret.end(), rels.begin(), rels.end());
