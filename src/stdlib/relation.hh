@@ -89,6 +89,7 @@ public:
 class Relation: public rm_object {
 public:
 	std::vector<RefPtr<Tuple>> tuples;
+	std::vector<size_t> permutation;
 	RefPtr<Schema> schema;
 	Relation(): rm_object(LType::relation) {};
 };

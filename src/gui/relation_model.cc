@@ -56,7 +56,8 @@ std::string getHeaderText(const rs::Attribute &a) {
 std::string printHelper(size_t row, size_t column, rasmus::stdlib::RefPtr<rasmus::stdlib::Relation> rel) {
 
 	std::stringstream ss;
-	rs::AnyValue av = rel->tuples[row]->values[column];
+	std::vector<size_t> &pi = rel->permutation;
+	rs::AnyValue av = rel->tuples[row]->values[pi[column]];
 	switch (av.type) {
 	case TInt:
 		rs::printIntToStream(av.intValue, ss);
@@ -122,8 +123,8 @@ QVariant RelationModel::data(const QModelIndex& index, int role) const {
 QVariant RelationModel::headerData(int section, Qt::Orientation orientation, int role) const {
 	rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 	if (orientation != Qt::Horizontal) return QVariant("f");
-
-	std::string s = ::getHeaderText(rel->schema->attributes[section]);
+	std::vector<size_t> &pi = rel->permutation;
+	std::string s = ::getHeaderText(rel->schema->attributes[pi[section]]);
 
 	switch (role) {
 	case Qt::DisplayRole:
@@ -133,7 +134,6 @@ QVariant RelationModel::headerData(int section, Qt::Orientation orientation, int
 	default:
 		return QVariant("");
 	}
-
 }
 
 void RelationModel::sort(int column, Qt::SortOrder order) {

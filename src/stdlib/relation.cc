@@ -264,6 +264,14 @@ void saveRelationToStream(rm_object * o, std::ostream & outFile){
         ILE("Called with arguments of the wrong type");
 
 	Relation * relation = static_cast<Relation *>(o);
+
+	for (size_t i = 0; i < relation->permutation.size(); ++i) {
+		if (i > 0) {
+			outFile << " ";
+		}
+		outFile << relation->permutation[i];
+	}
+
 	outFile << relation->schema->attributes.size() << std::endl;
 	for(auto & attribute : relation->schema->attributes){
 		switch(attribute.type){
@@ -282,8 +290,7 @@ void saveRelationToStream(rm_object * o, std::ostream & outFile){
 		default:
 			ILE("Unhandled type", attribute.type);
 		}
-		outFile << attribute.name << std::endl;
-		
+		outFile << attribute.name << std::endl;		
 	}
 
 	for(auto & tuple : relation->tuples){
@@ -313,8 +320,8 @@ void saveRelationToStream(rm_object * o, std::ostream & outFile){
 		}
 		if(tuple->values.size() == 0)
 			outFile << std::endl;
-	}	
-}	
+	}
+}
 
 /**
  * \Brief converts text to a RASMUS boolean
@@ -348,6 +355,18 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 	}
 
 	schema = makeRef<Schema>();
+
+	RefPtr<Relation> relations = makeRef<Relation>();
+	relations->permutation.resize(num_columns, 0);
+	// Read permutation.
+	for (size_t i = 0; i < num_columns; ++i) {
+		if (!(inFile >> relations->permutation[i])) {
+			std::string errText =
+				"The permutation of the schema could not be read";
+			std::cerr << errText << std::endl;
+			callback->reportError(0, 0, errText);
+		}
+	}
 	
 	for(size_t i = 0; i < num_columns; i++){
 		char type;
@@ -395,7 +414,6 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 		getline(inFile, _);
 	}
 
-	RefPtr<Relation> relations = makeRef<Relation>();
 	relations->schema = schema;
 
 	bool done = false;
