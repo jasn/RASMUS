@@ -265,7 +265,7 @@ public:
 			if (x.second) continue;
 			
 			std::stringstream ss;
-			ss << "The column '" << name << "' has been specified twice";
+			ss << "The attribute '" << name << "' has been specified twice";
 			error->reportError(ss.str(), token, {r(x.first->second)});
 		}
 
@@ -312,7 +312,7 @@ public:
 						}
 						if (rels.size() != 1) continue;
 						std::stringstream ss;
-						ss << "The column '" << p.first << "' does not exist in "
+						ss << "The attribute '" << p.first << "' does not exist in "
 						   << rel;
 						error->reportError(ss.str(), p.second, {exp->charRange});
 					}
@@ -329,7 +329,7 @@ public:
 					nameTypes[p.first].push_back(Type::atomic());
 					if (rels.size() == 1) continue;
 					std::stringstream ss1;
-					ss1 << "The column '" << p.first << "' is not pressent in any of the possible types";
+					ss1 << "The attribute '" << p.first << "' is not pressent in any of the possible types";
 					std::stringstream ss2;
 					ss2 << "The possible types are:";
 					for (const auto & rel: rels)
@@ -338,12 +338,23 @@ public:
 				}
 				types.push_back(Type::disjunction(std::move(type)));
 			}
-			
+
 			std::map<std::string, Type> schema;
-			for (const auto & p: nameTypes)
-				schema.insert(
-					schema.end(), 
-					std::make_pair(p.first, Type::disjunction(p.second)));
+			for (const auto & p:names) {
+				Type t=Type::conjunction(nameTypes[p.first]);
+				if (!t.valid()) {
+					t = Type::aRel();
+					std::stringstream ss1;
+					ss1 << "The attribute '" << p.first << "' does not have a valid type.";
+					std::stringstream ss2;
+					ss2 << "The type should be all of the below at the same time:";
+					for (const auto & r: nameTypes[p.first])
+						ss2 << "\n* " << r;
+					error->reportError(ss1.str(), p.second, {}, ss2.str());
+					
+				} 
+				schema.insert(schema.end(), std::make_pair(p.first, std::move(t)));
+			}
 			types[0] = Type::tup(std::move(schema));
 		}
 		assert(node->exp->nodeType == NodeType::FuncExp);
@@ -386,7 +397,7 @@ public:
 				it = item->exp->type;
 			std::string name = item->nameToken.getText(code);
 			if (!schema.insert(std::make_pair(name, it)).second)
-				error->reportError("Duplicate name", item->nameToken);
+				error->reportError("Duplicate attribute name", item->nameToken);
 		}
         node->type = Type::tup(schema);
 	}
@@ -513,7 +524,7 @@ public:
 							if (rel.relTupSchema().count(name))
 								found = true;
 						if (!found)
-							error->reportError("Name not in schema", nt, {node->args[0]->charRange});
+							error->reportError("Attribute name not in schema", nt, {node->args[0]->charRange});
 					}
 				}
 				continue;
@@ -716,7 +727,10 @@ public:
 			node->type = Type::any();
 			
 		} else if(fts.size() == 0) {
-			error->reportError("Tried to call none function", node->lparenToken, {node->funcExp->charRange});
+			std::stringstream ss;
+			ss << "The type is " << node->funcExp->type;
+			error->reportError("Tried to call none function", node->lparenToken, {node->funcExp->charRange},
+							   ss.str());
 			node->type = Type::invalid();
 		} else {
 			std::vector<Type> matchTypes;
@@ -786,14 +800,14 @@ public:
 			auto x=froms.insert(std::make_pair(from.getText(code), from));
 			if (!x.second) {
 				std::stringstream ss;
-				ss << "'" << from.getText(code) << "' has allready been renamed";
+				ss << "The attribute '" << from.getText(code) << "' has allready been renamed";
 				error->reportError(ss.str(), from, {r(x.first->second)});
 				bad = true;
 			}
 			auto y=tos.insert(std::make_pair(to.getText(code), to));
 			if (!y.second) {
 				std::stringstream ss;
-				ss << "'" << to.getText(code) << "' has allready been renamed to";
+				ss << "The attribute '" << to.getText(code) << "' has allready been renamed to";
 				error->reportError(ss.str(), to, {r(y.first->second)});
 				bad = true;
 			}
@@ -815,7 +829,7 @@ public:
 				bad=true;
 				if (rels.size() != 1) continue;
 				std::stringstream ss;
-				ss << "The name '" << p.first << "' is not defined in "
+				ss << "The attribue '" << p.first << "' is not defined in "
 				   << rels[0];
 				error->reportError(ss.str(), p.second, {node->lhs->charRange});
 			}
@@ -837,7 +851,7 @@ public:
 				bad=true;
 				if (rels.size() == 1) {
 					std::stringstream ss;
-					ss << "The name '" << to.getText(code) << "' is allredy in "
+					ss << "The attribute '" << to.getText(code) << "' is allredy in "
 					   << rels[0];
 					error->reportError(ss.str(), to, {node->lhs->charRange});
 				}
@@ -883,7 +897,7 @@ public:
 		}
 		
 		if (types.empty()) {
-			error->reportError("Given name does not exist in schema", node->nameToken, {node->lhs->charRange});
+			error->reportError("Attribute does not exist in schema", node->nameToken, {node->lhs->charRange});
 			node->type = Type::invalid();
 			return;
 		}
@@ -916,7 +930,7 @@ public:
 			}
 			if (tups.size() == 1) {
 				std::stringstream ss;
-				ss << "The name '" << name << "' is not in the schema of "
+				ss << "The attribue '" << name << "' is not in the schema of "
 				   << tup;
 				error->reportError(ss.str(), node->nameToken, {node->lhs->charRange});
 			}
@@ -931,7 +945,7 @@ public:
 		if (tups.size() == 1) return;
 		
 		std::stringstream ss;
-		ss << "The name '" << name << "' is not in any of the possible tuple types:";
+		ss << "The attribute '" << name << "' is not in any of the possible tuple types:";
 		for (const Type & tup: tups) 
 			ss << "\n  " << tup;
 		error->reportError("Bad tuple remove", node->nameToken, {node->lhs->charRange}, ss.str());
@@ -947,7 +961,7 @@ public:
 			if (x.second) continue;
 			
 			std::stringstream ss;
-			ss << "The column '" << name << "' has been specified twice";
+			ss << "The attribute '" << name << "' has been specified twice";
 			error->reportError(ss.str(), t, {r(x.first->second)});
 		}
 
@@ -981,7 +995,7 @@ public:
 					bad=true;
 					if (rels.size() == 1) {
 						std::stringstream ss;
-						ss << "The column '" << p.first << "' is not in the relation of type " << rel;
+						ss << "The attribute '" << p.first << "' is not in the relation of type " << rel;
 						error->reportError(ss.str(), p.second, {node->lhs->charRange});
 					}
 				}
@@ -1001,7 +1015,7 @@ public:
 					bad=true;
 					if (rels.size() == 1) {
 						std::stringstream ss;
-						ss << "The column '" << p.first << "' is not in the relation of type " << rel;
+						ss << "The attribute '" << p.first << "' is not in the relation of type " << rel;
 						error->reportError(ss.str(), p.second, {node->lhs->charRange});
 					}
 				}
