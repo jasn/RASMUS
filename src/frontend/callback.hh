@@ -18,6 +18,7 @@
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __callback_hh__
 #define __callback_hh__
+#include <shared/type.hh>
 #include <frontend/code.hh>
 #include <frontend/lexer.hh>
 #include <frontend/ASTBase.hh>
@@ -50,6 +51,7 @@ public:
 	virtual void saveRelation(rm_object * o, const char * name) = 0;
 	virtual rm_object * loadRelation(const char * name) = 0;
 	virtual bool hasRelation(const char * name) = 0;
+	virtual bool relationSchema(const char * name, std::vector<std::pair<std::string, PlainType> > & schema);
 	virtual void deleteRelation(const char * name) = 0;
 
 	virtual void environmentChanged(const char * /*name*/) {}

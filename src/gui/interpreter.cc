@@ -199,10 +199,8 @@ public:
 	}
 
 	virtual bool hasRelation(const char * name) override { 
-		
 		return llvm::sys::fs::exists(location(name).toUtf8().data());
 	}
-
 private:
 	Interpreter * interperter;
 	Settings * settings;

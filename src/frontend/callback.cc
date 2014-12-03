@@ -17,10 +17,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with pyRASMUS.  If not, see <http://www.gnu.org/licenses/>
 #include <frontend/callback.hh>
-#include <stdlib/relation.hh>
 #include <llvm/Support/FileSystem.h>
 #include <iostream>
 #include <algorithm>
+#include <stdlib/relation.hh>
 
 namespace {
 
@@ -62,7 +62,7 @@ void Callback::printText(rm_object * o) {
 	print(TText, ss.str());
 }
 
-void Callback::printFunc(rm_object * o) {
+void Callback::printFunc(rm_object *) {
 	std::stringstream ss;
 	ss << "func";
 	print(TFunc, ss.str());
@@ -78,6 +78,16 @@ void Callback::printRel(rm_object * o) {
 	std::stringstream ss;
 	rasmus::stdlib::printRelationToStream(o, ss);
 	print(TRel, ss.str());
+}
+
+bool Callback::relationSchema(const char * name, std::vector<std::pair<std::string, PlainType> > & schema) {
+	AnyRet ret;
+	rm_loadGlobalAny(name, &ret);
+	if (ret.type != TRel) return false;	
+	auto rel = reinterpret_cast<stdlib::Relation *>(ret.value);
+	for (const auto & a: rel->schema->attributes)
+		schema.push_back(std::make_pair(a.name, (PlainType)a.type));
+	return true;
 }
 
 void TerminalCallback::report(MsgType type, 

@@ -161,7 +161,15 @@ public:
 				return;
 			}
 			if (callback->hasRelation(name.c_str())) {
-				node->type = Type::aRel(); // Todo find the actual relation type
+				std::vector<std::pair<std::string, PlainType> > schema;
+				if (!callback->relationSchema(name.c_str(), schema)) {
+					node->type = Type::aRel(); 
+					return;
+				} 
+				std::map<std::string, Type> s;
+				for (const auto & p: schema)
+					s.insert(std::make_pair(p.first, Type(p.second)));
+				node->type = Type::rel(s);
 				return;
 			} else {
 				if (false) ;
@@ -897,7 +905,11 @@ public:
 		}
 		
 		if (types.empty()) {
-			error->reportError("Attribute does not exist in schema", node->nameToken, {node->lhs->charRange});
+			std::stringstream ss;
+			ss << "Attribute '" << name << "' does not exist in schema";
+			if (rels.size() == 1) 
+				ss << ": " << rels[0];
+			error->reportError(ss.str(), node->nameToken, {node->lhs->charRange});
 			node->type = Type::empty();
 			return;
 		}
