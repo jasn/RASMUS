@@ -28,15 +28,7 @@ namespace {
 
 using namespace rasmus::stdlib;
 
-struct mystrcmp {
-
-	bool operator() (const char * lhs, const char * rhs) const {
-		return strcmp(lhs, rhs) < 0;
-	}
-
-};
-
-std::map<const char *, AnyValue, mystrcmp> globals;
+std::map<std::string, AnyValue> globals;
 
 } //nameless namespace
 
