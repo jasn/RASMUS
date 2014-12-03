@@ -11,6 +11,8 @@ if (QT_FOUND)
    include(${QT_USE_FILE})
 endif (QT_FOUND)
 
+set(RASMUS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules/")
 find_package(LLVM REQUIRED)
 find_package(Readline)
@@ -53,3 +55,5 @@ if (APPLE)
 endif (APPLE)
 
 include(CPack)
+
+add_subdirectory(doc)

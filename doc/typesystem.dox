@@ -1,0 +1,33 @@
+/**
+\page typesystem The RASMUS type system.
+
+From the users perspective the rasmus type system is quite limited.
+Everything has a simple \ref PlainType, Int, Float, Bool, Text, Rel,
+Tub, Func or Any.
+
+Rasmus is not a strong typed language, mostly you can just claim that
+a type is Any and get type error at runtime. However we try to catch
+as many errors at compile time as possible. To facilitate this we have
+a strong type system \ref rasmus::frontend::Type "Type". Such a Type
+represent a set of possible primitive types:
+- \ref rasmus::frontend::Type::any "Type::any" represents the set of all possible primitive types.
+- \ref rasmus::frontend::Type::integer "Type::integer" represents the set containing the Int type.
+- \ref rasmus::frontend::Type::fp "Type::fp" represents the set containing the Float type.
+- \ref rasmus::frontend::Type::text "Type::text" represents the set containing the Text type.
+- \ref rasmus::frontend::Type::boolean "Type::boolean" represents the set containing the Bool type.
+- \ref rasmus::frontend::Type::aFunc "Type::aFunc" represents the set of all possible function types.
+- \ref rasmus::frontend::Type::aTup "Type::aTup" represents the set of all possible tupple types.
+- \ref rasmus::frontend::Type::aRel "Type::aRel" represents the set of all possible relation types.
+- \ref rasmus::frontend::Type::empty "Type::empty" represents the empty set of types.
+
+More complex sets of types can also be created:
+- \ref rasmus::frontend::Type::func "Type::func"(X, {Y, Z}) represents the set of all functions whos return value is in the set X, and takes two arguments the first of which is in the set Y and the second in the set Z.
+- \ref rasmus::frontend::Type::tup "Type::tup"({{"monkey", X}, {"hat", Y}}) represents the set of all tuppels whos schema has two attributes one named "monkey" with a type from the set X, and one named "hat" with a type from the set Y.
+- \ref rasmus::frontend::Type::rel "Type::rel"({{"monkey", X}, {"hat", Y}}) represents the set of all relations whos schema has two attributes one named "monkey" with a type from the set X, and one named "hat" with a type from the set Y.
+
+Most reasonable set operations are supported:
+- \ref rasmus::frontend::Type::join "Type::join"({X, Y}) represents the set of types that is the union of X and Y.
+- \ref rasmus::frontend::Type::intersection "Type::intersections"({X, Y}) represents the set of types that is the intersection of X and Y.
+- \ref rasmus::frontend::Type::subset "Type::subset"(X, Y) return true if X is a subset of Y (or X is equal to Y)
+- \ref rasmus::frontend::Type::intersects "Type::intersects"(X, Y) return true if X and Y has a none empty intersection.
+*/

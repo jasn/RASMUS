@@ -28,6 +28,12 @@
 namespace rasmus {
 namespace frontend {
 
+
+/**
+ * \brief Represents a set of primitive types (see \ref typesystem)
+ *
+ * \see \ref typesystem
+ */
 class Type {
 public:
 	class Container {

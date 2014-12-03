@@ -44,15 +44,27 @@ inline std::ostream & operator << (std::ostream & o, LType t) {
 	return o << ltypeName(t);
 }
 
+/**
+ * Represents the plain user visible types
+ */
 enum PlainType {
-	TBool,
-	TInt,
+/// Boolean type: true, false or ?-Bool
+	TBool, 
+/// Integer type e.g. -1, 5 or ?-Int
+	TInt,  
+/// Floating type e.g. -1.7, 5e7 or ?-Float
 	TFloat,
+/// Text type e.g. "monkey" or ?-Text 
 	TText,
-	TRel,
-	TTup,
-	TFunc,
-	TInvalid,
+/// Relation type e.g. rel(tup(a:1))  
+	TRel, 
+/// Tuple type e.g. tup(a:1)
+	TTup, 
+/// Function type e.g. fun(a:Int)->(Any) a end
+	TFunc, 
+/// This type is given to a statement that cannot have a type
+	TInvalid, 
+/// Any type e.g. true, -5, "Monkey"
 	TAny,
 };
 
