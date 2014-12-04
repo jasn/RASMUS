@@ -877,9 +877,9 @@ void relation(rasmus::teststream & ts) {
 "add(X, a)", "102"));
 	ts << "add3" << result(it("add(rel(tup(abe: 4)) + rel(tup(abe: ?-Int)), abe)", "4"));
 	ts << "add4" << result(it("add(rel(tup(abe: 4.2)) + rel(tup(abe: ?-Float)), abe)", "4.2"));
-	ts << "add5" << result(it("add(rel(tup(abe: 4.2)) + rel(tup(abe: 1.2)), abe)", "5.42"));
+	ts << "add5" << result(it("add(rel(tup(abe: 4.2)) + rel(tup(abe: 1.2)), abe)", "5.4"));
 	ts << "add6" << result(it("add(rel(tup(abe: ?-Int)), abe)", "0"));
-	ts << "add7" << result(it("add(rel(tup(abe: ?-Float)), abe)", "0.0"));
+	ts << "add7" << result(it("add(rel(tup(abe: ?-Float)), abe)", "0"));
 	ts << "add_error1" << result(it("add(zero, kat)", "", true));
 	ts << "add_error2" << result(it("add(rel(tup(foo:1)), kat)", "", true));
 	ts << "add_error3" << result(it("add(rel(tup(foo:\"2\")), foo)", "", true));
@@ -888,11 +888,11 @@ void relation(rasmus::teststream & ts) {
 	ts << "mult2" << result(it("mult(rel(tup(abe: 0)) + rel(tup(abe: 5)), abe)", "0"));
 	ts << "mult3" << result(it("X := rel(tup(a:1,b:1)) + rel(tup(a:1,b:2)) + rel(tup(a:0,b:3)) + rel(tup(a:1, b:4)) + rel(tup(a:0,b:5)) + rel(tup(a:99,b:6)) + rel(tup(a:0,b:7));"
 							   "mult(X, b)", "5040"));
-	ts << "mult4" << result(it("add(rel(tup(abe: 4)) + rel(tup(abe: ?-Int)), abe)", "4"));
-	ts << "mult5" << result(it("add(rel(tup(abe: 4.2)) + rel(tup(abe: ?-Float)), abe)", "4.2"));
-	ts << "mult6" << result(it("add(rel(tup(abe: 4.2)) + rel(tup(abe: 1.2)), abe)", "5.04"));
-	ts << "mult7" << result(it("add(rel(tup(abe: ?-Int), abe))", "1"));
-	ts << "mult8" << result(it("add(rel(tup(abe: ?-Float)), abe)", "1.0"));
+	ts << "mult4" << result(it("mult(rel(tup(abe: 4)) + rel(tup(abe: ?-Int)), abe)", "4"));
+	ts << "mult5" << result(it("mult(rel(tup(abe: 4.2)) + rel(tup(abe: ?-Float)), abe)", "4.2"));
+	ts << "mult6" << result(it("mult(rel(tup(abe: 4.2)) + rel(tup(abe: 1.2)), abe)", "5.04"));
+	ts << "mult7" << result(it("mult(rel(tup(abe: ?-Int)), abe)", "1"));
+	ts << "mult8" << result(it("mult(rel(tup(abe: ?-Float)), abe)", "1"));
 	ts << "mult_error1" << result(it("mult(zero, kat)", "", true));
 	ts << "mult_error2" << result(it("mult(rel(tup(foo:1)), kat)", "", true));
 	ts << "mult_error3" << result(it("mult(rel(tup(foo:true)), foo)", "", true));
@@ -1011,7 +1011,7 @@ bool relation_external() {
 	std::shared_ptr<TestCallback> cb = std::make_shared<TestCallback>();
 	std::shared_ptr<rasmus::frontend::Interperter> interperter=rasmus::frontend::makeInterperter(cb);
 	interperter->setup();
-	std::string input = "2\n" 
+	std::string input = "2\n"
 		"T Name\n"
 		"I Age\n" 
 		"Bruce Jones\n" 

@@ -466,9 +466,13 @@ public:
 			break;
 		case TokenType::TK_MAX:
 		case TokenType::TK_MIN:
+			returnType = Type::atomic();
+			argumentTypes.push_back(Type::aRel());
+			secondIsName = true;
+			break;
 		case TokenType::TK_ADD:
 		case TokenType::TK_MULT:
-			returnType = Type::integer(); //should be fpAndInt when the stdlib changes
+			returnType = Type::fpAndInt();
             argumentTypes.push_back(Type::aRel());
 			secondIsName = true;
 			break;
