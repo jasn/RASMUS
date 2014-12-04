@@ -56,7 +56,6 @@ TK_STDINT := ?-Int
 TK_STDFLOAT := ?-Float
 TK_STDTEXT := ?-Text
 TK_TILDE := ~
-TK_TWO_DOTS := \.\.
 TK_ADD := add
 TK_AFTER := after
 TK_AND := and

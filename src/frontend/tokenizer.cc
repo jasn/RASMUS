@@ -178,9 +178,6 @@ std::ostream& operator<<(std::ostream &os, const lexer::TokenType &t) {
     case lexer::TokenType::TK_TILDE:
         os << "TK_TILDE";
         break;
-    case lexer::TokenType::TK_TWO_DOTS:
-        os << "TK_TWO_DOTS";
-        break;
     case lexer::TokenType::TK_ADD:
         os << "TK_ADD";
         break;
@@ -379,16 +376,16 @@ s0:
         goto s79;
     case 122:
         ++curr;
-        goto s82;
+        goto s81;
     case 119:
         ++curr;
-        goto s84;
+        goto s83;
     case 118:
         ++curr;
         goto s86;
     case 117:
         ++curr;
-        goto s89;
+        goto s88;
     case 116:
         ++curr;
         goto s91;
@@ -412,125 +409,125 @@ s0:
         goto s106;
     case 48:
         ++curr;
-        goto s113;
+        goto s111;
     case 47:
         ++curr;
-        goto s115;
+        goto s112;
     case 46:
         ++curr;
-        goto s116;
-    case 45:
-        ++curr;
-        goto s117;
-    case 43:
-        ++curr;
-        goto s118;
-    case 42:
-        ++curr;
-        goto s119;
-    case 41:
-        ++curr;
-        goto s120;
-    case 58:
-        ++curr;
-        goto s121;
-    case 40:
-        ++curr;
-        goto s122;
+        goto s113;
     case 44:
         ++curr;
-        goto s123;
-    case 34:
+        goto s114;
+    case 43:
+        ++curr;
+        goto s115;
+    case 42:
+        ++curr;
+        goto s116;
+    case 41:
+        ++curr;
+        goto s117;
+    case 58:
+        ++curr;
+        goto s118;
+    case 40:
+        ++curr;
+        goto s119;
+    case 45:
+        ++curr;
+        goto s120;
+    case 82:
         ++curr;
         goto s124;
+    case 33:
+        ++curr;
+        goto s125;
     case 9:
     case 32:
         ++curr;
-        goto s125;
+        goto s126;
     case 10:
         ++curr;
-        goto s126;
+        goto s127;
     case 13:
         ++curr;
-        goto s127;
-    case 33:
-        ++curr;
         goto s128;
-    case 35:
+    case 34:
         ++curr;
         goto s129;
-    case 38:
+    case 35:
         ++curr;
         goto s130;
-    case 61:
+    case 38:
         ++curr;
         goto s131;
-    case 62:
+    case 61:
         ++curr;
         goto s132;
-    case 63:
+    case 62:
         ++curr;
         goto s133;
-    case 64:
+    case 63:
         ++curr;
         goto s134;
+    case 64:
+        ++curr;
+        goto s135;
     case 65:
         ++curr;
-        goto s136;
+        goto s137;
     case 66:
         ++curr;
-        goto s137;
+        goto s138;
     case 70:
         ++curr;
-        goto s138;
+        goto s139;
     case 73:
         ++curr;
-        goto s139;
-    case 82:
-        ++curr;
-        goto s141;
+        goto s140;
     case 84:
         ++curr;
-        goto s143;
+        goto s142;
     case 91:
         ++curr;
-        goto s145;
+        goto s144;
     case 92:
         ++curr;
-        goto s147;
+        goto s146;
     case 93:
         ++curr;
-        goto s149;
+        goto s148;
     case 97:
         ++curr;
-        goto s151;
+        goto s150;
     case 98:
         ++curr;
-        goto s153;
+        goto s152;
     case 99:
         ++curr;
-        goto s155;
+        goto s154;
     case 100:
         ++curr;
-        goto s157;
+        goto s156;
     case 101:
         ++curr;
-        goto s159;
+        goto s158;
     case 102:
         ++curr;
         goto s160;
     case 104:
         ++curr;
-        goto s162;
+        goto s161;
     case 105:
         ++curr;
-        goto s165;
+        goto s163;
     case 109:
         ++curr;
-        goto s168;
+        goto s166;
     case 110:
         ++curr;
-        goto s170;
+        goto s168;
     case 0:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::END_OF_FILE};
@@ -2651,7 +2648,6 @@ s65:
     case 99:
     case 100:
     case 101:
-    case 102:
     case 103:
     case 104:
     case 105:
@@ -2674,9 +2670,12 @@ s65:
     case 122:
         ++curr;
         goto s72;
+    case 102:
+        ++curr;
+        goto s216;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_DAYS};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
 s66:
     switch (*curr) {
@@ -2746,7 +2745,7 @@ s66:
         goto s72;
     case 100:
         ++curr;
-        goto s218;
+        goto s215;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -2819,7 +2818,7 @@ s67:
         goto s72;
     case 116:
         ++curr;
-        goto s217;
+        goto s214;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -2892,7 +2891,7 @@ s68:
         goto s72;
     case 100:
         ++curr;
-        goto s216;
+        goto s213;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -2965,7 +2964,7 @@ s69:
         goto s72;
     case 112:
         ++curr;
-        goto s215;
+        goto s212;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -3038,7 +3037,7 @@ s70:
         goto s72;
     case 120:
         ++curr;
-        goto s214;
+        goto s211;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -3111,7 +3110,7 @@ s71:
         goto s72;
     case 108:
         ++curr;
-        goto s213;
+        goto s210;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -3224,7 +3223,7 @@ s74:
     case 56:
     case 57:
         ++curr;
-        goto s81;
+        goto s80;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
@@ -3259,9 +3258,6 @@ s76:
     }
 s77:
     switch (*curr) {
-    case 114:
-        ++curr;
-        goto s40;
     case 48:
     case 49:
     case 50:
@@ -3316,6 +3312,7 @@ s77:
     case 111:
     case 112:
     case 113:
+    case 114:
     case 115:
     case 116:
     case 117:
@@ -3328,7 +3325,7 @@ s77:
         goto s72;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_TYPE_TEXT};
     }
 s78:
     switch (*curr) {
@@ -3595,86 +3592,15 @@ s79:
     switch (*curr) {
     case 43:
         ++curr;
-        goto s200;
+        goto s197;
     case 45:
         ++curr;
-        goto s201;
+        goto s198;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_PIPE};
     }
 s80:
-    switch (*curr) {
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 71:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 79:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 87:
-    case 88:
-    case 89:
-    case 90:
-    case 95:
-    case 97:
-    case 98:
-    case 99:
-    case 100:
-    case 101:
-    case 102:
-    case 103:
-    case 104:
-    case 105:
-    case 106:
-    case 107:
-    case 108:
-    case 109:
-    case 110:
-    case 111:
-    case 112:
-    case 113:
-    case 114:
-    case 115:
-    case 116:
-    case 117:
-    case 118:
-    case 119:
-    case 120:
-    case 121:
-    case 122:
-        ++curr;
-        goto s72;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_TYPE_TEXT};
-    }
-s81:
     switch (*curr) {
     case 101:
         ++curr;
@@ -3690,12 +3616,12 @@ s81:
     case 56:
     case 57:
         ++curr;
-        goto s81;
+        goto s80;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_FLOAT};
     }
-s82:
+s81:
     switch (*curr) {
     case 48:
     case 49:
@@ -3763,19 +3689,19 @@ s82:
         goto s72;
     case 101:
         ++curr;
-        goto s199;
+        goto s196;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+    }
+s82:
+    switch (*curr) {
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_CONCAT};
     }
 s83:
     switch (*curr) {
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_RIGHTARROW};
-    }
-s84:
-    switch (*curr) {
     case 48:
     case 49:
     case 50:
@@ -3842,16 +3768,25 @@ s84:
         goto s72;
     case 114:
         ++curr;
-        goto s198;
+        goto s195;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+    }
+s84:
+    switch (*curr) {
+    case 120:
+        ++curr;
+        goto s42;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
     }
 s85:
     switch (*curr) {
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_CONCAT};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_BLOCKEND};
     }
 s86:
     switch (*curr) {
@@ -3921,27 +3856,21 @@ s86:
         goto s72;
     case 97:
         ++curr;
-        goto s197;
+        goto s194;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
 s87:
     switch (*curr) {
-    case 120:
+    case 111:
         ++curr;
-        goto s42;
+        goto s45;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
     }
 s88:
-    switch (*curr) {
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_BLOCKEND};
-    }
-s89:
     switch (*curr) {
     case 48:
     case 49:
@@ -4009,19 +3938,27 @@ s89:
         goto s72;
     case 110:
         ++curr;
-        goto s196;
+        goto s122;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s90:
+s89:
     switch (*curr) {
     case 111:
         ++curr;
-        goto s45;
+        goto s44;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
+    }
+s90:
+    switch (*curr) {
+    case 13:
+        ++curr;
+        goto s128;
+    default: 
+        goto beginning;
     }
 s91:
     switch (*curr) {
@@ -4087,35 +4024,33 @@ s91:
     case 122:
         ++curr;
         goto s72;
-    case 117:
-        ++curr;
-        goto s111;
     case 111:
         ++curr;
-        goto s194;
+        goto s191;
     case 114:
         ++curr;
-        goto s195;
+        goto s192;
+    case 117:
+        ++curr;
+        goto s193;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
 s92:
     switch (*curr) {
-    case 111:
+    case 116:
         ++curr;
-        goto s44;
+        goto s43;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
     }
 s93:
     switch (*curr) {
-    case 13:
-        ++curr;
-        goto s127;
     default: 
-        goto beginning;
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_LEFT_ARROW};
     }
 s94:
     switch (*curr) {
@@ -4185,16 +4120,28 @@ s94:
         goto s72;
     case 121:
         ++curr;
-        goto s193;
+        goto s190;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
 s95:
     switch (*curr) {
-    case 116:
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
         ++curr;
-        goto s43;
+        goto s95;
+    case 41:
+        ++curr;
+        goto s98;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
@@ -4203,7 +4150,7 @@ s96:
     switch (*curr) {
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_LEFT_ARROW};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_OPEXTEND};
     }
 s97:
     switch (*curr) {
@@ -4273,37 +4220,22 @@ s97:
         goto s72;
     case 101:
         ++curr;
-        goto s192;
+        goto s189;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
 s98:
     switch (*curr) {
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-        ++curr;
-        goto s98;
-    case 41:
-        ++curr;
-        goto s101;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_AT};
     }
 s99:
     switch (*curr) {
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_OPEXTEND};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_LESSEQUAL};
     }
 s100:
     switch (*curr) {
@@ -4373,22 +4305,87 @@ s100:
         goto s72;
     case 114:
         ++curr;
-        goto s191;
+        goto s188;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
 s101:
     switch (*curr) {
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 76:
+    case 77:
+    case 78:
+    case 79:
+    case 80:
+    case 81:
+    case 82:
+    case 83:
+    case 84:
+    case 85:
+    case 86:
+    case 87:
+    case 88:
+    case 89:
+    case 90:
+    case 95:
+    case 97:
+    case 98:
+    case 99:
+    case 100:
+    case 101:
+    case 102:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 108:
+    case 109:
+    case 110:
+    case 111:
+    case 112:
+    case 113:
+    case 114:
+    case 115:
+    case 116:
+    case 117:
+    case 118:
+    case 119:
+    case 120:
+    case 121:
+    case 122:
+        ++curr;
+        goto s72;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_AT};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_TYPE_ATOM};
     }
 s102:
     switch (*curr) {
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_LESSEQUAL};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_DIFFERENT};
     }
 s103:
     switch (*curr) {
@@ -4456,13 +4453,13 @@ s103:
         goto s72;
     case 110:
         ++curr;
-        goto s188;
+        goto s185;
     case 112:
         ++curr;
-        goto s189;
+        goto s186;
     case 114:
         ++curr;
-        goto s190;
+        goto s187;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -4536,22 +4533,22 @@ s104:
         goto s72;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_TYPE_ATOM};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_TYPE_BOOL};
     }
 s105:
     switch (*curr) {
     case 45:
         ++curr;
-        goto s96;
+        goto s93;
     case 60:
         ++curr;
-        goto s99;
+        goto s96;
     case 61:
         ++curr;
-        goto s102;
+        goto s99;
     case 62:
         ++curr;
-        goto s167;
+        goto s102;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_LESS};
@@ -4584,7 +4581,7 @@ s108:
     switch (*curr) {
     case 114:
         ++curr;
-        goto s39;
+        goto s40;
     case 48:
     case 49:
     case 50:
@@ -4705,7 +4702,7 @@ s109:
     case 107:
     case 108:
     case 109:
-    case 111:
+    case 110:
     case 112:
     case 113:
     case 114:
@@ -4719,166 +4716,87 @@ s109:
     case 122:
         ++curr;
         goto s72;
-    case 110:
+    case 111:
         ++curr;
-        goto s211;
+        goto s207;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
 s110:
     switch (*curr) {
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 76:
+    case 77:
+    case 78:
+    case 79:
+    case 80:
+    case 81:
+    case 82:
+    case 83:
+    case 84:
+    case 85:
+    case 86:
+    case 87:
+    case 88:
+    case 89:
+    case 90:
+    case 95:
+    case 97:
+    case 98:
+    case 99:
+    case 100:
+    case 101:
+    case 102:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 108:
+    case 109:
+    case 110:
+    case 111:
+    case 112:
+    case 113:
+    case 114:
+    case 115:
+    case 117:
+    case 118:
+    case 119:
+    case 120:
+    case 121:
+    case 122:
+        ++curr;
+        goto s72;
+    case 116:
+        ++curr;
+        goto s209;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
 s111:
-    switch (*curr) {
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 71:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 79:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 87:
-    case 88:
-    case 89:
-    case 90:
-    case 95:
-    case 97:
-    case 98:
-    case 99:
-    case 100:
-    case 101:
-    case 102:
-    case 103:
-    case 104:
-    case 105:
-    case 106:
-    case 107:
-    case 108:
-    case 109:
-    case 110:
-    case 111:
-    case 113:
-    case 114:
-    case 115:
-    case 116:
-    case 117:
-    case 118:
-    case 119:
-    case 120:
-    case 121:
-    case 122:
-        ++curr;
-        goto s72;
-    case 112:
-        ++curr;
-        goto s241;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
-    }
-s112:
-    switch (*curr) {
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 71:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 79:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 87:
-    case 88:
-    case 89:
-    case 90:
-    case 95:
-    case 97:
-    case 98:
-    case 99:
-    case 100:
-    case 101:
-    case 102:
-    case 103:
-    case 104:
-    case 105:
-    case 106:
-    case 107:
-    case 108:
-    case 109:
-    case 110:
-    case 112:
-    case 113:
-    case 114:
-    case 115:
-    case 116:
-    case 117:
-    case 118:
-    case 119:
-    case 120:
-    case 121:
-    case 122:
-        ++curr;
-        goto s72;
-    case 111:
-        ++curr;
-        goto s210;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
-    }
-s113:
     switch (*curr) {
     case 46:
         ++curr;
@@ -4902,7 +4820,97 @@ s113:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_INT};
     }
+s112:
+    switch (*curr) {
+    case 47:
+        ++curr;
+        goto s78;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_DIV};
+    }
+s113:
+    switch (*curr) {
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
+        ++curr;
+        goto s80;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_ONE_DOT};
+    }
 s114:
+    switch (*curr) {
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_COMMA};
+    }
+s115:
+    switch (*curr) {
+    case 43:
+        ++curr;
+        goto s82;
+    case 41:
+        ++curr;
+        goto s85;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_PLUS};
+    }
+s116:
+    switch (*curr) {
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_MUL};
+    }
+s117:
+    switch (*curr) {
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_RPAREN};
+    }
+s118:
+    switch (*curr) {
+    case 61:
+        ++curr;
+        goto s153;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_COLON};
+    }
+s119:
+    switch (*curr) {
+    case 43:
+        ++curr;
+        goto s155;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_LPAREN};
+    }
+s120:
+    switch (*curr) {
+    case 62:
+        ++curr;
+        goto s136;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_MINUS};
+    }
+s121:
+    switch (*curr) {
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
+    }
+s122:
     switch (*curr) {
     case 48:
     case 49:
@@ -4959,7 +4967,7 @@ s114:
     case 112:
     case 113:
     case 114:
-    case 115:
+    case 116:
     case 117:
     case 118:
     case 119:
@@ -4968,23 +4976,14 @@ s114:
     case 122:
         ++curr;
         goto s72;
-    case 116:
+    case 115:
         ++curr;
-        goto s212;
+        goto s239;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s115:
-    switch (*curr) {
-    case 47:
-        ++curr;
-        goto s78;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_DIV};
-    }
-s116:
+s123:
     switch (*curr) {
     case 48:
     case 49:
@@ -4996,73 +4995,179 @@ s116:
     case 55:
     case 56:
     case 57:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 76:
+    case 77:
+    case 78:
+    case 79:
+    case 80:
+    case 81:
+    case 82:
+    case 83:
+    case 84:
+    case 85:
+    case 86:
+    case 87:
+    case 88:
+    case 89:
+    case 90:
+    case 95:
+    case 97:
+    case 98:
+    case 99:
+    case 100:
+    case 101:
+    case 102:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 108:
+    case 109:
+    case 111:
+    case 112:
+    case 113:
+    case 114:
+    case 115:
+    case 116:
+    case 117:
+    case 118:
+    case 119:
+    case 120:
+    case 121:
+    case 122:
         ++curr;
-        goto s81;
-    case 46:
+        goto s72;
+    case 110:
         ++curr;
-        goto s135;
+        goto s208;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_ONE_DOT};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s117:
+s124:
+    switch (*curr) {
+    case 101:
+        ++curr;
+        goto s71;
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 76:
+    case 77:
+    case 78:
+    case 79:
+    case 80:
+    case 81:
+    case 82:
+    case 83:
+    case 84:
+    case 85:
+    case 86:
+    case 87:
+    case 88:
+    case 89:
+    case 90:
+    case 95:
+    case 97:
+    case 98:
+    case 99:
+    case 100:
+    case 102:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 108:
+    case 109:
+    case 110:
+    case 111:
+    case 112:
+    case 113:
+    case 114:
+    case 115:
+    case 116:
+    case 117:
+    case 118:
+    case 119:
+    case 120:
+    case 121:
+    case 122:
+        ++curr;
+        goto s72;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+    }
+s125:
     switch (*curr) {
     case 62:
         ++curr;
-        goto s83;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_MINUS};
-    }
-s118:
-    switch (*curr) {
-    case 43:
+        goto s162;
+    case 60:
         ++curr;
-        goto s85;
-    case 41:
+        goto s165;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_BANG};
+    }
+s126:
+    switch (*curr) {
+    case 9:
+    case 32:
         ++curr;
-        goto s88;
+        goto s126;
     default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_PLUS};
+        goto beginning;
     }
-s119:
+s127:
     switch (*curr) {
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_MUL};
-    }
-s120:
-    switch (*curr) {
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_RPAREN};
-    }
-s121:
-    switch (*curr) {
-    case 61:
+    case 10:
         ++curr;
-        goto s152;
+        goto s127;
     default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_COLON};
+        goto beginning;
     }
-s122:
+s128:
     switch (*curr) {
-    case 43:
+    case 10:
         ++curr;
-        goto s154;
+        goto s90;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_LPAREN};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
     }
-s123:
-    switch (*curr) {
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_COMMA};
-    }
-s124:
+s129:
     switch (*curr) {
     case 1:
     case 2:
@@ -5318,180 +5423,67 @@ s124:
     case 254:
     case 255:
         ++curr;
-        goto s124;
+        goto s129;
     case 34:
         ++curr;
-        goto s156;
+        goto s157;
     case 92:
         ++curr;
-        goto s158;
+        goto s159;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
-    }
-s125:
-    switch (*curr) {
-    case 9:
-    case 32:
-        ++curr;
-        goto s125;
-    default: 
-        goto beginning;
-    }
-s126:
-    switch (*curr) {
-    case 10:
-        ++curr;
-        goto s126;
-    default: 
-        goto beginning;
-    }
-s127:
-    switch (*curr) {
-    case 10:
-        ++curr;
-        goto s93;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
-    }
-s128:
-    switch (*curr) {
-    case 62:
-        ++curr;
-        goto s161;
-    case 60:
-        ++curr;
-        goto s164;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_BANG};
-    }
-s129:
-    switch (*curr) {
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_SHARP};
     }
 s130:
     switch (*curr) {
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_CHOICE};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_SHARP};
     }
 s131:
     switch (*curr) {
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_EQUAL};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_CHOICE};
     }
 s132:
     switch (*curr) {
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_EQUAL};
+    }
+s133:
+    switch (*curr) {
     case 61:
         ++curr;
-        goto s150;
+        goto s151;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_GREATER};
     }
-s133:
+s134:
     switch (*curr) {
     case 45:
         ++curr;
-        goto s148;
+        goto s149;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_SELECT};
     }
-s134:
+s135:
     switch (*curr) {
     case 40:
         ++curr;
-        goto s146;
+        goto s147;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
     }
-s135:
-    switch (*curr) {
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_TWO_DOTS};
-    }
 s136:
     switch (*curr) {
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 71:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 79:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 87:
-    case 88:
-    case 89:
-    case 90:
-    case 95:
-    case 97:
-    case 98:
-    case 99:
-    case 100:
-    case 101:
-    case 102:
-    case 103:
-    case 104:
-    case 105:
-    case 106:
-    case 107:
-    case 108:
-    case 109:
-    case 111:
-    case 112:
-    case 113:
-    case 114:
-    case 115:
-    case 117:
-    case 118:
-    case 119:
-    case 120:
-    case 121:
-    case 122:
-        ++curr;
-        goto s72;
-    case 110:
-        ++curr;
-        goto s142;
-    case 116:
-        ++curr;
-        goto s144;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_RIGHTARROW};
     }
 s137:
     switch (*curr) {
@@ -5545,12 +5537,11 @@ s137:
     case 107:
     case 108:
     case 109:
-    case 110:
+    case 111:
     case 112:
     case 113:
     case 114:
     case 115:
-    case 116:
     case 117:
     case 118:
     case 119:
@@ -5559,9 +5550,12 @@ s137:
     case 122:
         ++curr;
         goto s72;
-    case 111:
+    case 110:
         ++curr;
-        goto s140;
+        goto s143;
+    case 116:
+        ++curr;
+        goto s145;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -5616,14 +5610,15 @@ s138:
     case 105:
     case 106:
     case 107:
+    case 108:
     case 109:
     case 110:
-    case 111:
     case 112:
     case 113:
     case 114:
     case 115:
     case 116:
+    case 117:
     case 118:
     case 119:
     case 120:
@@ -5631,12 +5626,9 @@ s138:
     case 122:
         ++curr;
         goto s72;
-    case 117:
+    case 111:
         ++curr;
-        goto s109;
-    case 108:
-        ++curr;
-        goto s112;
+        goto s141;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -5691,15 +5683,14 @@ s139:
     case 105:
     case 106:
     case 107:
-    case 108:
     case 109:
+    case 110:
     case 111:
     case 112:
     case 113:
     case 114:
     case 115:
     case 116:
-    case 117:
     case 118:
     case 119:
     case 120:
@@ -5707,9 +5698,12 @@ s139:
     case 122:
         ++curr;
         goto s72;
-    case 110:
+    case 108:
         ++curr;
-        goto s114;
+        goto s109;
+    case 117:
+        ++curr;
+        goto s123;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -5766,7 +5760,7 @@ s140:
     case 107:
     case 108:
     case 109:
-    case 110:
+    case 111:
     case 112:
     case 113:
     case 114:
@@ -5780,18 +5774,15 @@ s140:
     case 122:
         ++curr;
         goto s72;
-    case 111:
+    case 110:
         ++curr;
-        goto s209;
+        goto s110;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
 s141:
     switch (*curr) {
-    case 101:
-        ++curr;
-        goto s71;
     case 48:
     case 49:
     case 50:
@@ -5833,6 +5824,7 @@ s141:
     case 98:
     case 99:
     case 100:
+    case 101:
     case 102:
     case 103:
     case 104:
@@ -5842,7 +5834,6 @@ s141:
     case 108:
     case 109:
     case 110:
-    case 111:
     case 112:
     case 113:
     case 114:
@@ -5856,84 +5847,14 @@ s141:
     case 122:
         ++curr;
         goto s72;
+    case 111:
+        ++curr;
+        goto s206;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
 s142:
-    switch (*curr) {
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 71:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 79:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 87:
-    case 88:
-    case 89:
-    case 90:
-    case 95:
-    case 97:
-    case 98:
-    case 99:
-    case 100:
-    case 101:
-    case 102:
-    case 103:
-    case 104:
-    case 105:
-    case 106:
-    case 107:
-    case 108:
-    case 109:
-    case 110:
-    case 111:
-    case 112:
-    case 113:
-    case 114:
-    case 115:
-    case 116:
-    case 117:
-    case 118:
-    case 119:
-    case 120:
-    case 122:
-        ++curr;
-        goto s72;
-    case 121:
-        ++curr;
-        goto s207;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
-    }
-s143:
     switch (*curr) {
     case 117:
         ++curr;
@@ -6008,7 +5929,86 @@ s143:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
+s143:
+    switch (*curr) {
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 76:
+    case 77:
+    case 78:
+    case 79:
+    case 80:
+    case 81:
+    case 82:
+    case 83:
+    case 84:
+    case 85:
+    case 86:
+    case 87:
+    case 88:
+    case 89:
+    case 90:
+    case 95:
+    case 97:
+    case 98:
+    case 99:
+    case 100:
+    case 101:
+    case 102:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 108:
+    case 109:
+    case 110:
+    case 111:
+    case 112:
+    case 113:
+    case 114:
+    case 115:
+    case 116:
+    case 117:
+    case 118:
+    case 119:
+    case 120:
+    case 122:
+        ++curr;
+        goto s72;
+    case 121:
+        ++curr;
+        goto s204;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+    }
 s144:
+    switch (*curr) {
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_LBRACKET};
+    }
+s145:
     switch (*curr) {
     case 48:
     case 49:
@@ -6076,18 +6076,18 @@ s144:
         goto s72;
     case 111:
         ++curr;
-        goto s208;
+        goto s205;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s145:
+s146:
     switch (*curr) {
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_LBRACKET};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_SET_MINUS};
     }
-s146:
+s147:
     switch (*curr) {
     case 49:
     case 50:
@@ -6099,48 +6099,36 @@ s146:
     case 56:
     case 57:
         ++curr;
-        goto s98;
+        goto s95;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
-    }
-s147:
-    switch (*curr) {
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_SET_MINUS};
     }
 s148:
-    switch (*curr) {
-    case 66:
-        ++curr;
-        goto s203;
-    case 70:
-        ++curr;
-        goto s204;
-    case 73:
-        ++curr;
-        goto s205;
-    case 84:
-        ++curr;
-        goto s206;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
-    }
-s149:
     switch (*curr) {
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_RBRACKET};
     }
-s150:
+s149:
     switch (*curr) {
+    case 66:
+        ++curr;
+        goto s200;
+    case 70:
+        ++curr;
+        goto s201;
+    case 73:
+        ++curr;
+        goto s202;
+    case 84:
+        ++curr;
+        goto s203;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_GREATEREQUAL};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
     }
-s151:
+s150:
     switch (*curr) {
     case 110:
         ++curr;
@@ -6217,14 +6205,17 @@ s151:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s152:
+s151:
     switch (*curr) {
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_ASSIGN};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_GREATEREQUAL};
     }
-s153:
+s152:
     switch (*curr) {
+    case 101:
+        ++curr;
+        goto s65;
     case 48:
     case 49:
     case 50:
@@ -6289,101 +6280,177 @@ s153:
     case 122:
         ++curr;
         goto s72;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+    }
+s153:
+    switch (*curr) {
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_ASSIGN};
+    }
+s154:
+    switch (*curr) {
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 76:
+    case 77:
+    case 78:
+    case 79:
+    case 80:
+    case 81:
+    case 82:
+    case 83:
+    case 84:
+    case 85:
+    case 86:
+    case 87:
+    case 88:
+    case 89:
+    case 90:
+    case 95:
+    case 97:
+    case 98:
+    case 99:
+    case 100:
     case 101:
+    case 102:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 109:
+    case 110:
+    case 112:
+    case 113:
+    case 114:
+    case 115:
+    case 116:
+    case 117:
+    case 118:
+    case 119:
+    case 120:
+    case 121:
+    case 122:
+        ++curr;
+        goto s72;
+    case 108:
+        ++curr;
+        goto s169;
+    case 111:
+        ++curr;
+        goto s170;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+    }
+s155:
+    switch (*curr) {
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_BLOCKSTART};
+    }
+s156:
+    switch (*curr) {
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 76:
+    case 77:
+    case 78:
+    case 79:
+    case 80:
+    case 81:
+    case 82:
+    case 83:
+    case 84:
+    case 85:
+    case 86:
+    case 87:
+    case 88:
+    case 89:
+    case 90:
+    case 95:
+    case 98:
+    case 99:
+    case 100:
+    case 101:
+    case 102:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 108:
+    case 109:
+    case 110:
+    case 111:
+    case 112:
+    case 113:
+    case 114:
+    case 115:
+    case 116:
+    case 117:
+    case 118:
+    case 119:
+    case 120:
+    case 121:
+    case 122:
+        ++curr;
+        goto s72;
+    case 97:
         ++curr;
         goto s171;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s154:
-    switch (*curr) {
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_BLOCKSTART};
-    }
-s155:
-    switch (*curr) {
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 71:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 79:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 87:
-    case 88:
-    case 89:
-    case 90:
-    case 95:
-    case 97:
-    case 98:
-    case 99:
-    case 100:
-    case 101:
-    case 102:
-    case 103:
-    case 104:
-    case 105:
-    case 106:
-    case 107:
-    case 109:
-    case 110:
-    case 112:
-    case 113:
-    case 114:
-    case 115:
-    case 116:
-    case 117:
-    case 118:
-    case 119:
-    case 120:
-    case 121:
-    case 122:
-        ++curr;
-        goto s72;
-    case 108:
-        ++curr;
-        goto s172;
-    case 111:
-        ++curr;
-        goto s173;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
-    }
-s156:
+s157:
     switch (*curr) {
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_TEXT};
     }
-s157:
+s158:
     switch (*curr) {
     case 48:
     case 49:
@@ -6422,6 +6489,7 @@ s157:
     case 89:
     case 90:
     case 95:
+    case 97:
     case 98:
     case 99:
     case 100:
@@ -6434,7 +6502,6 @@ s157:
     case 107:
     case 108:
     case 109:
-    case 110:
     case 111:
     case 112:
     case 113:
@@ -6449,14 +6516,14 @@ s157:
     case 122:
         ++curr;
         goto s72;
-    case 97:
+    case 110:
         ++curr;
-        goto s174;
+        goto s172;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s158:
+s159:
     switch (*curr) {
     case 1:
     case 2:
@@ -6712,89 +6779,16 @@ s158:
     case 254:
     case 255:
         ++curr;
-        goto s124;
+        goto s129;
     case 92:
         ++curr;
-        goto s158;
+        goto s159;
     case 34:
         ++curr;
-        goto s202;
+        goto s199;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
-    }
-s159:
-    switch (*curr) {
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 71:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 79:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 87:
-    case 88:
-    case 89:
-    case 90:
-    case 95:
-    case 97:
-    case 98:
-    case 99:
-    case 100:
-    case 101:
-    case 102:
-    case 103:
-    case 104:
-    case 105:
-    case 106:
-    case 107:
-    case 108:
-    case 109:
-    case 111:
-    case 112:
-    case 113:
-    case 114:
-    case 115:
-    case 116:
-    case 117:
-    case 118:
-    case 119:
-    case 120:
-    case 121:
-    case 122:
-        ++curr;
-        goto s72;
-    case 110:
-        ++curr;
-        goto s175;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
 s160:
     switch (*curr) {
@@ -6862,24 +6856,18 @@ s160:
         goto s72;
     case 97:
         ++curr;
-        goto s176;
+        goto s173;
     case 105:
         ++curr;
-        goto s177;
+        goto s174;
     case 117:
         ++curr;
-        goto s178;
+        goto s175;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
 s161:
-    switch (*curr) {
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_BANGGT};
-    }
-s162:
     switch (*curr) {
     case 48:
     case 49:
@@ -6947,12 +6935,95 @@ s162:
         goto s72;
     case 97:
         ++curr;
+        goto s176;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+    }
+s162:
+    switch (*curr) {
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_BANGGT};
+    }
+s163:
+    switch (*curr) {
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 76:
+    case 77:
+    case 78:
+    case 79:
+    case 80:
+    case 81:
+    case 82:
+    case 83:
+    case 84:
+    case 85:
+    case 86:
+    case 87:
+    case 88:
+    case 89:
+    case 90:
+    case 95:
+    case 97:
+    case 98:
+    case 99:
+    case 100:
+    case 101:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 108:
+    case 109:
+    case 111:
+    case 112:
+    case 113:
+    case 114:
+    case 116:
+    case 117:
+    case 118:
+    case 119:
+    case 120:
+    case 121:
+    case 122:
+        ++curr;
+        goto s72;
+    case 102:
+        ++curr;
+        goto s177;
+    case 110:
+        ++curr;
+        goto s178;
+    case 115:
+        ++curr;
         goto s179;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s163:
+s164:
     switch (*curr) {
     case 116:
         ++curr;
@@ -7025,13 +7096,13 @@ s163:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s164:
+s165:
     switch (*curr) {
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_BANGLT};
     }
-s165:
+s166:
     switch (*curr) {
     case 48:
     case 49:
@@ -7070,24 +7141,23 @@ s165:
     case 89:
     case 90:
     case 95:
-    case 97:
     case 98:
     case 99:
     case 100:
     case 101:
+    case 102:
     case 103:
     case 104:
-    case 105:
     case 106:
     case 107:
     case 108:
     case 109:
-    case 111:
+    case 110:
     case 112:
     case 113:
     case 114:
+    case 115:
     case 116:
-    case 117:
     case 118:
     case 119:
     case 120:
@@ -7095,20 +7165,23 @@ s165:
     case 122:
         ++curr;
         goto s72;
-    case 102:
+    case 97:
         ++curr;
         goto s180;
-    case 110:
+    case 105:
         ++curr;
         goto s181;
-    case 115:
+    case 111:
         ++curr;
         goto s182;
+    case 117:
+        ++curr;
+        goto s183;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s166:
+s167:
     switch (*curr) {
     case 48:
     case 49:
@@ -7179,12 +7252,6 @@ s166:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_TYPE_FUNC};
     }
-s167:
-    switch (*curr) {
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_DIFFERENT};
-    }
 s168:
     switch (*curr) {
     case 48:
@@ -7224,6 +7291,7 @@ s168:
     case 89:
     case 90:
     case 95:
+    case 97:
     case 98:
     case 99:
     case 100:
@@ -7231,6 +7299,7 @@ s168:
     case 102:
     case 103:
     case 104:
+    case 105:
     case 106:
     case 107:
     case 108:
@@ -7241,6 +7310,7 @@ s168:
     case 114:
     case 115:
     case 116:
+    case 117:
     case 118:
     case 119:
     case 120:
@@ -7248,18 +7318,9 @@ s168:
     case 122:
         ++curr;
         goto s72;
-    case 97:
-        ++curr;
-        goto s183;
-    case 105:
-        ++curr;
-        goto s184;
     case 111:
         ++curr;
-        goto s185;
-    case 117:
-        ++curr;
-        goto s186;
+        goto s184;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -7317,7 +7378,6 @@ s169:
     case 108:
     case 109:
     case 110:
-    case 111:
     case 112:
     case 113:
     case 114:
@@ -7331,9 +7391,12 @@ s169:
     case 122:
         ++curr;
         goto s72;
+    case 111:
+        ++curr;
+        goto s217;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_TYPE_BOOL};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
 s170:
     switch (*curr) {
@@ -7388,12 +7451,12 @@ s170:
     case 108:
     case 109:
     case 110:
+    case 111:
     case 112:
     case 113:
     case 114:
     case 115:
     case 116:
-    case 117:
     case 118:
     case 119:
     case 120:
@@ -7401,9 +7464,9 @@ s170:
     case 122:
         ++curr;
         goto s72;
-    case 111:
+    case 117:
         ++curr;
-        goto s187;
+        goto s218;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -7452,6 +7515,7 @@ s171:
     case 99:
     case 100:
     case 101:
+    case 102:
     case 103:
     case 104:
     case 105:
@@ -7465,18 +7529,19 @@ s171:
     case 113:
     case 114:
     case 115:
-    case 116:
     case 117:
     case 118:
     case 119:
     case 120:
-    case 121:
     case 122:
         ++curr;
         goto s72;
-    case 102:
+    case 116:
         ++curr;
         goto s219;
+    case 121:
+        ++curr;
+        goto s220;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -7523,7 +7588,6 @@ s172:
     case 97:
     case 98:
     case 99:
-    case 100:
     case 101:
     case 102:
     case 103:
@@ -7534,6 +7598,7 @@ s172:
     case 108:
     case 109:
     case 110:
+    case 111:
     case 112:
     case 113:
     case 114:
@@ -7547,9 +7612,9 @@ s172:
     case 122:
         ++curr;
         goto s72;
-    case 111:
+    case 100:
         ++curr;
-        goto s220;
+        goto s221;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -7604,7 +7669,6 @@ s173:
     case 105:
     case 106:
     case 107:
-    case 108:
     case 109:
     case 110:
     case 111:
@@ -7613,6 +7677,7 @@ s173:
     case 114:
     case 115:
     case 116:
+    case 117:
     case 118:
     case 119:
     case 120:
@@ -7620,9 +7685,9 @@ s173:
     case 122:
         ++curr;
         goto s72;
-    case 117:
+    case 108:
         ++curr;
-        goto s221;
+        goto s222;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -7685,22 +7750,18 @@ s174:
     case 113:
     case 114:
     case 115:
+    case 116:
     case 117:
     case 118:
     case 119:
     case 120:
+    case 121:
     case 122:
         ++curr;
         goto s72;
-    case 116:
-        ++curr;
-        goto s222;
-    case 121:
-        ++curr;
-        goto s223;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_FI};
     }
 s175:
     switch (*curr) {
@@ -7744,6 +7805,7 @@ s175:
     case 97:
     case 98:
     case 99:
+    case 100:
     case 101:
     case 102:
     case 103:
@@ -7753,7 +7815,6 @@ s175:
     case 107:
     case 108:
     case 109:
-    case 110:
     case 111:
     case 112:
     case 113:
@@ -7768,9 +7829,9 @@ s175:
     case 122:
         ++curr;
         goto s72;
-    case 100:
+    case 110:
         ++curr;
-        goto s224;
+        goto s223;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -7825,13 +7886,13 @@ s176:
     case 105:
     case 106:
     case 107:
+    case 108:
     case 109:
     case 110:
     case 111:
     case 112:
     case 113:
     case 114:
-    case 115:
     case 116:
     case 117:
     case 118:
@@ -7841,9 +7902,9 @@ s176:
     case 122:
         ++curr;
         goto s72;
-    case 108:
+    case 115:
         ++curr;
-        goto s225;
+        goto s224;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -7917,226 +7978,9 @@ s177:
         goto s72;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_FI};
-    }
-s178:
-    switch (*curr) {
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 71:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 79:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 87:
-    case 88:
-    case 89:
-    case 90:
-    case 95:
-    case 97:
-    case 98:
-    case 99:
-    case 100:
-    case 101:
-    case 102:
-    case 103:
-    case 104:
-    case 105:
-    case 106:
-    case 107:
-    case 108:
-    case 109:
-    case 111:
-    case 112:
-    case 113:
-    case 114:
-    case 115:
-    case 116:
-    case 117:
-    case 118:
-    case 119:
-    case 120:
-    case 121:
-    case 122:
-        ++curr;
-        goto s72;
-    case 110:
-        ++curr;
-        goto s226;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
-    }
-s179:
-    switch (*curr) {
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 71:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 79:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 87:
-    case 88:
-    case 89:
-    case 90:
-    case 95:
-    case 97:
-    case 98:
-    case 99:
-    case 100:
-    case 101:
-    case 102:
-    case 103:
-    case 104:
-    case 105:
-    case 106:
-    case 107:
-    case 108:
-    case 109:
-    case 110:
-    case 111:
-    case 112:
-    case 113:
-    case 114:
-    case 116:
-    case 117:
-    case 118:
-    case 119:
-    case 120:
-    case 121:
-    case 122:
-        ++curr;
-        goto s72;
-    case 115:
-        ++curr;
-        goto s227;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
-    }
-s180:
-    switch (*curr) {
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 71:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 79:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 87:
-    case 88:
-    case 89:
-    case 90:
-    case 95:
-    case 97:
-    case 98:
-    case 99:
-    case 100:
-    case 101:
-    case 102:
-    case 103:
-    case 104:
-    case 105:
-    case 106:
-    case 107:
-    case 108:
-    case 109:
-    case 110:
-    case 111:
-    case 112:
-    case 113:
-    case 114:
-    case 115:
-    case 116:
-    case 117:
-    case 118:
-    case 119:
-    case 120:
-    case 121:
-    case 122:
-        ++curr;
-        goto s72;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_IF};
     }
-s181:
+s178:
     switch (*curr) {
     case 48:
     case 49:
@@ -8207,7 +8051,7 @@ s181:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_IN};
     }
-s182:
+s179:
     switch (*curr) {
     case 48:
     case 49:
@@ -8276,12 +8120,12 @@ s182:
         goto s72;
     case 45:
         ++curr;
-        goto s228;
+        goto s225;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s183:
+s180:
     switch (*curr) {
     case 48:
     case 49:
@@ -8348,6 +8192,225 @@ s183:
         ++curr;
         goto s72;
     case 120:
+        ++curr;
+        goto s226;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+    }
+s181:
+    switch (*curr) {
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 76:
+    case 77:
+    case 78:
+    case 79:
+    case 80:
+    case 81:
+    case 82:
+    case 83:
+    case 84:
+    case 85:
+    case 86:
+    case 87:
+    case 88:
+    case 89:
+    case 90:
+    case 95:
+    case 97:
+    case 98:
+    case 99:
+    case 100:
+    case 101:
+    case 102:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 108:
+    case 109:
+    case 111:
+    case 112:
+    case 113:
+    case 114:
+    case 115:
+    case 116:
+    case 117:
+    case 118:
+    case 119:
+    case 120:
+    case 121:
+    case 122:
+        ++curr;
+        goto s72;
+    case 110:
+        ++curr;
+        goto s227;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+    }
+s182:
+    switch (*curr) {
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 76:
+    case 77:
+    case 78:
+    case 79:
+    case 80:
+    case 81:
+    case 82:
+    case 83:
+    case 84:
+    case 85:
+    case 86:
+    case 87:
+    case 88:
+    case 89:
+    case 90:
+    case 95:
+    case 97:
+    case 98:
+    case 99:
+    case 101:
+    case 102:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 108:
+    case 109:
+    case 110:
+    case 111:
+    case 112:
+    case 113:
+    case 114:
+    case 115:
+    case 116:
+    case 117:
+    case 118:
+    case 119:
+    case 120:
+    case 121:
+    case 122:
+        ++curr;
+        goto s72;
+    case 100:
+        ++curr;
+        goto s228;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+    }
+s183:
+    switch (*curr) {
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 76:
+    case 77:
+    case 78:
+    case 79:
+    case 80:
+    case 81:
+    case 82:
+    case 83:
+    case 84:
+    case 85:
+    case 86:
+    case 87:
+    case 88:
+    case 89:
+    case 90:
+    case 95:
+    case 97:
+    case 98:
+    case 99:
+    case 100:
+    case 101:
+    case 102:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 109:
+    case 110:
+    case 111:
+    case 112:
+    case 113:
+    case 114:
+    case 115:
+    case 116:
+    case 117:
+    case 118:
+    case 119:
+    case 120:
+    case 121:
+    case 122:
+        ++curr;
+        goto s72;
+    case 108:
         ++curr;
         goto s229;
     default: 
@@ -8406,12 +8469,12 @@ s184:
     case 107:
     case 108:
     case 109:
+    case 110:
     case 111:
     case 112:
     case 113:
     case 114:
     case 115:
-    case 116:
     case 117:
     case 118:
     case 119:
@@ -8420,7 +8483,7 @@ s184:
     case 122:
         ++curr;
         goto s72;
-    case 110:
+    case 116:
         ++curr;
         goto s230;
     default: 
@@ -8469,7 +8532,7 @@ s185:
     case 97:
     case 98:
     case 99:
-    case 101:
+    case 100:
     case 102:
     case 103:
     case 104:
@@ -8493,7 +8556,7 @@ s185:
     case 122:
         ++curr;
         goto s72;
-    case 100:
+    case 101:
         ++curr;
         goto s231;
     default: 
@@ -8543,13 +8606,13 @@ s186:
     case 98:
     case 99:
     case 100:
-    case 101:
     case 102:
     case 103:
     case 104:
     case 105:
     case 106:
     case 107:
+    case 108:
     case 109:
     case 110:
     case 111:
@@ -8566,7 +8629,7 @@ s186:
     case 122:
         ++curr;
         goto s72;
-    case 108:
+    case 101:
         ++curr;
         goto s232;
     default: 
@@ -8574,225 +8637,6 @@ s186:
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
 s187:
-    switch (*curr) {
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 71:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 79:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 87:
-    case 88:
-    case 89:
-    case 90:
-    case 95:
-    case 97:
-    case 98:
-    case 99:
-    case 100:
-    case 101:
-    case 102:
-    case 103:
-    case 104:
-    case 105:
-    case 106:
-    case 107:
-    case 108:
-    case 109:
-    case 110:
-    case 111:
-    case 112:
-    case 113:
-    case 114:
-    case 115:
-    case 117:
-    case 118:
-    case 119:
-    case 120:
-    case 121:
-    case 122:
-        ++curr;
-        goto s72;
-    case 116:
-        ++curr;
-        goto s233;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
-    }
-s188:
-    switch (*curr) {
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 71:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 79:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 87:
-    case 88:
-    case 89:
-    case 90:
-    case 95:
-    case 97:
-    case 98:
-    case 99:
-    case 100:
-    case 102:
-    case 103:
-    case 104:
-    case 105:
-    case 106:
-    case 107:
-    case 108:
-    case 109:
-    case 110:
-    case 111:
-    case 112:
-    case 113:
-    case 114:
-    case 115:
-    case 116:
-    case 117:
-    case 118:
-    case 119:
-    case 120:
-    case 121:
-    case 122:
-        ++curr;
-        goto s72;
-    case 101:
-        ++curr;
-        goto s234;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
-    }
-s189:
-    switch (*curr) {
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 71:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 79:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 87:
-    case 88:
-    case 89:
-    case 90:
-    case 95:
-    case 97:
-    case 98:
-    case 99:
-    case 100:
-    case 102:
-    case 103:
-    case 104:
-    case 105:
-    case 106:
-    case 107:
-    case 108:
-    case 109:
-    case 110:
-    case 111:
-    case 112:
-    case 113:
-    case 114:
-    case 115:
-    case 116:
-    case 117:
-    case 118:
-    case 119:
-    case 120:
-    case 121:
-    case 122:
-        ++curr;
-        goto s72;
-    case 101:
-        ++curr;
-        goto s235;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
-    }
-s190:
     switch (*curr) {
     case 48:
     case 49:
@@ -8863,7 +8707,7 @@ s190:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_OR};
     }
-s191:
+s188:
     switch (*curr) {
     case 48:
     case 49:
@@ -8930,6 +8774,225 @@ s191:
         ++curr;
         goto s72;
     case 105:
+        ++curr;
+        goto s233;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+    }
+s189:
+    switch (*curr) {
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 76:
+    case 77:
+    case 78:
+    case 79:
+    case 80:
+    case 81:
+    case 82:
+    case 83:
+    case 84:
+    case 85:
+    case 86:
+    case 87:
+    case 88:
+    case 89:
+    case 90:
+    case 95:
+    case 97:
+    case 98:
+    case 99:
+    case 100:
+    case 101:
+    case 102:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 109:
+    case 110:
+    case 111:
+    case 112:
+    case 113:
+    case 114:
+    case 115:
+    case 116:
+    case 117:
+    case 118:
+    case 119:
+    case 120:
+    case 121:
+    case 122:
+        ++curr;
+        goto s72;
+    case 108:
+        ++curr;
+        goto s234;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+    }
+s190:
+    switch (*curr) {
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 76:
+    case 77:
+    case 78:
+    case 79:
+    case 80:
+    case 81:
+    case 82:
+    case 83:
+    case 84:
+    case 85:
+    case 86:
+    case 87:
+    case 88:
+    case 89:
+    case 90:
+    case 95:
+    case 97:
+    case 98:
+    case 99:
+    case 100:
+    case 101:
+    case 102:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 108:
+    case 109:
+    case 110:
+    case 111:
+    case 112:
+    case 113:
+    case 114:
+    case 116:
+    case 117:
+    case 118:
+    case 119:
+    case 120:
+    case 121:
+    case 122:
+        ++curr;
+        goto s72;
+    case 115:
+        ++curr;
+        goto s235;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+    }
+s191:
+    switch (*curr) {
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 76:
+    case 77:
+    case 78:
+    case 79:
+    case 80:
+    case 81:
+    case 82:
+    case 83:
+    case 84:
+    case 85:
+    case 86:
+    case 87:
+    case 88:
+    case 89:
+    case 90:
+    case 95:
+    case 97:
+    case 98:
+    case 99:
+    case 101:
+    case 102:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 108:
+    case 109:
+    case 110:
+    case 111:
+    case 112:
+    case 113:
+    case 114:
+    case 115:
+    case 116:
+    case 117:
+    case 118:
+    case 119:
+    case 120:
+    case 121:
+    case 122:
+        ++curr;
+        goto s72;
+    case 100:
         ++curr;
         goto s236;
     default: 
@@ -8986,6 +9049,7 @@ s192:
     case 105:
     case 106:
     case 107:
+    case 108:
     case 109:
     case 110:
     case 111:
@@ -8994,7 +9058,6 @@ s192:
     case 114:
     case 115:
     case 116:
-    case 117:
     case 118:
     case 119:
     case 120:
@@ -9002,7 +9065,7 @@ s192:
     case 122:
         ++curr;
         goto s72;
-    case 108:
+    case 117:
         ++curr;
         goto s237;
     default: 
@@ -9063,9 +9126,9 @@ s193:
     case 109:
     case 110:
     case 111:
-    case 112:
     case 113:
     case 114:
+    case 115:
     case 116:
     case 117:
     case 118:
@@ -9075,7 +9138,7 @@ s193:
     case 122:
         ++curr;
         goto s72;
-    case 115:
+    case 112:
         ++curr;
         goto s238;
     default: 
@@ -9124,6 +9187,7 @@ s194:
     case 97:
     case 98:
     case 99:
+    case 100:
     case 101:
     case 102:
     case 103:
@@ -9131,7 +9195,6 @@ s194:
     case 105:
     case 106:
     case 107:
-    case 108:
     case 109:
     case 110:
     case 111:
@@ -9148,9 +9211,9 @@ s194:
     case 122:
         ++curr;
         goto s72;
-    case 100:
+    case 108:
         ++curr;
-        goto s239;
+        goto s240;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -9202,7 +9265,6 @@ s195:
     case 102:
     case 103:
     case 104:
-    case 105:
     case 106:
     case 107:
     case 108:
@@ -9214,6 +9276,7 @@ s195:
     case 114:
     case 115:
     case 116:
+    case 117:
     case 118:
     case 119:
     case 120:
@@ -9221,9 +9284,9 @@ s195:
     case 122:
         ++curr;
         goto s72;
-    case 117:
+    case 105:
         ++curr;
-        goto s240;
+        goto s241;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -9284,7 +9347,7 @@ s196:
     case 111:
     case 112:
     case 113:
-    case 114:
+    case 115:
     case 116:
     case 117:
     case 118:
@@ -9294,7 +9357,7 @@ s196:
     case 122:
         ++curr;
         goto s72;
-    case 115:
+    case 114:
         ++curr;
         goto s242;
     default: 
@@ -9303,236 +9366,17 @@ s196:
     }
 s197:
     switch (*curr) {
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 71:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 79:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 87:
-    case 88:
-    case 89:
-    case 90:
-    case 95:
-    case 97:
-    case 98:
-    case 99:
-    case 100:
-    case 101:
-    case 102:
-    case 103:
-    case 104:
-    case 105:
-    case 106:
-    case 107:
-    case 109:
-    case 110:
-    case 111:
-    case 112:
-    case 113:
-    case 114:
-    case 115:
-    case 116:
-    case 117:
-    case 118:
-    case 119:
-    case 120:
-    case 121:
-    case 122:
-        ++curr;
-        goto s72;
-    case 108:
-        ++curr;
-        goto s243;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
-    }
-s198:
-    switch (*curr) {
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 71:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 79:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 87:
-    case 88:
-    case 89:
-    case 90:
-    case 95:
-    case 97:
-    case 98:
-    case 99:
-    case 100:
-    case 101:
-    case 102:
-    case 103:
-    case 104:
-    case 106:
-    case 107:
-    case 108:
-    case 109:
-    case 110:
-    case 111:
-    case 112:
-    case 113:
-    case 114:
-    case 115:
-    case 116:
-    case 117:
-    case 118:
-    case 119:
-    case 120:
-    case 121:
-    case 122:
-        ++curr;
-        goto s72;
-    case 105:
-        ++curr;
-        goto s244;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
-    }
-s199:
-    switch (*curr) {
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 71:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 79:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 87:
-    case 88:
-    case 89:
-    case 90:
-    case 95:
-    case 97:
-    case 98:
-    case 99:
-    case 100:
-    case 101:
-    case 102:
-    case 103:
-    case 104:
-    case 105:
-    case 106:
-    case 107:
-    case 108:
-    case 109:
-    case 110:
-    case 111:
-    case 112:
-    case 113:
-    case 115:
-    case 116:
-    case 117:
-    case 118:
-    case 119:
-    case 120:
-    case 121:
-    case 122:
-        ++curr;
-        goto s72;
-    case 114:
-        ++curr;
-        goto s245;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
-    }
-s200:
-    switch (*curr) {
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_PROJECT_PLUS};
     }
-s201:
+s198:
     switch (*curr) {
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_PROJECT_MINUS};
     }
-s202:
+s199:
     switch (*curr) {
     case 1:
     case 2:
@@ -9788,54 +9632,54 @@ s202:
     case 254:
     case 255:
         ++curr;
-        goto s124;
+        goto s129;
     case 34:
         ++curr;
-        goto s156;
+        goto s157;
     case 92:
         ++curr;
-        goto s158;
+        goto s159;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_TEXT};
     }
-s203:
+s200:
     switch (*curr) {
     case 111:
-        ++curr;
-        goto s90;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
-    }
-s204:
-    switch (*curr) {
-    case 108:
-        ++curr;
-        goto s92;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
-    }
-s205:
-    switch (*curr) {
-    case 110:
-        ++curr;
-        goto s95;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
-    }
-s206:
-    switch (*curr) {
-    case 101:
         ++curr;
         goto s87;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
     }
-s207:
+s201:
+    switch (*curr) {
+    case 108:
+        ++curr;
+        goto s89;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
+    }
+s202:
+    switch (*curr) {
+    case 110:
+        ++curr;
+        goto s92;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
+    }
+s203:
+    switch (*curr) {
+    case 101:
+        ++curr;
+        goto s84;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
+    }
+s204:
     switch (*curr) {
     case 48:
     case 49:
@@ -9906,7 +9750,7 @@ s207:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_TYPE_ANY};
     }
-s208:
+s205:
     switch (*curr) {
     case 48:
     case 49:
@@ -9974,7 +9818,226 @@ s208:
         goto s72;
     case 109:
         ++curr;
+        goto s101;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+    }
+s206:
+    switch (*curr) {
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 76:
+    case 77:
+    case 78:
+    case 79:
+    case 80:
+    case 81:
+    case 82:
+    case 83:
+    case 84:
+    case 85:
+    case 86:
+    case 87:
+    case 88:
+    case 89:
+    case 90:
+    case 95:
+    case 97:
+    case 98:
+    case 99:
+    case 100:
+    case 101:
+    case 102:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 109:
+    case 110:
+    case 111:
+    case 112:
+    case 113:
+    case 114:
+    case 115:
+    case 116:
+    case 117:
+    case 118:
+    case 119:
+    case 120:
+    case 121:
+    case 122:
+        ++curr;
+        goto s72;
+    case 108:
+        ++curr;
         goto s104;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+    }
+s207:
+    switch (*curr) {
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 76:
+    case 77:
+    case 78:
+    case 79:
+    case 80:
+    case 81:
+    case 82:
+    case 83:
+    case 84:
+    case 85:
+    case 86:
+    case 87:
+    case 88:
+    case 89:
+    case 90:
+    case 95:
+    case 98:
+    case 99:
+    case 100:
+    case 101:
+    case 102:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 108:
+    case 109:
+    case 110:
+    case 111:
+    case 112:
+    case 113:
+    case 114:
+    case 115:
+    case 116:
+    case 117:
+    case 118:
+    case 119:
+    case 120:
+    case 121:
+    case 122:
+        ++curr;
+        goto s72;
+    case 97:
+        ++curr;
+        goto s164;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+    }
+s208:
+    switch (*curr) {
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 76:
+    case 77:
+    case 78:
+    case 79:
+    case 80:
+    case 81:
+    case 82:
+    case 83:
+    case 84:
+    case 85:
+    case 86:
+    case 87:
+    case 88:
+    case 89:
+    case 90:
+    case 95:
+    case 97:
+    case 98:
+    case 100:
+    case 101:
+    case 102:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 108:
+    case 109:
+    case 110:
+    case 111:
+    case 112:
+    case 113:
+    case 114:
+    case 115:
+    case 116:
+    case 117:
+    case 118:
+    case 119:
+    case 120:
+    case 121:
+    case 122:
+        ++curr;
+        goto s72;
+    case 99:
+        ++curr;
+        goto s167;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -10029,6 +10092,7 @@ s209:
     case 105:
     case 106:
     case 107:
+    case 108:
     case 109:
     case 110:
     case 111:
@@ -10045,12 +10109,9 @@ s209:
     case 122:
         ++curr;
         goto s72;
-    case 108:
-        ++curr;
-        goto s169;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_TYPE_INT};
     }
 s210:
     switch (*curr) {
@@ -10091,6 +10152,7 @@ s210:
     case 89:
     case 90:
     case 95:
+    case 97:
     case 98:
     case 99:
     case 100:
@@ -10118,12 +10180,9 @@ s210:
     case 122:
         ++curr;
         goto s72;
-    case 97:
-        ++curr;
-        goto s163;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_TYPE_REL};
     }
 s211:
     switch (*curr) {
@@ -10166,6 +10225,7 @@ s211:
     case 95:
     case 97:
     case 98:
+    case 99:
     case 100:
     case 101:
     case 102:
@@ -10182,7 +10242,6 @@ s211:
     case 113:
     case 114:
     case 115:
-    case 116:
     case 117:
     case 118:
     case 119:
@@ -10191,9 +10250,9 @@ s211:
     case 122:
         ++curr;
         goto s72;
-    case 99:
+    case 116:
         ++curr;
-        goto s166;
+        goto s77;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -10267,7 +10326,7 @@ s212:
         goto s72;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_TYPE_INT};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_TYPE_TUP};
     }
 s213:
     switch (*curr) {
@@ -10338,7 +10397,7 @@ s213:
         goto s72;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_TYPE_REL};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_ADD};
     }
 s214:
     switch (*curr) {
@@ -10383,7 +10442,6 @@ s214:
     case 98:
     case 99:
     case 100:
-    case 101:
     case 102:
     case 103:
     case 104:
@@ -10398,6 +10456,7 @@ s214:
     case 113:
     case 114:
     case 115:
+    case 116:
     case 117:
     case 118:
     case 119:
@@ -10406,9 +10465,9 @@ s214:
     case 122:
         ++curr;
         goto s72;
-    case 116:
+    case 101:
         ++curr;
-        goto s80;
+        goto s108;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -10482,7 +10541,7 @@ s215:
         goto s72;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_TYPE_TUP};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_AND};
     }
 s216:
     switch (*curr) {
@@ -10537,7 +10596,6 @@ s216:
     case 108:
     case 109:
     case 110:
-    case 111:
     case 112:
     case 113:
     case 114:
@@ -10551,9 +10609,12 @@ s216:
     case 122:
         ++curr;
         goto s72;
+    case 111:
+        ++curr;
+        goto s243;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_ADD};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
 s217:
     switch (*curr) {
@@ -10598,6 +10659,7 @@ s217:
     case 98:
     case 99:
     case 100:
+    case 101:
     case 102:
     case 103:
     case 104:
@@ -10611,7 +10673,6 @@ s217:
     case 112:
     case 113:
     case 114:
-    case 115:
     case 116:
     case 117:
     case 118:
@@ -10621,9 +10682,9 @@ s217:
     case 122:
         ++curr;
         goto s72;
-    case 101:
+    case 115:
         ++curr;
-        goto s77;
+        goto s244;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -10680,7 +10741,6 @@ s218:
     case 107:
     case 108:
     case 109:
-    case 110:
     case 111:
     case 112:
     case 113:
@@ -10695,9 +10755,12 @@ s218:
     case 122:
         ++curr;
         goto s72;
+    case 110:
+        ++curr;
+        goto s245;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_AND};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
 s219:
     switch (*curr) {
@@ -10742,7 +10805,6 @@ s219:
     case 98:
     case 99:
     case 100:
-    case 101:
     case 102:
     case 103:
     case 104:
@@ -10752,6 +10814,7 @@ s219:
     case 108:
     case 109:
     case 110:
+    case 111:
     case 112:
     case 113:
     case 114:
@@ -10765,9 +10828,9 @@ s219:
     case 122:
         ++curr;
         goto s72;
-    case 111:
+    case 101:
         ++curr;
-        goto s108;
+        goto s246;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -10840,7 +10903,7 @@ s220:
         goto s72;
     case 115:
         ++curr;
-        goto s246;
+        goto s247;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
@@ -10897,6 +10960,7 @@ s221:
     case 107:
     case 108:
     case 109:
+    case 110:
     case 111:
     case 112:
     case 113:
@@ -10911,15 +10975,15 @@ s221:
     case 122:
         ++curr;
         goto s72;
-    case 110:
-        ++curr;
-        goto s247;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_END};
     }
 s222:
     switch (*curr) {
+    case 115:
+        ++curr;
+        goto s64;
     case 48:
     case 49:
     case 50:
@@ -10961,6 +11025,7 @@ s222:
     case 98:
     case 99:
     case 100:
+    case 101:
     case 102:
     case 103:
     case 104:
@@ -10974,7 +11039,6 @@ s222:
     case 112:
     case 113:
     case 114:
-    case 115:
     case 116:
     case 117:
     case 118:
@@ -10984,18 +11048,15 @@ s222:
     case 122:
         ++curr;
         goto s72;
-    case 101:
-        ++curr;
-        goto s248;
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
 s223:
     switch (*curr) {
-    case 115:
+    case 99:
         ++curr;
-        goto s65;
+        goto s63;
     case 48:
     case 49:
     case 50:
@@ -11035,7 +11096,6 @@ s223:
     case 95:
     case 97:
     case 98:
-    case 99:
     case 100:
     case 101:
     case 102:
@@ -11051,6 +11111,7 @@ s223:
     case 112:
     case 113:
     case 114:
+    case 115:
     case 116:
     case 117:
     case 118:
@@ -11133,226 +11194,9 @@ s224:
         goto s72;
     default: 
         str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_END};
-    }
-s225:
-    switch (*curr) {
-    case 115:
-        ++curr;
-        goto s64;
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 71:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 79:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 87:
-    case 88:
-    case 89:
-    case 90:
-    case 95:
-    case 97:
-    case 98:
-    case 99:
-    case 100:
-    case 101:
-    case 102:
-    case 103:
-    case 104:
-    case 105:
-    case 106:
-    case 107:
-    case 108:
-    case 109:
-    case 110:
-    case 111:
-    case 112:
-    case 113:
-    case 114:
-    case 116:
-    case 117:
-    case 118:
-    case 119:
-    case 120:
-    case 121:
-    case 122:
-        ++curr;
-        goto s72;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
-    }
-s226:
-    switch (*curr) {
-    case 99:
-        ++curr;
-        goto s63;
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 71:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 79:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 87:
-    case 88:
-    case 89:
-    case 90:
-    case 95:
-    case 97:
-    case 98:
-    case 100:
-    case 101:
-    case 102:
-    case 103:
-    case 104:
-    case 105:
-    case 106:
-    case 107:
-    case 108:
-    case 109:
-    case 110:
-    case 111:
-    case 112:
-    case 113:
-    case 114:
-    case 115:
-    case 116:
-    case 117:
-    case 118:
-    case 119:
-    case 120:
-    case 121:
-    case 122:
-        ++curr;
-        goto s72;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
-        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
-    }
-s227:
-    switch (*curr) {
-    case 48:
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 69:
-    case 70:
-    case 71:
-    case 72:
-    case 73:
-    case 74:
-    case 75:
-    case 76:
-    case 77:
-    case 78:
-    case 79:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-    case 87:
-    case 88:
-    case 89:
-    case 90:
-    case 95:
-    case 97:
-    case 98:
-    case 99:
-    case 100:
-    case 101:
-    case 102:
-    case 103:
-    case 104:
-    case 105:
-    case 106:
-    case 107:
-    case 108:
-    case 109:
-    case 110:
-    case 111:
-    case 112:
-    case 113:
-    case 114:
-    case 115:
-    case 116:
-    case 117:
-    case 118:
-    case 119:
-    case 120:
-    case 121:
-    case 122:
-        ++curr;
-        goto s72;
-    default: 
-        str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_HAS};
     }
-s228:
+s225:
     switch (*curr) {
     case 84:
         ++curr;
@@ -11376,7 +11220,7 @@ s228:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::INVALID};
     }
-s229:
+s226:
     switch (*curr) {
     case 48:
     case 49:
@@ -11447,7 +11291,7 @@ s229:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_MAX};
     }
-s230:
+s227:
     switch (*curr) {
     case 48:
     case 49:
@@ -11518,7 +11362,7 @@ s230:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_MIN};
     }
-s231:
+s228:
     switch (*curr) {
     case 48:
     case 49:
@@ -11589,7 +11433,7 @@ s231:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_MOD};
     }
-s232:
+s229:
     switch (*curr) {
     case 116:
         ++curr;
@@ -11662,7 +11506,7 @@ s232:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s233:
+s230:
     switch (*curr) {
     case 48:
     case 49:
@@ -11733,7 +11577,7 @@ s233:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NOT};
     }
-s234:
+s231:
     switch (*curr) {
     case 48:
     case 49:
@@ -11804,7 +11648,7 @@ s234:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_ONE};
     }
-s235:
+s232:
     switch (*curr) {
     case 110:
         ++curr;
@@ -11877,7 +11721,7 @@ s235:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s236:
+s233:
     switch (*curr) {
     case 110:
         ++curr;
@@ -11950,7 +11794,7 @@ s236:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s237:
+s234:
     switch (*curr) {
     case 48:
     case 49:
@@ -12021,7 +11865,7 @@ s237:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_REL};
     }
-s238:
+s235:
     switch (*curr) {
     case 116:
         ++curr;
@@ -12094,7 +11938,7 @@ s238:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s239:
+s236:
     switch (*curr) {
     case 97:
         ++curr;
@@ -12167,7 +12011,7 @@ s239:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s240:
+s237:
     switch (*curr) {
     case 101:
         ++curr;
@@ -12240,7 +12084,7 @@ s240:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s241:
+s238:
     switch (*curr) {
     case 48:
     case 49:
@@ -12311,7 +12155,7 @@ s241:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_TUP};
     }
-s242:
+s239:
     switch (*curr) {
     case 101:
         ++curr;
@@ -12384,7 +12228,7 @@ s242:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s243:
+s240:
     switch (*curr) {
     case 48:
     case 49:
@@ -12455,7 +12299,7 @@ s243:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_VAL};
     }
-s244:
+s241:
     switch (*curr) {
     case 116:
         ++curr;
@@ -12528,7 +12372,7 @@ s244:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s245:
+s242:
     switch (*curr) {
     case 111:
         ++curr;
@@ -12601,7 +12445,80 @@ s245:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s246:
+s243:
+    switch (*curr) {
+    case 114:
+        ++curr;
+        goto s39;
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 76:
+    case 77:
+    case 78:
+    case 79:
+    case 80:
+    case 81:
+    case 82:
+    case 83:
+    case 84:
+    case 85:
+    case 86:
+    case 87:
+    case 88:
+    case 89:
+    case 90:
+    case 95:
+    case 97:
+    case 98:
+    case 99:
+    case 100:
+    case 101:
+    case 102:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 108:
+    case 109:
+    case 110:
+    case 111:
+    case 112:
+    case 113:
+    case 115:
+    case 116:
+    case 117:
+    case 118:
+    case 119:
+    case 120:
+    case 121:
+    case 122:
+        ++curr;
+        goto s72;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
+    }
+s244:
     switch (*curr) {
     case 101:
         ++curr;
@@ -12674,7 +12591,7 @@ s246:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s247:
+s245:
     switch (*curr) {
     case 116:
         ++curr;
@@ -12747,7 +12664,7 @@ s247:
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_NAME};
     }
-s248:
+s246:
     switch (*curr) {
     case 48:
     case 49:
@@ -12817,6 +12734,77 @@ s248:
     default: 
         str = reinterpret_cast<const char*>(curr);
         return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_DATE};
+    }
+s247:
+    switch (*curr) {
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+    case 55:
+    case 56:
+    case 57:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 76:
+    case 77:
+    case 78:
+    case 79:
+    case 80:
+    case 81:
+    case 82:
+    case 83:
+    case 84:
+    case 85:
+    case 86:
+    case 87:
+    case 88:
+    case 89:
+    case 90:
+    case 95:
+    case 97:
+    case 98:
+    case 99:
+    case 100:
+    case 101:
+    case 102:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 108:
+    case 109:
+    case 110:
+    case 111:
+    case 112:
+    case 113:
+    case 114:
+    case 115:
+    case 116:
+    case 117:
+    case 118:
+    case 119:
+    case 120:
+    case 121:
+    case 122:
+        ++curr;
+        goto s72;
+    default: 
+        str = reinterpret_cast<const char*>(curr);
+        return Token{reinterpret_cast<const char*>(start), reinterpret_cast<const char*>(curr), TokenType::TK_DAYS};
     }
 
 }

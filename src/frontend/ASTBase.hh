@@ -49,6 +49,7 @@ enum class BuildIn {
 		sin,
 		sqrt, 
 		tan,
+		substr
 };
 
 

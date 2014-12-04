@@ -73,8 +73,7 @@ const std::vector<std::pair<lexer::TokenType, std::string> > operators = {
     {lexer::TokenType::TK_STDBOOL, "?-Bool"},
     {lexer::TokenType::TK_STDINT, "?-Int"},
     {lexer::TokenType::TK_STDTEXT, "?-Text"},
-    {lexer::TokenType::TK_TILDE, "~"},
-    {lexer::TokenType::TK_TWO_DOTS, ".."}
+    {lexer::TokenType::TK_TILDE, "~"}
 };
 
 const std::vector<std::pair<lexer::TokenType, std::string> > keywords = {

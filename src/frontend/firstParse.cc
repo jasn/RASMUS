@@ -206,6 +206,9 @@ public:
 				} else if (name == "sqrt") {
 					node->buildin = BuildIn::sqrt;
 					node->type = Type::func(Type::fp(), {Type::fpAndInt()});
+				} else if (name == "substr") {
+					node->buildin = BuildIn::substr;
+					node->type = Type::func(Type::text(), {Type::text(), Type::integer(), Type::integer()});
 				} else if (name == "tan") {
 					node->buildin = BuildIn::tan;
 					node->type = Type::func(Type::fp(), {Type::fpAndInt()});
@@ -776,17 +779,6 @@ public:
 				node->type = Type::join(matchTypes);
 			}
 		}
-	}
-
-    void visit(std::shared_ptr<SubstringExp> node) {
-        visitNode(node->stringExp);
-        visitNode(node->fromExp);
-        visitNode(node->toExp);
-		typeCheck(node->lparenToken, node->stringExp, Type::text());
-		typeCheck(node->lparenToken, node->fromExp, Type::integer());
-		typeCheck(node->lparenToken, node->toExp, Type::integer());
-		
-		node->type = Type::text();
 	}
 
 	static CharRange r(Token t) {

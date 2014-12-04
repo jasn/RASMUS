@@ -23,8 +23,9 @@
 #include <stdlib/lib.h>
 
 extern "C" {
-rm_object *rm_floor, *rm_ceil, *rm_round;
-rm_object *rm_cos, *rm_sin, *rm_tan, *rm_acos, *rm_asin, *rm_atan, *rm_atan2, *rm_pow, *rm_sqrt, *rm_abs;
+rm_object *rm_floorFunc, *rm_ceilFunc, *rm_roundFunc;
+rm_object *rm_cosFunc, *rm_sinFunc, *rm_tanFunc, *rm_acosFunc, *rm_asinFunc, *rm_atanFunc, *rm_atan2Func, *rm_powFunc, *rm_sqrtFunc, *rm_absFunc;
+rm_object *rm_substrFunc;
 }
 
 namespace rasmus {
@@ -59,6 +60,36 @@ struct FromAny<double> {
 	}
 };
 
+template <>
+struct FromAny<int64_t> {
+	double operator()(int64_t val, int8_t type) {
+		switch(type) {
+		case TInt:
+			return val;
+		default:
+			ILE("Wrong argument type");
+			break;
+		}
+	}
+};
+
+
+template <>
+struct FromAny<rm_object *> {
+	rm_object * operator()(int64_t val, int8_t type) {
+		switch (type) {
+		case TText:
+		case TRel:
+		case TTup:
+			return reinterpret_cast<rm_object*>(val);
+		default:
+			ILE("Wrong argument type");
+			break;
+		}
+	}
+};
+
+
 template <typename T>
 struct ToAny {};
 
@@ -77,6 +108,34 @@ struct ToAny<int64_t> {
 	void operator()(AnyRet * ret, int64_t v) {
 		ret->value = v;
 		ret->type = TInt;
+	}
+};
+
+template <>
+struct ToAny<rm_object*> {
+	void operator()(AnyRet * ret, rm_object * v) {
+		ret->value = reinterpret_cast<uint64_t>(v);
+		switch(v->type) {
+		case LType::smallText:
+		case LType::concatText:
+		case LType::substrText:
+		case LType::canonicalText:
+		case LType::undefText:
+			ret->type = TText;
+			break;
+		case LType::function:
+			ret->type = TFunc;
+			break;
+		case LType::tuple:
+			ret->type = TTup;
+			break;
+		case LType::relation:
+			ret->type = TRel;
+			break;
+		case LType::schema:
+			ILE("Schema not supported");
+			break;
+		}
 	}
 };
 
@@ -136,6 +195,21 @@ struct RasmusFuncWrap<F, RetType, T1, T2> {
 	}
 };
 
+template <typename F, typename RetType, typename T1, typename T2, typename T3> 
+struct RasmusFuncWrap<F, RetType, T1, T2,  T3> {
+	static void call(rm_object *, 
+					 AnyRet * ret, 
+					 int64_t v1,
+					 int8_t t1,
+					 int64_t v2,
+					 int8_t t2,
+					 int64_t v3,
+					 int8_t t3) {
+		RetType t=F::call(FromAny<T1>()(v1, t1), FromAny<T2>()(v2, t2) , FromAny<T2>()(v3, t3));
+		ToAny<RetType>()(ret, t);
+	}
+};
+
 
 // C++ magic gadget to capture global functions as template argumens
 // Perhaps there is a prettier way of doing this?
@@ -160,19 +234,21 @@ rm_object * createBuildIn() {
 
 struct Initer {
 	Initer() {
-		rm_floor = createBuildIn<FuncCapture<double, double>::Func<std::floor>, int64_t, double >();
-		rm_ceil = createBuildIn<FuncCapture<double, double>::Func<std::ceil>, int64_t, double >();
-		rm_round = createBuildIn<FuncCapture<double, double>::Func<std::round>, int64_t, double >();
-		rm_sin = createBuildIn<FuncCapture<double, double>::Func<std::sin>, double, double >();
-		rm_cos = createBuildIn<FuncCapture<double, double>::Func<std::cos>, double, double >();
-		rm_tan = createBuildIn<FuncCapture<double, double>::Func<std::tan>, double, double >();
-		rm_asin = createBuildIn<FuncCapture<double, double>::Func<std::asin>, double, double >();
-		rm_acos = createBuildIn<FuncCapture<double, double>::Func<std::acos>, double, double >();
-		rm_atan = createBuildIn<FuncCapture<double, double>::Func<std::atan>, double, double >();
-		rm_atan2 = createBuildIn<FuncCapture<double, double, double>::Func<std::atan2>, double, double, double >();
-		rm_pow = createBuildIn<FuncCapture<double, double, double>::Func<std::pow>, double, double, double >();
-		rm_sqrt = createBuildIn<FuncCapture<double, double>::Func<std::sqrt>, double, double >();
-		rm_abs = createBuildIn<FuncCapture<double, double>::Func<std::abs>, double, double >();
+		rm_floorFunc = createBuildIn<FuncCapture<double, double>::Func<std::floor>, int64_t, double >();
+		rm_ceilFunc = createBuildIn<FuncCapture<double, double>::Func<std::ceil>, int64_t, double >();
+		rm_roundFunc = createBuildIn<FuncCapture<double, double>::Func<std::round>, int64_t, double >();
+		rm_sinFunc = createBuildIn<FuncCapture<double, double>::Func<std::sin>, double, double >();
+		rm_cosFunc = createBuildIn<FuncCapture<double, double>::Func<std::cos>, double, double >();
+		rm_tanFunc = createBuildIn<FuncCapture<double, double>::Func<std::tan>, double, double >();
+		rm_asinFunc = createBuildIn<FuncCapture<double, double>::Func<std::asin>, double, double >();
+		rm_acosFunc = createBuildIn<FuncCapture<double, double>::Func<std::acos>, double, double >();
+		rm_atanFunc = createBuildIn<FuncCapture<double, double>::Func<std::atan>, double, double >();
+		rm_atan2Func = createBuildIn<FuncCapture<double, double, double>::Func<std::atan2>, double, double, double >();
+		rm_powFunc = createBuildIn<FuncCapture<double, double, double>::Func<std::pow>, double, double, double >();
+		rm_sqrtFunc = createBuildIn<FuncCapture<double, double>::Func<std::sqrt>, double, double >();
+		rm_absFunc = createBuildIn<FuncCapture<double, double>::Func<std::abs>, double, double >();
+		rm_substrFunc = createBuildIn<FuncCapture<rm_object *, rm_object *, int64_t, int64_t>::Func<rm_substrText>, 
+									  rm_object*, rm_object*, int64_t, int64_t>();
 	}
 };
 

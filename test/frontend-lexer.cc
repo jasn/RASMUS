@@ -104,9 +104,7 @@ void base(rasmus::teststream & ts) {
     ts << "comp" << result(lt("< <> <= >= = >", {TokenType::TK_LESS, TokenType::TK_DIFFERENT, TokenType::TK_LESSEQUAL, TokenType::TK_GREATEREQUAL, TokenType::TK_EQUAL, TokenType::TK_GREATER}));
     ts << "semicolon" << result(lt(";", {TokenType::TK_SEMICOLON}));
     ts << "pipe" << result(lt("|", {TokenType::TK_PIPE}));
-    ts << "dot" << result(lt("...", {TokenType::TK_TWO_DOTS, TokenType::TK_ONE_DOT}));
-	ts << "dot2" << result(lt("\"hat\"(1 .. 2)", {TokenType::TK_TEXT, TokenType::TK_LPAREN, TokenType::TK_INT,
-					TokenType::TK_TWO_DOTS, TokenType::TK_INT, TokenType::TK_RPAREN}));
+    ts << "dot" << result(lt(".", {TokenType::TK_ONE_DOT}));
     ts << "select" << result(lt("?(", {TokenType::TK_SELECT, TokenType::TK_LPAREN}));
     ts << "project" << result(lt("||+|--", {TokenType::TK_PIPE, TokenType::TK_PROJECT_PLUS, TokenType::TK_PROJECT_MINUS, TokenType::TK_MINUS}));
     ts << "bracket" << result(lt("[]", {TokenType::TK_LBRACKET, TokenType::TK_RBRACKET}));
