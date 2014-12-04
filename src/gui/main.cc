@@ -99,6 +99,9 @@ public:
 		QObject::connect(this, SIGNAL(unset(QString)),
 						 interpreter, SLOT(unset(QString)));
 
+		QObject::connect(this, SIGNAL(savePermutation(RelationModel *)),
+						 interpreter, SLOT(savePermutation(RelationModel *)));
+
 		s.load();		
 
 		ui.console->complete();
@@ -135,7 +138,10 @@ public slots:
 	}
 
 	void displayRelation(rasmus::stdlib::Relation * r) {
-		showTableViewWindow(new RelationModel(r));
+		RelationWindow *w = showTableViewWindow(new RelationModel(r));
+		QObject::connect(w, SIGNAL(permutationChanged(RelationModel *)),
+						 interpreter, SLOT(savePermutation(RelationModel *)));
+
 		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 		r->decref();
 	}
@@ -215,7 +221,9 @@ public slots:
 	void environmentVariableDoubleClicked(QTreeWidgetItem * qtwi, int /*column*/) {
 		int data = qtwi->data(0, Qt::UserRole).toInt();
 		if (data == -1 || data == int(TRel)) {
-			showTableViewWindow(new RelationModel(qtwi->text(0).toUtf8().data()));
+			RelationWindow * w = showTableViewWindow(new RelationModel(qtwi->text(0).toUtf8().data()));
+			QObject::connect(w, SIGNAL(permutationChanged(RelationModel *)),
+							 interpreter, SLOT(savePermutation(RelationModel *)));
 		}
 	}
 
@@ -308,6 +316,7 @@ public slots:
 signals:
 	void doRunContent(QString, QString);
 	void unset(QString);
+	void savePermutation(RelationModel *m);
 };
 
 int main(int argc, char * argv[]) {

@@ -87,7 +87,7 @@ RelationModel::RelationModel(const char * relationName) : relationName(relationN
 	rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 	AnyRet rv;
 	rm_loadGlobalAny(relationName, &rv);
-	rel = rs::RefPtr<rs::Relation>(reinterpret_cast<rs::Relation*>(rv.value));
+	rel = rs::RefPtr<rs::Relation>(reinterpret_cast<rs::Relation*>(rv.value));	
 }
 
 RelationModel::RelationModel(rasmus::stdlib::Relation *r) {
@@ -151,8 +151,49 @@ RelationWindow::RelationWindow(RelationModel * model): model(model) {
 	setAttribute(Qt::WA_DeleteOnClose);
 	if (!model->relationName.empty())
 		setWindowTitle(QString::fromUtf8(model->relationName.c_str()) + " - Relation");
+
+
+	// Permutation of attributes
+	// Also need to create a slot for the signal QHeaderView::sectionMoved
+	ui.view->horizontalHeader()->setMovable(true);
+	
+	QObject::connect(ui.view->horizontalHeader(), SIGNAL(sectionMoved(int, int, int)), 
+					 this, SLOT(sectionMoved(int, int, int)));
+	
 }
 
+void RelationWindow::sectionMoved(int logicalIndex, int oldVisualIndex, int newVisualIndex) {
+
+	rasmus::stdlib::RefPtr<rasmus::stdlib::Relation> rel = this->model->rel;
+	
+	if (oldVisualIndex < newVisualIndex) {
+		// dragging from left to right
+		std::vector<size_t> &pi = rel->permutation;
+		for (size_t i = 0; i < pi.size(); ++i) {
+			if (pi[i] <= newVisualIndex && pi[i] > oldVisualIndex) {
+				--pi[i];
+			} else if (pi[i] == oldVisualIndex) {
+				pi[i] = newVisualIndex;
+			}
+		}
+	} else {
+		// dragging from right to left
+		std::vector<size_t> &pi = rel->permutation;
+		for (size_t i = 0; i < pi.size(); ++i) {
+			if (pi[i] >= newVisualIndex && pi[i] < oldVisualIndex) {
+				++pi[i];
+			} else if (pi[i] == oldVisualIndex) {
+				pi[i] = newVisualIndex;
+			}
+		}
+	}
+
+	// save permutation to file.
+
+	emit permutationChanged(this->model);
+	
+	//rasmus::stdlib::savePermutationToFile(rel.getAs<rm_object>(), this->model->relationName.c_str());
+}
 
 void RelationWindow::showAbout() {
 	::showAbout();
@@ -307,7 +348,8 @@ void RelationWindow::showPrint() {
 	
 }
 
-void showTableViewWindow(RelationModel * rm) {
+RelationWindow * showTableViewWindow(RelationModel * rm) {
 	RelationWindow * w = new RelationWindow(rm);
 	w->show();
+	return w;
 }

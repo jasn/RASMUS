@@ -51,12 +51,17 @@ public slots:
 	void saveAsGlobal();
 	void exportCSV();
 	void showPrint();
+	void sectionMoved(int logicalIndex, int oldVisualIndex, int newVisualIndex);
+
+signals:
+  void permutationChanged(RelationModel * model);
+	
 private:
 	Ui::RelationWindow ui;
 	RelationModel * model;
 };
 
-void showTableViewWindow(RelationModel * rm);
+RelationWindow* showTableViewWindow(RelationModel * rm);
 
 #endif
  

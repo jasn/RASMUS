@@ -249,7 +249,36 @@ void printBoolToStream(int8_t val, std::ostream & out){
 	}
 }
 
-/*  outputs the given relation to the given stream. 
+/**
+ * Write the permutation of attributes of relation pointed to 
+ * by <param>o</param> to file with path <param>name</param>
+ * Assumes that <param>name</param> is already a file
+ * storing the relation.
+ */
+void savePermutationToFile(rm_object *o, const char *name) {
+	checkAbort();
+	if(o->type != LType::relation)
+        ILE("Called with arguments of the wrong type");
+
+	Relation * relation = static_cast<Relation *>(o);
+
+	FILE *f = fopen(name, "r+");
+	std::cout << name << std::endl;
+	// advance stream to proper position
+	char c;
+	while ((c = fgetc(f)) != '\n') { std::cout << c << std::endl;}
+	
+	// write permutation
+	for (size_t i = 0; i < relation->permutation.size(); ++i) {
+		if (i != 0) {
+			fputc(' ', f);
+		}
+		fprintf(f, "%ld", relation->permutation[i]);
+	}
+	fclose(f);
+}
+
+/*  Outputs The given relation to the given stream. 
 
 	The output format is as given in the RASMUS 
 	user manual:
@@ -264,7 +293,8 @@ void saveRelationToStream(rm_object * o, std::ostream & outFile){
         ILE("Called with arguments of the wrong type");
 
 	Relation * relation = static_cast<Relation *>(o);
-
+	outFile << relation->schema->attributes.size() << std::endl;
+	
 	for (size_t i = 0; i < relation->permutation.size(); ++i) {
 		if (i > 0) {
 			outFile << " ";
@@ -272,7 +302,6 @@ void saveRelationToStream(rm_object * o, std::ostream & outFile){
 		outFile << relation->permutation[i];
 	}
 
-	outFile << relation->schema->attributes.size() << std::endl;
 	for(auto & attribute : relation->schema->attributes){
 		switch(attribute.type){
 		case TInt:

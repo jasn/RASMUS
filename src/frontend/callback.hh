@@ -54,6 +54,8 @@ public:
 	virtual bool relationSchema(const char * name, std::vector<std::pair<std::string, PlainType> > & schema);
 	virtual void deleteRelation(const char * name) = 0;
 
+	virtual void savePermutation(rm_object *o, const char *name) {};
+	
 	virtual void environmentChanged(const char * /*name*/) {}
 
 	virtual void printInt(int64_t v);

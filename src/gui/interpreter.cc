@@ -63,12 +63,24 @@ public:
 
 class GuiCallBack : public rasmus::frontend::Callback {
 public:
+
+	QString location(const char * name) {
+		return settings->path() + "/" + name + ".rdb";
+	}
+
 	GuiCallBack(Interpreter * interperter, Settings * settings)
 		: interperter(interperter)
 		, settings(settings) {}
 
 	void environmentChanged(const char * name) override {
 		interperter->environmentChanged(name);
+	}
+
+	void savePermutation(rm_object *o, const char *name) override {
+		rs::Relation *r = static_cast<rs::Relation*>(o);
+		QDir d;
+		d.mkpath(settings->path());
+		rs::savePermutationToFile(o, location(name).toUtf8().data());
 	}
 
 	void printRel(rm_object *o) {
@@ -179,10 +191,6 @@ public:
 		interperter->doDisplay(QString::fromUtf8(ss.str().c_str()));
 	}
 
-	QString location(const char * name) {
-		return settings->path() + "/" + name + ".rdb";
-	}
-
 	virtual void saveRelation(rm_object * o, const char * name) override {
 		QDir d;
 		d.mkpath(settings->path());
@@ -283,4 +291,8 @@ void Interpreter::doDisplay(QString string) {
 
 void Interpreter::unset(QString name) {
 	runContent("", "unset " + name);
+}
+
+void Interpreter::savePermutation(RelationModel * model) {
+	callback->savePermutation(model->rel.getAs<rm_object>(), model->relationName.c_str());
 }

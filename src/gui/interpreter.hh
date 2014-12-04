@@ -21,6 +21,7 @@
 
 #include <QObject>
 #include <QString>
+#include "relation_model.hh"
 
 class rm_object;
 
@@ -52,7 +53,8 @@ public slots:
 	void cancel();
 	void runContent(QString name, QString content);
 	void unset(QString name);
-
+	void savePermutation(RelationModel * model);
+	
 signals:
 	void incomplete();
 	void complete();
@@ -61,7 +63,7 @@ signals:
 	void bussy(bool);
 
 	void displayRelation(rasmus::stdlib::Relation *);
-
+	
 public:
 	void doDisplay(QString string);
 	void getCurrentEnvironment();
