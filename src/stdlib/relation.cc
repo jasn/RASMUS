@@ -88,6 +88,23 @@ int rm_itemWidth(AnyValue av){
 
 namespace rasmus {
 namespace stdlib {
+/**
+ * Makes a copy of the relation \param rel
+ *
+ */
+RefPtr<Relation> copyRelation(RefPtr<Relation> rel) {
+	RefPtr<Relation> ret = makeRef<Relation>();
+	ret->schema = rel->schema;
+
+	ret->permutation.resize(rel->permutation.size());
+	for (size_t i = 0; i < ret->permutation.size(); ++i) {
+		ret->permutation[i] = rel->permutation[i];
+	}
+
+	ret->tuples.insert(ret->tuples.begin(), rel->tuples.begin(), rel->tuples.end());
+	return ret;
+}
+
 
 void printRelationToStream(rm_object * ptr, std::ostream & out) {
 	checkAbort();
@@ -300,7 +317,7 @@ void saveRelationToStream(rm_object * o, std::ostream & outFile){
 		}
 		outFile << relation->permutation[i];
 	}
-
+	outFile << std::endl;
 	for(auto & attribute : relation->schema->attributes){
 		switch(attribute.type){
 		case TInt:
@@ -1008,6 +1025,12 @@ RefPtr<Relation> projectByIndices(Relation * rel, std::vector<size_t> indices){
 	for(size_t index : indices)
 		schema->attributes.push_back(rel->schema->attributes[index]);
 	ret->schema = schema;
+
+	// fix permutation.
+	ret->permutation.resize(ret->schema->attributes.size());
+	for (size_t i = 0 ; i < ret->permutation.size(); ++i) {
+		ret->permutation[i] = i;
+	}
 	
 	// create new tuples and add them to the new relation
 	checkAbort();
@@ -1345,6 +1368,12 @@ rm_object * rm_joinRel(rm_object * lhs, rm_object * rhs, uint64_t range) {
 		if(add_column[i])
 			ret->schema->attributes.push_back(r->schema->attributes[i]);
 
+	// Fix permutation.
+	ret->permutation.resize(ret->schema->attributes.size());
+	for (size_t i = 0 ; i < ret->permutation.size(); ++i) {
+		ret->permutation[i] = i;
+	}
+
 	checkAbort();
 	// perform the natural join on lhs and rhs, adding tuples to 'ret'
 	for(size_t l_start = 0, r_start = 0; 
@@ -1440,6 +1469,11 @@ rm_object * rm_unionRel(rm_object * lhs, rm_object * rhs, int64_t range) {
 
 	rel->schema = l->schema;
 	rel->tuples = l->tuples;
+
+	rel->permutation.resize(rel->schema->attributes.size());
+	for (size_t i = 0 ; i < rel->permutation.size(); ++i) {
+		rel->permutation[i] = i;
+	}
 
 	checkAbort();
 
@@ -1553,6 +1587,11 @@ rm_object * rm_diffRel(rm_object * lhs, rm_object * rhs, int64_t range) {
 	RefPtr<Relation> ret = makeRef<Relation>();
 	ret->schema = common_schema;
 
+	ret->permutation.resize(ret->schema->attributes.size());
+	for (size_t i = 0 ; i < ret->permutation.size(); ++i) {
+		ret->permutation[i] = i;
+	}
+
 	checkAbort();
 	std::set_difference(ls.begin(), ls.end(), rs.begin(), rs.end(),
 						std::inserter(ret->tuples, ret->tuples.end()),
@@ -1592,6 +1631,12 @@ rm_object * rm_selectRel(rm_object * rel_, rm_object * func) {
 	RefPtr<Schema> schema = makeRef<Schema>();
 	schema->attributes = rel->schema->attributes;
 	ret->schema = schema;
+
+	// Fix permutation.
+	ret->permutation.resize(ret->schema->attributes.size());
+	for (size_t i = 0 ; i < ret->permutation.size(); ++i) {
+		ret->permutation[i] = i;
+	}
 
 	checkAbort();
 	for(size_t i = 0; i < rel->tuples.size(); i++){
@@ -1741,6 +1786,12 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
 		rm_emitColCntError(unpackCharRange(range).first, unpackCharRange(range).second, 
 						   name_count, schema->attributes.size());
 
+	// copy permutation of old relation
+	relation->permutation.resize(relation->schema->attributes.size());
+	for (size_t i = 0 ; i < old_rel->permutation.size(); ++i) {
+		relation->permutation[i] = old_rel->permutation[i];
+	}
+	
 	for(uint32_t i = 0; i < name_count; i++){
 		std::string old_name = names[i*2];
 		std::string new_name = names[i*2 + 1];
@@ -2524,17 +2575,22 @@ rm_object * rm_forAll(rm_object * rel_, rm_object * func, int64_t range){
 
 		((t0) base->func)(base, &retval, arg_tup, TTup, arg_rel_as_int, TRel);
 
-		if(retval.type != TRel) ILE("Should not happen");
+		if (retval.type != TRel) ILE("Should not happen");
 		Relation * _result = reinterpret_cast<Relation *>(retval.value);
+
 		RefPtr<Relation> result = RefPtr<Relation>::steal(_result);
 
-		if(!ret_initialized){
+		if (!ret_initialized){
 			ret->schema->attributes = result->schema->attributes;
 			ret_initialized = true;
-		}else if(!schemaEquals(ret->schema.get(), result->schema.get()))
+			ret->permutation.resize(ret->schema->attributes.size());
+			for (size_t i = 0; i < ret->schema->attributes.size(); ++i) {
+				ret->permutation[i] = i;
+			}
+		} else if(!schemaEquals(ret->schema.get(), result->schema.get()))
 			rm_emitFuncDiffSchemasError(unpackCharRange(range).first, unpackCharRange(range).second, "forall");
 
-		for(auto & tuple : result->tuples)
+		for (auto & tuple : result->tuples)
 			ret->tuples.push_back(tuple);
 	}
 
@@ -2822,7 +2878,5 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 	removeDuplicateRows(ret.get());	
 	return ret.unbox();
 }
-
-
 
 } // extern "C"
