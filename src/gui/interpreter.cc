@@ -77,7 +77,7 @@ public:
 	}
 
 	void savePermutation(rm_object *o, const char *name) override {
-		rs::Relation *r = static_cast<rs::Relation*>(o);
+		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 		QDir d;
 		d.mkpath(settings->path());
 		rs::savePermutationToFile(o, location(name).toUtf8().data());
@@ -294,5 +294,5 @@ void Interpreter::unset(QString name) {
 }
 
 void Interpreter::savePermutation(RelationModel * model) {
-	callback->savePermutation(model->rel.getAs<rm_object>(), model->relationName.c_str());
+	d_ptr->callback->savePermutation(model->rel.getAs<rm_object>(), model->relationName.c_str());
 }

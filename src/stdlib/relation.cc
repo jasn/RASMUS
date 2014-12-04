@@ -263,11 +263,10 @@ void savePermutationToFile(rm_object *o, const char *name) {
 	Relation * relation = static_cast<Relation *>(o);
 
 	FILE *f = fopen(name, "r+");
-	std::cout << name << std::endl;
+
 	// advance stream to proper position
 	char c;
-	while ((c = fgetc(f)) != '\n') { std::cout << c << std::endl;}
-	
+	while ((c = fgetc(f)) != '\n') {}
 	// write permutation
 	for (size_t i = 0; i < relation->permutation.size(); ++i) {
 		if (i != 0) {

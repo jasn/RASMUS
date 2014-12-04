@@ -159,40 +159,31 @@ RelationWindow::RelationWindow(RelationModel * model): model(model) {
 	
 	QObject::connect(ui.view->horizontalHeader(), SIGNAL(sectionMoved(int, int, int)), 
 					 this, SLOT(sectionMoved(int, int, int)));
-	
+
 }
 
 void RelationWindow::sectionMoved(int logicalIndex, int oldVisualIndex, int newVisualIndex) {
+	static bool inSectionMoved=false;
+	if (inSectionMoved) return;
+	inSectionMoved = true;
+	struct _ {~_() {inSectionMoved=false;} } _;
+	
 
+	ui.view->horizontalHeader()->moveSection(newVisualIndex, oldVisualIndex);
+	
+	std::cout << "logicalIndex: " << logicalIndex << std::endl
+			  << "oldVisualIndex: " << oldVisualIndex << std::endl
+			  << "newVisualIndex: " << newVisualIndex << std::endl;
+		
 	rasmus::stdlib::RefPtr<rasmus::stdlib::Relation> rel = this->model->rel;
-	
-	if (oldVisualIndex < newVisualIndex) {
-		// dragging from left to right
-		std::vector<size_t> &pi = rel->permutation;
-		for (size_t i = 0; i < pi.size(); ++i) {
-			if (pi[i] <= newVisualIndex && pi[i] > oldVisualIndex) {
-				--pi[i];
-			} else if (pi[i] == oldVisualIndex) {
-				pi[i] = newVisualIndex;
-			}
-		}
-	} else {
-		// dragging from right to left
-		std::vector<size_t> &pi = rel->permutation;
-		for (size_t i = 0; i < pi.size(); ++i) {
-			if (pi[i] >= newVisualIndex && pi[i] < oldVisualIndex) {
-				++pi[i];
-			} else if (pi[i] == oldVisualIndex) {
-				pi[i] = newVisualIndex;
-			}
-		}
-	}
 
+	std::vector<size_t> &pi = rel->permutation;
+	size_t x = pi[oldVisualIndex];
+	pi.erase(pi.begin()+oldVisualIndex);
+	pi.insert(pi.begin()+newVisualIndex, x);
+	
 	// save permutation to file.
-
 	emit permutationChanged(this->model);
-	
-	//rasmus::stdlib::savePermutationToFile(rel.getAs<rm_object>(), this->model->relationName.c_str());
 }
 
 void RelationWindow::showAbout() {
@@ -339,12 +330,6 @@ void RelationWindow::showPrint() {
 	}
 
 	p.end();
-	
-
-
-	// this->ui.view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	// this->ui.view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	// this->ui.view->render(printer);
 	
 }
 

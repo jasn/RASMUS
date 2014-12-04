@@ -45,6 +45,8 @@ public:
 	void enterRelationToEnvironment(rm_object * rel, const char * name);
 	void doDisplayRelation(rasmus::stdlib::Relation *);
 	bool relationExists(QString relationName);
+	void doDisplay(QString string);
+	void getCurrentEnvironment();
 
 
 public slots:
@@ -63,10 +65,7 @@ signals:
 	void bussy(bool);
 
 	void displayRelation(rasmus::stdlib::Relation *);
-	
-public:
-	void doDisplay(QString string);
-	void getCurrentEnvironment();
+
 private:
 	InterpreterPrivate *d_ptr;
 

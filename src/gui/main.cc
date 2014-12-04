@@ -43,21 +43,17 @@
 #include "help.hh"
 #include <stdlib/gil.hh>
 
-namespace rs = rasmus::stdlib;
-
 class MainWindow : public QMainWindow {
 
 	Q_OBJECT
 
 public:
-  
 
 	Ui::MainWindow ui;
 
 	Interpreter *interpreter;
 	QThread interpreterThread;
 	Settings s;
-
 
 	MainWindow() {
 		ui.setupUi(this);
@@ -98,9 +94,6 @@ public:
 		
 		QObject::connect(this, SIGNAL(unset(QString)),
 						 interpreter, SLOT(unset(QString)));
-
-		QObject::connect(this, SIGNAL(savePermutation(RelationModel *)),
-						 interpreter, SLOT(savePermutation(RelationModel *)));
 
 		s.load();		
 
@@ -316,7 +309,6 @@ public slots:
 signals:
 	void doRunContent(QString, QString);
 	void unset(QString);
-	void savePermutation(RelationModel *m);
 };
 
 int main(int argc, char * argv[]) {
