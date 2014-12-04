@@ -737,6 +737,11 @@ rm_object * parseCSVToRelation(std::vector< std::vector<std::string> > rows){
 	RefPtr<Schema> schema = makeRef<Schema>();
 	ret->schema = schema;
 
+	ret->permutation.resize(ret->schema->attributes.size());
+	for (size_t i = 0; i < ret->permutation.size(); ++i) {
+		ret->permutation[i] = i;
+	}
+	
 	if(rows.size() == 0){
 		return ret.unbox();
 	}
@@ -900,30 +905,28 @@ void saveCSVRelationToStream(rm_object * o, std::ostream & stream){
         ILE("Called with arguments of the wrong type");
 
 	Relation * rel = static_cast<Relation *>(o);
-	
+	std::vector<size_t> &pi = rel->permutation;	
+
 	// print the column names and types to the header of the csv file
 
-	bool first = true;
-	for(auto & attribute : rel->schema->attributes){
-		if(first)
-			first = false;
-		else
-			stream << ",";
-
-		printFieldToStream(attribute.name, stream);
+	for (size_t i = 0; i < pi.size(); ++i) {
+		if (i > 0) stream << ",";
+		printFieldToStream(rel->schema->attributes[pi[i]].name, stream);
 	}
+
 	// we are not using std::endl because of RFC 4180
 	stream << "\r\n"; 
 
 	// print all the rows
-	for(auto & tuple : rel->tuples){
-		first = true;
-		for(auto & val : tuple->values){
-			if(first)
-				first = false;
-			else
-				stream << ",";
+	for(auto & tuple : rel->tuples) {
 
+		for (size_t i = 0; i < pi.size(); ++i) {
+			auto &val = tuple->values[pi[i]];
+
+			if(i > 0) {
+				stream << ",";
+			}
+			
 			std::stringstream field;
 			switch(val.type){
 			case TInt:
@@ -2119,6 +2122,11 @@ rm_object * rm_createRel(rm_object * tup) {
 	rel->schema = tuple->schema;
 	rel->tuples.push_back(RefPtr<Tuple>(tuple));
 
+	rel->permutation.resize(tuple->schema->attributes.size());
+	for (size_t i = 0; i < rel->permutation.size(); ++i) {
+		rel->permutation[i] = i;
+	}
+	
 	return rel.unbox();
 }
 
