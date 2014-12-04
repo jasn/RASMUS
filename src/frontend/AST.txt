@@ -18,7 +18,6 @@ UnaryOpExp|opToken,exp
 RelExp|relToken,lparenToken|exp|rparenToken
 LenExp|leftPipeToken,exp,rightPipeToken
 FuncInvocationExp|funcExp,lparenToken|NodeList args|rparenToken
-SubstringExp|stringExp,lparenToken,fromExp,dotdotToken,toExp,rparenToken
 RenameItem|fromNameToken,arrowToken,toNameToken
 RenameExp|lhs,lbracketToken|std::vector<std::shared_ptr<RenameItem> > renames|rbracketToken
 TupMinus|lhs,opToken,nameToken

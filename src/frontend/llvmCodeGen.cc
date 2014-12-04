@@ -236,18 +236,19 @@ public:
 //		fpm.add(createCFGSimplificationPass());
 		fpm.doInitialization();
 
-		loadBuildin(BuildIn::acos, "rm_acos");
-		loadBuildin(BuildIn::asin, "rm_asin");
-		loadBuildin(BuildIn::atan, "rm_atan");
-		loadBuildin(BuildIn::atan2, "rm_atan2");
-		loadBuildin(BuildIn::ceil, "rm_ceil");
-		loadBuildin(BuildIn::cos, "rm_cos");
-		loadBuildin(BuildIn::floor, "rm_floor");
-		loadBuildin(BuildIn::pow, "rm_pow");
-		loadBuildin(BuildIn::round, "rm_round");
-		loadBuildin(BuildIn::sin, "rm_sin");
-		loadBuildin(BuildIn::sqrt, "rm_sqrt");
-		loadBuildin(BuildIn::tan, "rm_tan");
+		loadBuildin(BuildIn::substr, "rm_substrFunc");
+		loadBuildin(BuildIn::acos, "rm_acosFunc");
+		loadBuildin(BuildIn::asin, "rm_asinFunc");
+		loadBuildin(BuildIn::atan, "rm_atanFunc");
+		loadBuildin(BuildIn::atan2, "rm_atan2Func");
+		loadBuildin(BuildIn::ceil, "rm_ceilFunc");
+		loadBuildin(BuildIn::cos, "rm_cosFunc");
+		loadBuildin(BuildIn::floor, "rm_floorFunc");
+		loadBuildin(BuildIn::pow, "rm_powFunc");
+		loadBuildin(BuildIn::round, "rm_roundFunc");
+		loadBuildin(BuildIn::sin, "rm_sinFunc");
+		loadBuildin(BuildIn::sqrt, "rm_sqrtFunc");
+		loadBuildin(BuildIn::tan, "rm_tanFunc");
 
 		//Define all functions in the standard library
 		std::vector< std::pair<std::string, FunctionType *> > fs =
@@ -1923,16 +1924,16 @@ public:
 	}
 
 	/** \brief Codegen for substring expressions */
-	LLVMVal visit(std::shared_ptr<SubstringExp> node) {
-		LLVMVal s = castVisit(node->stringExp, TText);
-		LLVMVal f = castVisit(node->fromExp, TInt);
-		LLVMVal t = castVisit(node->toExp, TInt);
-		LLVMVal r = cast(OwnedLLVMVal(builder.CreateCall3(getStdlibFunc("rm_substrText"), s.value, f.value, t.value)), TText, node->type.plain(), node);
-		disown(s, TText);
-		disown(f, TInt);
-		disown(t, TInt);
-		return r;;
-	}
+	// LLVMVal visit(std::shared_ptr<SubstringExp> node) {
+	// 	LLVMVal s = castVisit(node->stringExp, TText);
+	// 	LLVMVal f = castVisit(node->fromExp, TInt);
+	// 	LLVMVal t = castVisit(node->toExp, TInt);
+	// 	LLVMVal r = cast(OwnedLLVMVal(builder.CreateCall3(getStdlibFunc("rm_substrText"), s.value, f.value, t.value)), TText, node->type.plain(), node);
+	// 	disown(s, TText);
+	// 	disown(f, TInt);
+	// 	disown(t, TInt);
+	// 	return r;;
+	// }
 
 	/** \brief Codegen for relation rename */
 	LLVMVal visit(std::shared_ptr<RenameExp> exp) {

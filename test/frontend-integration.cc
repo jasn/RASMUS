@@ -229,13 +229,12 @@ void text(rasmus::teststream & ts) {
 	ts << "diferent3" << result(it("\"monkey\" <> ?-Text", "true"));
 	ts << "global" << result(it("y:=\"abe\"\ny", "abe"));
     ts << "concat" << result(it("\"abe\"++\"bea\"", "abebea"));
-	ts << "substr" << result(it("\"minime\"(1 .. 4)", "ini"));
+	ts << "substr" << result(it("substr(\"minime\", 1, 4)", "ini"));
 	ts << "len" << result(it("|\"abe\"|", "3"));
 	ts << "?" << result(it("?-Text", "?-Text"));
     ts << "?concat" << result(it("?-Text++\"bea\"", "?-Text"));
-	ts << "?substr" << result(it("\"minime\"(?-Int..4)", "?-Text"));
+	ts << "?substr" << result(it("substr(\"minime\", ?-Int, 4)", "?-Text"));
 	ts << "?len" << result(it("|?-Text|", "?-Int"));
-
 }
 
 void integer(rasmus::teststream & ts) {
