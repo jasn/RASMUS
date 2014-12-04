@@ -171,10 +171,6 @@ void RelationWindow::sectionMoved(int logicalIndex, int oldVisualIndex, int newV
 
 	ui.view->horizontalHeader()->moveSection(newVisualIndex, oldVisualIndex);
 	
-	std::cout << "logicalIndex: " << logicalIndex << std::endl
-			  << "oldVisualIndex: " << oldVisualIndex << std::endl
-			  << "newVisualIndex: " << newVisualIndex << std::endl;
-		
 	rasmus::stdlib::RefPtr<rasmus::stdlib::Relation> rel = this->model->rel;
 
 	std::vector<size_t> &pi = rel->permutation;
