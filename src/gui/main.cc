@@ -80,8 +80,8 @@ public:
 		QObject::connect(ui.environment, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)),
 						 this, SLOT(environmentVariableDoubleClicked(QTreeWidgetItem *, int)));
 
-		QObject::connect(interpreter, SIGNAL(updateEnvironment(const char *)), 
-						 this, SLOT(environmentChanged(const char *)));
+		QObject::connect(interpreter, SIGNAL(updateEnvironment(std::string)), 
+						 this, SLOT(environmentChanged(std::string)));
 
 		QObject::connect(&s, SIGNAL(visualUpdate(Settings *)),
 						 ui.console, SLOT(visualUpdate(Settings *)));
@@ -220,11 +220,11 @@ public slots:
 		}
 	}
 
-	void environmentChanged(const char *name) {
+	void environmentChanged(std::string name) {
 		std::stringstream repr;
 
-		AnyRet value;
-		QList<QTreeWidgetItem*> items(ui.environment->findItems(name, Qt::MatchFlag::MatchExactly, 0));
+		AnyRet value;		
+		QList<QTreeWidgetItem*> items(ui.environment->findItems(name.c_str(), Qt::MatchFlag::MatchExactly, 0));
 		QTreeWidgetItem * item;
 		if (items.size() == 0) 
 			item = new QTreeWidgetItem(ui.environment);
@@ -234,13 +234,13 @@ public slots:
 		{
 			rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 
-			if (!rm_existsGlobalAny(name)) {
+			if (!rm_existsGlobalAny(name.c_str())) {
 				delete item;
 				return;
 			}
 
 
-			rm_loadGlobalAny(name, &value);
+			rm_loadGlobalAny(name.c_str(), &value);
 			
 			switch (PlainType(value.type)) {
 			case TBool:
@@ -267,7 +267,7 @@ public slots:
 			}
 		}
 
-		item->setText(0, name);
+		item->setText(0, name.c_str());
 		item->setText(1, QString::fromUtf8(repr.str().c_str()));
 		item->setData(0, Qt::UserRole, (int)value.type);
 		ui.environment->sortItems(0, Qt::SortOrder::AscendingOrder);

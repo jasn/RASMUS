@@ -23,6 +23,7 @@
 #include <shared/type.hh>
 #include <QSize>
 #include <stdlib/anyvalue.hh>
+#include <stdlib/relation.hh>
 #include <string>
 #include <stdlib/text.hh>
 #include <stdlib/lib.h>
@@ -137,6 +138,7 @@ QVariant RelationModel::headerData(int section, Qt::Orientation orientation, int
 }
 
 void RelationModel::sort(int column, Qt::SortOrder order) {
+	
 	{
 		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 		rm_sortRel(rel.get(), column, order==Qt::AscendingOrder);
@@ -144,7 +146,7 @@ void RelationModel::sort(int column, Qt::SortOrder order) {
 	emit layoutChanged();
 }
 
-RelationWindow::RelationWindow(RelationModel * model): model(model) {
+RelationWindow::RelationWindow(RelationModel * model): model(model), modified(false) {
 	ui.setupUi(this);
 	model->setParent(this);
 	ui.view->setModel(model);
@@ -152,17 +154,24 @@ RelationWindow::RelationWindow(RelationModel * model): model(model) {
 	if (!model->relationName.empty())
 		setWindowTitle(QString::fromUtf8(model->relationName.c_str()) + " - Relation");
 
-
 	// Permutation of attributes
 	// Also need to create a slot for the signal QHeaderView::sectionMoved
 	ui.view->horizontalHeader()->setMovable(true);
 	
 	QObject::connect(ui.view->horizontalHeader(), SIGNAL(sectionMoved(int, int, int)), 
 					 this, SLOT(sectionMoved(int, int, int)));
-
 }
 
 void RelationWindow::sectionMoved(int logicalIndex, int oldVisualIndex, int newVisualIndex) {
+
+	// if unmodified, make a copy
+	if (!this->modified) {
+		// copy
+		this->model->rel = rs::copyRelation(this->model->rel);
+		// make a STAR appear in the window.
+		setWindowTitle(windowTitle() + "*");
+		this->modified = true;
+	}
 	static bool inSectionMoved=false;
 	if (inSectionMoved) return;
 	inSectionMoved = true;
@@ -179,7 +188,7 @@ void RelationWindow::sectionMoved(int logicalIndex, int oldVisualIndex, int newV
 	pi.insert(pi.begin()+newVisualIndex, x);
 	
 	// save permutation to file.
-	emit permutationChanged(this->model);
+	//emit permutationChanged(this->model);
 }
 
 void RelationWindow::showAbout() {
@@ -191,6 +200,7 @@ void RelationWindow::saveAsGlobal() {
 	if (relName.isEmpty()) return;
 	rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 	rm_saveGlobalAny(relName.toUtf8().data(), reinterpret_cast<uint64_t>(model->rel.get()), TRel);
+	setWindowTitle(relName + " - Relation");
 }
 
 void RelationWindow::exportCSV() {

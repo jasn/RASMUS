@@ -59,6 +59,7 @@ signals:
 private:
 	Ui::RelationWindow ui;
 	RelationModel * model;
+	bool modified;
 };
 
 RelationWindow* showTableViewWindow(RelationModel * rm);
