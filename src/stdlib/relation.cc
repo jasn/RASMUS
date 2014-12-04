@@ -1909,9 +1909,10 @@ int64_t rm_addRel(rm_object * lhs, const char * name, uint64_t range) {
 								name, PlainType(rel->schema->attributes[index].type), "addition");
 
 	int64_t ret = 0;
-	for(auto tup : rel->tuples)
-		ret += tup->values[index].intValue;
-	
+	for(auto tup : rel->tuples) {
+		auto v=tup->values[index].intValue;
+		if (v != RM_NULLINT) ret += v; 
+	}
 	return ret;
 }
 
@@ -1931,9 +1932,10 @@ int64_t rm_multRel(rm_object * lhs, const char * name, uint64_t range) {
 								name, PlainType(rel->schema->attributes[index].type), "multiplication");
 
 	int64_t ret = 1;
-	for(auto tup : rel->tuples)
-		ret *= tup->values[index].intValue;
-	
+ 	for(auto tup : rel->tuples) {
+		auto v=tup->values[index].intValue;
+		if (v != RM_NULLINT) ret *= v;
+	}
 	return ret;
 }
 

@@ -511,7 +511,7 @@ public:
 			// too few args
 			std::stringstream ss;
 			ss << "Too "
-			   << (node->args.size() < argumentTypes.size()?"few":"many")
+			   << ((node->args.size() < expectedArgs)?"few":"many")
 			   << " arguments to builtin function, received " << node->args.size() 
 			   << " but expected " << expectedArgs;
 			error->reportError(ss.str(), node->nameToken, {node->charRange});

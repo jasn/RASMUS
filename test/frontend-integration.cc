@@ -851,6 +851,9 @@ void relation(rasmus::teststream & ts) {
 "min(X, b)", "3"));
 	ts << "min6" << result(it("min(rel(tup(abe: ?-Int)) + rel(tup(abe: 5)), abe)", "5"));
 	ts << "min7" << result(it("min(rel(tup(abe: ?-Int)), abe)", "?-Int"));
+	ts << "min8" << result(it("min(rel(tup(abe: ?-Float)), abe)", "?-Float"));
+	ts << "min9" << result(it("min(rel(tup(abe: 4.7))+rel(tup(abe: 4.8)), abe)", "4.7"));
+	ts << "min10" << result(it("min(rel(tup(abe: ?-Float))+rel(tup(abe: 4.8)), abe)", "4.8"));
 	ts << "min_error1" << result(it("min(zero, kat)", "", true));
 	ts << "min_error2" << result(it("min(rel(tup(foo:1)), kat)", "", true));
 	ts << "min_error3" << result(it("X := rel(tup(a:1,b:3)) + rel(tup(a:1,b:4)) + rel(tup(a:0,b:5)) + rel(tup(a:1, b:5)) + rel(tup(a:0,b:10)) + rel(tup(a:99,b:99)) + rel(tup(a:0,b:0));"
@@ -864,11 +867,19 @@ void relation(rasmus::teststream & ts) {
 	ts << "max4" << result(it("max(rel(tup(abe: ?-Int)) + rel(tup(abe: 5)), abe)", "5"));
 	ts << "max5" << result(it("max(rel(tup(abe: ?-Int)), abe)", "?-Int"));
 	ts << "max6" << result(it("max(rel(tup(abe: ?-Int)) + rel(tup(abe: 0)), abe)", "0"));
+	ts << "max7" << result(it("max(rel(tup(abe: ?-Float)), abe)", "?-Float"));
+	ts << "max8" << result(it("max(rel(tup(abe: 4.7))+rel(tup(abe: 4.8)), abe)", "4.8"));
+	ts << "max8" << result(it("max(rel(tup(abe: 4.7))+rel(tup(abe: ?-Float)), abe)", "4.7"));
 	ts << "max_error1" << result(it("max(zero, kat)", "", true));
 	ts << "max_error2" << result(it("max(rel(tup(foo:1)), kat)", "", true));
 	ts << "add1" << result(it("add(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "9"));
 	ts << "add2" << result(it("X := rel(tup(a:1,b:3)) + rel(tup(a:1,b:4)) + rel(tup(a:0,b:5)) + rel(tup(a:1, b:5)) + rel(tup(a:0,b:10)) + rel(tup(a:99,b:99)) + rel(tup(a:0,b:0));"
 "add(X, a)", "102"));
+	ts << "add3" << result(it("add(rel(tup(abe: 4)) + rel(tup(abe: ?-Int)), abe)", "4"));
+	ts << "add4" << result(it("add(rel(tup(abe: 4.2)) + rel(tup(abe: ?-Float)), abe)", "4.2"));
+	ts << "add5" << result(it("add(rel(tup(abe: 4.2)) + rel(tup(abe: 1.2)), abe)", "5.42"));
+	ts << "add6" << result(it("add(rel(tup(abe: ?-Int)), abe)", "0"));
+	ts << "add7" << result(it("add(rel(tup(abe: ?-Float)), abe)", "0.0"));
 	ts << "add_error1" << result(it("add(zero, kat)", "", true));
 	ts << "add_error2" << result(it("add(rel(tup(foo:1)), kat)", "", true));
 	ts << "add_error3" << result(it("add(rel(tup(foo:\"2\")), foo)", "", true));
@@ -876,7 +887,12 @@ void relation(rasmus::teststream & ts) {
 	ts << "mult1" << result(it("mult(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "20"));
 	ts << "mult2" << result(it("mult(rel(tup(abe: 0)) + rel(tup(abe: 5)), abe)", "0"));
 	ts << "mult3" << result(it("X := rel(tup(a:1,b:1)) + rel(tup(a:1,b:2)) + rel(tup(a:0,b:3)) + rel(tup(a:1, b:4)) + rel(tup(a:0,b:5)) + rel(tup(a:99,b:6)) + rel(tup(a:0,b:7));"
-"mult(X, b)", "5040"));
+							   "mult(X, b)", "5040"));
+	ts << "mult4" << result(it("add(rel(tup(abe: 4)) + rel(tup(abe: ?-Int)), abe)", "4"));
+	ts << "mult5" << result(it("add(rel(tup(abe: 4.2)) + rel(tup(abe: ?-Float)), abe)", "4.2"));
+	ts << "mult6" << result(it("add(rel(tup(abe: 4.2)) + rel(tup(abe: 1.2)), abe)", "5.04"));
+	ts << "mult7" << result(it("add(rel(tup(abe: ?-Int), abe))", "1"));
+	ts << "mult8" << result(it("add(rel(tup(abe: ?-Float)), abe)", "1.0"));
 	ts << "mult_error1" << result(it("mult(zero, kat)", "", true));
 	ts << "mult_error2" << result(it("mult(rel(tup(foo:1)), kat)", "", true));
 	ts << "mult_error3" << result(it("mult(rel(tup(foo:true)), foo)", "", true));
