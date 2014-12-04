@@ -1012,6 +1012,7 @@ bool relation_external() {
 	std::shared_ptr<rasmus::frontend::Interperter> interperter=rasmus::frontend::makeInterperter(cb);
 	interperter->setup();
 	std::string input = "2\n"
+		"0 1\n"
 		"T Name\n"
 		"I Age\n" 
 		"Bruce Jones\n" 
@@ -1022,8 +1023,10 @@ bool relation_external() {
 		"12\n" 
 		"Kenneth Lewis\n" 
 		"17\n";
+
 	cb->relations["abe"] = input;
 	if (!interperter->runLine("hat:=abe")) return false;
+
 	ensure_eq(cb->relations["hat"], input);
 	return true;
 }

@@ -30,7 +30,7 @@ bool printRel(){
 	std::cout << std::endl;
 
 	{
-		std::string input = "2\n" 
+		std::string input = "2\n"
 			"T Name\n"
 			"I Age\n" 
 			"Bruce Jones\n" 
@@ -84,7 +84,8 @@ bool printRel(){
 bool loadAndSave(){
 
 	{
-		std::string input = "2\n" 
+		std::string input = "2\n"
+			"0 1\n"
 			"T Name\n"
 			"I Age\n" 
 			"Bruce Jones\n" 
@@ -110,7 +111,8 @@ bool loadAndSave(){
 
    
 	{
-		std::string input = "3\n" 
+		std::string input = "3\n"
+			"0 1 2\n"
 			"T Name\n"
 			"I Age\n" 
 			"B Ugly\n" 
