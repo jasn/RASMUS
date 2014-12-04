@@ -114,6 +114,8 @@ void saveCSVRelationToFile(rm_object * rel, const char * name);
 
 rm_object * loadRelationFromCSVFile(const char * name);
 
+RefPtr<Relation> copyRelation(RefPtr<Relation>);
+
 } //namespace stdlib
 } //namespace rasmus
 
