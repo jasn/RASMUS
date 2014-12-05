@@ -186,9 +186,6 @@ void RelationWindow::sectionMoved(int logicalIndex, int oldVisualIndex, int newV
 	size_t x = pi[oldVisualIndex];
 	pi.erase(pi.begin()+oldVisualIndex);
 	pi.insert(pi.begin()+newVisualIndex, x);
-	
-	// save permutation to file.
-	//emit permutationChanged(this->model);
 }
 
 void RelationWindow::showAbout() {
@@ -339,8 +336,7 @@ void RelationWindow::showPrint() {
 	
 }
 
-RelationWindow * showTableViewWindow(RelationModel * rm) {
+void showTableViewWindow(RelationModel * rm) {
 	RelationWindow * w = new RelationWindow(rm);
 	w->show();
-	return w;
 }

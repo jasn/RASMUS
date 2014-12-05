@@ -61,7 +61,7 @@ signals:
 	void incomplete();
 	void complete();
 	void display(QString string);
-	void updateEnvironment(std::string name);
+	void updateEnvironment(QString name);
 	void bussy(bool);
 
 	void displayRelation(rasmus::stdlib::Relation *);

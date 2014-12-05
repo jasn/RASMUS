@@ -247,7 +247,7 @@ bool Interpreter::relationExists(QString relationName) {
 }
 
 void Interpreter::environmentChanged(const char * name) {
-	emit updateEnvironment(name);
+	emit updateEnvironment(QString(name));
 }
 
 void Interpreter::enterRelationToEnvironment(rm_object * rel, const char * name) {
