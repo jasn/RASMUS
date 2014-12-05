@@ -55,7 +55,6 @@ public slots:
 	void cancel();
 	void runContent(QString name, QString content);
 	void unset(QString name);
-	void savePermutation(RelationModel * model);
 	
 signals:
 	void incomplete();
