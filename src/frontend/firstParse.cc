@@ -571,21 +571,40 @@ public:
         case TokenType::TK_STDFLOAT:
 			node->type = Type::fp();
 			break;
-		case TokenType::TK_BADINT:
+		case TokenType::TK_BADINT: {
 			error->reportWarning(
 				"Integers should not start with 0 (we do not support octals)",
 				node->valueToken);
-			node->type = Type::integer();
-			break;
+			//Fall through
+		}
 		case TokenType::TK_INT:
-			//TODO Validate the integer and check its range
-            //atoi(code->code.substr(node->valueToken.start, node->valueToken.length).c_str());
+		{
+			std::string text = node->valueToken.getText(code);
+			char * end=nullptr;
+			const char * start=text.c_str();
+			errno = 0;
+			strtol(start, &end, 10) ;
+			if (errno == ERANGE) 
+				error->reportError("Integer outside valid range", node->valueToken, {node->charRange});
+			else if (errno != 0 || start+text.size() != end) 
+				error->reportError("Invalid integer", node->valueToken, {node->charRange});
 			node->type = Type::integer();
 			break;
+		}
 		case TokenType::TK_FLOAT:
-			// TODO Validate range
+		{
+			std::string text = node->valueToken.getText(code);
+			char * end=nullptr;
+			const char * start = text.c_str();
+			errno = 0;
+			strtod(start, &end) ;
+			if (errno == ERANGE) 
+				error->reportError("Float outside valid range", node->valueToken, {node->charRange});
+			else if (errno != 0 || start+text.size() != end) 
+				error->reportError("Invalid float", node->valueToken, {node->charRange});
 			node->type = Type::fp();
 			break;
+		}
 		default:
 			internalError(node->valueToken, std::string("Invalid constant type ")+getTokenName(node->valueToken.id));
 			node->type = Type::empty();
