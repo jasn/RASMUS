@@ -192,11 +192,22 @@ void RelationWindow::showAbout() {
 	::showAbout();
 }
 
+void RelationWindow::save() {
+	if (model->relationName.size() > 0) {
+		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
+		rm_saveGlobalAny(model->relationName.c_str(), reinterpret_cast<uint64_t>(model->rel.get()), TRel);
+		setWindowTitle(QString(model->relationName.c_str()) + QString(" - Relation"));
+	} else {
+		this->saveAsGlobal();
+	}
+}
+
 void RelationWindow::saveAsGlobal() {
 	QString relName = QInputDialog::getText(this, tr("Relation name"), tr("Enter a name for the relation"));
 	if (relName.isEmpty()) return;
 	rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 	rm_saveGlobalAny(relName.toUtf8().data(), reinterpret_cast<uint64_t>(model->rel.get()), TRel);
+	model->relationName = std::string(relName.toUtf8().data());
 	setWindowTitle(relName + " - Relation");
 }
 

@@ -49,6 +49,7 @@ public:
 public slots:
 	void showAbout();
 	void saveAsGlobal();
+	void save();
 	void exportCSV();
 	void showPrint();
 	void sectionMoved(int logicalIndex, int oldVisualIndex, int newVisualIndex);
