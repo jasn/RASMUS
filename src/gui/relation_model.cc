@@ -141,7 +141,7 @@ void RelationModel::sort(int column, Qt::SortOrder order) {
 	
 	{
 		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
-		rm_sortRel(rel.get(), column, order==Qt::AscendingOrder);
+		rm_sortRel(rel.get(), rel->permutation[column], order==Qt::AscendingOrder);
 	}
 	emit layoutChanged();
 }
