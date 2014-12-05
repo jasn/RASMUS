@@ -240,7 +240,7 @@ void RelationWindow::showPrint() {
 	std::vector<double> ys(xs.size(), 0);
 	
 	for (size_t i = 0; i < xs.size(); ++i) {
-		std::string tmp = ::getHeaderText(rel->schema->attributes[i]);
+		std::string tmp = ::getHeaderText(rel->schema->attributes[rel->permutation[i]]);
 		xs[i] = p.fontMetrics().width(QString::fromStdString(tmp));
 	}
 
@@ -285,7 +285,7 @@ void RelationWindow::showPrint() {
 			double whereToStartX = 0.0;
 			double headerHeight = 0.0;
 			for (size_t i = 0; i < xs.size(); ++i) {
-				std::string tmp = ::getHeaderText(rel->schema->attributes[i]);
+				std::string tmp = ::getHeaderText(rel->schema->attributes[rel->permutation[i]]);
 				QRectF allowed(whereToStartX, whereToStartY, ys[i], 1e13);
 				QRectF boundingRect;
 				p.drawText(allowed,
