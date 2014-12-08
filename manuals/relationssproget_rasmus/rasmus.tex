@@ -640,7 +640,7 @@ kortere og smallere.
 En m\aa{}de at g\o{}re dem kortere p\aa{} er at udv\ae{}lge de tupler,
 der opfylder en given betingelse. Hertil anvendes den s\aa{}kaldte
 {\em \qind{select}}-operator, som vi skriver p\aa{} f\o{}lgende m\aa{}de
-$$ \META{relation} \mbox{\tt ~?~} \META{betingelse} $$
+$$ \META{relation} \mbox{\tt ~?~(} \META{betingelse} ) $$
 Resultatet er en relation, som indeholder netop de tupler, der opfylder
 betingelsen.
 
@@ -1076,6 +1076,7 @@ Indtil nu har vi stiftet bekendskab med f\o{}lgende typer\index{type}
 \begin{center}
 \begin{tabular}{rl}
 \verb"Int": & heltal \\
+\verb"Float": & komma tal \\
 \verb"Text": & tegnf\o{}lger \\
 \verb"Rel": & relationer \\
 \verb"Func": & funktioner
@@ -1087,8 +1088,8 @@ Der findes endnu to typer i {\sc Rasmus}
 \verb"Bool": & sandhedsv\ae{}rdier \\
 \verb"Tup": & tupler
 \end{tabular}
-\end{center}\index{Int}\index{Text}\index{Bool}\index{Rel}\index{Tup}\index{Func}
-Typerne \verb"Int", \verb"Text" og \verb"Bool", 
+\end{center}\index{Int}\index{Float}\index{Text}\index{Bool}\index{Rel}\index{Tup}\index{Func}
+Typerne \verb"Int", \verb"Float", \verb"Text" og \verb"Bool", 
 hvis v\ae{}rdier er dem der kan st\aa{} i de
 enkelte felter i relationer, kaldes {\em atomare\/} og kan under et\index{atomar}
 angives med f\ae{}llesbetegnelsen \verb"Atom".  Den totale samling af de seks 
@@ -1098,6 +1099,7 @@ De atomare typer har de s\ae{}dvanlige {\em konstanter}, det vil sige\index{kons
 \begin{center}
 \begin{tabular}{rl}
 \verb"Int": & \ldots, \verb"-1", \verb"0", \verb"1", \verb"2", \ldots\\
+\verb"Float": & \ldots, \verb"-1.2", \verb"0.0", \verb"1e-7", \verb"2e3", \ldots\\
 \verb"Bool": & \verb"true", \verb"false"\\
 \verb"Text": & \verb:"dette er en konstant af type Text":
 \end{tabular}
@@ -1428,7 +1430,7 @@ kan konstrueres og komponeres p\aa{} helt ensartet vis, hvilket ogs\aa{}
 kan udtrykkes som, at ``alle typer er f\o{}rsteklasses borgere''.
 
 Som n\ae{}vnt har {\sc Rasmus} typerne
-\verb"Bool", \verb"Int", \verb"Text", \verb"Tup", \verb"Rel" og \verb"Func".
+\verb"Bool", \verb"Int", \verb"Float", \verb"Text", \verb"Tup", \verb"Rel" og \verb"Func".
 Ethvert udtryk har en type, nemlig typen af den v\ae{}rdi, der
 bliver resultatet. 
 
@@ -1878,8 +1880,8 @@ kan b\aa{}de navngives og gemmes, og at udtryk af alle typer
 kan v\ae{}re parametre til og resultater af funktioner. I det f\o{}lgende
 giver vi en mere systematisk fremstilling af udseendet af de forskellige
 udtrykstyper. Vi betegner udtryk af type 
-\verb"Int", \verb"Bool", \verb"Text", \verb"Tup", \verb"Rel"
-og \verb"Func" med henholdsvis $\cal I$, $\cal B$, $\cal X$, $\cal T$, 
+\verb"Int", \verb"Float", \verb"Bool", \verb"Text", \verb"Tup", \verb"Rel"
+og \verb"Func" med henholdsvis $\cal I$, $\cal D$, $\cal B$, $\cal X$, $\cal T$, 
 $\cal R$ og $\cal F$. Et udtryk af en atomar type betegnes $\cal A$.
 Et udtryk af en {\em ordnet\/} type betegnes $\cal O$; alle typer\index{ordnet type}
 p\aa{}n\ae{}r \verb"Func" er ordnede og kan dermed sammenlignes med
@@ -1903,7 +1905,7 @@ Betegnelse & Syntaks \\\hline
 \qind{konjunktion} & ${\cal B}_1$ \verb"and" ${\cal B}_2$\\
 \qind{disjunktion} & ${\cal B}_1$ \verb"or" ${\cal B}_2$\\
 \qind{skemacheck} & \verb"has("$\cal R$\verb",n)"\\
-\qind{typecheck} & \verb"is-Int("$\cal R$\verb",n)", \verb"is-Bool("$\cal R$\verb",n)", \verb"is-Text("$\cal R$\verb",n)"\\
+\qind{typecheck} & \verb"is-Int("$\cal R$\verb",n)", \verb"is-Float("$\cal R$\verb",n)",\\& \verb"is-Bool("$\cal R$\verb",n)", \verb"is-Text("$\cal R$\verb",n)"\\
 \qind{maksimum} & \verb"max("$\cal R$\verb",n)"\\
 \qind{minimum} & \verb"min("$\cal R$\verb",n)"\\
 \qind{funktionsanvendelse} & $\cal F$\verb"("${\cal U}_1$\verb",...,"${\cal U}_k$\verb")"\\
@@ -1935,6 +1937,7 @@ Betegnelse & Syntaks \\\hline
 \qind{rest} & ${\cal I}_1$ \verb"mod" ${\cal I}_2$\\
 \qind{relationsst\o{}rrelse} & \verb"|"$\cal R$\verb"|"\\
 \qind{tekstl\ae{}ngde} & \verb"|"$\cal X$\verb"|"\\
+\qind{afrunding} & \verb"floor("$\cal D$\verb")", \verb"ceil("$\cal D$\verb")", \verb"round("$\cal D$\verb")"\\
 \qind{maksimum} & \verb"max("$\cal R$\verb",n)"\\
 \qind{minimum} & \verb"min("$\cal R$\verb",n)"\\
 \qind{addition} & \verb"add("$\cal R$\verb",n)"\\
@@ -1944,7 +1947,37 @@ Betegnelse & Syntaks \\\hline
 \qind{indskudt udtryk} & \verb"(+ val n"$_1$\verb"="${\cal U}_1$ \ldots
 \verb"val n"$_k$\verb"="${\cal U}_k$ \verb"in" $\cal I$ \verb"+)"\\
 \qind{betinget udtryk} & \verb"if" $\cal B$ \verb"->" $\cal I$ \ldots \verb"fi"\\
-\qind{antal dage} & \verb"days("${\cal X}_1$,${\cal X}_2$\verb")"\\
+%\qind{antal dage} & \verb"days("${\cal X}_1$,${\cal X}_2$\verb")"\\
+\hline
+\end{tabular}
+\end{center}
+\newpage
+Udtryk af type \verb"Float" $(\cal D)$:\index{Int}
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Betegnelse & Syntaks \\\hline
+\qind{konstant} & f.eks. \verb"-2.0", \verb"1e-10"\\
+\qind{standardv\ae{}rdi} & \verb"?-Float" \\
+\qind{navn} & \verb"n" \\
+\qind{attribut} & $\cal T$\verb".n" \\
+\qind{sum} & ${\cal D}_1$ \verb"+" ${\cal D}_2$, ${\cal I}_1$ \verb"+" ${\cal D}_2$ og ${\cal D}_1$ \verb"+" ${\cal I}_2$\\
+\qind{differens} & ${\cal D}_1$ \verb"-" ${\cal D}_2$, ${\cal I}_1$ \verb"-" ${\cal D}_2$ og ${\cal D}_1$ \verb"-" ${\cal I}_2$\\
+\qind{produkt} & ${\cal D}_1$ \verb"*" ${\cal D}_2$, ${\cal I}_1$ \verb"*" ${\cal D}_2$ og ${\cal D}_1$ \verb"*" ${\cal I}_2$\\
+\qind{kvotient} & ${\cal D}_1$ \verb"/" ${\cal D}_2$, ${\cal I}_1$ \verb"/" ${\cal D}_2$ og ${\cal D}_1$ \verb"/" ${\cal I}_2$\\
+\qind{rest} & ${\cal I}_1$ \verb"mod" ${\cal D}_2$, ${\cal D}_1$ \verb"mod" ${\cal D}_2$ og ${\cal D}_1$ \verb"mod" ${\cal I}_2$\\
+\qind{maksimum} & \verb"max("$\cal R$\verb",n)"\\
+\qind{minimum} & \verb"min("$\cal R$\verb",n)"\\
+\qind{addition} & \verb"add("$\cal R$\verb",n)"\\
+\qind{multiplikation} & \verb"mult("$\cal R$\verb",n)"\\
+\qind{funktionsanvendelse} & $\cal F$\verb"("${\cal U}_1$\verb",...,"${\cal U}_k$\verb")"\\
+\qind{indskudt udtryk} & \verb"(+ val n"$_1$\verb"="${\cal U}_1$ \ldots
+\verb"val n"$_k$\verb"="${\cal U}_k$ \verb"in" $\cal I$ \verb"+)"\\
+\qind{betinget udtryk} & \verb"if" $\cal B$ \verb"->" $\cal I$ \ldots \verb"fi"\\
+\qind{trigonometri} & \verb"sin("$\cal D$\verb")", \verb"cos("$\cal D$\verb")", \verb"tan("$\cal D$\verb")",\\
+&\verb"asin("$\cal D$\verb")", \verb"acos("$\cal D$\verb")", \verb"atan("$\cal D$\verb")", \verb"atan2("$\cal D$, $\cal D$\verb")"\\
+\qind{eksponent} & \verb"sqrt("$\cal D$\verb")", \verb"pow("$\cal D$, $\cal D$\verb")", \verb"abs("$\cal D$\verb")" \\
+%\qind{antal dage} & \verb"days("${\cal X}_1$,${\cal X}_2$\verb")"\\
 \hline
 \end{tabular}
 \end{center}
@@ -1958,7 +1991,7 @@ Betegnelse & Syntaks \\\hline
 \qind{standardv\ae{}rdi} & \verb"?-Text" \\
 \qind{navn} & \verb"n" \\
 \qind{attribut} & $\cal T$\verb".n" \\
-\qind{deltekst} & $\cal X$\verb"("${\cal I}_1$\verb".."${\cal I}_2$\verb")"\\
+\qind{deltekst} & \verb"substr("$\cal X$\verb", "${\cal I}_1$\verb", "${\cal I}_2$\verb")"\\
 \qind{konkatenation} & ${\cal X}_1$ \verb"++" ${\cal X}_2$\\
 \qind{maksimum} & \verb"max("$\cal R$\verb",n)"\\
 \qind{minimum} & \verb"min("$\cal R$\verb",n)"\\
@@ -1968,8 +2001,8 @@ Betegnelse & Syntaks \\\hline
 \qind{betinget udtryk} & \verb"if" $\cal B$ \verb"->" $\cal X$ \ldots \verb"fi"\\
 \qind{pr\ae{}fiks} & \verb"before("${\cal X}_1$,${\cal X}_2$\verb")"\\
 \qind{suffiks} & \verb"after("${\cal X}_1$,${\cal X}_2$\verb")"\\
-\qind{dags dato} & \verb"today"\\
-\qind{fremtidig dato} & \verb"date("${\cal X}$,${\cal I}$\verb")"\\
+%\qind{dags dato} & \verb"today"\\
+%\qind{fremtidig dato} & \verb"date("${\cal X}$,${\cal I}$\verb")"\\
 \hline
 \end{tabular}
 \end{center}
@@ -2083,7 +2116,7 @@ V\ae{}rdierne skabes som resultater af udtryk, hvorfor udtryk ogs\aa{}
 klassificeres efter hvilken slags v\ae{}rdier, de producerer.
 I datalogisk terminologi bruger man {\em typer}, det vil sige,\index{type}
 at vi i {\sc Rasmus} har v\ae{}rdier og udtryk af typerne:
-\verb"Int", \verb"Bool", \verb"Text", \verb"Tup", \verb"Rel" og \verb"Func".
+\verb"Int", \verb"Float", \verb"Bool", \verb"Text", \verb"Tup", \verb"Rel" og \verb"Func".
 
 \subsection{Konstante udtryk}
 Ethvert udtryk skaber (eller producerer) alts\aa{} en v\ae{}rdi af den
@@ -2103,7 +2136,8 @@ der angiver deres v\ae{}rdier. Som n\ae{}vnt i kapitel 4 er
 f\o{}lgende eksempler karakteristiske for konstante udtryk af de
 forskellige typer
 {\tt
-\begin{description}%% {{\tt ~~~Text}:}
+  \begin{description}%% {{\tt ~~~Text}:}
+  \item[{\tt ~~~Float}:] 1.2
 \item[{\tt ~~~Bool}:] true 
 \item[{\tt ~~~Text}:] "AGF"
 \item[{\tt ~~~Tup}:] tup(hold:"AGF")
@@ -2113,6 +2147,7 @@ forskellige typer
 }
 Deres v\ae{}rdier er henholdsvis
 \begin{itemize}
+\item decimal tallet 1.2
 \item sandhedsv\ae{}rdien sand
 \item tegnf\o{}lgen best\aa{}ende af tegnene \verb"A", \verb"G" og \verb"F"
 \item et tupel med attribut \verb"hold" hvis tilsvar\-en\-de v\ae{}rdi er
@@ -2127,6 +2162,7 @@ Enhver type har en {\em m\ae{}ngde\/} af v\ae{}rdier knyttet til sig.
 V\ae{}rdim\ae{}ngderne i {\sc Rasmus} er\index{v\ae{}rdim\ae{}ngde}
 \begin{description}%% {{\tt ~~~Text}:}
 \item[{\tt ~~~Int}:] m\ae{}ngden af heltal
+\item[{\tt ~~~Float}:] m\ae{}ngden af komma tal (IEEE 754, double)
 \item[{\tt ~~~Bool}:] de to sandhedsv\ae{}rdier
 \item[{\tt ~~~Text}:] m\ae{}ngden af f\o{}lger af ASCII tegn
 \item[{\tt ~~~Tup}:] m\ae{}ngden af tupler
@@ -2136,11 +2172,12 @@ m\ae{}ngde af tupler med samme skema
 argumenter af en af de seks typer og med et resultat, der er af en af de seks
 typer
 \end{description}
-V\ae{}rdim\ae{}ngden i \verb"Int", \verb"Bool", \verb"Text", \verb"Tup" og
+V\ae{}rdim\ae{}ngden i \verb"Int", \verb"Float", \verb"Bool", \verb"Text", \verb"Tup" og
 \verb"Rel" er {\em ordnede}, det vil sige, man kan sammenligne deres
 v\ae{}rdier. Ordningerne er som f\o{}lger
 \begin{description}%% {{\tt ~~~Text}:}
 \item[{\tt ~~~Int}:] den s\ae{}dvanlige ordning p\aa{} heltallene
+\item[{\tt ~~~Float}:] den s\ae{}dvanlige ordning p\aa{} decimaltallene
 \item[{\tt ~~~Bool}:] \verb"false" er mindre end \verb"true"
 \item[{\tt ~~~Text}:] alfabetisk ordning, hvor ``bogstaverne'' er ASCII tegn
 i den s\ae{}dvanlige r\ae{}kkef\o{}lge
@@ -2151,12 +2188,12 @@ til f\ae{}lles attributnavne er ens i de to tupler.
 de har samme skema, og alle tupler i {\tt r$_1$} ogs\aa{} 
 forekommer i {\tt r$_2$}
 \end{description}
-For de tre atomare typer (\verb"Int", \verb"Bool" og \verb"Text")
-er dette imidlertid ikke hele sandheden. De tre typer, hvis
+For de tre atomare typer (\verb"Int", \verb"Float", \verb"Bool" og \verb"Text")
+er dette imidlertid ikke hele sandheden. De fire typer, hvis
 v\ae{}rdier er de eneste mulige attributv\ae{}rdier, har endnu en v\ae{}rdi,
 nemlig den s\aa{}kaldte {\em \qind{standardv\ae{}rdi}}. Disse 
 standardv\ae{}rdier kan angives
-med konstantudtrykkene \verb"?-Int", \verb"?-Bool" og \verb"?-Text".
+med konstantudtrykkene \verb"?-Int", \verb"?-Float", \verb"?-Bool" og \verb"?-Text".
 Meningen med og behovet for s\aa{}danne standardv\ae{}rdier kan
 illustreres af f\o{}lgende udvidelse af informationen om vore
 fodboldkampe. Relationen
@@ -2434,7 +2471,7 @@ En dato repr\ae{}senteres som en tekst p\aa{} formen {\tt dd/mm/\aa{}\aa{}}.
 
 {\bf For \verb"Text"-udtryk g\ae{}lder f\o{}lgende.}
 
-{\em Deltekst $\cal X$\verb"("${\cal I}_1$\verb".."${\cal I}_2$\verb")":}\\
+{\em Deltekst \verb"substr("$\cal X$\verb", "${\cal I}_1$\verb","${\cal I}_2$\verb")":}\\
 Resultatet er delteksten af $\cal X$ best\aa{}ende af de tegn, hvis
 indices er st\o{}rre end eller lig med v\ae{}rdien af 
 ${\cal I}_1$ om mindre end v\ae{}rdien af ${\cal I}_2$.\index{deltekst}
@@ -2453,12 +2490,12 @@ Resultatet er den del af ${\cal X}_2$, der st\aa{}r efter f\o{}rste forekomst af
 delteksten ${\cal X}_1$. Hvis ${\cal X}_1$ slet ikke forekommer, s\aa{} er
 resultatet den tomme tekst.
 
-{\em Dags dato \verb"today":}\index{dags dato}\index{today}\\
-Resultatet er dags dato p\aa{} formen {\tt dd/mm/\aa{}\aa{}}.
+%% {\em Dags dato \verb"today":}\index{dags dato}\index{today}\\
+%% Resultatet er dags dato p\aa{} formen {\tt dd/mm/\aa{}\aa{}}.
 
-{\em Fremtidig dato \verb"date("${\cal X}$,${\cal I}$\verb")":}\index{fremtidig dato}\index{date}\\
-Resultatet er den dato, der ligger ${\cal I}$ dage senere end datoen ${\cal X}$.
-En dato repr\ae{}senteres som en tekst p\aa{} formen {\tt dd/mm/\aa{}\aa{}}.
+%% {\em Fremtidig dato \verb"date("${\cal X}$,${\cal I}$\verb")":}\index{fremtidig dato}\index{date}\\
+%% Resultatet er den dato, der ligger ${\cal I}$ dage senere end datoen ${\cal X}$.
+%% En dato repr\ae{}senteres som en tekst p\aa{} formen {\tt dd/mm/\aa{}\aa{}}.
 
 {\bf For \verb"Tup"-udtryk g\ae{}lder f\o{}lgende.}
 
@@ -2558,19 +2595,19 @@ f\o{}lgende sammenh\ae{}nge mellem union, join, select og project
 (hvor vi antager, at begge sider af ligningerne er lovlige udtryk)
 \begin{center}
 \begin{tabular}{rcl}
- \verb"(x * y) ? b" & \verb"=" & \verb"(x ? b) * (y ? b)"\\
- \verb"(x + y) ? b" & \verb"=" & \verb"(x ? b) + (y ? b)"\\
+ \verb"(x * y) ? (b)" & \verb"=" & \verb"(x ? (b)) * (y ? (b))"\\
+ \verb"(x + y) ? (b)" & \verb"=" & \verb"(x ? (b)) + (y ? (b))"\\
  \verb"(x + y) |+ a" & \verb"=" & \verb"(x |+ a) + (y |+ a)"\\
- \verb"(x |+ a) ? b" & \verb"=" & \verb"(x ? b) |+ a"
+ \verb"(x |+ a) ? (b)" & \verb"=" & \verb"(x ? (b)) |+ a"
 \end{tabular}
 \end{center}
 Hertil kommer, at select spiller sammen med de logiske operatorer
 p\aa{} f\o{}lgende m\aa{}de
 \begin{center}
 \begin{tabular}{rcl}
-\verb"x ? (b and c)" & \verb"=" & \verb"(x ? b) * (x ? c)"\\
-\verb"x ? (b or c)" & \verb"=" & \verb"(x ? b) + (x ? c)"\\
-\verb"x ? (not b)" & \verb"=" & \verb"x - (x ? b)"
+\verb"x ? (b and c)" & \verb"=" & \verb"(x ? (b)) * (x ? (c))"\\
+\verb"x ? (b or c)" & \verb"=" & \verb"(x ? (b)) + (x ? (c))"\\
+\verb"x ? (not b)" & \verb"=" & \verb"x - (x ? (b))"
 \end{tabular}
 \end{center}
 Der findes andre, mere subtile love, som vi ikke skal komme n\ae{}rmere
@@ -2670,67 +2707,67 @@ F\o{}lgende funktion fjerner holdet \verb"hold" fra \verb"Runde1" og \verb"Runde
 \end{center}
 }
 
-\subsection{Udskrifter}
-{\sc Rasmus} underst\o{}tter en simpel mekanisme til at udskrive 
-rapporter p\aa{} tekstfiler. Udtrykket 
-\begin{center}
-\verb"open("{\bf tekstudtryk}\verb")"
-\end{center}
-\aa{}bner UNIX-filen med navn {\bf tekstudtryk}, der herefter er den aktuelle
-fil; udtrykket
-\begin{center}
-\verb"write("{\bf tekstudtryk}\verb")"
-\end{center}
-skriver {\bf tekstudtryk} i den aktuelle fil; linjeskift angives med
-\verb'"'$\backslash$\verb'n"'; udtrykket 
-\begin{center}
-\verb"close"
-\end{center}
-lukker den aktuelle fil, s\aa{} dens indhold bliver permanent.
+%% \subsection{Udskrifter}
+%% {\sc Rasmus} underst\o{}tter en simpel mekanisme til at udskrive 
+%% rapporter p\aa{} tekstfiler. Udtrykket 
+%% \begin{center}
+%% \verb"open("{\bf tekstudtryk}\verb")"
+%% \end{center}
+%% \aa{}bner UNIX-filen med navn {\bf tekstudtryk}, der herefter er den aktuelle
+%% fil; udtrykket
+%% \begin{center}
+%% \verb"write("{\bf tekstudtryk}\verb")"
+%% \end{center}
+%% skriver {\bf tekstudtryk} i den aktuelle fil; linjeskift angives med
+%% \verb'"'$\backslash$\verb'n"'; udtrykket 
+%% \begin{center}
+%% \verb"close"
+%% \end{center}
+%% lukker den aktuelle fil, s\aa{} dens indhold bliver permanent.
 
-\eksempel{
-F\o{}lgende udtryk skriver en lille historie p\aa{} en fil
-\begin{center}
-\begin{tabular}{l}
-{\tt open("r\o{}dh\ae{}tte");}\\
-{\tt write("Den lille R\o{}dh\ae{}tte gik ud i skoven,$\backslash$n");}\\
-{\tt write("og s\aa{} smed de ulven ned i br\o{}nden.$\backslash$n");}\\
-{\tt close}
-\end{tabular}
-\end{center}
-}
+%% \eksempel{
+%% F\o{}lgende udtryk skriver en lille historie p\aa{} en fil
+%% \begin{center}
+%% \begin{tabular}{l}
+%% {\tt open("r\o{}dh\ae{}tte");}\\
+%% {\tt write("Den lille R\o{}dh\ae{}tte gik ud i skoven,$\backslash$n");}\\
+%% {\tt write("og s\aa{} smed de ulven ned i br\o{}nden.$\backslash$n");}\\
+%% {\tt close}
+%% \end{tabular}
+%% \end{center}
+%% }
 
-\subsection{Sorterede genneml\o{}b}
-I forbindelse med relationer har vi flere gange understreget, at
-{\em r\ae{}kkef\o{}lgen\/} af tuplerne ikke har nogen betydning. Det er dog
-ikke sandt for udskrifter, hvor man ofte gerne vil have oplysninger
-i fx alfabetisk orden. For at afhj\ae{}lpe dette problem findes der
-to varianter af operatoren {\em forall\/} (og af {\em factor}).
-Udtrykkene 
-\begin{center}
-\verb"!<("{\bf relation}\verb")"... og \verb"!>("{\bf relation}\verb")"...
-\end{center}
-fungerer ligesom den almindelige {\em forall\/} eller {\em factor},
-bortset fra, at tup\-lerne v\ae{}lges sorteret efter de angivne attributter.
-Varianten \verb"!<" sorterer i ikke-aftagende orden og varianten
-\verb"!>" sorterer i ikke-voksende orden. For almindelige relationelle
-udtryk er en s\aa{}dan r\ae{}kkef\o{}lge ikke relevant, men n\aa{}r man genererer udskrifter,
-s\aa{} kan den v\ae{}re meget nyttigt.
+%% \subsection{Sorterede genneml\o{}b}
+%% I forbindelse med relationer har vi flere gange understreget, at
+%% {\em r\ae{}kkef\o{}lgen\/} af tuplerne ikke har nogen betydning. Det er dog
+%% ikke sandt for udskrifter, hvor man ofte gerne vil have oplysninger
+%% i fx alfabetisk orden. For at afhj\ae{}lpe dette problem findes der
+%% to varianter af operatoren {\em forall\/} (og af {\em factor}).
+%% Udtrykkene 
+%% \begin{center}
+%% \verb"!<("{\bf relation}\verb")"... og \verb"!>("{\bf relation}\verb")"...
+%% \end{center}
+%% fungerer ligesom den almindelige {\em forall\/} eller {\em factor},
+%% bortset fra, at tup\-lerne v\ae{}lges sorteret efter de angivne attributter.
+%% Varianten \verb"!<" sorterer i ikke-aftagende orden og varianten
+%% \verb"!>" sorterer i ikke-voksende orden. For almindelige relationelle
+%% udtryk er en s\aa{}dan r\ae{}kkef\o{}lge ikke relevant, men n\aa{}r man genererer udskrifter,
+%% s\aa{} kan den v\ae{}re meget nyttigt.
 
-\eksempel{
-Dette udtryk udskriver p\aa{} filen \verb"holdliste"
-de deltagende fodboldhold i alfabetisk orden
-\begin{center}
-\begin{tabular}{l}
-\verb'open("holdliste");'\\
-\verb'write("De deltagende fodboldhold er:$\backslash$n$\backslash$n");'\\
-\verb'(!<(Kampe)|HjHold: (write(\#.HjHold); write("$\backslash$n")));'\\
-\verb'close'
-\end{tabular}
-\end{center}
-}
+%% \eksempel{
+%% Dette udtryk udskriver p\aa{} filen \verb"holdliste"
+%% de deltagende fodboldhold i alfabetisk orden
+%% \begin{center}
+%% \begin{tabular}{l}
+%% \verb'open("holdliste");'\\
+%% \verb'write("De deltagende fodboldhold er:$\backslash$n$\backslash$n");'\\
+%% \verb'(!<(Kampe)|HjHold: (write(\#.HjHold); write("$\backslash$n")));'\\
+%% \verb'close'
+%% \end{tabular}
+%% \end{center}
+%% }
 
-\newpage
+%% \newpage
 %% \addcontentsline{toc}{section}{Opgaver}
 %% \subsection*{Opgave R1}
 %% Betragt f\o{}lgende relationer
