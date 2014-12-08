@@ -1,0 +1,178 @@
+html {
+    background-color: gray;
+}
+
+body {
+   background-color: #f9f9f9;
+   color: #222;
+   font-family: Helvetica, sans-serif;
+   width: 50em;
+   margin-left: auto;
+   margin-right: auto;
+   margin-top: 10px;
+   margin-bottom: 10px;
+   padding: 20px;
+}
+
+h1, h2 {
+   border-bottom: 2px solid currentColor;
+}
+
+h1 { color: hsl(208, 53%, 23%) }
+h2 { color: hsl(15, 86%, 36%) }
+
+a:link    { color: #14f; }
+a:visited { color: #32f; }
+a:hover   { color: #36c; }
+a:active  { color: #3c3; }
+
+pre {
+   border: 1px solid #888;
+   padding: 5px;
+}
+
+.menu, .menu li {
+   margin: 0;
+   padding: 0;
+   list-style-type: none;
+}
+
+.menu li {
+   display: inline;
+}
+
+.menu li a {
+   display: inline-block;
+   padding: 3px;
+   min-width: 120px;
+   padding-left: 10px;
+   padding-right: 10px;
+   background-color: #666;
+   text-align: center;
+}
+
+.menu a:hover {
+   background-color: #333;
+}
+
+.menu a:active {
+   background-color: #060;
+}
+
+.menu a {
+   color: white;
+   text-decoration: none;
+}
+
+#recentactivity {
+   border: 1px solid #ddd;
+   width: 60%;
+   margin: 1em 0;
+   background-color: #eee;
+   font-size: 90%;
+   padding: .5em;
+}
+
+#recentactivity ul {
+   margin: 0;
+   padding: 0;
+}
+
+#recentactivity em {
+   font-weight: normal;
+   font-style: normal;
+   text-decoration: underline;
+}
+
+#recentactivity li {
+   font-weight: bold;
+   list-style-type: none;
+   margin-top: .5em;
+}
+
+#recentactivity li.commit {
+   font-weight: normal;
+   margin-top: 0;
+   list-style-type: circle;
+   margin-left: 2em;
+}
+
+#recentactivity a {
+   text-decoration: none;
+}
+
+#recentactivity a:hover {
+   text-decoration: underline;
+}
+
+.release {
+    padding: 10px;
+    border: 1px solid #DDD;
+}
+
+.release .title {
+    font-weight: bold;
+    display: block;
+    font-size: 120%;
+}
+
+.release .date {
+    display: block;
+}
+
+.release .body {
+    font-size: 90%;
+}
+
+.downloads, .downloads li {
+   margin: 0;
+   padding: 0;
+   list-style-type: none;
+}
+
+.downloads {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.downloads li {
+   display: inline;
+   margin-right: 8px;
+}
+
+.downloads li a {
+   display: inline-block;
+   padding: 3px;
+   padding-right: 10px;
+   padding-left: 10px;
+   color: #333;
+   text-decoration: none;
+   text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.9);
+   white-space: nowrap;
+   vertical-align: middle;
+   cursor: pointer;
+   background-color: #EEE;
+   background-image: linear-gradient(#FCFCFC, #EEE);
+   background-repeat: repeat-x;
+   border-radius: 3px;
+   -moz-user-select: none;
+   border: 1px solid #D5D5D5;
+}
+
+.downloads a:hover {
+   background-color: #333;
+}
+
+.downloads a:active {
+   background-color: #060;
+}
+
+.downloads li.windows a, .downloads li.osx a {
+    color: #FFF;
+    text-shadow: 0px -1px 0px rgba(0, 0, 0, 0.25);
+    background-image: linear-gradient(#8ADD6D, #60B044); 
+    border-color: #5CA941;
+    background-color: #60B044;
+}
+
+/* vim:set sw=3 ts=3 sts=3 et: */
