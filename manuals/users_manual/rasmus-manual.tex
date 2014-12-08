@@ -1,13 +1,17 @@
 %\documentstyle[a4,14pt,marginitemize,latin1]{oldarticle}
 \documentclass[a4,14pt,latin1]{article}
-
+%HEVEA\externalcsstrue
+%HEVEA\loadcssfile{../hevea.css}
 \usepackage{graphicx}
 \usepackage{float}
-\begin{document}               
-
+\usepackage{hevea,ifthen}
+\begin{document}
+%HEVEA\newcommand{\index}[1]{}
+\begin{latexonly}
 \parindent 0em
 \parskip \baselineskip %.5ex
 \itemsep 0ex
+\end{latexonly}
 \newcommand{\sectionref}[1]{section~\ref{#1}}
 \newcommand{\chapterref}[1]{chapter~\ref{#1}}
 \newcommand{\Chapterref}[1]{Chapter~\ref{#1}}
@@ -41,8 +45,10 @@
 \newcommand{\mopt}[1]{\fbox{\tt #1}}
 %
 \pagenumbering{roman}
-\tableofcontents
-\newpage
+\begin{latexonly}
+  \tableofcontents
+  \newpage
+\end{latexonly}
 \pagenumbering{arabic}
 %\input{rasmus-manual-chapter1and2}
 \section{Introduction}
@@ -64,7 +70,12 @@ user interface (GUI) window similar to the one shown in
 \figureref{fig:initial_window}.
 
 \begin{figure}
-  \centerline{\includegraphics[scale=0.5]{initial_window.png}}
+  \centering
+  \ifthenelse{\boolean{hevea}}{
+    \imgsrc{initial_window.png}
+  }{
+    \includegraphics[scale=0.5]{initial_window.png}
+  }
   \caption{The initial \RAS{} window}
   \label{fig:initial_window}
 \end{figure}
@@ -86,7 +97,12 @@ by double clicking the variable name. This will pop up a new window
 similar to the one in \figureref{fig:relation_view}.
 
 \begin{figure}
-  \centerline{\includegraphics[scale=0.5]{relation_view.png}}
+  \centering
+  \ifthenelse{\boolean{hevea}}{
+    \imgsrc{relation_view.png}
+  }{
+    \includegraphics[scale=0.5]{relation_view.png}
+  }
   \caption{Inspecting the relation \mopt{Kampe}}{Insepecting the relation \mopt{Kampe}. Note that the
     relation cannot be modified here, that is only possible through
     interaction with the \RAS{} interpreter. It is however possible to
@@ -113,7 +129,12 @@ environment list on the right. This happened because a new variable,
 \mopt{x}, has been defined.
 
 \begin{figure}
-  \centerline{\includegraphics[scale=0.5]{first_exp.png}}
+  \centering
+  \ifthenelse{\boolean{hevea}}{
+    \imgsrc{first_exp.png}
+  }{
+    \includegraphics[scale=0.5]{first_exp.png}
+  }
   \caption{The first \RAS{} expression.}
   \label{fig:first_exp}
 \end{figure}
@@ -190,7 +211,12 @@ relation called {\tt children}.  After starting up the relation {\tt
   children} is loaded and can be seen in the environment (\figureref{fig:startup}).
 
 \begin{figure}[bp]
-  \centerline{\includegraphics[scale=0.5]{persistence_startup.png}}
+  \centering
+  \ifthenelse{\boolean{hevea}}{
+    \imgsrc{persistence_startup.png}
+  }{
+    \includegraphics[scale=0.5]{persistence_startup.png}
+  }
   \caption{Starting up.}
   \label{fig:startup}
 \end{figure}
@@ -210,9 +236,14 @@ brings up a dialog where you can decide where to save the file on your
 disk.
 
 \begin{figure}
-  \centerline{\includegraphics[scale=0.5]{children_relation.png}}
+  \centering
+  \ifthenelse{\boolean{hevea}}{
+    \imgsrc{children_relation.png}
+  }{
+    \includegraphics[scale=0.5]{children_relation.png}
+  }
   \caption{Relation view of the example relation {\tt children}.}
-  \label{fig:relation_view}
+  \label{fig:child_relation}
 \end{figure}
 
 It is also possible to save (copy) relations under a different name by
@@ -240,7 +271,12 @@ relation file in the \mopt{Environment Path}.
 \end{quote}
 
 \begin{figure}[bp]
-  \centerline{\includegraphics[scale=0.5]{delete_relation.png}}
+  \centering
+  \ifthenelse{\boolean{hevea}}{
+    \imgsrc{delete_relation.png}
+  }{
+    \includegraphics[scale=0.5]{delete_relation.png}
+  }
   \caption{Deleting a relation.}
   \label{fig:delete_relation}
 \end{figure}

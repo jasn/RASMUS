@@ -1,76 +1,77 @@
-	\documentstyle[sprite]{article}
-	\makeindex
-	\newcounter{eks}
-	\newlength{\ttlength}
-	\newlength{\eelength}
-	\newlength{\mmlength}
-	\begin{document}
-	\pagenumbering{roman}
-	\tableofcontents
-	\parindent 0pt
-	\parskip 4mm
-	\newcommand{\AssignTy}{\verb":"\raisebox{-1pt}{\tt =}$\,$}
-	\newcommand{\Assign}{\verb":"\raisebox{-1pt}{\tt =}$\,$}
-	\newcommand{\SwapTy}{\verb":"\raisebox{-1pt}{\tt =}\verb":"}
-	\newcommand{\ArrowTy}{$\;\rightarrow\;$}
-	\newcommand{\ExclamTy}{!!}
-	\newcommand{\PromptTy}{?$\!$?}
-	\newcommand{\AMP}{\&$\:$}
-	\newcommand{\UP}[1]{\,\uparrow\!#1}
-	\newcommand{\REL}[2]{{\tt \begin{tabular}{|l|}\hline \multicolumn{1}{|c|}{#1} \\ \hline #2 \\ \hline \end{tabular}}}
-	\newcommand{\RER}[2]{{\tt \begin{tabular}{|r|}\hline \multicolumn{1}{|c|}{#1} \\ \hline #2 \\ \hline \end{tabular}}}
-	\newcommand{\RELR}[3]{{\tt \begin{tabular}{|l|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} \\ \hline #3 \\ \hline \end{tabular}}}
-	\newcommand{\RERL}[3]{{\tt \begin{tabular}{|r|l|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} \\ \hline #3 \\ \hline \end{tabular}}}
-	\newcommand{\RERR}[3]{{\tt \begin{tabular}{|r|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} \\ \hline #3 \\ \hline \end{tabular}}}
-	\newcommand{\RERLL}[4]{{\tt \begin{tabular}{|r|l|l|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} \\ \hline #4 \\ \hline \end{tabular}}}
-	\newcommand{\RERLR}[4]{{\tt \begin{tabular}{|r|l|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} \\ \hline #4 \\ \hline \end{tabular}}}
-	\newcommand{\RELRL}[4]{{\tt \begin{tabular}{|l|r|l|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} \\ \hline #4 \\ \hline \end{tabular}}}
-	\newcommand{\RERRR}[4]{{\tt \begin{tabular}{|r|r|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} \\ \hline #4 \\ \hline \end{tabular}}}
-	\newcommand{\RERLLL}[5]{{\tt \begin{tabular}{|r|l|l|l|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} & \multicolumn{1}{c|}{#4} \\ \hline #5 \\ \hline \end{tabular}}}
-	\newcommand{\RERLLRR}[6]{{\tt \begin{tabular}{|r|l|l|r|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} & \multicolumn{1}{c|}{#4} & \multicolumn{1}{c|}{#5}\\ \hline #6 \\ \hline \end{tabular}}}
-	\newcommand{\RELLRRR}[6]{{\tt \begin{tabular}{|l|l|r|r|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} & \multicolumn{1}{c|}{#4} & \multicolumn{1}{c|}{#5}\\ \hline #6 \\ \hline \end{tabular}}}
-	\newcommand{\RERCRRR}[6]{{\tt \begin{tabular}{|r|c|r|r|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} & \multicolumn{1}{c|}{#4} & \multicolumn{1}{c|}{#5}\\ \hline #6 \\ \hline \end{tabular}}}
-	\setcounter{eks}{0}
-	\settowidth{\ttlength}{\tt x}
-	\def\eksempel#1{
-	  \addtocounter{eks}{1}
-	  \settowidth{\mmlength}{\bf ~Eksempel \arabic{eks}~}
-	  \setlength{\eelength}{\textwidth}
-	  \addtolength{\eelength}{-1cm}
-	  \addtolength{\eelength}{-1pt}
-	  \addtolength{\eelength}{-\mmlength}
+\documentclass{article}
+%HEVEA\externalcsstrue
+%HEVEA\loadcssfile{../hevea.css}
+\usepackage{hevea,ifthen}
+\begin{latexonly}
+  \makeindex
+\end{latexonly}
+\newcounter{eks}
+\newlength{\ttlength}
+\newlength{\eelength}
+\newlength{\mmlength}
+\begin{document}
+%HEVEA\newcommand{\index}[1]{}
+\pagenumbering{roman}
+\begin{latexonly}
+  \tableofcontents
+  \parindent 0pt
+  \parskip 4mm
+\end{latexonly}
+\newcommand{\AssignTy}{\verb":"\raisebox{-1pt}{\tt =}$\,$}
+\newcommand{\Assign}{\verb":"\raisebox{-1pt}{\tt =}$\,$}
+\newcommand{\SwapTy}{\verb":"\raisebox{-1pt}{\tt =}\verb":"}
+\newcommand{\ArrowTy}{$\;\rightarrow\;$}
+\newcommand{\ExclamTy}{!!}
+\newcommand{\PromptTy}{?$\!$?}
+\newcommand{\AMP}{\&$\:$}
+\newcommand{\UP}[1]{\,\uparrow\!#1}
+\newcommand{\REL}[2]{{\tt \begin{tabular}{|l|}\hline \multicolumn{1}{|c|}{#1} \\ \hline #2 \\ \hline \end{tabular}}}
+\newcommand{\RER}[2]{{\tt \begin{tabular}{|r|}\hline \multicolumn{1}{|c|}{#1} \\ \hline #2 \\ \hline \end{tabular}}}
+\newcommand{\RELR}[3]{{\tt \begin{tabular}{|l|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} \\ \hline #3 \\ \hline \end{tabular}}}
+\newcommand{\RERL}[3]{{\tt \begin{tabular}{|r|l|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} \\ \hline #3 \\ \hline \end{tabular}}}
+\newcommand{\RERR}[3]{{\tt \begin{tabular}{|r|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} \\ \hline #3 \\ \hline \end{tabular}}}
+\newcommand{\RERLL}[4]{{\tt \begin{tabular}{|r|l|l|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} \\ \hline #4 \\ \hline \end{tabular}}}
+\newcommand{\RERLR}[4]{{\tt \begin{tabular}{|r|l|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} \\ \hline #4 \\ \hline \end{tabular}}}
+\newcommand{\RELRL}[4]{{\tt \begin{tabular}{|l|r|l|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} \\ \hline #4 \\ \hline \end{tabular}}}
+\newcommand{\RERRR}[4]{{\tt \begin{tabular}{|r|r|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} \\ \hline #4 \\ \hline \end{tabular}}}
+\newcommand{\RERLLL}[5]{{\tt \begin{tabular}{|r|l|l|l|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} & \multicolumn{1}{c|}{#4} \\ \hline #5 \\ \hline \end{tabular}}}
+\newcommand{\RERLLRR}[6]{{\tt \begin{tabular}{|r|l|l|r|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} & \multicolumn{1}{c|}{#4} & \multicolumn{1}{c|}{#5}\\ \hline #6 \\ \hline \end{tabular}}}
+\newcommand{\RELLRRR}[6]{{\tt \begin{tabular}{|l|l|r|r|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} & \multicolumn{1}{c|}{#4} & \multicolumn{1}{c|}{#5}\\ \hline #6 \\ \hline \end{tabular}}}
+\newcommand{\RERCRRR}[6]{{\tt \begin{tabular}{|r|c|r|r|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} & \multicolumn{1}{c|}{#4} & \multicolumn{1}{c|}{#5}\\ \hline #6 \\ \hline \end{tabular}}}
+\setcounter{eks}{0}
+\settowidth{\ttlength}{\tt x}
+\def\eksempel#1{
+  \addtocounter{eks}{1}
+  \settowidth{\mmlength}{\bf ~Eksempel \arabic{eks}~}
+  \setlength{\eelength}{\textwidth}
+  \addtolength{\eelength}{-1cm}
+  \addtolength{\eelength}{-1pt}
+  \addtolength{\eelength}{-\mmlength}
+  \ifthenelse{\boolean{hevea}}{
+    \@open{div}{class="example"}
+    \@open{div}{class="title"}Eksempel \arabic{eks}\@close{div}
+  }{
+    \rule{1cm}{0.7mm} {\bf ~Eksempel \arabic{eks}~} \rule{\eelength}{0.7mm}
+  }
+  #1
+  \ifthenelse{\boolean{hevea}}{
+    \@close{div}
+  }{
+    \rule{2mm}{3mm}
+  }
+}
+\newcommand{\META}[1]{\mbox{\bf #1}}
+\renewcommand{\SS}[1]{\hspace*{#1\ttlength}}
+\newcommand{\qind}[1]{#1\index{#1}}
+\newpage
+\pagenumbering{arabic}
 
-	  \rule{1cm}{0.7mm} {\bf ~Eksempel \arabic{eks}~} \rule{\eelength}{0.7mm}
-
-	  #1
-	  \rule{2mm}{3mm}
-	  }
-	\newcommand{\META}[1]{\mbox{\bf #1}}
-	\newcommand{\SS}[1]{\hspace*{#1\ttlength}}
-	\newcommand{\qind}[1]{#1\index{#1}}
-	\sprite{\grey}(12,7)[0.5\ttlength, 1.5ex]  
-	:B......|
-	:....B..|
-	:.B.....|
-	:.....B.|
-	:..B....|
-	:......B|
-	:...B...|
-	:B......|
-	:....B..|
-	:.B.....|
-	:.....B.|
-	:..B....|
-	\endsprite
-	\newpage
-	\pagenumbering{arabic}
-
-	\section{Introduktion}
-	{\sc Rasmus} er et databasesystem, der er baseret p\aa{} den s\aa{}kaldte
-	{\em relations\-algebra}. Det underst\o{}tter desuden den {\em funktionelle\/}
-	programmeringsstil.
-
-	\subsection{Relationsalgebra}
+\section{Introduktion}
+{\sc Rasmus} er et databasesystem, der er baseret p\aa{} den s\aa{}kaldte
+{\em relations\-algebra}. Det underst\o{}tter desuden den {\em funktionelle\/}
+programmeringsstil.
+        
+\subsection{Relationsalgebra}
 En {\em relation\/} er en tabel som den f\o{}lgende
 \begin{center}
 \RERLL{\AA{}rskort{}:Int}{Navn:Text}{Linje:Text}{  
@@ -2706,6 +2707,7 @@ F\o{}lgende funktion fjerner holdet \verb"hold" fra \verb"Runde1" og \verb"Runde
 \end{tabular}
 \end{center}
 }
+        
 
 %% \subsection{Udskrifter}
 %% {\sc Rasmus} underst\o{}tter en simpel mekanisme til at udskrive 
