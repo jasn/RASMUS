@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="generator" content="hevea 2.14">
+<link rel="stylesheet" type="text/css" href="../hevea.css">
+<link rel="stylesheet" type="text/css" href="../../tmp/rasmus-manual.css"><title>Expressions</title>
+</head>
+<body >
+<a href="rasmus-manual003.html"><img src="previous_motif.gif" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.gif" alt="Up"></a>
+<hr>
+<h2 id="sec11" class="section">4&#XA0;&#XA0;Expressions</h2>
+<p>
+<a id="expressions"></a>
+In this chapter, we define the set of <span style="font-variant:small-caps">Rasmus</span> expressions. We do this
+in several steps. First, we give a grammar from which expressions must
+be generated. Afterwards, we give an informal semantics of <span style="font-variant:small-caps">Rasmus</span>
+expressions. In connection with this semantics, we restrict the set
+of expressions further by adding type constraints.</p>
+<h3 id="sec12" class="subsection">4.1&#XA0;&#XA0;Grammar</h3>
+<p>
+In the following, we define some notation:
+</p><ul class="itemize"><li class="li-itemize">
+<span style="font-weight:bold">Category</span><sup> &#XA0;*</sup> is a sequence of <span style="font-weight:bold">Category</span>
+</li><li class="li-itemize"><span style="font-weight:bold">Category</span><sup> +</sup> is a nonempty sequence of
+<span style="font-weight:bold">Category</span>
+</li><li class="li-itemize"><span style="font-weight:bold">Category</span><sup> &#XA0;*&#X3BB;</sup> is a comma separated sequence
+of <span style="font-weight:bold">Category</span>
+</li><li class="li-itemize"><span style="font-weight:bold">Category</span><sup> +&#X3BB;</sup> is a nonempty comma separated
+sequence of <span style="font-weight:bold">Category</span>
+</li><li class="li-itemize"><span style="font-weight:bold">Category</span><sup> &#X2218;</sup> is either 0 or 1 of
+<span style="font-weight:bold">Category</span>
+</li></ul><p>
+In the following, a grammar for <span style="font-variant:small-caps">Rasmus</span> expressions is presented.</p><table style="border:0;border-spacing:0" class="cellpadding0"><tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">AtomConst</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">RelConst</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">StandardConst</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">tup ( </span><span style="font-weight:bold">NameExp</span><sup>
+&#XA0;*&#X3BB;</sup><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">rel ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">func ( </span><span style="font-weight:bold">NameType</span><sup>
+&#XA0;*&#X3BB;</sup><span style="font-family:monospace"> ) -&gt; ( </span><span style="font-weight:bold">Type</span><span style="font-family:monospace"> ) </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">end</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Name</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Name</span><span style="font-family:monospace"> := </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">#</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">@ ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">not </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> and </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> or </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">- </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> + </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> - </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> * </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> / </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> mod </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> ++ </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> ; </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">| </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> |</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> &lt;&lt; </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> . </span><span style="font-weight:bold">Name</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> </span><code><span style="font-family:monospace">\</span></code><span style="font-family:monospace"> </span><span style="font-weight:bold">Name</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">has ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> , </span><span style="font-weight:bold">Name</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> </span><span style="font-weight:bold">ProjSym</span><span style="font-family:monospace"> </span><span style="font-weight:bold">Name</span><sup>
+&#XA0;+&#X3BB;</sup>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> ? ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> ) </span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> [ </span><span style="font-weight:bold">RenamePair</span><sup>
+&#XA0;+&#X3BB;</sup><span style="font-family:monospace"> ]</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">! ( </span><span style="font-weight:bold">Exp</span><sup>
+&#XA0;+&#X3BB;</sup><span style="font-family:monospace"> ) </span><span style="font-weight:bold">Restrict</span><sup>
+&#XA0;&#X2218;</sup><span style="font-family:monospace"> : </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">!</span><code><span style="font-family:monospace">&lt;</span></code><span style="font-family:monospace"> ( </span><span style="font-weight:bold">Exp</span><sup>
+&#XA0;+&#X3BB;</sup><span style="font-family:monospace"> ) </span><span style="font-weight:bold">Restrict</span><sup>
+&#XA0;&#X2218;</sup><span style="font-family:monospace"> : </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">!</span><code><span style="font-family:monospace">&gt;</span></code><span style="font-family:monospace"> ( </span><span style="font-weight:bold">Exp</span><sup>
+&#XA0;+&#X3BB;</sup><span style="font-family:monospace"> ) </span><span style="font-weight:bold">Restrict</span><sup>
+&#XA0;&#X2218;</sup><span style="font-family:monospace"> : </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">max ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> , </span><span style="font-weight:bold">Name</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">min ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> , </span><span style="font-weight:bold">Name</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">count ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> , </span><span style="font-weight:bold">Name</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">add ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> , </span><span style="font-weight:bold">Name</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">mult ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> , </span><span style="font-weight:bold">Name</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">substr ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace">, </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace">, </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">sin ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">cos ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">tan ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">asin ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">acos ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">atan ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">atan2 ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace">, </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">round ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">ceil ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">floor ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">sqrt ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">pow ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace">, </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> = </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> &lt;&gt; </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> &lt; </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> &gt; </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> &lt;= </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> &gt;= </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> </span><code><span style="font-family:monospace">~</span></code><span style="font-family:monospace"> </span><span style="font-weight:bold">Exp</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">if </span><span style="font-weight:bold">Guards</span><span style="font-family:monospace"> fi</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">(+ </span><span style="font-weight:bold">NameValue</span><sup> &#XA0;*</sup><span style="font-family:monospace"> in </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> +)</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> ( </span><span style="font-weight:bold">Exp</span><sup>
+&#XA0;*&#X3BB;</sup><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">AtomConst</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">BoolConst</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-weight:bold">IntConst</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-weight:bold">FloatConst</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-weight:bold">TextConst</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">BoolConst</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">true</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">false </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">IntConst</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Digit</span><sup> +</sup><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Digit</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">0</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">1</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">2</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">3</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">4</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">5</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">6</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">7</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">8</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">9 </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">FloatConst</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Digit</span><sup> +</sup><span style="font-family:monospace"> . </span><span style="font-weight:bold">Digit</span><sup> +</sup><span style="font-family:monospace"> </span><span style="font-weight:bold">Exponent</span><sup>
+&#XA0;&#X2218;</sup><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exponent</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">e </span><span style="font-weight:bold">Sign</span><sup>
+&#XA0;&#X2218;</sup><span style="font-family:monospace"> </span><span style="font-weight:bold">Digit</span><sup> +</sup><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Sign</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">+</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">- </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">TextConst</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">" </span><span style="font-weight:bold">Ascii</span><sup> &#XA0;*</sup><span style="font-family:monospace"> " </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Ascii</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Letter</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-weight:bold">Digit</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-weight:bold">SpecialChar</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Letter</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">a</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">b</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;&#X22EF;&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">z</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">A</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">B</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;&#X22EF;&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">Z </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">SpecialChar</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">!</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">@</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">#</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">$</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">\char045</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<code><span style="font-family:monospace">^</span></code>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">&amp;</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">*</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">(</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">)</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">-</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><code><span style="font-family:monospace">_</span></code>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">+</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">=</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">|</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<code><span style="font-family:monospace">\</span></code>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<code><span style="font-family:monospace">~</span></code>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">&#X2018;</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">{</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">}</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">[</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">]</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">;</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">:</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">&#X2019;</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">"</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">,</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">.</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;&lt;&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;&gt;&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">?</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">/ </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">NameType</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Name</span><span style="font-family:monospace"> : </span><span style="font-weight:bold">Type</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Name</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Letter</span><span style="font-family:monospace"> </span><span style="font-weight:bold">AlphaNum</span><sup> &#XA0;*</sup><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">AlphaNum</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Letter</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-weight:bold">Digit</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Type</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">Bool</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">Int</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">Float </span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">Text</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">Tup</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">Rel</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">Func</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">Any </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">StandardConst</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">?-Bool</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">?-Int</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">?-Float</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">?-Text </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">RelConst</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">zero</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">one </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">NameExp</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Name</span><span style="font-family:monospace"> : </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">ProjSym</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">|+</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;<span style="font-family:monospace">|- </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">RenamePair</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Name</span><span style="font-family:monospace"> &lt;- </span><span style="font-weight:bold">Name</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Restrict</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">| </span><span style="font-weight:bold">Name</span><sup>
+&#XA0;+&#X3BB;</sup><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Guards</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> -&gt; </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> </span><span style="font-weight:bold">Choice</span><sup>
+&#XA0;&#X2218;</sup><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">Choice</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&amp; </span><span style="font-weight:bold">Guards</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">NameValue</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">val </span><span style="font-weight:bold">Name</span><span style="font-family:monospace"> = </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">IsType</span></td><td style="text-align:left;white-space:nowrap" >::=&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">is-Bool ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">is-Int ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">is-Float ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">is-Text ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">is-Tup ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">is-Rel ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">is-Func ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">is-Any ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">is-Bool ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> , </span><span style="font-weight:bold">Name</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">is-Int ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> , </span><span style="font-weight:bold">Name</span><span style="font-family:monospace"> )</span>&#XA0;&#XA0;&#X2223;&#XA0;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"> </span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace"></span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">is-Text ( </span><span style="font-weight:bold">Exp</span><span style="font-family:monospace"> , </span><span style="font-weight:bold">Name</span><span style="font-family:monospace"> ) </span></td></tr>
+</table>
+<h3 id="sec13" class="subsection">4.2&#XA0;&#XA0;Keywords</h3>
+<p>
+A <span style="font-weight:bold">Name</span> cannot be one of the <em>keywords</em> listed in the following:
+</p><div class="center"><span style="font-family:monospace">
+</span><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">add</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">and</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">any</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">Bool</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">count</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">end</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">false</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">fi</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">func</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">Func</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">has</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">if</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">in</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">Int</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">max</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">min</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">mod</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">mult </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">not</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">one</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">or</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">rel</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">Rel</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">Text </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">true</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">tup</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">Tup</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">unset</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">val</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">zero</span></td></tr>
+</table><span style="font-family:monospace">
+</span></div>
+<h3 id="sec14" class="subsection">4.3&#XA0;&#XA0;Informal Semantics</h3>
+<p>
+We divide this section up into several subsections depending on the
+type of the expressions being discussed. Some operations involve
+more than one type, but are only discussed once. We try to place
+such operations under the main type involved.</p><p>First, we describe the <em>atomic</em> values: booleans, integers, floats, and text.</p><p><br>
+<br>
+
+<span style="font-weight:bold">Booleans</span></p><p>The constants <span style="font-family:monospace">true</span> and <span style="font-family:monospace">false</span> along with the operations
+<span style="font-family:monospace">not</span>, <span style="font-family:monospace">and</span>, and <span style="font-family:monospace">or</span> have the standard interpretations.
+They require boolean arguments and they return a boolean value.</p><p>Values of the same type can be compared and the result of a comparison is
+a boolean.</p><p>Any two values can be compared using <span style="font-family:monospace">=</span> or <span style="font-family:monospace">&lt;&gt;</span>.
+Values of type <span style="font-family:monospace">Bool</span>, <span style="font-family:monospace">Int</span>, <span style="font-family:monospace">Text</span>, <span style="font-family:monospace">Tup</span>, and
+<span style="font-family:monospace">Rel</span> can also be compared using <span style="font-family:monospace">&lt;</span>, <span style="font-family:monospace">&gt;</span>, <span style="font-family:monospace">&lt;=</span>, and <span style="font-family:monospace">&gt;=</span>.
+In following, we list the results of comparing types using the test <span style="font-family:monospace">&lt;</span>.
+The remaining test have the obvious complementary interpretation.
+</p><dl class="description"><dt class="dt-description"><span style="font-weight:bold"><span style="font-family:monospace">Bool</span></span></dt><dd class="dd-description">
+<span style="font-family:monospace">x&lt;y</span> is true iff <span style="font-family:monospace">x</span> is <span style="font-family:monospace">false</span> and <span style="font-family:monospace">y</span> is <span style="font-family:monospace">true</span>.
+</dd><dt class="dt-description"><span style="font-weight:bold"><span style="font-family:monospace">Int</span></span><span style="font-weight:bold">/</span><span style="font-weight:bold"><span style="font-family:monospace">Float</span></span></dt><dd class="dd-description">
+<span style="font-family:monospace">x&lt;y</span> is true iff <span style="font-family:monospace">x</span> is an integer/float less than <span style="font-family:monospace">y</span>.
+</dd><dt class="dt-description"><span style="font-weight:bold"><span style="font-family:monospace">Text</span></span></dt><dd class="dd-description">
+<span style="font-family:monospace">x&lt;y</span> is true iff <span style="font-family:monospace">x</span> is a genuine prefix of <span style="font-family:monospace">y</span>.
+</dd><dt class="dt-description"><span style="font-weight:bold"><span style="font-family:monospace">Tup</span></span></dt><dd class="dd-description">
+<span style="font-family:monospace">x&lt;y</span> is true iff the set of names in <span style="font-family:monospace">x</span> is strictly contained in the
+set of names in <span style="font-family:monospace">y</span>. In addition, the intersection of names in <span style="font-family:monospace">x</span>
+and <span style="font-family:monospace">y</span> should have the same associated values.
+</dd><dt class="dt-description"><span style="font-weight:bold"><span style="font-family:monospace">Rel</span></span></dt><dd class="dd-description">
+<span style="font-family:monospace">x&lt;y</span> is true iff the set of tuples in <span style="font-family:monospace">x</span> is strictly contained
+in the set of tuples in <span style="font-family:monospace">y</span>. An error occurs if the schemas of
+<span style="font-family:monospace">x</span> and <span style="font-family:monospace">y</span> are different.
+</dd></dl><p>
+The comparison <code>x~y</code> on texts holds true if <code>x</code> occurs as
+a subtext of <code>y</code>.</p><p><br>
+<br>
+
+<span style="font-weight:bold">Integers</span></p><p>The integer constants along with the operations
+<span style="font-family:monospace">+</span>, <span style="font-family:monospace">-</span>, <span style="font-family:monospace">*</span>, <span style="font-family:monospace">/</span>, and <span style="font-family:monospace">mod</span>
+have the standard interpretations. Only <span style="font-family:monospace">Int</span> values in the range
+&#X2212;2147483647 to 2147483647 are available.
+A system error will occur if operations evaluate to
+values outside that range.</p><p>The operations listed above require integer arguments
+and they return an integer value.
+We point out that the value of <span style="font-family:monospace">x/y</span> is the integer part
+of <span style="font-family:monospace">x</span> divided by <span style="font-family:monospace">y</span> and <span style="font-family:monospace">x mod y</span> is the remainder
+of the same operation.</p><p>The expression <span style="font-family:monospace">-i</span> gives the same value as <span style="font-family:monospace">0-i</span>.</p><p><span style="font-weight:bold">Floats</span></p><p>The floats constants along with the operations
+<span style="font-family:monospace">+</span>, <span style="font-family:monospace">-</span>, <span style="font-family:monospace">*</span>, <span style="font-family:monospace">/</span>, and <span style="font-family:monospace">mod</span>
+have the standard interpretations. Operations on combinations of floats and integers will give floats.</p><p>The expression <span style="font-family:monospace">-i</span> gives the same value as <span style="font-family:monospace">0-i</span>.</p><p><br>
+<br>
+
+<span style="font-weight:bold">Text</span></p><p>A <span style="font-family:monospace">Text</span> is a sequence of characters. A constant text is written as
+a sequence of characters surrounded by double quotes,
+i.e., like <span style="font-family:monospace">"Rasmus"</span>.
+</p><ul class="itemize"><li class="li-itemize">
+<span style="font-family:monospace">t1++t2</span> denotes the concatenation of the texts <span style="font-family:monospace">t1</span> and <span style="font-family:monospace">t2</span>.
+</li><li class="li-itemize"><span style="font-family:monospace">t(i..j)</span> denotes the subsequence from <span style="font-family:monospace">t</span> starting with the
+<span style="font-family:monospace">i</span>th character and ending with the (<span style="font-family:monospace">j</span>&#X2212;1)th character,
+where <span style="font-family:monospace">i</span> and <span style="font-family:monospace">j</span> are integers. A character sequence of length <span style="font-style:italic">n</span> is
+numbered from 0 to <span style="font-style:italic">n</span>&#X2212;1.
+</li><li class="li-itemize"><span style="font-family:monospace">|t|</span> denotes the length of the text <span style="font-family:monospace">t</span>. For example, any
+text <span style="font-family:monospace">t</span> is equal to <span style="font-family:monospace">t(0..|t|)</span>.
+</li></ul><p><br>
+<br>
+
+<span style="font-weight:bold">Standard values</span></p><p>The atomic types have <em>standard values</em>. These are written <span style="font-family:monospace">?-Bool</span>, <span style="font-family:monospace">?-Int</span>, and <span style="font-family:monospace">?-Text</span>. These values are outside the
+ordering. This means, for example, that if <span style="font-family:monospace">i</span> is not the standard
+value <span style="font-family:monospace">?-Int</span>, then the expressions <span style="font-family:monospace">i&lt;?-Int</span>, <span style="font-family:monospace">i=?-Int</span>,
+and <span style="font-family:monospace">i&gt;?-Int</span> will all evaluate to <span style="font-family:monospace">?-Bool</span>. Similarly if we
+do arithmetic with <span style="font-family:monospace">?-Int</span> the result will also be a <span style="font-family:monospace">?-Int</span>.</p><p><br>
+<br>
+
+<span style="font-weight:bold">Tuples</span></p><p>A tuple is a set of pairs, where each pair consists of an attribute name
+and an atomic value. If <span style="font-family:monospace">A1</span>,&#X2026;,<span style="font-family:monospace">An</span> are attribute names and
+<span style="font-family:monospace">v1</span>,&#X2026;,<span style="font-family:monospace">vn</span> are atomic values, then a tuple can be specified as
+</p><div class="center">
+<span style="font-family:monospace">tup(A1:v1,&#X2026;,An:vn)</span>
+</div><p>
+We have the following operations on tuples.
+</p><ul class="itemize"><li class="li-itemize">
+<span style="font-family:monospace">t1&lt;&lt;t2</span> denotes the tuple <span style="font-family:monospace">t1</span> updated with the tuple <span style="font-family:monospace">t2</span>.
+The expression <span style="font-family:monospace">t1&lt;&lt;t2</span> basically evaluates to the union of
+<span style="font-family:monospace">t1</span> and <span style="font-family:monospace">t2</span> except that whenever an attribute name appears in
+both <span style="font-family:monospace">t1</span> and <span style="font-family:monospace">t2</span>, only the attribute name and corresponding value
+from <span style="font-family:monospace">t2</span> is used.
+If the same attribute name appears in both arguments, but the values are
+of different types, then an error occurs.
+</li><li class="li-itemize"><span style="font-family:monospace">t.A</span> denotes the value associated with the attribute name <span style="font-family:monospace">A</span> in
+<span style="font-family:monospace">t</span>. If <span style="font-family:monospace">A</span> does not appear in <span style="font-family:monospace">t</span>, then an error will occur.
+</li><li class="li-itemize"><span style="font-family:monospace">t</span><code><span style="font-family:monospace">\</span></code><span style="font-family:monospace">A</span> denotes the tuple <span style="font-family:monospace">t</span>
+except that the attribute name <span style="font-family:monospace">A</span>
+and its associated value is left out.
+If <span style="font-family:monospace">A</span> does not appear in <span style="font-family:monospace">t</span>, then an error will occur.
+</li><li class="li-itemize"><span style="font-family:monospace">has(t,A)</span> denotes the boolean value <span style="font-family:monospace">true</span> if the attribute name
+<span style="font-family:monospace">A</span> appears in <span style="font-family:monospace">t</span>. If not, then the value <span style="font-family:monospace">false</span> is returned.
+</li></ul><p><br>
+<br>
+
+<span style="font-weight:bold">Relations</span></p><p>A relation is a set of tuples such that every tuple contains the same set of
+attribute names and such that for any two tuples, the values associated with
+identical attribute names are of the same type. This set of attribute names
+with their associated types is called the <em>schema</em> of the relation.</p><p>If <span style="font-family:monospace">t</span> is a tuple, then <span style="font-family:monospace">rel(t)</span> is a relation with one tuple <span style="font-family:monospace">t</span>.</p><p>There are the following operations on relations.
+</p><ul class="itemize"><li class="li-itemize">
+<span style="font-family:monospace">|r|</span> denotes the length of the relation <span style="font-family:monospace">r</span>, i.e., the
+number of tuples in <span style="font-family:monospace">r</span>.
+</li><li class="li-itemize"><span style="font-family:monospace">has(r,A)</span> denotes the boolean value <span style="font-family:monospace">true</span> if the attribute name
+<span style="font-family:monospace">A</span> appears in the schema of <span style="font-family:monospace">r</span>.
+If not, then the value <span style="font-family:monospace">false</span> is returned.
+</li><li class="li-itemize"><span style="font-family:monospace">r1+r2</span> denotes the union of the tuples in <span style="font-family:monospace">r1</span> and <span style="font-family:monospace">r2</span>.
+If <span style="font-family:monospace">r1</span> and <span style="font-family:monospace">r2</span> does not have the same schema, then an error will
+occur.
+</li><li class="li-itemize"><span style="font-family:monospace">r1-r2</span> denotes the set difference of <span style="font-family:monospace">r1</span> and <span style="font-family:monospace">r2</span>, i.e.,
+<span style="font-family:monospace">r1-r2</span> is the set of tuples from <span style="font-family:monospace">r1</span> which do not belong to <span style="font-family:monospace">r2</span>.
+If <span style="font-family:monospace">r1</span> and <span style="font-family:monospace">r2</span> does not have the same schema, then an error will
+occur.
+</li><li class="li-itemize"><span style="font-family:monospace">r1*r2</span> denotes the join of <span style="font-family:monospace">r1</span> and <span style="font-family:monospace">r2</span>. The attribute names
+appearing in both schemas are required to be of the same type. Otherwise
+an error will occur. The relation <span style="font-family:monospace">r1*r2</span> consists of all the tuples
+<span style="font-family:monospace">t</span> such that <span style="font-family:monospace">t</span> restricted to the schema of <span style="font-family:monospace">r1</span> belongs to
+<span style="font-family:monospace">r1</span> and such that <span style="font-family:monospace">t</span> restricted to the schema of <span style="font-family:monospace">r2</span>
+belongs to <span style="font-family:monospace">r2</span>.
+</li><li class="li-itemize"><span style="font-family:monospace">r1 |+ A1,&#X2026;,An</span> denotes the projection of <span style="font-family:monospace">r</span> onto
+the attributes <span style="font-family:monospace">A1</span>,&#X2026;,<span style="font-family:monospace">An</span>. These attributes have to belong
+to the schema of <span style="font-family:monospace">r1</span>. The relation consists of all the tuples
+from <span style="font-family:monospace">r1</span> restricted to the attributes <span style="font-family:monospace">A1</span>,&#X2026;,<span style="font-family:monospace">An</span>.<p><span style="font-family:monospace">r1 |- A1,&#X2026;,An</span> denotes the projection of <span style="font-family:monospace">r</span> onto the
+attributes in the schema of <span style="font-family:monospace">r</span> <em>except</em> the attributes
+<span style="font-family:monospace">A1</span>,&#X2026;,<span style="font-family:monospace">An</span>.
+</p></li><li class="li-itemize"><span style="font-family:monospace">r? b</span>, where <span style="font-family:monospace">b</span> is a boolean expression, contains the tuples <span style="font-family:monospace">t</span>
+from <span style="font-family:monospace">r</span> which make <span style="font-family:monospace">b</span> true when the special symbol <span style="font-family:monospace">#</span> is
+replaced with <span style="font-family:monospace">t</span>.
+</li><li class="li-itemize"><span style="font-family:monospace">r[A1&lt;-B1,&#X2026;,An&lt;-Bn]</span> denotes a renaming of the attributes in
+<span style="font-family:monospace">r</span>. The attribute names <span style="font-family:monospace">A1</span>,&#X2026;,<span style="font-family:monospace">An</span> are changed
+to <span style="font-family:monospace">B1</span>,&#X2026;,<span style="font-family:monospace">Bn</span>, respectively.
+An error occurs if the attributes <span style="font-family:monospace">A1</span>,&#X2026;,<span style="font-family:monospace">An</span> do not
+belong to the schema of <span style="font-family:monospace">r</span>. The <span style="font-family:monospace">A</span><span style="font-style:italic">i</span>&#X2019;s must be pairwise different.
+Also, the <span style="font-family:monospace">B</span><span style="font-style:italic">i</span>&#X2019;s must be pairwise different
+and no <span style="font-family:monospace">B</span><span style="font-style:italic">i</span> is allowed to belong the schema of <span style="font-family:monospace">r</span> minus
+<span style="font-family:monospace">A1</span>,&#X2026;,<span style="font-family:monospace">An</span>.
+</li><li class="li-itemize"><span style="font-family:monospace">!(r1,&#X2026;,rn)|X: exp</span> denotes a factor expression.
+The result of a factor expression is the union the evaluation
+of a family of expressions to be described in the following.
+These must all evaluate to relations with the same schema.
+Otherwise an error occurs.<p>The family of expressions is constructed by taking <span style="font-family:monospace">exp</span> and substituting
+<span style="font-family:monospace">#</span>, <span style="font-family:monospace">@(1)</span>,&#X2026;,<span style="font-family:monospace">@(n)</span> with different tuple and relation
+values.
+The values for <span style="font-family:monospace">#</span>, <span style="font-family:monospace">@(1)</span>,&#X2026;,<span style="font-family:monospace">@(n)</span> are determined as
+follows. <span style="font-family:monospace">X</span> must be a comma separated list of the attributes in the
+intersection of the schemas of the relations <span style="font-family:monospace">r1</span> through <span style="font-family:monospace">rn</span>.
+The result of evaluating <span style="font-family:monospace">(r1 |+ X) + &#X2026;+ (rn |+ X)</span>
+is called the <em>base relation</em>. The symbol <span style="font-family:monospace">#</span> is instantiated
+with the tuples in the base relation; one at a time. Now assume that
+<span style="font-family:monospace">#</span> has been given a value, then <span style="font-family:monospace">@(</span><span style="font-style:italic">i</span><span style="font-family:monospace">)</span> is the relation
+<span style="font-family:monospace">(rel(#)*r</span><span style="font-style:italic">i</span><span style="font-family:monospace">) |- X</span>. If <code>|X</code> is not specified, then it is
+assumed to be all the common attributes of the <span style="font-family:monospace">r</span><span style="font-style:italic">i</span>&#X2019;s.</p><p>If a list of attributes is specified (a restriction list), then
+<span style="font-family:monospace">X</span> is this list. An error occurs if <span style="font-family:monospace">X</span> is not contained in the
+intersection of the schemas of the <span style="font-style:italic">n</span> relational arguments.
+</p></li><li class="li-itemize">The variants <code>!&lt;</code> and <code>!&gt;</code> have the same semantics, except that
+the <span style="font-family:monospace">#</span> tuples are processed in a non-decreasing respectively
+non-increasing order according to the attributes <code>X</code>.
+</li><li class="li-itemize"><span style="font-family:monospace">zero</span> denotes the empty relation with the empty schema.
+</li><li class="li-itemize"><span style="font-family:monospace">one</span> denotes the relation with the empty schema containing one tuple:
+the empty tuple.
+</li></ul><p><br>
+<br>
+
+<span style="font-weight:bold">Aggregation</span></p><p>The five operations <span style="font-family:monospace">max</span>, <span style="font-family:monospace">min</span>, <span style="font-family:monospace">count</span>, <span style="font-family:monospace">add</span>, and
+<span style="font-family:monospace">mult</span> are very similar. They are all used like
+<span style="font-family:monospace">max(r,A)</span>, where <span style="font-family:monospace">r</span> is a relation and <span style="font-family:monospace">A</span> an attribute name.
+They perform the action indicated by their name, e.g., <span style="font-family:monospace">max(r,A)</span> returns
+the maximal value in the <span style="font-family:monospace">A</span> column of the relation <span style="font-family:monospace">r</span>. An error
+occurs if the relation does not have an <span style="font-family:monospace">A</span> column. The standard values
+are always ignored. If the <span style="font-family:monospace">A</span> column contains nothing but standard values,
+or if the relation is empty,
+then <span style="font-family:monospace">max</span> and <span style="font-family:monospace">min</span> returns the standard value, <span style="font-family:monospace">count</span> and
+<span style="font-family:monospace">add</span> returns <span style="font-family:monospace">0</span>, and <span style="font-family:monospace">mult</span> returns <span style="font-family:monospace">1</span>.</p><p><br>
+<br>
+
+<span style="font-weight:bold">Miscellaneous</span></p><ul class="itemize"><li class="li-itemize">
+<span style="font-family:monospace">if b1-&gt;exp1 &amp; &#X2026;&amp; bn-&gt;expn fi</span> is the <em>conditional expression</em>.
+The <span style="font-family:monospace">b</span><span style="font-style:italic">i</span>&#X2019;s are boolean expression. This conditional expression
+is evaluated as follows. The boolean expressions are evaluated in order
+until one is found which gives <span style="font-family:monospace">true</span>. If none of the boolean expressions
+evaluate to <span style="font-family:monospace">true</span>, then the result is <code>0</code>. If <span style="font-family:monospace">b</span><span style="font-style:italic">i</span> was the first
+expression evaluating to <span style="font-family:monospace">true</span>,
+then the result of the conditional expressions is the
+result of evaluating <span style="font-family:monospace">exp</span><span style="font-style:italic">i</span>.
+</li><li class="li-itemize"><span style="font-family:monospace">(+ val x1=exp1 &#X2026;val xn=expn in exp +)</span> is a <em>block</em>. The
+expressions <span style="font-family:monospace">exp1</span> through <span style="font-family:monospace">expn</span> are evaluated in order and the
+results are named <span style="font-family:monospace">x1</span> through <span style="font-family:monospace">xn</span>, respectively.
+Then <span style="font-family:monospace">exp</span> is evaluated and returned as the result of the block.
+Note that the values are named as soon as they are evaluated,
+so the names <span style="font-family:monospace">x</span>1 through <span style="font-family:monospace">x</span>(<span style="font-style:italic">i</span>&#X2212;1) can be used in <span style="font-family:monospace">exp</span><span style="font-style:italic">i</span>,
+and all the names can be used in <span style="font-family:monospace">exp</span>.
+</li><li class="li-itemize"><span style="font-family:monospace">exp1 ; exp2</span> is a <em>sequence</em> which evaluates first <code>exp1</code>
+and then <code>exp2</code>; the result is that of <code>exp2</code>.
+</li><li class="li-itemize"><span style="font-family:monospace">n:=exp</span> is an <em>assignment</em>, which evaluates <code>exp</code> and assigns
+the result to the identifier <code>n</code>; the result is that of <code>exp</code>.
+</li><li class="li-itemize"><span style="font-family:monospace">func (x1:T1,&#X2026;,xn:Tn) -&gt; (T) exp end</span> is a <em>function definition</em>
+and denotes a function. The names <span style="font-family:monospace">x1</span> through <span style="font-family:monospace">xn</span> are the
+<em>formal parameters</em> and
+<span style="font-family:monospace">T</span>, <span style="font-family:monospace">T1</span>,&#X2026;,<span style="font-family:monospace">Tn</span> are types;
+<span style="font-family:monospace">T</span> is called the <em>result type</em>.</li><li class="li-itemize"><span style="font-family:monospace">f(exp1,&#X2026;,expn)</span> is a <em>function application</em>. The function <span style="font-family:monospace">f</span>
+must be defined in the environment.
+The expressions <span style="font-family:monospace">exp1</span> through <span style="font-family:monospace">expn</span> are evaluated in order, and the
+values are bound to the formal parameters of the function definition.
+An error occurs if the number of expressions does not equal the number of
+formal parameters. An error also occurs if an expression evaluates to a value
+of type different from the one specified in the function definition.
+The body of the function definition is now evaluated and it can depend on the
+formal parameters. The result of the function application is the value
+of the function body unless this value is not of the type specified in
+the function definition (the result type).
+</li><li class="li-itemize"><span style="font-family:monospace">(exp)</span> denotes whatever the expression <span style="font-family:monospace">exp</span> denotes.
+</li><li class="li-itemize"><span style="font-family:monospace">is-Bool(exp)</span> denotes <span style="font-family:monospace">true</span> if <span style="font-family:monospace">exp</span> evaluates to a
+boolean. Otherwise, it denotes <span style="font-family:monospace">false</span>. The constructions
+<span style="font-family:monospace">is-Int</span>, <span style="font-family:monospace">is-Float</span>, <span style="font-family:monospace">is-Text</span>, <span style="font-family:monospace">is-Atom</span>, <span style="font-family:monospace">is-Tup</span>, <span style="font-family:monospace">is-Rel</span>,
+<span style="font-family:monospace">is-Func</span>, and <span style="font-family:monospace">is-Any</span> are defined similarly.<p>For the atomic types, there is an additional construction. If <span style="font-family:monospace">exp</span>
+evaluates to a relation and <span style="font-family:monospace">A</span> is an attribute name of that
+relation, then <span style="font-family:monospace">is-Bool(exp,A)</span> denotes <span style="font-family:monospace">true</span> if <span style="font-family:monospace">A</span> is of type
+<span style="font-family:monospace">Bool</span> and <span style="font-family:monospace">false</span> otherwise. If either <span style="font-family:monospace">exp</span> does not evaluate
+to a relation or <span style="font-family:monospace">exp</span> evaluates to a relation and <span style="font-family:monospace">A</span> does not
+belong to the schema of that relation, then a runtime error occurs.
+The expressions <span style="font-family:monospace">is-Int(exp,A)</span>, <span style="font-family:monospace">is-Float(exp,A)</span> and <span style="font-family:monospace">is-Text(exp,A)</span> have
+similar semantics.</p></li><li class="li-itemize"><span style="font-family:monospace">unset name</span> unsets the contents of the variable <span style="font-family:monospace">name</span>. If
+<span style="font-family:monospace">name</span> is a relation the corresponding relation file is
+permanently deleted.
+</li></ul><hr>
+<a href="rasmus-manual003.html"><img src="previous_motif.gif" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.gif" alt="Up"></a>
+</body>
+</html>

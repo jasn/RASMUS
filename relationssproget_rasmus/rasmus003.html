@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="generator" content="hevea 2.14">
+<link rel="stylesheet" type="text/css" href="../hevea.css">
+<link rel="stylesheet" type="text/css" href="../../tmp2/rasmus.css"><title>Funktioner</title>
+</head>
+<body >
+<a href="rasmus002.html"><img src="previous_motif.gif" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.gif" alt="Up"></a>
+<a href="rasmus004.html"><img src="next_motif.gif" alt="Next"></a>
+<hr>
+<h2 id="sec13" class="section">3&#XA0;&#XA0;Funktioner</h2>
+<p>
+<span style="font-variant:small-caps">Rasmus</span> er ogs&#XE5; udstyret med en <em>funktionsmekanisme</em>,
+der dels kan bruges til at <em>parametrisere</em> relationsudtryk
+og dels til at opbygge <em>biblioteker</em> af nyttige udtryk.</p><p>Betragt igen eksempel 8. Det er sandsynligt, at hvis man er interesseret
+i nummeret p&#XE5; AGF&#X2019;s tipskamp i uge 18, s&#XE5; er man formentlig
+ogs&#XE5; interesseret i numrene p&#XE5; andre holds tipskampe i andre
+uger.</p><div class="example">
+<div class="title">Eksempel 10</div>
+
+Skriv en funktion, der, givet et ugenummer og navnet p&#XE5; et
+hold, returnerer en relation, der indeholder holdets kampnummer p&#XE5;
+den p&#XE5;g&#XE6;ldende tipskupon
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>FindNr :=</code> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>func (uge:Int, hold:Text) -&gt; (Rel)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>(+ val X = Kampe*(Tips ? (\#.Uge=uge))</code> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>in ((X ? (\#.HjHold=hold))+(X ? (\#.UdeHold=hold))) |+ Nr</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>+)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>end</code>
+</td></tr>
+</table>
+</div>
+
+
+</div><p>Hvis v&#XE6;rdien af dette udtryk gemmes under navnet <code><span class="textboxed">FindNr</span></code>
+vil f&#XF8;lgende anvendelse af funktionen
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><code>FindNr(18,"AGF")</code>&#XA0;</td></tr>
+</table><p>
+give samme resultat som udtrykkene i eksempel 8 og 9.
+Udtrykket
+</p><div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>func (uge:Int, hold:Text) -&gt; (Rel)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>  ...</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>end</code>
+</td></tr>
+</table>
+</div><p>
+er en s&#XE5;kaldt <em>funktionsdefinition</em>, medens udtrykket
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><code>FindNr(18,"AGF")</code>&#XA0;</td></tr>
+</table><p>
+er en <em>funktionsanvendelse</em>. Funktionens <em>hoved</em>
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><code>func (uge:Int, hold:Text) -&gt; (Rel)</code>&#XA0;</td></tr>
+</table><p>
+angiver at der er tale om en funktion med to <em>parametre</em>, henholdsvis
+<code>uge</code> og <code>hold</code>, hvis <em>typer</em> er henholdsvis
+<code>Int</code> og <code>Text</code>; man kan desuden se, at funktionens resultat er
+af type <code>Rel</code>.
+Navnene <code>uge</code> og <code>hold</code> er <em>formelle</em> parametre. </p><p>Funktionen er beregnet til at blive anvendt med forskellige
+<em>aktuelle</em> parametre; i eksemplet ovenfor er <code>18</code> og
+<code>"AGF"</code> s&#XE5;ledes aktuelle parametre. Man kan naturligvis
+ogs&#XE5; bruge andre aktuelle parametre, som i anvendelsen
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><code>FindNr(19,"Lyngby")</code>&#XA0;</td></tr>
+</table><p>
+Betydningen af en funktionsanvendelse er, at det udtryk, der
+udg&#XF8;r funktionens <em>krop</em> &#X2013; her udtrykket
+<code>(+ ... +)</code> &#X2013; beregnes med de formelle parametre erstattet med
+v&#XE6;rdierne af de aktuelle parametre.</p><p><em>Typenavnene</em> <code>Int</code> og <code>Text</code> angiver, at den f&#XF8;rste
+aktuelle parameter skal v&#XE6;re af typen <code>Int</code>, det vil sige et heltal,
+medens den anden skal v&#XE6;re af typen <code>Text</code>, som betegner
+m&#XE6;ngden af tegnf&#XF8;lger. Typeangivelsen <code>(Rel)</code> p&#XE5;
+h&#XF8;jresiden af <code>-&gt;</code> fort&#XE6;ller, at resultatet er af type
+<code>Rel</code>, som betegner m&#XE6;ngden af relationer.</p><p>I de n&#XE6;ste to eksempler definerer vi to funktioner, der er nyttige, hvis
+vi skal konstruere en tipskupon for en given uge. Vi antager, at vi f&#XF8;rst
+har anvendt <span style="font-variant:small-caps">Rasmus</span> systemet til at konstruere f&#XF8;lgende
+tre relationer:
+</p><div class="center"><span style="font-family:monospace">
+Et:&#XA0;</span><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Tegn </span></td></tr>
+<tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1 </span></td></tr>
+</table><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;&#XA0;
+Kryds:&#XA0;</span><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Tegn </span></td></tr>
+<tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">X </span></td></tr>
+</table><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;&#XA0;
+To:&#XA0;</span><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Tegn </span></td></tr>
+<tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2 </span></td></tr>
+</table><span style="font-family:monospace">
+</span></div><div class="example">
+<div class="title">Eksempel 11</div>
+
+
+Skriv en funktion, der for en given uge konstruerer relationen
+<div class="center">
+<span style="font-size:small">
+</span><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">HjHold:Text</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">UdeHold:Text</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">HjScore:Int</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">UdeScore:Int</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Nr:Int</span></span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&#XA0;</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&#XA0;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&#XA0;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&#XA0;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&#XA0; </span></span></td></tr>
+</table><span style="font-size:small">
+</span>
+</div>
+best&#XE5;ende af kampene p&#XE5; den p&#XE5;g&#XE6;ldende uges tipskupon
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>Strip :=</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>func (uge:Int) -&gt; (Rel)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>((Turnering*Tips) ? (\#.Uge=uge)) |- Id,Uge</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>end</code>
+</td></tr>
+</table>
+</div>
+
+
+</div><p>Hvis denne funktion gemmes under navnet <code><span class="textboxed">Strip</span></code>, s&#XE5; kan vi
+benytte den til at l&#XF8;se problemet.</p><div class="example">
+<div class="title">Eksempel 12</div>
+
+
+Skriv en funktion, der for en given uge konstruerer tipskuponen
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>Kupon :=</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>func (ugenr:Int) -&gt; (Rel)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>(((Strip(ugenr) ? (\#.HjScore &lt; \#.UdeScore))*To) +</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>((Strip(ugenr) ? (\#.HjScore = \#.UdeScore))*Kryds) +</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>((Strip(ugenr) ? (\#.HjScore &gt; \#.UdeScore))*Et)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>) |- HjScore,UdeScore</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>end</code>
+</td></tr>
+</table>
+</div>
+
+
+</div><p>Hvis denne nu gemmes under navnet <code><span class="textboxed">Kupon</span></code> har vi det
+&#XF8;nskede resultat. Fx vil anvendelsen <code>Kupon(18)</code> have
+v&#XE6;rdien
+</p><div class="center">
+<table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Nr:Int</span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">HjHold:Text</span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">UdeHold:Text</span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Tegn:Text</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">
+2</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Br&#XF8;ndby</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Lyngby</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2 </span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">3</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">OB</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">AaB</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">X </span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">AGF</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Frem</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1 </span></td></tr>
+</table>
+</div>
+<hr>
+<a href="rasmus002.html"><img src="previous_motif.gif" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.gif" alt="Up"></a>
+<a href="rasmus004.html"><img src="next_motif.gif" alt="Next"></a>
+</body>
+</html>

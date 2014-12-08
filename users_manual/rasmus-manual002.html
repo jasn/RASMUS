@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="generator" content="hevea 2.14">
+<link rel="stylesheet" type="text/css" href="../hevea.css">
+<link rel="stylesheet" type="text/css" href="../../tmp/rasmus-manual.css"><title>The Interpreter</title>
+</head>
+<body >
+<a href="rasmus-manual001.html"><img src="previous_motif.gif" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.gif" alt="Up"></a>
+<a href="rasmus-manual003.html"><img src="next_motif.gif" alt="Next"></a>
+<hr>
+<h2 id="sec2" class="section">2&#XA0;&#XA0;The Interpreter</h2>
+<p>The purpose of the Rasmus interpreter is to evaluate expressions typed
+by the user. This chapter describes the <span style="font-variant:small-caps">Rasmus</span> interpreter.</p>
+<h3 id="sec3" class="subsection">2.1&#XA0;&#XA0;Getting started</h3>
+<p>To start <span style="font-variant:small-caps">Rasmus</span> execute the <span class="textboxed"><span style="font-family:monospace">rasmus</span></span> file. This opens a graphical
+user interface (GUI) window similar to the one shown in
+figure&#XA0;<a href="#fig%3Ainitial_window">1</a>.</p><blockquote class="figure"><div class="center"><div class="center"><hr style="width:80%;height:2"></div>
+
+<img src="initial_window.png">
+
+<div class="caption"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" >Figure 1: The initial <span style="font-variant:small-caps">Rasmus</span> window</td></tr>
+</table></div>
+<a id="fig:initial_window"></a>
+<div class="center"><hr style="width:80%;height:2"></div></div></blockquote><p>In the following we describe how to evaluate <span style="font-variant:small-caps">Rasmus</span> expressions in the
+interpreter. Next we walk through the features that are available in
+the GUI.</p>
+<h3 id="sec4" class="subsection">2.2&#XA0;&#XA0;Getting along</h3>
+<p>On the left side of the main window there is a <span style="font-style:italic">Read-Eval-Print-Loop</span> (REPL) interpreter where <span style="font-variant:small-caps">Rasmus</span> expressions
+can be typed and evaluated. The left side will be refered to as the
+<span style="font-style:italic">interpreter</span>. On the right side we see a list of names and
+values. The names are the variables that currently exist in the global
+scope and the values are the corresponding values. If a variable&#X2019;s
+value is <span style="font-style:italic">Relation</span> then it is possible to inspect that relation
+by double clicking the variable name. This will pop up a new window
+similar to the one in figure&#XA0;<a href="#fig%3Arelation_view">2</a>.</p><blockquote class="figure"><div class="center"><div class="center"><hr style="width:80%;height:2"></div>
+
+<img src="relation_view.png">
+
+<div class="caption"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" >Figure 2: Inspecting the relation <span class="textboxed"><span style="font-family:monospace">Kampe</span></span></td></tr>
+</table></div>Insepecting the relation <span class="textboxed"><span style="font-family:monospace">Kampe</span></span>. Note that the
+relation cannot be modified here, that is only possible through
+interaction with the <span style="font-variant:small-caps">Rasmus</span> interpreter. It is however possible to
+sort the tuples by clicking on the header. Note that it is a
+stable sort, so you can sort the tuples breaking ties properly.
+<a id="fig:relation_view"></a>
+<div class="center"><hr style="width:80%;height:2"></div></div></blockquote><p>Typing in expressions in the interpreter and pressing return makes the
+interpreter evaluate the expression. Suppose you have typed in the
+following expression:</p><div class="center">
+<span style="font-family:monospace">x := 1+2+3+4+5+6+<br>
+7+8+9+10</span>
+</div><p>Your <span style="font-variant:small-caps">Rasmus</span> window will now look as in figure&#XA0;<a href="#fig%3Afirst_exp">3</a>. Note
+that due to the last &#X201C;+&#X201D; on the first line the interpreter was still
+waiting for input. Had the &#X201C;+&#X201D; been omitted the first line would
+have been evaluated before the second line could be typed in the
+interpreter. Furthermore, observe that a new name appeared in the
+environment list on the right. This happened because a new variable,
+<span class="textboxed"><span style="font-family:monospace">x</span></span>, has been defined.</p><blockquote class="figure"><div class="center"><div class="center"><hr style="width:80%;height:2"></div>
+
+<img src="first_exp.png">
+
+<div class="caption"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" >Figure 3: The first <span style="font-variant:small-caps">Rasmus</span> expression.</td></tr>
+</table></div>
+<a id="fig:first_exp"></a>
+<div class="center"><hr style="width:80%;height:2"></div></div></blockquote><p>If you type an illegal expression, the <span style="font-variant:small-caps">Rasmus</span> interpreter will do its
+best to diagnose the error and provide a useful error message, such
+that you can correct the error. What constitutes a legal expression is
+further described in Chapter&#XA0;<a href="rasmus-manual004.html#expressions">4</a>.</p><p>To close the <span style="font-variant:small-caps">Rasmus</span> system go to <span class="textboxed"><span style="font-family:monospace">File</span></span> and <span class="textboxed"><span style="font-family:monospace">Quit</span></span>.</p>
+<h3 id="sec5" class="subsection">2.3&#XA0;&#XA0;The Editor</h3>
+<p>Often we want to produce more complicated pieces of code rather than
+simple expressions. To accomodate this the <span style="font-variant:small-caps">Rasmus</span> system contains a
+development environment as well. To open a new file in the editor go
+to <span class="textboxed"><span style="font-family:monospace">File</span></span> and then click <span class="textboxed"><span style="font-family:monospace">New</span></span>. This opens an editor where
+<span style="font-variant:small-caps">Rasmus</span> code can be written. Note that there is simple syntax
+highlighting and intellisense (i.e. a red lines appear under invalid
+expressions). Once you have written your code you can send it to the
+interpreter by either going to <span class="textboxed"><span style="font-family:monospace">File</span></span> and click <span class="textboxed"><span style="font-family:monospace">Run</span></span>, or by
+using the shortcut Ctrl+R.</p><p>The code you type can be saved in <span style="font-variant:small-caps">Rasmus</span> code files by using
+<span class="textboxed"><span style="font-family:monospace">File</span></span>, <span class="textboxed"><span style="font-family:monospace">Save</span></span>. As a side note, <span style="font-variant:small-caps">Rasmus</span> code files have the
+extension &#X201C;.rm&#X201D; . If you want to load previously written <span style="font-variant:small-caps">Rasmus</span> code
+files you have to use the <span class="textboxed"><span style="font-family:monospace">File</span></span> menu in the main window followed
+by clicking <span class="textboxed"><span style="font-family:monospace">Open</span></span> and locating the file on your system.</p>
+<h3 id="sec6" class="subsection">2.4&#XA0;&#XA0;Preferences and Help</h3>
+<p>It is possible to do some configuration of your <span style="font-variant:small-caps">Rasmus</span> system, such as
+changing font types and colors. Going to <span class="textboxed"><span style="font-family:monospace">Edit</span></span> and
+<span class="textboxed"><span style="font-family:monospace">Preferences</span></span> opens a dialog where you can change these visual
+features. An important setting is the <span class="textboxed"><span style="font-family:monospace">Environment Path</span></span>. This is
+the directory where all relations are stored and also where they are
+automatically loaded from when <span style="font-variant:small-caps">Rasmus</span> is started. It is recommended
+that you use the <span class="textboxed"><span style="font-family:monospace">Environment Path</span></span> as workspace but you remember
+to export relations to other places as well. Further information on
+how relations are stored and retrieved can be found in
+section&#XA0;<a href="rasmus-manual003.html#persistence">3</a>.</p><p>In the <span class="textboxed"><span style="font-family:monospace">Help</span></span> menu you can find a tutorial on <span style="font-variant:small-caps">Rasmus</span> and the
+<span style="font-variant:small-caps">Rasmus</span> manual (this document).</p>
+<hr>
+<a href="rasmus-manual001.html"><img src="previous_motif.gif" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.gif" alt="Up"></a>
+<a href="rasmus-manual003.html"><img src="next_motif.gif" alt="Next"></a>
+</body>
+</html>

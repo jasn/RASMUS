@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="generator" content="hevea 2.14">
+<link rel="stylesheet" type="text/css" href="../hevea.css">
+<link rel="stylesheet" type="text/css" href="../../tmp2/rasmus.css"><title>Overordnede begreber</title>
+</head>
+<body >
+<a href="rasmus004.html"><img src="previous_motif.gif" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.gif" alt="Up"></a>
+<a href="rasmus006.html"><img src="next_motif.gif" alt="Next"></a>
+<hr>
+<h2 id="sec24" class="section">5&#XA0;&#XA0;Overordnede begreber</h2>
+<p>
+Efter de foreg&#XE5;ende kapitlers eksempelbaserede pr&#XE6;sentation
+skal vi nu give en mere systematisk og begrebsorienteret beskrivelse af
+<span style="font-variant:small-caps">Rasmus</span>.</p>
+<h3 id="sec25" class="subsection">5.1&#XA0;&#XA0;Relationelle databaser</h3>
+<p>
+<span style="font-variant:small-caps">Rasmus</span> er interessant af mindst to &#XE5;rsager, dels fordi
+sproget indeholder de v&#XE6;sentligste ingredienser fra det emneomr&#XE5;de,
+der hedder <em>relationelle databaser</em>, og dels fordi det repr&#XE6;senterer
+nogle af de mest fundamentale begreber, der findes i programmeringssprog
+og programmeringsnotationer.</p><p>Relationelle databaser blev &#X201C;opfundet&#X201D; omkring 1970, som et forslag
+til en &#X201C;ren&#X201D;, systematisk og teoretisk velfunderet teknik til
+opbevaring og behandling af store datam&#XE6;ngder. Den basale
+iagttagelse var, at dels kan praktisk talt enhver samling informationer,
+man kan forestille sig, repr&#XE6;senteres i form af en eller flere
+relationer, og dels tillader de basale relationelle operatorer
+(union, join, select, project), at man kombinerer og udtr&#XE6;kker
+informationer fra vilk&#XE5;rlige relationer p&#XE5; en meget generel
+m&#XE5;de. </p><p>Dette betyder blandt andet, at hvis information opbevares
+i form af relationer, s&#XE5; kan forskellige data, der fra f&#XF8;dslen
+ikke synes at have meget med hinanden at g&#XF8;re, bearbejdes af det samme
+<em>databehandlingssystem</em>, uanset tidspunktet for og omst&#XE6;ndighederne
+ved det tilblivelse. Dette giver en fleksibilitet og en generalitet,
+der st&#XE5;r i skarp kontrast til en strategi, hvor man designer b&#XE5;de
+datarepr&#XE6;sentation og tilh&#XF8;rende programmer afh&#XE6;ngigt af
+den konkrete opgave og uden at tage h&#XF8;jde for, at det senere skal kunne
+&#X201C;samk&#XF8;res&#X201D; med andre data. Relationelle databaser introducerer derfor
+ikke blot nogle nyttige begreber og en hensigtsm&#XE6;ssig systematik,
+teknikken sparer ogs&#XE5; ressourcer i forbindelse med praktisk 
+databehandling.</p>
+<h3 id="sec26" class="subsection">5.2&#XA0;&#XA0;Typer, v&#XE6;rdier og udtryk</h3>
+<p>
+Uanset den praktiske nyttev&#XE6;rdi, som bestemt er til stede, skal vi
+i det f&#XF8;lgende koncentere os om det andet interessante aspekt, nemlig
+<span style="font-variant:small-caps">Rasmus</span> som programmeringssprog. </p><p>For at forst&#XE5; et 
+programmeringssprog, herunder <span style="font-variant:small-caps">Rasmus</span>, er det 
+afg&#XF8;rende at forst&#XE5;
+det centrale begreb <em>v&#XE6;rdi</em>, som er en temmelig abstrakt
+st&#XF8;rrelse. St&#XE6;rkt forenklet kan man sige, at faciliteterne i
+<span style="font-variant:small-caps">Rasmus</span> er beregnet til at <em>skabe</em>, <em>gemme</em>
+og <em>genfinde</em> v&#XE6;rdier: heltal, sandhedsv&#XE6;rdier,
+tegnf&#XF8;lger, tupler, relationer og funktioner.
+V&#XE6;rdierne skabes som resultater af udtryk, hvorfor udtryk ogs&#XE5;
+klassificeres efter hvilken slags v&#XE6;rdier, de producerer.
+I datalogisk terminologi bruger man <em>typer</em>, det vil sige,
+at vi i <span style="font-variant:small-caps">Rasmus</span> har v&#XE6;rdier og udtryk af typerne:
+<code>Int</code>, <code>Float</code>, <code>Bool</code>, <code>Text</code>, <code>Tup</code>, <code>Rel</code> og <code>Func</code>.</p>
+<h3 id="sec27" class="subsection">5.3&#XA0;&#XA0;Konstante udtryk</h3>
+<p>
+Ethvert udtryk skaber (eller producerer) alts&#XE5; en v&#XE6;rdi af den
+p&#XE5;g&#XE6;ldende type. De simpleste udtryk er <em>konstanterne</em>,
+som fx
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><span style="font-family:monospace">5</span></td></tr>
+</table><p>
+Dette er et udtryk af type <code>Int</code>, der som resultat (eller v&#XE6;rdi)
+har <em>tallet</em> 5. Bem&#XE6;rk, at <em>tallet</em> 5 i sig selv er noget
+abstrakt og at udtrykket <span style="font-family:monospace">5</span> blot er et af mange mulige udtryk, hvis
+v&#XE6;rdi er dette tal. Hvis man fx var forelsket i romertal eller
+bin&#XE6;re tal, s&#XE5; kunne man bruge <code>V</code> eller <code>101</code> som
+udtryk med v&#XE6;rdi 5. I <span style="font-variant:small-caps">Rasmus</span> benyttes den velkendte decimale
+notation for konstanter af type <code>Int</code>.</p><p>De &#XF8;vrige typer har ogs&#XE5; konstanter, det vil sige udtryk,
+der angiver deres v&#XE6;rdier. Som n&#XE6;vnt i kapitel 4 er
+f&#XF8;lgende eksempler karakteristiske for konstante udtryk af de
+forskellige typer
+</p><dl class="description"><dt class="dt-description"><span style="font-family:monospace"><span style="font-weight:bold"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;Float</span></span></span><span style="font-family:monospace"><span style="font-weight:bold">:</span></span></dt><dd class="dd-description"><span style="font-family:monospace"> 1.2
+</span></dd><dt class="dt-description"><span style="font-family:monospace"><span style="font-weight:bold"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;Bool</span></span></span><span style="font-family:monospace"><span style="font-weight:bold">:</span></span></dt><dd class="dd-description"><span style="font-family:monospace"> true 
+</span></dd><dt class="dt-description"><span style="font-family:monospace"><span style="font-weight:bold"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;Text</span></span></span><span style="font-family:monospace"><span style="font-weight:bold">:</span></span></dt><dd class="dd-description"><span style="font-family:monospace"> "AGF"
+</span></dd><dt class="dt-description"><span style="font-family:monospace"><span style="font-weight:bold"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;Tup</span></span></span><span style="font-family:monospace"><span style="font-weight:bold">:</span></span></dt><dd class="dd-description"><span style="font-family:monospace"> tup(hold:"AGF")
+</span></dd><dt class="dt-description"><span style="font-family:monospace"><span style="font-weight:bold"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;Rel</span></span></span><span style="font-family:monospace"><span style="font-weight:bold">:</span></span></dt><dd class="dd-description"><span style="font-family:monospace"> rel(tup(hold:"AGF"))
+</span></dd><dt class="dt-description"><span style="font-family:monospace"><span style="font-weight:bold"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;Func</span></span></span><span style="font-family:monospace"><span style="font-weight:bold">:</span></span></dt><dd class="dd-description"><span style="font-family:monospace"> func () -&gt; (Text) "AGF" end
+</span></dd></dl><p><span style="font-family:monospace">
+</span>
+Deres v&#XE6;rdier er henholdsvis
+</p><ul class="itemize"><li class="li-itemize">
+decimal tallet 1.2
+</li><li class="li-itemize">sandhedsv&#XE6;rdien sand
+</li><li class="li-itemize">tegnf&#XF8;lgen best&#XE5;ende af tegnene <code>A</code>, <code>G</code> og <code>F</code>
+</li><li class="li-itemize">et tupel med attribut <code>hold</code> hvis tilsvarende v&#XE6;rdi er
+tegnf&#XF8;lgen best&#XE5;ende af tegnene <code>A</code>, <code>G</code> og <code>F</code>
+</li><li class="li-itemize">en relation indeholdende et enkelt tupel med attribut <code>hold</code> og
+tilsvarende v&#XE6;rdi
+tegnf&#XF8;lgen best&#XE5;ende af tegnene <code>A</code>, <code>G</code> og <code>F</code>
+</li><li class="li-itemize">en funktion uden parametre, der returnerer tegnf&#XF8;lgen best&#XE5;ende 
+af tegnene <code>A</code>, <code>G</code> og <code>F</code>
+</li></ul><p>
+Enhver type har en <em>m&#XE6;ngde</em> af v&#XE6;rdier knyttet til sig.
+V&#XE6;rdim&#XE6;ngderne i <span style="font-variant:small-caps">Rasmus</span> er
+</p><dl class="description"><dt class="dt-description"><span style="font-weight:bold"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;Int</span></span><span style="font-weight:bold">:</span></dt><dd class="dd-description"> m&#XE6;ngden af heltal
+</dd><dt class="dt-description"><span style="font-weight:bold"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;Float</span></span><span style="font-weight:bold">:</span></dt><dd class="dd-description"> m&#XE6;ngden af komma tal (IEEE 754, double)
+</dd><dt class="dt-description"><span style="font-weight:bold"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;Bool</span></span><span style="font-weight:bold">:</span></dt><dd class="dd-description"> de to sandhedsv&#XE6;rdier
+</dd><dt class="dt-description"><span style="font-weight:bold"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;Text</span></span><span style="font-weight:bold">:</span></dt><dd class="dd-description"> m&#XE6;ngden af f&#XF8;lger af ASCII tegn
+</dd><dt class="dt-description"><span style="font-weight:bold"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;Tup</span></span><span style="font-weight:bold">:</span></dt><dd class="dd-description"> m&#XE6;ngden af tupler
+</dd><dt class="dt-description"><span style="font-weight:bold"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;Rel</span></span><span style="font-weight:bold">:</span></dt><dd class="dd-description"> m&#XE6;ngden af relationer, der hver er en endelig
+m&#XE6;ngde af tupler med samme skema
+</dd><dt class="dt-description"><span style="font-weight:bold"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;Func</span></span><span style="font-weight:bold">:</span></dt><dd class="dd-description"> m&#XE6;ngden af funktioner med nul eller flere
+argumenter af en af de seks typer og med et resultat, der er af en af de seks
+typer
+</dd></dl><p>
+V&#XE6;rdim&#XE6;ngden i <code>Int</code>, <code>Float</code>, <code>Bool</code>, <code>Text</code>, <code>Tup</code> og
+<code>Rel</code> er <em>ordnede</em>, det vil sige, man kan sammenligne deres
+v&#XE6;rdier. Ordningerne er som f&#XF8;lger
+</p><dl class="description"><dt class="dt-description"><span style="font-weight:bold"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;Int</span></span><span style="font-weight:bold">:</span></dt><dd class="dd-description"> den s&#XE6;dvanlige ordning p&#XE5; heltallene
+</dd><dt class="dt-description"><span style="font-weight:bold"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;Float</span></span><span style="font-weight:bold">:</span></dt><dd class="dd-description"> den s&#XE6;dvanlige ordning p&#XE5; decimaltallene
+</dd><dt class="dt-description"><span style="font-weight:bold"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;Bool</span></span><span style="font-weight:bold">:</span></dt><dd class="dd-description"> <code>false</code> er mindre end <code>true</code>
+</dd><dt class="dt-description"><span style="font-weight:bold"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;Text</span></span><span style="font-weight:bold">:</span></dt><dd class="dd-description"> alfabetisk ordning, hvor &#X201C;bogstaverne&#X201D; er ASCII tegn
+i den s&#XE6;dvanlige r&#XE6;kkef&#XF8;lge
+</dd><dt class="dt-description"><span style="font-weight:bold"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;Tup</span></span><span style="font-weight:bold">:</span></dt><dd class="dd-description"> <span style="font-family:monospace">t</span><sub>1</sub> er mindre end <span style="font-family:monospace">t</span><sub>2</sub>, hvis alle attributnavne
+i <span style="font-family:monospace">t</span><sub>1</sub> ogs&#XE5; forekommer i <span style="font-family:monospace">t</span><sub>2</sub> og v&#XE6;rdier h&#XF8;rende
+til f&#XE6;lles attributnavne er ens i de to tupler. 
+</dd><dt class="dt-description"><span style="font-weight:bold"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;Rel</span></span><span style="font-weight:bold">:</span></dt><dd class="dd-description"> <span style="font-family:monospace">r</span><sub>1</sub> er mindre end <span style="font-family:monospace">r</span><sub>2</sub>, hvis 
+de har samme skema, og alle tupler i <span style="font-family:monospace">r</span><sub>1</sub> ogs&#XE5; 
+forekommer i <span style="font-family:monospace">r</span><sub>2</sub>
+</dd></dl><p>
+For de tre atomare typer (<code>Int</code>, <code>Float</code>, <code>Bool</code> og <code>Text</code>)
+er dette imidlertid ikke hele sandheden. De fire typer, hvis
+v&#XE6;rdier er de eneste mulige attributv&#XE6;rdier, har endnu en v&#XE6;rdi,
+nemlig den s&#XE5;kaldte <em>standardv&#XE6;rdi</em>. Disse 
+standardv&#XE6;rdier kan angives
+med konstantudtrykkene <code>?-Int</code>, <code>?-Float</code>, <code>?-Bool</code> og <code>?-Text</code>.
+Meningen med og behovet for s&#XE5;danne standardv&#XE6;rdier kan
+illustreres af f&#XF8;lgende udvidelse af informationen om vore
+fodboldkampe. Relationen
+<code>Tips</code> indeholder kun kampe fra <code>Runde1</code>, den f&#XF8;rste halvdel af 
+turneringen. Dette skyldes, at spilledagene i anden halvdel falder
+p&#XE5; en s&#XE5;dan m&#XE5;de, at de seks tophold ikke spiller
+inden for samme uge p&#XE5; en s&#XE5;dan m&#XE5;de, at vi kan
+definere en tipskupon med tre kampe, hvor alle hold deltager.
+Hvis man nu tillader andre kampe at optr&#XE6;de p&#XE5; kuponen, er det
+naturligvis nemt ogs&#XE5; at lave tipskuponer for <code>Runde2</code>.
+I s&#XE5; falde kunne <code>Tips</code> relationen have f&#XF8;lgende udseende
+</p><div class="center">
+<table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Id:Int</span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Uge:Int</span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Nr:Int</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">
+</span>&#X22EE;</td><td style="text-align:right;border:solid 1px;white-space:nowrap" >&#X22EE;</td><td style="text-align:right;border:solid 1px;white-space:nowrap" >&#X22EE;<span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">12</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">18</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">3</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">13</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">19</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">14</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">19</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">15</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">19</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">3</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">19</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">21</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">20</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">21</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">&nbsp;</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">21</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">3</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">&nbsp;</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">23</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">26</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">23</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">27</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">23</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">3</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">29</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">25</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">30</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">25</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">&nbsp;</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">25</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">3 </span></td></tr>
+</table>
+</div><p>
+Som det ses, er der nogle af kampene for hvilke <code>Id</code>-feltet
+er &#X201C;tomt&#X201D;. Grunden er, at vi kun har Superliga kampe i vores
+database, det vil sige, vi mangler identifikationen af den relevante
+kamp. Nu kan felter i tupler imidlertid ikke v&#XE6;re tomme &#X2013;
+<span style="font-variant:small-caps">Rasmus</span> forlanger, at der altid er knyttet en v&#XE6;rdi til
+en attribut &#X2013; og derfor skal vi bruge en v&#XE6;rdi, der angiver
+&#X201C;manglende information&#X201D;. Dette er pr&#XE6;cis hvad standardv&#XE6;rdien
+kan bruges til. De &#X201C;tomme felter&#X201D; er alts&#XE5; i virkeligheden ikke
+tomme; de indeholder <code>?-Int</code>, standardv&#XE6;rdien for typen <code>Int</code>.
+I <span style="font-variant:small-caps">Rasmus</span> systemet angives dette ved, at feltet er <em>lysegr&#XE5;t</em>.
+Vi kan illustrere sammenh&#XE6;ngen mellem standardv&#XE6;rdien
+<code>?-Int</code> og et lysegr&#XE5;t felt ved hj&#XE6;lp af f&#XF8;lgende eksempel.</p><div class="example">
+<div class="title">Eksempel 31</div>
+
+
+V&#XE6;rdien af udtrykket 
+<div class="center">
+<code>rel(tup(Hovsa:?-Int))</code>
+</div>
+er
+<div class="center">
+<table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Hovsa:Int</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">&nbsp;</span></td></tr>
+</table>
+</div>
+
+
+</div><p>Udover at angive manglende information kan standardv&#XE6;rdien
+ogs&#XE5; bruges til at angive at et felt er irrelevant for et
+givent tupel, eller at der er tale om andre former for undtagelser.
+Vi bem&#XE6;rker, at et tom <em>hvidt</em> felt ikke angiver en
+standardv&#XE6;rdi men derimod en <code>Text</code>-attribut, hvis v&#XE6;rdi
+er den tomme tegnf&#XF8;lge.</p>
+<h3 id="sec28" class="subsection">5.4&#XA0;&#XA0;Navne og tilstande</h3>
+<p>
+Vi vender nu tilbage til beskrivelsen af udtryk, hvor vi allerede har
+set, at konstanter er udtryk. En anden form for simple udtryk er navne,
+som fx
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><span style="font-family:monospace">Kampe</span>&#XA0;</td></tr>
+</table><p>
+V&#XE6;rdien af et s&#XE5;dant udtryk er den v&#XE6;rdi, der er <em>bundet</em>
+til det p&#XE5;g&#XE6;ldende navn. I eksemplet er det den relation,
+der indeholder samtlige kampe i turneringen. N&#XE5;r man introducerer et
+navn i <span style="font-variant:small-caps">Rasmus</span> er det altid for at navngive en v&#XE6;rdi af en af
+de seks typer, det vil sige, alle navne i <span style="font-variant:small-caps">rasmus</span> har altid
+en v&#XE6;rdi bundet til sig. Den samling af navne, med tilh&#XF8;rende
+v&#XE6;rdier, man p&#XE5; et givet tidspunkt har adgang til, kaldes
+under et for den aktuelle <em>tilstand</em>, og udregningen af udtryk i
+<span style="font-variant:small-caps">Rasmus</span> foreg&#XE5;r altid relativt til en s&#XE5;dan tilstand.</p><p>Der findes tre m&#XE5;der, hvorp&#XE5; man kan binde v&#XE6;rdier til navne
+og derved modificere den aktuelle tilstand.
+Den f&#XF8;rste m&#XE5;de er ved at navngive et udtryk (ved hj&#XE6;lp af
+<span style="font-weight:bold">Save last</span>) hvilket i eksemplerne er angivet med <span class="textboxed"><span style="font-family:monospace">Navn</span></span>.
+Effekten heraf er, at den p&#XE5;g&#XE6;ldende v&#XE6;rdi bliver bundet
+til <code>Navn</code>, hvorefter denne binding tilf&#XF8;jes til tilstanden.
+Hvis der allerede findes en binding til <code>Navn</code>, s&#XE5; forsvinder
+denne. Vi kalder en s&#XE5;dan udvidelse/overskrivning for en <em>opdatering</em>
+af tilstanden.</p><p>Den anden m&#XE5;de at introducere bindinger er ved hj&#XE6;lp af et
+indskudt udtryk af formen
+</p><div class="center"><span style="font-family:monospace">
+</span><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">(+</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">val </span><span style="font-weight:bold">id</span><sub><span style="font-weight:bold">1</span></sub><span style="font-family:monospace"> = </span><span style="font-weight:bold">udtryk</span><sub><span style="font-weight:bold">1</span></sub><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&nbsp;</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">val </span><span style="font-weight:bold">id</span><sub><span style="font-weight:bold">2</span></sub><span style="font-family:monospace"> = </span><span style="font-weight:bold">udtryk</span><sub><span style="font-weight:bold">2</span></sub><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&nbsp;</span></td><td style="text-align:left;white-space:nowrap" >&#X22EE;<span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&nbsp;</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">val </span><span style="font-weight:bold">id</span><sub><span style="font-weight:bold">n</span></sub><span style="font-family:monospace"> = </span><span style="font-weight:bold">udtryk</span><sub><span style="font-weight:bold">n</span></sub><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&nbsp;</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">in </span><span style="font-family:monospace"><span style="font-weight:bold">udtryk</span></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">+)</span></td></tr>
+</table><span style="font-family:monospace">
+</span></div><p><span style="font-family:monospace">
+</span>
+Her sker der f&#XF8;lgende. F&#XF8;rst udregnes <span style="font-weight:bold">udtryk</span><sub><span style="font-weight:bold">1</span></sub>
+i den aktuelle tilstand og dets v&#XE6;rdi bindes til
+<span style="font-weight:bold">id</span><sub><span style="font-weight:bold">1</span></sub>, hvorefter den aktuelle tilstand opdateres
+med denne binding. Derefter udregnes <span style="font-weight:bold">udtryk</span><sub><span style="font-weight:bold">2</span></sub>
+i den nye tilstand, v&#XE6;rdien bindes til <span style="font-weight:bold">id</span><sub><span style="font-weight:bold">2</span></sub>
+og tilstanden opdateres med denne binding. Dette fors&#XE6;tter indtil
+alle <span style="font-weight:bold">n</span> opdateringer er foretaget, hvorefter <span style="font-weight:bold">udtryk</span>
+udregnes i den resulterende tilstand. Herefter <em>retableres</em>
+den oprindelige tilstand, det vil sige, udregningen af et indskudt
+udtryk p&#XE5;virker s&#XE5;ledes ikke tilstanden &#X2013; de udf&#XF8;rte
+opdateringer er <em>lokale</em> og <em>midlertidige</em>.</p><p>Den sidste m&#XE5;de at foretage bindinger p&#XE5; er i forbindelse med
+funktionsanvendelse. Hvis funktionen
+</p><div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>func (p1:T1, p2:T2) -&gt; (T)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-weight:bold">udtryk</span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>end</code>
+</td></tr>
+</table>
+</div><p>
+er bundet til navnet <code>F</code> i den aktuelle tilstand, vil
+funktionsanvendelsen
+</p><div class="center">
+<code>F(</code><span style="font-weight:bold">udtryk</span><sub><span style="font-weight:bold">1</span></sub><code>,</code><span style="font-weight:bold">udtryk</span><sub><span style="font-weight:bold">2</span></sub><code>)</code>
+</div><p>
+bevirke f&#XF8;lgende. F&#XF8;rst udregnes v&#XE6;rdierne af 
+<span style="font-weight:bold">udtryk</span><sub><span style="font-weight:bold">1</span></sub> og <span style="font-weight:bold">udtryk</span><sub><span style="font-weight:bold">2</span></sub>
+i den aktuelle tilstand. Dern&#XE6;st bindes disse v&#XE6;rdier til
+henholdsvis <code>p1</code> og <code>p2</code>, og tilstanden opdateres med disse
+to bindinger. Nu udregnes <span style="font-weight:bold">udtryk</span> i den s&#XE5;ledes
+modificerede tilstand, og den resulterende v&#XE6;rdi er ogs&#XE5;
+v&#XE6;rdien af funktionsanvendelsen. Endelig retableres den oprindelige
+tilstand. Udregningen af en funktionsanvendelse p&#XE5;virker alts&#XE5;
+heller ikke tilstanden.</p>
+<h3 id="sec29" class="subsection">5.5&#XA0;&#XA0;Sammensatte udtryk</h3>
+<p>
+Efter at have introduceret simple udtryk (konstanter og navne)
+og tilstande, skal vi nu se p&#XE5; <em>sammensatte</em> udtryk,
+der f&#XE5;s ved p&#XE5; s&#XE6;dvanlig algebraisk vis at
+sammens&#XE6;tte to deludtryk ved hj&#XE6;lp af en <em>operator</em>.
+Et simpelt eksempel er
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><span style="font-family:monospace">3+4</span>&#XA0;</td></tr>
+</table><p>
+hvor operatoren <code>+</code> er heltalsaddition og de to
+deludtryk er konstanter af type <code>Int</code>. Det er klart, at <code>+</code>
+stiller det krav, at operanderne skal v&#XE6;re heltal. Fx er udtrykket
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><code>3+"AGF"</code>&#XA0;</td></tr>
+</table><p>
+hverken tilladt eller s&#XE6;rligt meningsfuldt, idet det naturligvis
+ikke giver mening at addere tallet <code>3</code> og
+tegnf&#XF8;lgen <code>A</code>, <code>G</code>, <code>F</code>.
+Om et udtryk som
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><code>3+x</code>&#XA0;</td></tr>
+</table><p>
+er tilladt, afh&#XE6;nger af typen af den v&#XE6;rdi, der er bundet til
+<code>x</code>. Hvis den er af type <code>Int</code> er sagen i orden, ellers er
+det en fejl.</p><p>Vi gennemg&#XE5;r nu udtrykkene i oversigten i afsnit 5.8 og kommenterer
+i n&#XF8;dvendigt omfang operatorernes betydning, samt hvilke krav de
+stiller til deres operander.</p><p><span style="font-weight:bold">For samtlige seks udtrykstyper g&#XE6;lder f&#XF8;lgende.</span></p><p><em>Konstanter:</em><br>
+Taler for sig selv. Resultatet er den &#X201C;oplagte&#X201D; (abstrakte) v&#XE6;rdi.</p><p><em>Navne:</em><br>
+Et navn skal findes i tilstanden, og v&#XE6;rdien er den,
+der her er bundet til navnet.</p><p><em>Funktionsanvendelse </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">F</span></span><code><em>(</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub>1</sub><code><em>,...,</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub><span style="font-style:italic">k</span></sub><em>
+</em><code><em>)</em></code><em>:</em><br>
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub>1</sub>, &#X2026;, <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub><span style="font-style:italic">k</span></sub> skal v&#XE6;re udtryk af samme typer
+som de tilsvarende formelle parametre i den funktion, der er
+v&#XE6;rdien af <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">F</span></span>. Resultatet er som beskrevet i afsnit 6.4.</p><p><em>Indskudt udtryk </em><code><em>(+ val</em></code><em> &#X2026;</em><code><em>in</em></code><em> </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><em> </em><code><em>+)</em></code><em>:</em><br>
+Som beskrevet i afsnit 6.4.</p><p><em>Betinget udtryk </em><code><em>if</em></code><em> </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><sub>1</sub><em> </em><code><em>-&gt;</em></code><em> </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub>1</sub><em>
+</em><code><em>&amp;</em></code><em> &#X2026;</em><code><em>&amp;</em></code><em> </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><sub><span style="font-style:italic">n</span></sub><em> </em><code><em>-&gt;</em></code><em> </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub><span style="font-style:italic">n</span></sub><em> </em><code><em>fi</em></code><em>:</em><br>
+Resultatet opn&#XE5;s ved f&#XF8;rst at udregne <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><sub>1</sub>, &#X2026;,
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><sub><span style="font-style:italic">n</span></sub> i r&#XE6;kkef&#XF8;lge indtil det f&#XF8;rste <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><sub><span style="font-style:italic">i</span></sub>,
+hvis v&#XE6;rdi er sand. Resultatet er da v&#XE6;rdien af
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub><span style="font-style:italic">i</span></sub>. Hvis intet <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><sub><span style="font-style:italic">i</span></sub> er sandt, s&#XE5; er resultatet
+(lidt arbitr&#XE6;rt) tallet 0.</p><p><span style="font-weight:bold">For de </span><span style="font-weight:bold"><em>atomare typer</em></span><span style="font-weight:bold"> g&#XE6;lder f&#XF8;lgende.</span></p><p><em>Standardv&#XE6;rdien </em><code><em>?-</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">A</span></span><em>:</em><br>
+Dette er en &#X201C;ekstra&#X201D; v&#XE6;rdi, der tilf&#XF8;jes til typen.
+Den er kun lig med sig selv og st&#XE5;r ikke i nogen ordningsrelation
+til de andre v&#XE6;rdier. Standardv&#XE6;rdien m&#XE5; kun v&#XE6;re
+operand til sammenligningsoperatorer.</p><p><em>Attribut </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><code><em>.n</em></code><em>:</em><br>
+Navnet <code>n</code> skal v&#XE6;re en attribut i v&#XE6;rdien af <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span>.
+Resultatet er den tilsvarende attributv&#XE6;rdi.</p><p><em>Maksimum </em><code><em>max(</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code><em>,n)</em></code><em>:</em><br>
+Navnet <code>n</code> skal v&#XE6;re en attribut i v&#XE6;rdien af <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span>.
+Resultatet er den st&#XF8;rste <code>n</code>-v&#XE6;rdi i <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span> i den
+p&#XE5;g&#XE6;ldende types ordning. Hvis <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span> er tom, eller
+<code>n</code>-attributten overalt har standardv&#XE6;rdien <code>?-</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">A</span></span>,
+er resultatet denne standardv&#XE6;rdi.</p><p><em>Minimum </em><code><em>min(</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code><em>,n)</em></code><em>:</em><br>
+Analog til maksimum.</p><p><span style="font-weight:bold">For </span><code><span style="font-weight:bold">Bool</span></code><span style="font-weight:bold">-udtryk g&#XE6;lder f&#XF8;lgende.</span></p><p><em>Sammenligning </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">O</span></span><sub>1</sub><code><em>=</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">O</span></span><sub>2</sub><em>, </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">O</span></span><sub>1</sub><code><em>&lt;</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">O</span></span><sub>2</sub><em>, og s&#XE5; videre:</em><br>
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">O</span></span><sub>1</sub> og <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">O</span></span><sub>2</sub> skal v&#XE6;re af samme type. Resultatet er
+<code>true</code>, hvis v&#XE6;rdierne har den angivne indbyrdes ordning, og
+<code>false</code> ellers.</p><p><em>Negation </em><code><em>not</em></code><em> </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><em>:</em><br>
+Resultatet er <code>true</code> (<code>false</code>) hvis v&#XE6;rdien af 
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span> er <code>false</code> (<code>true</code>).</p><p><em>Konjunktion </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><sub>1</sub><em> </em><code><em>and</em></code><em> </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><sub>2</sub><em>:</em><br>
+Resultatet er <code>true</code>, hvis b&#XE5;de <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><sub>1</sub> og <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><sub>2</sub>
+har v&#XE6;rdi <code>true</code>, og <code>false</code> ellers.</p><p><em>Disjunktion </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><sub>1</sub><em> </em><code><em>or</em></code><em> </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><sub>2</sub><em>:</em><br>
+Resultatet er <code>false</code>, hvis b&#XE5;de <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><sub>1</sub> og <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><sub>2</sub>
+har v&#XE6;rdi <code>false</code>, og <code>true</code> ellers.</p><p><em>Skemacheck </em><code><em>has(</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code><em>,n)</em></code><em>:</em><br>
+Resultatet er <code>true</code>, hvis <code>n</code> er attributnavn i <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span>,
+og <code>false</code> ellers.</p><p><em>Typecheck </em><code><em>is-</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">A</span></span><code><em>(</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code><em>,n)</em></code><em>:</em><br>
+Resultatet er <code>true</code>, hvis <code>n</code>&#X2019;s type i <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span>&#X2019;s type
+er <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">A</span></span>, og <code>false</code> ellers.</p><p><em>Match </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>1</sub><code><em>~</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>2</sub><em>:</em><br>
+Resultatet er <code>true</code>, hvis <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>1</sub> optr&#XE6;der som en del af <span style="color:red">
+</span><span style="color:red"><span style="font-style:italic">X</span></span><sub>2</sub>.</p><p><span style="font-weight:bold">For </span><code><span style="font-weight:bold">Int</span></code><span style="font-weight:bold">-udtryk g&#XE6;lder f&#XF8;lgende.</span></p><p><em>Regneoperatorer </em><code><em>+</em></code><em>, </em><code><em>-</em></code><em>, </em><code><em>*</em></code><em>, </em><code><em>/</em></code><em>, </em><code><em>mod</em></code><em>:</em><br>
+Taler for sig selv.</p><p><em>Relationsst&#XF8;rrelse og tekstl&#XE6;ngde, </em><code><em>|</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code><em>|</em></code><em> og
+</em><code><em>|</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><code><em>|</em></code><em>:</em><br>
+Resultatet er antallet af tupler i <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span> og antallet af tegn i
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span>.</p><p><em>Addition </em><code><em>add(</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code><em>,n)</em></code><em>:</em><br>
+Navnet <code>n</code> skal v&#XE6;re en attribut i <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span> af type <code>Int</code>.
+Resultatet er summen af <code>n</code>-v&#XE6;rdierne i <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span>. Hvis 
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span> er tom, eller <code>n</code>-v&#XE6;rdierne alle er <code>?-Int</code>, er
+resultatet <code>?-Int</code>.</p><p><em>Multiplikation </em><code><em>mult(</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code><em>,n)</em></code><em>:</em><br>
+Analog til addition.</p><p><em>Opt&#XE6;lling </em><code><em>count(</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code><em>,n)</em></code><em>:</em><br>
+Navnet <code>n</code> skal v&#XE6;re en attribut i <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span>.
+Resultatet er antallet af <code>n</code>-v&#XE6;rdierne i <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span>, der er
+forskellige fra standardv&#XE6;rdien.</p><p><em>Antal dage </em><code><em>days(</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><sub>1</sub><em>,</em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><sub>2</sub><code><em>)</em></code><em>:</em><br>
+Resultatet er antallet af dage mellem datoerne <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><sub>1</sub> og <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><sub>2</sub>.
+En dato repr&#XE6;senteres som en tekst p&#XE5; formen <span style="font-family:monospace">dd/mm/&#XE5;&#XE5;</span>.</p><p><span style="font-weight:bold">For </span><code><span style="font-weight:bold">Text</span></code><span style="font-weight:bold">-udtryk g&#XE6;lder f&#XF8;lgende.</span></p><p><em>Deltekst </em><code><em>substr(</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><code><em>, </em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>1</sub><code><em>,</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>2</sub><code><em>)</em></code><em>:</em><br>
+Resultatet er delteksten af <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span> best&#XE5;ende af de tegn, hvis
+indices er st&#XF8;rre end eller lig med v&#XE6;rdien af 
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>1</sub> om mindre end v&#XE6;rdien af <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>2</sub>.</p><p><em>Konkatenation </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>1</sub><em> </em><code><em>++</em></code><em> </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>2</sub><em>:</em><br>
+Resultatet er sammens&#XE6;tningen af v&#XE6;rdierne af
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>1</sub> og <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>2</sub>.</p><p><em>Pr&#XE6;fiks </em><code><em>before(</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>1</sub><em>,</em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>2</sub><code><em>)</em></code><em>:</em><br>
+Resultatet er den del af <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>2</sub>, der st&#XE5;r foran f&#XF8;rste forekomst af
+delteksten <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>1</sub>. Hvis <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>1</sub> slet ikke forekommer, s&#XE5; er
+resultatet den tomme tekst.</p><p><em>Suffiks </em><code><em>after(</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>1</sub><em>,</em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>2</sub><code><em>)</em></code><em>:</em><br>
+Resultatet er den del af <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>2</sub>, der st&#XE5;r efter f&#XF8;rste forekomst af
+delteksten <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>1</sub>. Hvis <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>1</sub> slet ikke forekommer, s&#XE5; er
+resultatet den tomme tekst.</p><p><span style="font-weight:bold">For </span><code><span style="font-weight:bold">Tup</span></code><span style="font-weight:bold">-udtryk g&#XE6;lder f&#XF8;lgende.</span></p><p><em>Opdatering </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><sub>1</sub><em> </em><code><em>&lt;&lt;</em></code><em> </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><sub>2</sub><em>:</em><br>
+Resultatet er v&#XE6;rdien af <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><sub>1</sub> opdateret med
+bindingerne i v&#XE6;rdien af <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><sub>2</sub>.</p><p><em>Elimination </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><em> </em>\<em> </em><code><em>n</em></code><em>:</em><br>
+Resultatet er v&#XE6;rdien af <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span> med en eventuel binding
+til <code>n</code> fjernet.</p><p><span style="font-weight:bold">For </span><code><span style="font-weight:bold">Rel</span></code><span style="font-weight:bold">-udtryk g&#XE6;lder f&#XF8;lgende.</span></p><p><em>Konstanten </em><code><em>zero</em></code><em>:</em><br>
+Resultatet er den tomme relation med tomt skema.</p><p><em>Union og difference, </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>1</sub><em> </em><code><em>+</em></code><em> </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>2</sub><em> og
+</em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>1</sub><em> </em><code><em>-</em></code><em> </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>2</sub><em>:</em><br>
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>1</sub> og <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>2</sub> skal have samme skema. Resultatet er
+henholdsvis foreningsm&#XE6;ngde og m&#XE6;ngdedifferens af tuplerne
+i <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>1</sub> og <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>2</sub>.</p><p><em>Project </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><em> </em><code><em>|+</em></code><em> </em><code><em>n</em></code><sub>1</sub><code><em>,...,n</em></code><sub><span style="font-style:italic">k</span></sub>
+Navnene <code>n</code><sub>1</sub>, &#X2026;, <code>n</code><sub><span style="font-style:italic">k</span></sub> skal v&#XE6;re attributter
+i <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span>. Resultatet er m&#XE6;ngden af tupler i <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span> begr&#XE6;nset
+til disse attributter.</p><p><em>Select </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><em> </em><code><em>?</em></code><em> </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><em>:</em><br>
+Resultatet er den delm&#XE6;ngde af tupler i <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span>, hvor
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span> har v&#XE6;rdi <code>true</code>, n&#XE5;r symbolet <code>#</code> erstattes
+med det p&#XE5;g&#XE6;ldende tupel.</p><p><em>Rename </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><em> </em><code><em>[n</em></code><sub>1</sub><code><em> &lt;- n</em></code><sub>2</sub><code><em>]</em></code><em>:</em><br>
+Navnet <code>n</code><sub>1</sub> skal v&#XE6;re en attribut i <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span>, hvorimod
+navnet <code>n</code><sub>2</sub> ikke m&#XE5; v&#XE6;re det. Resultatet er
+m&#XE6;ngden af tupler i <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span> med <code>n</code><sub>1</sub> omd&#XF8;bt
+til <code>n</code><sub>2</sub>.</p><p><em>Join </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>1</sub><em> </em><code><em>*</em></code><em> </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>2</sub><em>:</em><br>
+F&#XE6;lles attributter i <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>1</sub> og <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>2</sub> skal have samme type.
+Resultatets skema er foreningen af de to skemaer. 
+Resultatets tupler er alle de, der projiceret p&#XE5;
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>1</sub>&#X2019;s skema tilh&#XF8;rer <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>1</sub>, og projiceret p&#XE5;
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>2</sub>&#X2019;s skema tilh&#XF8;rer <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>2</sub>.</p><p><em>Forall </em><code><em>!(</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>1</sub><code><em>): </em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>2</sub><em>:</em><br>
+Resultatet er foreningsm&#XE6;ngden af de relationer, 
+der fremkommer ved for hvert
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>1</sub>-tupel at udregne <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>2</sub> med symbolet
+<code>#</code> erstattet med tuplet.</p><p><em>Factor </em><code><em>!(</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>1</sub>,&#X2026;,<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub><span style="font-style:italic">m</span></sub><code><em>)|</em></code><code><em>n</em></code><sub>1</sub><code><em>,...,n</em></code><sub><span style="font-style:italic">k</span></sub><code><em>:</em></code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><em>:</em><br>
+Resultatet er foreningsm&#XE6;ngden af de relationer,
+der fremkommer ved for hvert faktorsekvens (<span style="font-style:italic">t</span><sub><span style="font-style:italic">i</span></sub>,<span style="font-style:italic">r</span><sub><span style="font-style:italic">i</span>1</sub>,&#X2026;,<span style="font-style:italic">r</span><sub><span style="font-style:italic">im</span></sub>) at
+beregne <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span> med symbolet
+<code>#</code> erstattet med <span style="font-style:italic">t</span><sub><span style="font-style:italic">i</span></sub> og symbolet <code>@(j)</code> erstattet med <span style="font-style:italic">r</span><sub><span style="font-style:italic">ij</span></sub>.</p><p><span style="font-weight:bold">For </span><code><span style="font-weight:bold">Func</span></code><span style="font-weight:bold">-udtryk g&#XE6;lder f&#XF8;lgende.</span></p><p><em>Konstant </em><code><em>func (...) -&gt; (...)</em></code><em> </em><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><em> </em><code><em>end</em></code><em>:</em><br>
+Typen af <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span> skal v&#XE6;re resultattypen.</p>
+<h3 id="sec30" class="subsection">5.6&#XA0;&#XA0;Algebraiske love</h3>
+<p>
+Som det fremg&#XE5;r af det foreg&#XE5;ende, spiller operatorerne
+den helt centrale rolle i <span style="font-variant:small-caps">Rasmus</span>. Vi skal derfor i resten af
+dette kapitel interessere os lidt mere for deres <em>algebraiske</em>
+egenskaber. Hermed menes de love, der g&#XE6;lder for operatorerne,
+og som vi kan illusterer med f&#XF8;lgende eksempel. Hvis <code>+</code> er
+almindelig addition af heltal, er der ingen der undrer sig over
+f&#XF8;lgende udtryk
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><code>x + y + z</code>&#XA0;</td></tr>
+</table><p>
+uanset, at det faktisk er <em>tvetydigt</em>, da det kan opfattes 
+som <code>x + (y + z)</code> eller som <code>(x + y) + z</code>. Grunden til at
+vi ikke bliver forvirrede er, at det er ligegyldigt, hvilket af de
+to alternativer vi v&#XE6;lger, fordi <code>+</code> opfylder den
+<em>associative</em> lov. Denne lov udtrykker netop at de to alternativer
+er lige gode, det vil sige, for alle <code>x</code>, <code>y</code> og <code>z</code>
+g&#XE6;lder
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><code>x + (y + z) = (x + y) + z</code>&#XA0;</td></tr>
+</table><p>
+Udover associativitet benytter vi os ogs&#XE5; af de <em>kommutative</em>
+og <em>distributive</em> love for heltalsaritmetik. Mere pr&#XE6;cist
+g&#XE6;lder der for addition og multiplikation af heltal
+f&#XF8;lgende love
+</p><div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" >Associativitet:</td><td style="text-align:left;white-space:nowrap" ><code>x + (y + z) = (x + y) + z</code> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:left;white-space:nowrap" ><code>x * (y * z) = (x * y) * z</code> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >Kommutativitet:</td><td style="text-align:left;white-space:nowrap" ><code>x + y = y + x</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:left;white-space:nowrap" ><code>x * y = y * x</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >Distributivitet:</td><td style="text-align:left;white-space:nowrap" ><code>x * (y + z) = (x * y) + (x * z)</code>
+</td></tr>
+</table>
+</div><p>
+Det interessante er nu, at hvis <code>+</code> og <code>*</code> i stedet betyder
+union og join af relationer, s&#XE5; g&#XE6;lder ovenst&#XE5;ende
+fem love stadig. Ikke nok med det, der g&#XE6;lder yderligere
+f&#XF8;lgende sammenh&#XE6;nge mellem union, join, select og project
+(hvor vi antager, at begge sider af ligningerne er lovlige udtryk)
+</p><div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" > <code>(x * y) ? (b)</code></td><td style="text-align:center;white-space:nowrap" ><code>=</code></td><td style="text-align:left;white-space:nowrap" ><code>(x ? (b)) * (y ? (b))</code></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" > <code>(x + y) ? (b)</code></td><td style="text-align:center;white-space:nowrap" ><code>=</code></td><td style="text-align:left;white-space:nowrap" ><code>(x ? (b)) + (y ? (b))</code></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" > <code>(x + y) |+ a</code></td><td style="text-align:center;white-space:nowrap" ><code>=</code></td><td style="text-align:left;white-space:nowrap" ><code>(x |+ a) + (y |+ a)</code></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" > <code>(x |+ a) ? (b)</code></td><td style="text-align:center;white-space:nowrap" ><code>=</code></td><td style="text-align:left;white-space:nowrap" ><code>(x ? (b)) |+ a</code>
+</td></tr>
+</table>
+</div><p>
+Hertil kommer, at select spiller sammen med de logiske operatorer
+p&#XE5; f&#XF8;lgende m&#XE5;de
+</p><div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><code>x ? (b and c)</code></td><td style="text-align:center;white-space:nowrap" ><code>=</code></td><td style="text-align:left;white-space:nowrap" ><code>(x ? (b)) * (x ? (c))</code></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" ><code>x ? (b or c)</code></td><td style="text-align:center;white-space:nowrap" ><code>=</code></td><td style="text-align:left;white-space:nowrap" ><code>(x ? (b)) + (x ? (c))</code></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" ><code>x ? (not b)</code></td><td style="text-align:center;white-space:nowrap" ><code>=</code></td><td style="text-align:left;white-space:nowrap" ><code>x - (x ? (b))</code>
+</td></tr>
+</table>
+</div><p>
+Der findes andre, mere subtile love, som vi ikke skal komme n&#XE6;rmere
+ind p&#XE5; her, men som sammen med ovenst&#XE5;ende fx kan anvendes til
+effektivitetsfremmende omskrivninger.</p><p>Betragt som et simpelt eksempel herp&#XE5; den distributive lov for
+union og project
+</p><div class="center">
+<code>(x + y) |+ a = (x |+ a) + (y |+ a)</code>
+</div><p>
+Vi antager, at <code>x</code> og <code>y</code> hver indeholder ca. 10.000 tupler,
+men at <code>a</code>-attributten ikke indeholder mere end 100 forskellige
+v&#XE6;rdier. Ved at udregne venstresiden skal der f&#XF8;rst skabes en
+relation <code>(x + y)</code> med ca. 20.000 tupler, som derefter
+skal projiceres ned til en relation med kun ca. 100 tupler.
+Ved en udregning af h&#XF8;jresiden derimod nedsk&#XE6;res <code>x</code> og
+<code>y</code> udmiddelbart til beskeden st&#XF8;rrelse, hvorefter
+foreningsm&#XE6;ngden beregnes. Ved at bruge h&#XF8;jresiden undg&#XE5;r
+vi alts&#XE5; at konstruere et unyttigt mellemresultat med ca.
+20.000 tupler. Der findes andre eksempler, som viser at man kan opn&#XE5;
+endnu mere dramatiske gevinster ved hj&#XE6;lp af passende omskrivninger
+af denne slags.</p><p>Til sidst betragter vi igen udtryk, hvor <code>+</code> og <code>*</code> angiver de
+s&#XE6;dvanlige aritmetiske operatorer. De f&#XE6;rreste vil have
+problemer med at forst&#XE5; f&#XF8;lgende udtryk
+</p><div class="center">
+<code>x + y * z</code>
+</div><p>
+selv om det igen kan opfattes p&#XE5; to forskellige m&#XE5;der, nemlig
+<code>x + (y * z)</code> og <code>(x + y) * z</code>. N&#XE5;r vi automatisk opfatter
+det f&#XF8;rste af disse alternativer som det korrekte, er det fordi vi 
+ved, at <code>*</code> if&#XF8;lge almindelig vedt&#XE6;gt <em>binder h&#XE5;rdere</em>
+end <code>+</code>. I <span style="font-variant:small-caps">Rasmus</span> findes der ligeledes s&#XE5;danne
+bindingsregler (eller <em>prioriteter</em>) 
+for alle operatorer. I nedenst&#XE5;ende prioriterede
+liste af operatorer
+binder de &#XF8;verste h&#XE5;rdest og de nederste svagest.
+</p><div class="center">
+<code>not  |+  |-  !</code><br>
+<code>and  *  /  mod</code><br>
+<code>or  +  -</code><br>
+<code>?  :</code><br>
+<code>=  &lt;&gt;  &lt;  &gt;  &lt;=  &gt;=</code>
+</div><p>
+Dette betyder, at f&#XF8;lgende (tvetydige) venstresider skal opfattes som
+angivet af de tilsvarende h&#XF8;jresider
+</p><div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><code>x * y |+ a</code></td><td style="text-align:center;white-space:nowrap" ><code>=</code></td><td style="text-align:left;white-space:nowrap" ><code>x * (y |+ a)</code></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" ><code>x + y ? b</code></td><td style="text-align:center;white-space:nowrap" ><code>=</code></td><td style="text-align:left;white-space:nowrap" ><code>(x + y) ? b</code></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" ><code>b and c or d</code></td><td style="text-align:center;white-space:nowrap" ><code>=</code></td><td style="text-align:left;white-space:nowrap" ><code>(b and c) or d</code></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" ><code>b or c &lt; d</code></td><td style="text-align:center;white-space:nowrap" ><code>=</code></td><td style="text-align:left;white-space:nowrap" ><code>(b or c) &lt; d</code></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" ><code>x or y = z and w</code></td><td style="text-align:center;white-space:nowrap" ><code>=</code></td><td style="text-align:left;white-space:nowrap" ><code>(x or y) = (z and w)</code>
+</td></tr>
+</table>
+</div><p>
+Det er ikke sikkert, at disse (og alle de &#XF8;vrige) implikationer
+af operatorprioriteterne er i overensstemmelse med s&#XE6;dvanlig
+intuition. Det kan derfor normalt 
+anbefales, at man s&#XE6;tter de tilt&#XE6;nkte paranteser eksplicit.</p>
+<hr>
+<a href="rasmus004.html"><img src="previous_motif.gif" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.gif" alt="Up"></a>
+<a href="rasmus006.html"><img src="next_motif.gif" alt="Next"></a>
+</body>
+</html>

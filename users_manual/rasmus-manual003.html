@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="generator" content="hevea 2.14">
+<link rel="stylesheet" type="text/css" href="../hevea.css">
+<link rel="stylesheet" type="text/css" href="../../tmp/rasmus-manual.css"><title>Persistence</title>
+</head>
+<body >
+<a href="rasmus-manual002.html"><img src="previous_motif.gif" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.gif" alt="Up"></a>
+<a href="rasmus-manual004.html"><img src="next_motif.gif" alt="Next"></a>
+<hr>
+<h2 id="sec7" class="section">3&#XA0;&#XA0;Persistence</h2>
+<p>
+<a id="persistence"></a>
+One of the primary differences between an ordinary programming
+language and a database language is that the latter works on
+persistent data, i.e., we want to be able to start a session with the
+data we had when we ended the last session. We discuss this further
+in section&#XA0;<a href="#startendsession">3.1</a>. Another difference is that a
+database should be able to deal with huge amounts of external data. In
+particular, a database language is required to include a specification
+of how external data can be read by the system. This is the subject of
+section&#XA0;<a href="#exrelformat">3.2</a> and section&#XA0;<a href="#exrelcsvformat">3.3</a>.</p>
+<h3 id="sec8" class="subsection">3.1&#XA0;&#XA0;Starting and Ending a Session</h3>
+<p>
+<a id="startendsession"></a>
+As described in the beginning, <span style="font-variant:small-caps">Rasmus</span> is started executing the 
+<span class="textboxed"><span style="font-family:monospace">rasmus</span></span> file.</p><p>When starting a session, <span style="font-variant:small-caps">Rasmus</span> reads the <span class="textboxed"><span style="font-family:monospace">Environment Path</span></span> as
+set in <span class="textboxed"><span style="font-family:monospace">Edit</span></span>, <span class="textboxed"><span style="font-family:monospace">Preferences</span></span> and establishes the relations
+represented by the directory. These relations are the files in that
+directory with the &#X201C;rdb&#X201D; file extension.</p><p>As an example, suppose we have started <span style="font-variant:small-caps">Rasmus</span> with the
+<span class="textboxed"><span style="font-family:monospace">Environment Path</span></span> pointing to a directory where there is a
+relation called <span style="font-family:monospace">children</span>. After starting up the relation <span style="font-family:monospace">children</span> is loaded and can be seen in the environment (figure&#XA0;<a href="#fig%3Astartup">4</a>).</p><blockquote class="figure"><div class="center"><div class="center"><hr style="width:80%;height:2"></div>
+
+<img src="persistence_startup.png">
+
+<div class="caption"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" >Figure 4: Starting up.</td></tr>
+</table></div>
+<a id="fig:startup"></a>
+<div class="center"><hr style="width:80%;height:2"></div></div></blockquote><p>Double clicking the <span style="font-family:monospace">children</span> relation in the environment list
+brings up the <span style="font-style:italic">relation view</span> (figure&#XA0;<a href="rasmus-manual002.html#fig%3Arelation_view">2</a>). If
+you want to export a relation from the <span style="font-variant:small-caps">Rasmus</span> system, go to
+<span class="textboxed"><span style="font-family:monospace">File</span></span> in the relation view and click <span class="textboxed"><span style="font-family:monospace">Export CSV</span></span>. This
+brings up a dialog where you can decide where to save the file on your
+disk.</p><blockquote class="figure"><div class="center"><div class="center"><hr style="width:80%;height:2"></div>
+
+<img src="children_relation.png">
+
+<div class="caption"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" >Figure 5: Relation view of the example relation <span style="font-family:monospace">children</span>.</td></tr>
+</table></div>
+<a id="fig:child_relation"></a>
+<div class="center"><hr style="width:80%;height:2"></div></div></blockquote><p>It is also possible to save (copy) relations under a different name by
+clicking the <span class="textboxed"><span style="font-family:monospace">Save as global</span></span> item in the <span class="textboxed"><span style="font-family:monospace">File</span></span> menu.</p><p>If you want to save the result of an earlier evaluated expression, you
+must reevaluate it and assign it to a variable using the <span style="font-variant:small-caps">Rasmus</span>
+assignment syntax in the interpreter. Remember that the expression is
+listed somewhere in the interpreter&#X2019;s history, and using the up and
+down arrow keys on your keyboard you go through the history of
+evaluated expressions.</p><p>Deleting a relation from the environment is achieved through the
+<span class="textboxed"><span style="font-family:monospace">File</span></span> menu in the main window and clicking <span class="textboxed"><span style="font-family:monospace">Delete
+relation</span></span>. This brings up a dialog asking for the name of the
+relation to delete. Suppose we had made a copy of the <span style="font-family:monospace">children</span>
+relation by the name of <span style="font-family:monospace">youngpeople</span> and we wanted to delete
+it. Going through the two steps would bring us to the dialog seen in
+figure&#XA0;<a href="#fig%3Adelete_relation">6</a>. Clicking &#X201C;Ok&#X201D; removes <span style="font-family:monospace">YoungPeople</span> from the environment and it deletes the corresponding
+relation file in the <span class="textboxed"><span style="font-family:monospace">Environment Path</span></span>.</p><blockquote class="quote">
+<span style="font-weight:bold">Note that a relation is irretrieveably lost when it is deleted.
+</span></blockquote><blockquote class="figure"><div class="center"><div class="center"><hr style="width:80%;height:2"></div>
+
+<img src="delete_relation.png">
+
+<div class="caption"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" >Figure 6: Deleting a relation.</td></tr>
+</table></div>
+<a id="fig:delete_relation"></a>
+<div class="center"><hr style="width:80%;height:2"></div></div></blockquote>
+<h3 id="sec9" class="subsection">3.2&#XA0;&#XA0;External Relation Format</h3>
+<p>
+<a id="exrelformat"></a>
+Sometimes data is produced by other programs or have been collected by
+people over time and the question naturally arises: how can such data
+be read into a relation <em>automatically</em>? For this purpose, we
+describe the <em>external relation format</em>. This is the format in
+which relations are kept in the directories. So, obviously, if we can
+transform data to this format (automatically), then this data can be
+read into the system.</p><p>A relation in external format looks as illustrated in
+figure&#XA0;<a href="#relformat">7</a>.
+</p><blockquote class="figure"><div class="center"><hr style="width:80%;height:2"></div>
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" > &#X27E8;number of attribute names&#X27E9; </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > &#X27E8;type&#X27E9; &#X27E8;name&#X27E9; </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > &#XA0;&#XB7; </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > &#XA0;&#XB7; </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > &#X27E8;type&#X27E9; &#X27E8;name&#X27E9; </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > &#X27E8;field&#X27E9; </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > &#XA0;&#XB7; </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > &#XA0;&#XB7; </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > &#X27E8;field&#X27E9;
+</td></tr>
+</table>
+</div>
+<div class="caption"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" >Figure 7: External relation format.</td></tr>
+</table></div>
+<a id="relformat"></a>
+<div class="center"><hr style="width:80%;height:2"></div></blockquote><p>
+Here, &#X27E8;type&#X27E9; can be either T, I, or B, representing the three
+atomic types <span style="font-variant:small-caps">Text</span>, <span style="font-variant:small-caps">Integer</span> and <span style="font-variant:small-caps">Boolean</span>.</p><p>The external format of the <span style="font-family:monospace">children</span> relation would be as
+depicted in figure&#XA0;<a href="#tinyformat">8</a>.
+</p><blockquote class="figure"><div class="center"><hr style="width:80%;height:2"></div>
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" > 2 </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > T Name </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > I Age </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > Bruce Jones </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > 5 </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > Mary Ross </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > 12 </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > Ann Bird </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > 12 </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > Kenneth Lewis </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > 17
+</td></tr>
+</table>
+</div>
+<div class="caption"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" >Figure 8: External relation format of the <span style="font-family:monospace">children</span> relation.</td></tr>
+</table></div>
+<a id="tinyformat"></a>
+<div class="center"><hr style="width:80%;height:2"></div></blockquote><p>Relations are stored in external format as ordinary text files. The
+text file is named after the relation name, by adding an extension of
+<span style="font-family:monospace">.rdb</span>. So our example relation was stored in a file <span style="font-family:monospace">children.rdb</span> with the exact contents of figure&#XA0;<a href="#tinyformat">8</a>.
+This file can be loaded into <span style="font-variant:small-caps">Rasmus</span> by storing it in the
+<span class="textboxed"><span style="font-family:monospace">Environment Path</span></span>.</p>
+<h3 id="sec10" class="subsection">3.3&#XA0;&#XA0;Working with CSV Files</h3>
+<p>
+<a id="exrelcsvformat"></a>
+Today much data is stored in CSV (Comma Seperated Value) files, and
+<span style="font-variant:small-caps">Rasmus</span> is capable of reading and writing relations from and to CSV
+files. Here we describe how <span style="font-variant:small-caps">Rasmus</span> interprets a CSV file when it is
+loaded.</p><p>A CSV files consists of zero or more lines. Each line contains the
+same number of fields seperated commas (,). A field may be enclosed by
+quotes ("&lt;content&gt;"). Let <span style="font-style:italic">m</span> be the number of
+fields and <span style="font-style:italic">n</span> be the number of rows, then the content of the first
+field of the first row is <span style="font-style:italic">f</span><sub>1,1</sub>, and the content of the very last
+field is <span style="font-style:italic">f</span><sub><span style="font-style:italic">n</span>,<span style="font-style:italic">m</span></sub>.</p><p>When reading a CSV file <span style="font-variant:small-caps">Rasmus</span> tries to guess the type of each
+attribute in the tuples of the relation. This is done by guessing the
+type of each attribute in turn. The type of the first attribute is
+inferred based on the content of the fields <span style="font-style:italic">f</span><sub>2,1</sub>, <span style="font-style:italic">f</span><sub>3,1</sub>,&#X2026;,
+<span style="font-style:italic">f</span><sub><span style="font-style:italic">n</span>, 1</sub>. In general the <span style="font-style:italic">j</span>th attribute&#X2019;s type is guessed based on
+the contents of <span style="font-style:italic">f</span><sub>2, <span style="font-style:italic">j</span></sub>, <span style="font-style:italic">f</span><sub>3, <span style="font-style:italic">j</span></sub>,&#X2026;, <span style="font-style:italic">f</span><sub><span style="font-style:italic">n</span>, <span style="font-style:italic">j</span></sub>. The type of an
+attribute is guessed as follows. If all the fields contain an integer,
+the type is <span style="font-variant:small-caps">Int</span>. If all the fields contain either <span style="font-family:monospace">true</span> or
+<span style="font-family:monospace">false</span>, the type is <span style="font-variant:small-caps">Boolean</span>. Otherwise the type is <span style="font-variant:small-caps">Text</span>.</p><p>Note the first line of fields have been ignored. This is because it
+might be the names of the attributes (also known as the <em>header</em>
+of the column). If all fields <span style="font-style:italic">f</span><sub><span style="font-style:italic">i</span>,<span style="font-style:italic">j</span></sub> for 1 &#X2264; <span style="font-style:italic">i</span> &#X2264; <span style="font-style:italic">n</span> and 1 &#X2264;
+<span style="font-style:italic">j</span> &#X2264; <span style="font-style:italic">m</span> are textual fields, then the first row is interpreted as
+values rather than as the names of the attributes. In this case the
+names of the columns are <span style="font-family:monospace">column0</span>, <span style="font-family:monospace">column1</span>, etc. Otherwise
+the field <span style="font-style:italic">f</span><sub>1,<span style="font-style:italic">j</span></sub> for 1 &#X2264; <span style="font-style:italic">j</span> &#X2264; <span style="font-style:italic">m</span> is interpreted as the name of
+column <span style="font-style:italic">j</span>.</p><p>A relation in CSV format looks as illustrated in
+figure&#XA0;<a href="#csvformat">9</a>.
+</p><blockquote class="figure"><div class="center"><hr style="width:80%;height:2"></div>
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" > &#X27E8;<span style="font-style:italic">f</span><sub>1,1</sub>&#X27E9;,&#X27E8;<span style="font-style:italic">f</span><sub>1,2</sub>&#X27E9;, &#X2026; ,&#X27E8;<span style="font-style:italic">f</span><sub>1,<span style="font-style:italic">m</span></sub>&#X27E9; </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > &#X27E8;<span style="font-style:italic">f</span><sub>2,1</sub>&#X27E9;,&#X27E8;<span style="font-style:italic">f</span><sub>2,2</sub>&#X27E9;, &#X2026; ,&#X27E8;<span style="font-style:italic">f</span><sub>2,<span style="font-style:italic">m</span></sub>&#X27E9; </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > &#XA0;&#XB7; </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > &#XA0;&#XB7; </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > &#X27E8;<span style="font-style:italic">f</span><sub><span style="font-style:italic">n</span>,1</sub>&#X27E9;,&#X27E8;<span style="font-style:italic">f</span><sub><span style="font-style:italic">n</span>,2</sub>&#X27E9;, &#X2026; ,&#X27E8;<span style="font-style:italic">f</span><sub><span style="font-style:italic">n</span>,<span style="font-style:italic">m</span></sub>&#X27E9; </td></tr>
+</table>
+</div>
+<div class="caption"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" >Figure 9: External CSV format.</td></tr>
+</table></div>
+<a id="csvformat"></a>
+<div class="center"><hr style="width:80%;height:2"></div></blockquote><p>The CSV file of the <span style="font-family:monospace">children</span> relation would be as depicted in
+figure&#XA0;<a href="#childrencsv">10</a>. Looking through figure&#XA0;<a href="#childrencsv">10</a>, we
+see <span style="font-variant:small-caps">Rasmus</span> can infer that the type of the <span style="font-family:monospace">Age</span> column is <span style="font-variant:small-caps">Int</span>, since all values except the first value in that column are
+integers.</p><blockquote class="figure"><div class="center"><hr style="width:80%;height:2"></div>
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" > Name,Age</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > Bruce Jones,5</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > Mary Rose,12</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > Ann Bird,12</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" > Kenneth Lewis,17
+</td></tr>
+</table>
+</div>
+<div class="caption"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" >Figure 10: The <span style="font-family:monospace">children</span> relation as a CSV file.</td></tr>
+</table></div>
+<a id="childrencsv"></a>
+<div class="center"><hr style="width:80%;height:2"></div></blockquote>
+<hr>
+<a href="rasmus-manual002.html"><img src="previous_motif.gif" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.gif" alt="Up"></a>
+<a href="rasmus-manual004.html"><img src="next_motif.gif" alt="Next"></a>
+</body>
+</html>

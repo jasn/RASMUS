@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="generator" content="hevea 2.14">
+<link rel="stylesheet" type="text/css" href="../hevea.css">
+<link rel="stylesheet" type="text/css" href="../../tmp2/rasmus.css"><title>Relationsudtryk</title>
+</head>
+<body >
+<a href="rasmus001.html"><img src="previous_motif.gif" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.gif" alt="Up"></a>
+<a href="rasmus003.html"><img src="next_motif.gif" alt="Next"></a>
+<hr>
+<h2 id="sec4" class="section">2&#XA0;&#XA0;Relationsudtryk</h2>
+<p>
+Udover at skabe og udskrive relationer, kan man naturligvis ogs&#XE5;
+kombinere relationer med hinanden. Dette foreg&#XE5;r efter
+<em>relationsalgebraens</em>
+principper, og den letteste m&#XE5;de at forklare
+dette p&#XE5; er via en analogi med de s&#XE6;dvanlige regningsarter
+p&#XE5; heltal. Et aritmetisk heltalsudtryk som
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell">7+5</td></tr>
+</table><p>
+betyder, at operatoren + skal anvendes p&#XE5; operanderne 7 og 5.
+Resultatet heraf (udtrykkets v&#XE6;rdi) er som bekendt 12, og en s&#XE5;dan
+v&#XE6;rdi kan man s&#XE5; g&#XF8;re et eller andet videre ved, fx kan man
+gemme den.</p><p>I <span style="font-variant:small-caps">Rasmus</span> kan relationer optr&#XE6;de i relationsudtryk p&#XE5; samme
+m&#XE5;de, som tal kan optr&#XE6;de i aritmetiske udtryk. Operatorerne er
+nogle andre, men betydningen er i princippet den samme: resultatet af 
+at anvende en
+relationsoperator er en relation &#X2013; pr&#XE6;cis ligesom resultatet af
+at anvende en heltalsoperator er et heltal. </p><p>Syntaksen for relationsoperatorer i <span style="font-variant:small-caps">Rasmus</span> er nogenlunde den samme
+som for de s&#XE6;dvanlige regningsarter, idet vi ogs&#XE5; benytter
+fx + og *, men nu med en anden betydning.</p>
+<h3 id="sec5" class="subsection">2.1&#XA0;&#XA0;Union</h3>
+<p>
+Man kan danne en relation, som er en foreningsm&#XE6;ngde af to andre
+relationer. Dette sker ved hj&#XE6;lp af den s&#XE5;kaldte
+<em>union</em>-operator, som vi udtrykker ved hj&#XE6;lp af <code>+</code> p&#XE5;
+denne m&#XE5;de
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><span style="font-weight:bold">relation</span><sub><span style="font-weight:bold">1</span></sub><span style="font-family:monospace">&#XA0;+&#XA0;</span><span style="font-weight:bold">relation</span><sub><span style="font-weight:bold">2</span></sub></td></tr>
+</table><p>
+Det kr&#XE6;ves, at de to operander har samme skema.
+Udtrykkets resultat er en ny relation, som man kan bruge overalt, hvor
+en relation ellers er tilladt, fx som operand til en ny relationsoperator.
+
+
+
+
+
+
+
+
+</p><div class="example">
+<div class="title">Eksempel 1</div>
+
+
+Skab en relation best&#XE5;ende af samtlige tupler fra de to
+turneringsrunder
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><span style="font-family:monospace">Kampe := Runde1 + Runde2</span>&#XA0;</td></tr>
+</table>
+Hvis vi gemmer resultatet af dette udtryk under navnet <span class="textboxed"><span style="font-family:monospace">Kampe</span></span> (som vist i koden ovenfor)
+vil relationen <span style="font-family:monospace">Kampe</span> have f&#XF8;lgende indhold
+<span style="font-size:small">
+</span><div class="center"><span style="font-size:small">
+</span><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Id:Int</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">HjHold:Text</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">UdeHold:Text</span></span><span style="font-size:small"><span style="font-family:monospace"> </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">
+1</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 2</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 3</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 4</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 5</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 6</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 7</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 8</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 9</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">10</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">11</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">12</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">13</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">14</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">15</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">16</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">17</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">18</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">19</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">20</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">21</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">22</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">23</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">24</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">25</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">26</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">27</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">28</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">29</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">30</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB 
+ </span></span></td></tr>
+</table><span style="font-size:small">
+</span></div><span style="font-size:small">
+</span>
+
+
+</div><p>
+
+
+Union-operatorens m&#XE5;de at kombinere relationer
+p&#XE5; kan siges at v&#XE6;re &#X201C;lodret&#X201D;, idet resultatrelationen bliver
+l&#XE6;ngere (i alt fald ikke kortere) end den l&#XE6;ngste af operanderne.</p>
+<h3 id="sec6" class="subsection">2.2&#XA0;&#XA0;Join</h3>
+<p>
+Man kan ogs&#XE5; kombinere relationer &#X201C;vandret&#X201D;, det vil sige, s&#XE5;
+resultatet bliver bredere (i alt fald ikke smallere) end den
+bredeste af operanderne. Operatoren hertil hedder <em>join</em> og
+optr&#XE6;der i udtryk i form af <code>*</code> p&#XE5; f&#XF8;lgende m&#XE5;de
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><span style="font-weight:bold">relation</span><sub><span style="font-weight:bold">1</span></sub><span style="font-family:monospace">&#XA0;*&#XA0;</span><span style="font-weight:bold">relation</span><sub><span style="font-weight:bold">2</span></sub></td></tr>
+</table><p>
+Resultatet af dette udtryk er en ny relation, hvis attributnavne udg&#XF8;res
+af alle de attributnavne, der findes i de to operander tilsammen.
+Eventuelle attributnavne, der optr&#XE6;der begge steder, kommer dog kun med
+en enkelt gang; det kr&#XE6;ves, at de to operander er enige om
+typerne for s&#XE5;danne f&#XE6;lles attributnavne.</p><p>Tuplerne i den nye relation dannes ved at kombinere alle par af tupler fra
+de to relationer, som har samme v&#XE6;rdier p&#XE5; attributter med samme navn.</p><p>Join-operatoren kan give en tom relation som resultat, hvis
+der ikke er to tupler med samme v&#XE6;rdi p&#XE5; de f&#XE6;lles attributter.
+Hvis de to operander ikke har nogen f&#XE6;lles
+attributter, vil resultatet indeholde alle mulige kombinationer
+af deres tupler.</p><div class="example">
+<div class="title">Eksempel 2</div>
+
+
+Skab en relation, der indeholder samtlige kampe og deres resultater
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><span style="font-family:monospace">Turnering := Kampe * Resultater</span>&#XA0;</td></tr>
+</table>
+Hvis resultatet af udtrykket gemmes under navnet <span class="textboxed"><span style="font-family:monospace">Turnering</span></span> 
+er v&#XE6;rdien af <span style="font-family:monospace">Turnering</span> som f&#XF8;lger
+<div class="center">
+<span style="font-size:small">
+</span><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Id:Int</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">HjHold:Text</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">UdeHold:Text</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">HjScore:Int</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">UdeScore:Int</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">
+1</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 2</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 3</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 4</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 5</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 6</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 7</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">4</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 8</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 9</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">10</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">11</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">12</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">13</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">14</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">15</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">16</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">17</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">18</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">19</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">20</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">21</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">22</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">23</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">24</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">25</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">26</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">6</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">27</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">4</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">28</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">29</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">30</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">5</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+</table><span style="font-size:small">
+</span>
+</div>
+
+
+</div>
+<h3 id="sec7" class="subsection">2.3&#XA0;&#XA0;Select</h3>
+<p>
+Det er ovenfor vist, at relationer kan g&#XF8;res l&#XE6;ngere og bredere,
+s&#XE5; det er ikke s&#XE6;rligt overraskende, at de ogs&#XE5; kan g&#XF8;res
+kortere og smallere.</p><p>En m&#XE5;de at g&#XF8;re dem kortere p&#XE5; er at udv&#XE6;lge de tupler,
+der opfylder en given betingelse. Hertil anvendes den s&#XE5;kaldte
+<em>select</em>-operator, som vi skriver p&#XE5; f&#XF8;lgende m&#XE5;de
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><span style="font-weight:bold">relation</span>&#XA0;<span style="font-family:monospace">&#XA0;?&#XA0;(</span>&#XA0;<span style="font-weight:bold">betingelse</span>&#XA0;)&#XA0;</td></tr>
+</table><p>
+Resultatet er en relation, som indeholder netop de tupler, der opfylder
+betingelsen.</p><div class="example">
+<div class="title">Eksempel 3</div>
+
+
+Skab en relation best&#XE5;ende af de kampe i turneringen, hvor
+hjemmeholdet vandt
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><code>Turnering ? (\#.HjScore &gt; \#.UdeScore)</code>&#XA0;</td></tr>
+</table>
+V&#XE6;rdien af dette udtryk er
+<div class="center">
+<span style="font-size:small">
+</span><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Id:Int</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">HjHold:Text</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">UdeHold:Text</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">HjScore:Int</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">UdeScore:Int</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">
+2</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 7</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">4</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 9</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">10</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">14</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">21</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">22</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">25</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">26</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">6</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">27</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">4</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">30</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">5</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+</table><span style="font-size:small">
+</span>
+</div>
+
+
+</div><p>Betingelsen <code>#.HjScore &gt; #.UdeScore</code> er et eksempel p&#XE5; en
+<em>simpel</em> betingelse. Vi skal senere se, at man kan skrive langt
+mere avancerede betingelser i <span style="font-variant:small-caps">Rasmus</span>, og vi vil ogs&#XE5; forklare
+hvad <code>#</code> betyder. For n&#XE6;rv&#XE6;rende er det tilstr&#XE6;kkeligt
+at forst&#XE5;, at ovenn&#XE6;vnte betingelse udv&#XE6;lger de tupler,
+hvor v&#XE6;rdien af attributten <code>HjScore</code> er st&#XF8;rre end
+v&#XE6;rdien af attributten <code>UdeScore</code>.</p>
+<h3 id="sec8" class="subsection">2.4&#XA0;&#XA0;Project</h3>
+<p>
+Hvis relationer skal g&#XF8;res smallere, anvendes den
+s&#XE5;kaldte <em>project</em>-operator, som vi skriver som
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><span style="font-weight:bold">relation</span>&#XA0;<code> |+ </code>&#XA0;<span style="font-weight:bold">attributliste</span>&#XA0;</td></tr>
+</table><p>
+Resultatet er den del af operandrelationen, der udg&#XF8;res af attributterne
+i den angivne attributliste, medens de &#XF8;vrige attributter
+&#X201C;smides v&#XE6;k&#X201D;. Bem&#XE6;rk, at project-operatoren samtidigt kan
+g&#XF8;re relationen kortere, da to tupler fra operanden kan blive ens,
+n&#XE5;r nogle af attributterne fjernes.</p><div class="example">
+<div class="title">Eksempel 4</div>
+
+
+Skab en relation, der for hver kamp indeholder det antal m&#XE5;l, der
+er scoret af udeholdet
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><code>Resultater |+ Id,UdeScore</code>&#XA0;</td></tr>
+</table>
+V&#XE6;rdien af udtrykket er
+<div class="center">
+<span style="font-size:small">
+</span><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Id:Int</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">UdeScore:Int</span></span><span style="font-size:small"><span style="font-family:monospace"> </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">
+1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 3</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 4</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 5</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 6</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 7</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 8</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 9</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">10</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">11</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">12</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">13</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">14</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">15</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">16</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">17</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">18</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">19</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">20</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">21</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">22</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">23</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">24</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">25</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">26</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">27</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">28</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">29</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">30</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+</table><span style="font-size:small">
+</span>
+</div>
+
+
+</div><p>Vi kunne have opn&#XE5;et samme resultat ved at bruge det alternative
+udtryk
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><code>Resultater |- HjScore</code>&#XA0;</td></tr>
+</table><p>
+idet man ved varianten <code>|-</code> angiver de attributter, der skal fjernes.</p>
+<h3 id="sec9" class="subsection">2.5&#XA0;&#XA0;Sammensatte udtryk</h3>
+<p>
+Alle relationsudtryk i de foreg&#XE5;ende eksempler har v&#XE6;ret
+&#X201C;flade&#X201D;, i den forstand, at operanderne til de forskellige
+relationsoperatorer har v&#XE6;ret simple relationer. Operander kan imidlertid
+selv v&#XE6;re udtryk, hvis operander igen kan v&#XE6;re udtryk, og s&#XE5;
+videre.</p><p>P&#XE5; samme m&#XE5;de som man i et aritmetisk udtryk kan skrive fx
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell">(7+5)*3&#XA0;</td></tr>
+</table><p>
+kan man i relationsalgebraen skrive fx
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><code>(Runde1 + Runde2) |+ Id</code>&#XA0;</td></tr>
+</table><p>
+Dette sammensatte udtryk beregner 
+identiteterne p&#XE5; samtlige kampe i dobbeltturneringen.</p>
+<h3 id="sec10" class="subsection">2.6&#XA0;&#XA0;Rename</h3>
+<p>
+Foruden join og project er der endnu en operator, som kan siges at virke
+&#X201C;vandret&#X201D;. Det er den s&#XE5;kaldte <em>rename</em>-operator, der er
+n&#XF8;dvendig, hvis en relations attributnavne ikke er
+hensigtsm&#XE6;ssige for en efterf&#XF8;lgende brug. Antag fx, at
+der &#XF8;nskes foretaget en kombination af relationerne <code>Runde1</code> og
+<code>Spilledag</code>, s&#XE5;ledes at kampe, der optr&#XE6;der i begge
+relationer, bliver repr&#XE6;senteret ved de samlede oplysninger om dem.
+Man kan ikke umiddelbart benytte join, da identitetsattributterne har
+forskellige navne; i <code>Runde1</code> hedder den <code>Id</code>, og i
+<code>Spilledag</code> hedder den <code>Kamp</code>. 
+Hvis vi join&#X2019;ede de to relationer ville resultatet blive en relation
+med 450 tupler, idet alle tupler i <code>Runde1</code> ville blive
+parret med alle tupler i <code>Spilledag</code>. Dette er ikke hvad
+vi &#XF8;nsker, og det er derfor n&#XF8;dvendigt at kunne omd&#XF8;be
+attributnavne. Det g&#XF8;res ved hj&#XE6;lp af <em>rename</em>-operatoren,
+som anvendes p&#XE5; f&#XF8;lgende m&#XE5;de
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><span style="font-weight:bold">relation</span>&#XA0;<span style="font-family:monospace">&#XA0;[&#XA0;</span>&#XA0;<span style="font-weight:bold">navneparliste</span>&#XA0;<span style="font-family:monospace">&#XA0;]&#XA0;</span>&#XA0;</td></tr>
+</table><p>
+I <span style="font-weight:bold">navneparliste</span> st&#XE5;r de udskiftninger af navne, som vi
+&#XF8;nsker at foretage, p&#XE5; formen
+<span style="font-weight:bold">gammelt navn</span> <code>&lt;-</code> <span style="font-weight:bold">nyt navn</span>, adskilte af kommaer.</p><div class="example">
+<div class="title">Eksempel 5</div>
+
+
+V&#XE6;rdien af udtrykket
+<code>Spilledag [ Kamp &lt;- Id ]</code> er som f&#XF8;lger
+<div class="center">
+<span style="font-size:small">
+</span><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Id:Int</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Dato:Text</span></span><span style="font-size:small"><span style="font-family:monospace"> </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">
+1</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">316 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 2</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">317 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 3</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">401 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 4</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">324 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 5</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">407 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 6</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">407 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 7</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">414 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 8</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">414 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 9</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">428 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">10</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">421 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">11</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">505 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">12</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">505 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">13</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">512 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">14</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">512 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">15</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">512 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">16</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">516 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">17</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">516 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">18</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">516 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">19</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">520 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">20</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">520 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">21</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">523 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">22</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">526 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">23</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">530 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">24</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">602 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">25</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">602 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">26</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">609 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">27</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">609 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">28</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">619 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">29</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">623 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">30</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">623 
+ </span></span></td></tr>
+</table><span style="font-size:small">
+</span>
+</div>
+
+
+</div><p>Nu kan vi udtrykke nyttige kombinationer af <code>Runde1</code> og
+<code>Spilledag</code>.</p><div class="example">
+<div class="title">Eksempel 6</div>
+
+
+Skab en relation best&#XE5;ende af datoerne for
+AGF&#X2019;s hjemmekampe i f&#XF8;rste runde af turneringen
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><code>((Runde1 ? (\#.HjHold="AGF"))*(Spilledag[Kamp&lt;-Id])) |+ Dato</code>&#XA0;</td></tr>
+</table>
+V&#XE6;rdien er
+<div class="center">
+<table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Dato:Text</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">
+316</span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">421 </span></td></tr>
+</table>
+</div>
+
+
+</div>
+<h3 id="sec11" class="subsection">2.7&#XA0;&#XA0;Difference</h3>
+<p>
+Vi har ogs&#XE5; en s&#XE5;kaldt <em>difference</em>-operator, som bruges til
+at finde de tupler, der optr&#XE6;der i een relation, men ikke i en anden.
+Udseendet er
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><span style="font-weight:bold">relation</span><sub><span style="font-weight:bold">1</span></sub>&#XA0;<code> - </code>&#XA0;<span style="font-weight:bold">relation</span><sub><span style="font-weight:bold">2</span></sub>&#XA0;</td></tr>
+</table><p>
+Det kr&#XE6;ves som ved union, at de to operander har samme skema.</p><div class="example">
+<div class="title">Eksempel 7</div>
+
+
+Find ud af, hvilke hold der ikke har vundet p&#XE5; udebane
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>(Turnering |+ UdeHold) - </code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>((Turnering ? (\#.HjScore&lt;\#.UdeScore)) |+ UdeHold)</code>
+</td></tr>
+</table>
+</div>
+V&#XE6;rdien af udtrykket er
+<div class="center">
+<table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">UdeHold:Text</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">
+AGF </span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">OB
+ </span></td></tr>
+</table>
+</div>
+
+
+</div><p>Bem&#XE6;rk, at det her er vigtigt, at relationer ikke indeholder dubletter.
+V&#XE6;rdien af det f&#XF8;rste deludtryk ovenfor,
+<code>Turnering |+ UdeHold</code>, er
+</p><div class="center">
+<table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">UdeHold:Text</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">
+AGF </span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Frem</span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">AaB </span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">OB</span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Br&#XF8;ndby </span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Lyngby
+ </span></td></tr>
+</table>
+</div><p>
+Vi ser, at hvert hold kun optr&#XE6;der en enkelt gang, uanset hvor mange
+kampe, det har spillet. Dette skyldes som tidligere n&#XE6;vnt, at
+relationer er <em>m&#XE6;ngder</em>, og dette er en vigtig foruds&#XE6;tning
+for, at difference-operatoren giver mening.</p><p>N&#XE5;r <span style="font-variant:small-caps">Rasmus</span> s&#XE5;ledes er udstyret med de to m&#XE6;ngde-operatorer
+union og difference for foreningsm&#XE6;ngde og m&#XE6;ngdedifferens, s&#XE5;
+ville det v&#XE6;re at forvente, at der ogs&#XE5; var en operator for
+f&#XE6;llesm&#XE6;ngde. Det er der ogs&#XE5; &#X2013; men kun indirekte &#X2013; fordi
+det er nemt at se, at hvis to relationer har samme skema, s&#XE5; vil
+join beregne deres f&#XE6;llesm&#XE6;ngde. Resultatet vil indeholde
+de tupler, der har samme v&#XE6;rdi p&#XE5; alle attributter, og det er jo
+netop de f&#XE6;lles tupler.</p>
+<h3 id="sec12" class="subsection">2.8&#XA0;&#XA0;Indskudte udtryk</h3>
+<p>
+Vi slutter dette kapitel med et lidt mere kompliceret eksempel, hvor
+vi bruger <code>Tips</code>-relationen for f&#XF8;rste gang.</p><div class="example">
+<div class="title">Eksempel 8</div>
+
+
+Find nummeret p&#XE5; den kamp p&#XE5; tipskuponen for uge 18, hvor
+AGF var med
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>(((Kampe*(Tips ? (\#.Uge=18))) ? (\#.UdeHold="AGF")) +</code> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code> ((Kampe*(Tips ? (\#.Uge=18))) ? (\#.HjHold="AGF"))) |+ Nr</code>
+</td></tr>
+</table>
+</div>
+Resultatet bliver
+<div class="center">
+<table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Nr:Int</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">
+1 </span></td></tr>
+</table>
+</div>
+
+
+</div><p>Som vi skal se i et senere kapitel, kan dette udtryk simplificeres en smule,
+men alligevel kan vi allerede nu se, at n&#XE5;r relationsudtryk bliver
+store, s&#XE5; bliver der behov for at kunne opskrive dem p&#XE5; en mere
+hensigtsm&#XE6;ssig m&#XE5;de, end vi har set hidtil. Til den ende
+har <span style="font-variant:small-caps">Rasmus</span> f&#XF8;lgende midlertidige navngivningsmekanisme,
+et s&#XE5;kaldt <em>indskudt udtryk</em>
+</p><div class="center"><span style="font-family:monospace">
+</span><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">(+</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">val </span><span style="font-weight:bold">id</span><sub><span style="font-weight:bold">1</span></sub><span style="font-family:monospace"> = </span><span style="font-weight:bold">relation</span><sub><span style="font-weight:bold">1</span></sub><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&nbsp;</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">val </span><span style="font-weight:bold">id</span><sub><span style="font-weight:bold">2</span></sub><span style="font-family:monospace"> = </span><span style="font-weight:bold">relation</span><sub><span style="font-weight:bold">2</span></sub><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&nbsp;</span></td><td style="text-align:left;white-space:nowrap" >&#X22EE;<span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&nbsp;</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">val </span><span style="font-weight:bold">id</span><sub><span style="font-weight:bold">n</span></sub><span style="font-family:monospace"> = </span><span style="font-weight:bold">relation</span><sub><span style="font-weight:bold">n</span></sub><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&nbsp;</span></td><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">in </span><span style="font-family:monospace"><span style="font-weight:bold">relation</span></span></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">+)</span></td></tr>
+</table><span style="font-family:monospace">
+</span></div><p><span style="font-family:monospace">
+</span>
+Dette udtryk bevirker, at man under udregningen af det sidste udtryk
+<span style="font-weight:bold">relation</span> kan referere til v&#XE6;rdierne af
+<span style="font-weight:bold">relation</span><sub><span style="font-weight:bold">1</span></sub> til <span style="font-weight:bold">relation</span><sub><span style="font-weight:bold">n</span></sub> 
+ved hj&#XE6;lp
+af navnene <span style="font-weight:bold">id</span><sub><span style="font-weight:bold">1</span></sub>, &#X2026;, <span style="font-weight:bold">id</span><sub><span style="font-weight:bold">n</span></sub>. Resultatet af det samlede
+<code>(+ ... +)</code>- udtryk er den s&#XE5;ledes udregnede 
+v&#XE6;rdi af <span style="font-weight:bold">relation</span>.
+Navnene <span style="font-weight:bold">id</span><sub><span style="font-weight:bold">1</span></sub>, &#X2026;, <span style="font-weight:bold">id</span><sub><span style="font-weight:bold">n</span></sub> 
+er <em>lokale</em> og kan ikke
+refereres uden for <code>(+ ... +)</code>- udtrykket. I
+udtrykket <span style="font-weight:bold">relation</span><sub><span style="font-weight:bold">i</span></sub> kan man benytte navnene
+<span style="font-weight:bold">id</span><sub><span style="font-weight:bold">1</span></sub>, &#X2026;, <span style="font-weight:bold">id</span><sub><span style="font-weight:bold">i</span>&#X2212;<span style="font-weight:bold">1</span></sub>.</p><div class="example">
+<div class="title">Eksempel 9</div>
+
+
+Udtrykket i eksempel 8 kan ogs&#XE5; skrives p&#XE5; f&#XF8;lgende facon
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>(+</code></td><td style="text-align:left;white-space:nowrap" ><code>val X = Kampe*(Tips ? (\#.Uge=18))</code> </td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:left;white-space:nowrap" ><code>in ((X ? (\#.HjHold="AGF"))+(X ? (\#.UdeHold="AGF"))) |+ Nr</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>+)</code></td></tr>
+</table>
+</div>
+
+
+</div>
+<hr>
+<a href="rasmus001.html"><img src="previous_motif.gif" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.gif" alt="Up"></a>
+<a href="rasmus003.html"><img src="next_motif.gif" alt="Next"></a>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="generator" content="hevea 2.14">
+<link rel="stylesheet" type="text/css" href="../hevea.css">
+<link rel="stylesheet" type="text/css" href="../../tmp2/rasmus.css"><title>Opdateringer og Rapporter</title>
+</head>
+<body >
+<a href="rasmus005.html"><img src="previous_motif.gif" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.gif" alt="Up"></a>
+<hr>
+<h2 id="sec31" class="section">6&#XA0;&#XA0;Opdateringer og Rapporter</h2>
+<p>
+I realistiske databaser er det ikke altid tilstr&#XE6;kkeligt
+at beregne nye relationer udfra gamle. Man skal ogs&#XE5; have mulighed for
+at opdatere tilstanden og for at udskrive rapporter i mere generelle
+formater.</p>
+<h3 id="sec32" class="subsection">6.1&#XA0;&#XA0;Tilstands&#XE6;ndringer</h3>
+<p>
+I <span style="font-variant:small-caps">Rasmus</span> kan man &#XE6;ndre den aktuelle tilstand ved hj&#XE6;lp af 
+udtrykket
+</p><div class="center">
+<span style="font-weight:bold">id</span> <code>:=</code> <span style="font-weight:bold">udtryk</span>
+</div><p>
+Resultatet er det samme som for <span style="font-weight:bold">udtryk</span>, men beregningen har
+den <em>sideeffekt</em>, at navnet <span style="font-weight:bold">id</span> &#XE6;ndres til at have denne
+v&#XE6;rdi. N&#XE5;r udtryk p&#XE5; denne m&#XE5;de kan for&#XE5;rsage tilstands&#XE6;ndringer, s&#XE5;
+giver det mening at udvide syntaksen med f&#XF8;lgende konstruktion
+</p><div class="center">
+<span style="font-weight:bold">udtryk</span><sub>1</sub> <code>;</code> <span style="font-weight:bold">udtryk</span><sub>2</sub>
+</div><p>
+der f&#XF8;rst beregner <span style="font-weight:bold">udtryk</span><sub>1</sub> og derefter <span style="font-weight:bold">udtryk</span><sub>2</sub>,
+der giver det endelige resultat. Det f&#XF8;rste udtryk beregnes s&#XE5;ledes
+kun fordi det har en sideeffekt.</p><div class="example">
+<div class="title">Eksempel 32</div>
+
+
+F&#XF8;lgende funktion fjerner holdet <code>hold</code> fra <code>Runde1</code> og <code>Runde2</code>
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>func (hold:Text) -&gt; (Text)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>Runde1:=(Runde1?(\#.HjHold&lt;&gt;hold) and (\#.UdeHold&lt;&gt;hold));</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>Runde2:=(Runde2?(\#.HjHold&lt;&gt;hold) and (\#.UdeHold&lt;&gt;hold));</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>hold++" er nu fjernet"</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>end</code>
+</td></tr>
+</table>
+</div>
+
+
+</div><hr>
+<a href="rasmus005.html"><img src="previous_motif.gif" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.gif" alt="Up"></a>
+</body>
+</html>

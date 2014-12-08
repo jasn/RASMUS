@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="generator" content="hevea 2.14">
+<link rel="stylesheet" type="text/css" href="../hevea.css">
+<link rel="stylesheet" type="text/css" href="../../tmp2/rasmus.css"><title>Generelle udtryk</title>
+</head>
+<body >
+<a href="rasmus003.html"><img src="previous_motif.gif" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.gif" alt="Up"></a>
+<a href="rasmus005.html"><img src="next_motif.gif" alt="Next"></a>
+<hr>
+<h2 id="sec14" class="section">4&#XA0;&#XA0;Generelle udtryk</h2>
+<p>
+De udtryk, vi hidtil har besk&#XE6;ftiget os med, har n&#XE6;sten alle
+v&#XE6;ret <em>relationsudtryk</em>, det vil sige, udtryk hvis resultater er
+relationer, og hvor de indg&#XE5;ende operatorer er relationsoperatorerne
+union, join og s&#XE5; videre. <span style="font-variant:small-caps">Rasmus</span> tillader imidlertid udtryk af
+flere forskellige typer, herunder <em>boolske</em> udtryk og
+<em>aritmetiske</em> udtryk, hvis resultater er henholdvis
+sandhedsv&#XE6;rdier og heltal. En betingelse i en select-operator er
+s&#XE5;ledes i det generelle tilf&#XE6;lde et boolsk udtryk. </p>
+<h3 id="sec15" class="subsection">4.1&#XA0;&#XA0;Typer og konstanter</h3>
+<p> 
+Indtil nu har vi stiftet bekendskab med f&#XF8;lgende typer
+</p><div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><code>Int</code>:</td><td style="text-align:left;white-space:nowrap" >heltal </td></tr>
+<tr><td style="text-align:right;white-space:nowrap" ><code>Float</code>:</td><td style="text-align:left;white-space:nowrap" >komma tal </td></tr>
+<tr><td style="text-align:right;white-space:nowrap" ><code>Text</code>:</td><td style="text-align:left;white-space:nowrap" >tegnf&#XF8;lger </td></tr>
+<tr><td style="text-align:right;white-space:nowrap" ><code>Rel</code>:</td><td style="text-align:left;white-space:nowrap" >relationer </td></tr>
+<tr><td style="text-align:right;white-space:nowrap" ><code>Func</code>:</td><td style="text-align:left;white-space:nowrap" >funktioner
+</td></tr>
+</table>
+</div><p>
+Der findes endnu to typer i <span style="font-variant:small-caps">Rasmus</span>
+</p><div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><code>Bool</code>:</td><td style="text-align:left;white-space:nowrap" >sandhedsv&#XE6;rdier </td></tr>
+<tr><td style="text-align:right;white-space:nowrap" ><code>Tup</code>:</td><td style="text-align:left;white-space:nowrap" >tupler
+</td></tr>
+</table>
+</div><p>
+Typerne <code>Int</code>, <code>Float</code>, <code>Text</code> og <code>Bool</code>, 
+hvis v&#XE6;rdier er dem der kan st&#XE5; i de
+enkelte felter i relationer, kaldes <em>atomare</em> og kan under et
+angives med f&#XE6;llesbetegnelsen <code>Atom</code>. Den totale samling af de seks 
+typer kan angives med f&#XE6;llesbetegnelsen <code>Any</code>.</p><p>De atomare typer har de s&#XE6;dvanlige <em>konstanter</em>, det vil sige
+</p><div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><code>Int</code>:</td><td style="text-align:left;white-space:nowrap" >&#X2026;, <code>-1</code>, <code>0</code>, <code>1</code>, <code>2</code>, &#X2026;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" ><code>Float</code>:</td><td style="text-align:left;white-space:nowrap" >&#X2026;, <code>-1.2</code>, <code>0.0</code>, <code>1e-7</code>, <code>2e3</code>, &#X2026;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" ><code>Bool</code>:</td><td style="text-align:left;white-space:nowrap" ><code>true</code>, <code>false</code></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" ><code>Text</code>:</td><td style="text-align:left;white-space:nowrap" ><code>"dette er en konstant af type Text"</code>
+</td></tr>
+</table>
+</div><p>
+At konstanter af type <code>Text</code> omgives med <code>"</code> og <code>"</code> skyldes,
+at det er n&#XF8;dvendigt at kunne skelne <em>navnet</em> <code>AGF</code> fra
+tegnf&#XF8;lgen <code>"AGF"</code>, som er tegnet <code>A</code> efterfulgt af tegnet
+<code>G</code> efterfulgt af tegnet <code>F</code>.</p><p>Typen <code>Tup</code> har ogs&#XE5; en slags konstanter, idet et udtryk af formen
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><code>tup(</code><span style="font-weight:bold">attribut</span><sub><span style="font-weight:bold">1</span></sub><code>:</code><span style="font-weight:bold">v&#XE6;rdi</span><sub><span style="font-weight:bold">1</span></sub><code>,</code>
+&#X2026;<code>,</code><span style="font-weight:bold">attribut</span><sub><span style="font-weight:bold">n</span></sub><code>:</code><span style="font-weight:bold">v&#XE6;rdi</span><sub><span style="font-weight:bold">n</span></sub><code>)</code>&#XA0;</td></tr>
+</table><p>
+angiver et tupel med n felter, hvis attributnavne er
+<span style="font-weight:bold">attribut</span><sub><span style="font-weight:bold">1</span></sub>, 
+&#X2026;, <span style="font-weight:bold">attribut</span><sub><span style="font-weight:bold">n</span></sub>, og hvis tilh&#XF8;rende
+v&#XE6;rdier er <span style="font-weight:bold">v&#XE6;rdi</span><sub><span style="font-weight:bold">1</span></sub>, &#X2026;, <span style="font-weight:bold">v&#XE6;rdi</span><sub><span style="font-weight:bold">n</span></sub>.
+Man kan ogs&#XE5; konstruere en slags konstante relationer; hvis <code>t</code>
+nemlig er et tupel, s&#XE5; er
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><code>rel(t)</code>&#XA0;</td></tr>
+</table><p>
+en relation best&#XE5;ende af det enkelte tupel <code>t</code>.</p><div class="example">
+<div class="title">Eksempel 13</div>
+
+
+Skab en relation best&#XE5;ende af de tre tipstegn
+<table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><code>rel(tup(Tegn:"1"))+rel(tup(Tegn:"X"))+rel(tup(Tegn:"2"))</code> </td></tr>
+</table>
+V&#XE6;rdien af dette udtryk er
+<div class="center">
+<table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Tegn:Text</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">
+1 </span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">X </span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2 </span></td></tr>
+</table>
+</div>
+
+
+</div><p>Vi kan nu skrive funktionen <code>Kupon</code> i eksempel 12 p&#XE5; f&#XF8;lgende 
+alternative m&#XE5;de. Bem&#XE6;rk, at vi kan bruge tidligere
+<code>Val</code>-definitioner i senere <code>val</code>-definitioner.
+
+
+
+
+
+
+
+
+</p><div class="example">
+<div class="title">Eksempel 14</div>
+
+
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>func (ugenr:Int) -&gt; (Rel)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>(+ val Strip = </code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>func (uge:Int) -&gt; (Rel)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>((Turnering*Tips) ? (\#.Uge=uge)) |- Id,Uge</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>end</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>val X = Strip(ugenr)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>val Et = </code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>(X ? (\#.HjScore&gt;\#.UdeScore))*rel(tup(Tegn:"1"))</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>Val Kryds = </code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>(X ? (\#.HjScore=\#.UdeScore))*rel(tup(Tegn:"X"))</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>val To = </code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>(X ? (\#.HjScore&lt;\#.UdeScore))*rel(tup(Tegn:"2"))</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>in (Et+Kryds+To) |- HjScore,UdeScore</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>+)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>end</code>
+</td></tr>
+</table>
+</div>
+
+
+</div>
+<h3 id="sec16" class="subsection">4.2&#XA0;&#XA0;Sammensatte betingelser</h3>
+<p>
+Vi illustrerer brugen af boolske udtryk i de f&#XF8;lgende tre
+eksempler. I det f&#XF8;rste eksempel skriver vi en alternativ udgave af
+eksempel 8.</p><div class="example">
+<div class="title">Eksempel 15</div>
+
+
+Find nummeret p&#XE5; den kamp p&#XE5; tipskuponen for uge 18, hvor
+AGF var med
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>((Kampe*(Tips ? (\#.Uge=18))) ?</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>((\#.Udehold="AGF") or (\#.HjHold="AGF))) |+ Nr</code>
+</td></tr>
+</table>
+</div>
+
+
+</div><p>Vi kan f&#XE5; brug for mere komplicerede boolske udtryk.
+
+
+
+
+
+
+
+
+</p><div class="example">
+<div class="title">Eksempel 16</div>
+
+
+Skab en relation best&#XE5;ende af de kampe, der fik en vinder, og hvor
+taberen ikke scorede
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>Turnering ? (((\#.UdeScore &gt; 0) and (\#.HjScore = 0)) or</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>((\#.UdeScore = 0) and (\#.HjScore &gt; 0)))</code>
+</td></tr>
+</table>
+</div>
+V&#XE6;rdien af udtrykket er
+<div class="center">
+<span style="font-size:small">
+</span><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Id:Int</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">HjHold:Text</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">UdeHold:Text</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">HjScore:Int</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">UdeScore:Int</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">
+2</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 9</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">11</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">22</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">24</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+</table><span style="font-size:small">
+</span>
+</div>
+
+
+</div><p>Man kan ogs&#XE5; f&#XE5; brug for betingelser, hvor der indg&#XE5;r 
+beregninger p&#XE5; fx tuplernes attributv&#XE6;rdier.</p><div class="example">
+<div class="title">Eksempel 17</div>
+
+
+Find de kampe, hvor hjemmeholdet vandt med mere end to m&#XE5;l
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>Turnering ? (\#.HjScore - \#.UdeScore &gt; 2)</code>
+</td></tr>
+</table>
+</div>
+
+
+</div>
+<h3 id="sec17" class="subsection">4.3&#XA0;&#XA0;Forall og tupeludtryk</h3>
+<p>
+I det f&#XF8;lgende skal vi beskrive mere pr&#XE6;cist, hvordan et generelt
+boolsk udtryk ser ud, men f&#XF8;rst skal vi introducere den
+s&#XE5;kaldte <em>forall</em>-operator, som er en relationsoperator, der
+giver mulighed for at konstruere relationer ved at &#X201C;regne p&#XE5;&#X201D;
+<em>enkelttupler</em> fra andre relationer. Operatoren har f&#XF8;lgende
+udseende
+</p><div class="center">
+<span style="font-family:monospace">!(</span><span style="font-weight:bold">relation</span><span style="font-family:monospace">):</span> <span style="font-weight:bold">udtryk</span>
+</div><p>
+hvor <span style="font-weight:bold">udtryk</span> skal v&#XE6;re af type <code>Rel</code>. Betydningen af
+et forall-udtryk er, at tuplerne i <span style="font-weight:bold">relation</span> et for et
+&#X201C;uds&#XE6;ttes&#X201D; for den mekanisme, der angives af <span style="font-weight:bold">udtryk</span>,
+hvorefter resultaterne heraf forenes til en relation, som s&#XE5; er
+resultatet af hele forall-udtrykket.</p><p>Betragt f&#XF8;lgende eksempel, hvor vi &#XF8;nsker at udregne,
+hvad vi kan kalde underholdningsv&#XE6;rdien af de enkelte fodboldkampe,
+defineret som antal m&#XE5;l scoret af hjemmeholdet plus to gange
+antal m&#XE5;l scoret af udeholdet.</p><div class="example">
+<div class="title">Eksempel 18</div>
+
+
+Udvid relationen <span style="font-family:monospace">Turnering</span> med en attribut, som for hver kamp
+indeholder dennes underholdningsv&#XE6;rdi
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>!(Turnering): rel(\# &lt;&lt; tup(UV: \#.HjScore+2*\#.UdeScore))</code>
+</td></tr>
+</table>
+</div>
+V&#XE6;rdien af udtrykket er
+<div class="center">
+<span style="font-size:small">
+</span><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Id:Int</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">...</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">HjScore:Int</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">UdeScore:Int</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">UV: Int</span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">
+6</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">25</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">4 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">10</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">4 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">23</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">6 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">12</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">30</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">5</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">7 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">11</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">6 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">29</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 1</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">5 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">19</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 2</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">20</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">13</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">5 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">16</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">5 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">15</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">18</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 5</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">6 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">24</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">4 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 8</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">27</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">4</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">6 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">14</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">4 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">17</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 9</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">28</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 4</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">21</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">3</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">5 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 3</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">5 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">22</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">0</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 7</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">4</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">6 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">26</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&nbsp;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">6</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">8 </span></span></td></tr>
+</table><span style="font-size:small">
+</span>
+</div>
+
+
+</div><p>Dette eksempel illustrerer flere ting. For det f&#XF8;rste kan vi se, at
+udtrykket p&#XE5; h&#XF8;jresiden af <code>:</code> er af formen
+</p><div class="center">
+<code>rel(# &lt;&lt; t)</code>
+</div><p>
+hvor <code>t</code> er et tupel med en enkelt attribut, <code>UV</code>.
+V&#XE6;rdien af denne attribut er
+</p><div class="center">
+<code>#.HjScore+2*#.UdeScore</code>
+</div><p>
+der udregnes p&#XE5; f&#XF8;lgende m&#XE5;de.
+Symbolet <code>#</code> er <em>standardnavnet</em> p&#XE5; hvad vi kan kalde
+det <em>l&#XF8;bende</em> tupel i forall-udtrykket, og
+<code>#.HjScore</code> angiver derfor v&#XE6;rdien af attributten
+<code>HjScore</code> i dette tupel. Givet <code>#</code> er v&#XE6;rdien af
+<code>#.HjScore+2*#.UdeScore</code> s&#XE5;ledes lig med underholdningsv&#XE6;rdien
+af <code>#</code>. I udtrykket <code>rel(# &lt;&lt; t)</code> angiver <code>t</code> derfor
+et tupel med eneste attribut <code>UV</code>, hvis v&#XE6;rdi er
+underholdningsv&#XE6;rdien af <code>#</code>. Udtrykket <code># &lt;&lt; t</code>
+angiver nu resultatet af at anvende <em>tupeloperatoren</em>
+<code>&lt;&lt;</code> p&#XE5; de to tupler <code>#</code> og <code>t</code>. Operatoren
+<code>&lt;&lt;</code> er en <em>udvidelses- og overskrivningsoperator</em>, der virker
+som f&#XF8;lger. Resultatet af
+</p><div class="center">
+<code>t1 &lt;&lt; t2</code>
+</div><p>
+er det tupel, der f&#XE5;s ved f&#XF8;rst at kopiere <code>t1</code>,
+dern&#XE6;st, hvis der er f&#XE6;lles attributter i <code>t1</code> og <code>t2</code>,
+at erstatte v&#XE6;rdierne i <code>t1</code> med de tilsvarende fra <code>t2</code>,
+og endeligt at udvide med de attributter fra <code>t2</code>, der ikke findes
+i <code>t1</code>. F&#XF8;lgende eksempel illustrerer dette.</p><div class="example">
+<div class="title">Eksempel 19</div>
+
+
+Resultatet af tupeludtrykket
+<div class="center">
+<code>tup(Dig:1, Mig:2) &lt;&lt; tup(Mig:3, ViTo:4)</code>
+</div>
+er lig med <code>tup(Dig:1, Mig:3, ViTo:4)</code>.
+
+
+</div><p>Vi kan nu se, at udtrykket <code># &lt;&lt; t</code> ovenfor netop angiver et tupel
+fra <code>Turnering</code> udvidet med den p&#XE5;g&#XE6;ldende kamps
+underholdningsv&#XE6;rdi. Derfor angiver hele udtrykket
+<code>rel(# &lt;&lt; t)</code> en <em>relation</em> indeholdende netop dette tupel.
+Resultatet af hele forall-udtrykket i eksempel 18 best&#XE5;r af
+foreningsm&#XE6;ngden af alle disse relationer, det vil sige,
+af samtlige kampe i turneringen udvidet med en
+underholdningsv&#XE6;rdi-attribut.</p><p>Der findes endnu en tupeloperator, nemlig <em>eliminationsoperatoreren</em>
+\, der bruges som f&#XF8;lger
+</p><div class="center">
+<code>t</code>\<code>A</code>
+</div><p>
+hvor <code>t</code> er et tupel og <code>A</code> er en attribut. Resultatet er
+en kopi af tuplet <code>t</code>, med en eventuel <code>A</code>-attribut fjernet.
+Vi kan illustrere denne operator ved hj&#XE6;lp af f&#XF8;lgende alternative
+udgave af eksempel 4.</p><div class="example">
+<div class="title">Eksempel 20</div>
+
+
+Skab en relation, der for hver kamp indeholder det antal m&#XE5;l, der
+er scoret af udeholdet
+<div class="center">
+<code>!(Resultater): rel(\# </code>\<code> HjScore)</code>
+</div>
+
+
+</div><p>Med introduktionen af forall-operatoren og den dertil h&#XF8;rende
+forklaring p&#XE5; betydningen af <code>#</code> skulle det nu v&#XE6;re
+klart, at <code>#</code> spiller pr&#XE6;cist samme rolle i select-udtryk,
+som den g&#XF8;r i forall-udtryk. I select-operatoren &#X201C;genneml&#XF8;bes&#X201D;
+relationens tupler p&#XE5; samme vis, og de tupler, der opfylder
+betingelsen &#X201C;smutter forbi&#X201D;, medens de &#XF8;vrige &#X201C;filtreres fra&#X201D;.</p>
+<h3 id="sec18" class="subsection">4.4&#XA0;&#XA0;Betingede udtryk</h3>
+<p>
+<span style="font-variant:small-caps">Rasmus</span> er ogs&#XE5; udstyret med <em>betingede udtryk</em>, der ser
+ud som f&#XF8;lger
+</p><div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>if </code><span style="font-weight:bold">betingelse</span><sub><span style="font-weight:bold">1</span></sub><code> -&gt; </code><span style="font-weight:bold">udtryk</span><sub><span style="font-weight:bold">1</span></sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code> &amp; </code><span style="font-weight:bold">betingelse</span><sub><span style="font-weight:bold">2</span></sub><code> -&gt; </code><span style="font-weight:bold">udtryk</span><sub><span style="font-weight:bold">2</span></sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code> </code>&#X22EE;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code> &amp; </code><span style="font-weight:bold">betingelse</span><sub><span style="font-weight:bold">n</span></sub><code> -&gt; </code><span style="font-weight:bold">udtryk</span><sub><span style="font-weight:bold">n</span></sub></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>fi</code>
+</td></tr>
+</table>
+</div><p>
+Udtrykket kan bruges til at v&#XE6;lge mellem alternativer, som
+beskrevet af f&#XF8;lgende eksempel.</p><div class="example">
+<div class="title">Eksempel 21</div>
+
+
+Skriv en funktion, der givet ugenummer og navnet p&#XE5; et hold
+beregner en relation, der fort&#XE6;ller, om det p&#XE5;g&#XE6;ldende
+hold er p&#XE5; ude- eller hjemmebane i den p&#XE5;g&#XE6;ldende uge
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>func (uge:Int, hold:Text) -&gt; (Rel)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>(+ val X = Kampe*(Tips ? (\#.Uge=uge))</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>in</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >|X ? (#.HjHold=hold)| &gt; 0 -&gt; rel(tup(Bane:"hjemme"))@</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&amp;&#XA0;</span>-&gt; rel(tup(Bane:"ude"))@</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>fi</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>+)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>end</code>
+</td></tr>
+</table>
+</div>
+
+
+</div><p>Vi har i ovenst&#XE5;ende eksempel benyttet os af operatoren <code>|R|</code>,
+som angiver st&#XF8;rrelsen af relationen <code>R</code>, det vil sige,
+antallet af tupler i <code>R</code>.</p><p>Med introduktionen af tupeloperatorer og forall-operatoren kan vi nu
+skrive f&#XF8;lgende alternative udgave af eksempel 14. Bem&#XE6;rk, at
+vi her bruger <code>Val</code>-mekanismen i indskudte udtryk til at
+introducere <em>korte</em> navne for attributudtrykkene
+<code>#.HjScore</code> og <code>#.UdeScore</code>.
+
+
+
+
+
+
+
+
+</p><div class="example">
+<div class="title">Eksempel 22</div>
+
+
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>func (ugenr:Int) -&gt; (Rel)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>(+ val Strip = </code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>func (uge:Int) -&gt; (Rel)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>((Turnering*Tips) ? (\#.Uge=uge)) |- Id,Uge</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>end</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>val X = Strip(ugenr)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>in !(X): (+ val H = \#.HjScore</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>val U = \#.UdeScore</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>in rel((\#</code>\<code>HjScore)</code>\<code>UdeScore &lt;&lt;</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>tup(Tegn: if U&lt;H -&gt; "1"</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&amp;</span><code> U=H -&gt; "X"</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&amp;</span><code> U&gt;H -&gt; "2"</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>fi</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>+)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>+)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>end</code>
+</td></tr>
+</table>
+</div>
+
+
+</div><p>Som det fremg&#XE5;r af det foreg&#XE5;ende, kan man b&#XE5;de navngive
+og gemme relationer og funktioner, og man kan ogs&#XE5; give
+dem lokale navne ved hj&#XE6;lp af <code>Val</code>-mekanismen i indskudte
+udtryk, eller ved hj&#XE6;lp af formelle parametre i funktioner.
+Der er imidlertid ikke kun relationer og funktioner, der nyder denne
+bev&#XE5;genhed &#X2013; alle <span style="font-variant:small-caps">Rasmus</span> typer kan benyttes p&#XE5;
+tilsvarende vis. Dette betyder, at udtryk af de forskellige typer
+kan konstrueres og komponeres p&#XE5; helt ensartet vis, hvilket ogs&#XE5;
+kan udtrykkes som, at &#X201C;alle typer er f&#XF8;rsteklasses borgere&#X201D;.</p><p>Som n&#XE6;vnt har <span style="font-variant:small-caps">Rasmus</span> typerne
+<code>Bool</code>, <code>Int</code>, <code>Float</code>, <code>Text</code>, <code>Tup</code>, <code>Rel</code> og <code>Func</code>.
+Ethvert udtryk har en type, nemlig typen af den v&#XE6;rdi, der
+bliver resultatet. </p>
+<h3 id="sec19" class="subsection">4.5&#XA0;&#XA0;Tekstudtryk</h3>
+<p>
+Vi har tidligere set eksempler p&#XE5; udtryk af samtlige typer
+&#X2013; dog har vi for <code>Text</code>-udtrykkene kun set konstanter som <code>"AGF"</code>.
+Der findes imidlertid ogs&#XE5; <code>Text</code>-operatorer, som illustreret ved
+f&#XF8;lgende eksempel p&#XE5; en funktion, der s&#XE6;tter &#XE5;rstal
+p&#XE5; de datoangivelser, der findes i <code>Spilledag</code> relationen.</p><div class="example">
+<div class="title">Eksempel 23</div>
+
+
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>func (</code><span style="font-family:monospace">aar</span><code>:Text, dato:Text) -&gt; (Text)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>if |dato|=4 -&gt; </code><span style="font-family:monospace">aar</span><code>++dato</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&amp;</span><code> |dato|=3 -&gt; </code><span style="font-family:monospace">aar</span><code>++"0"++dato</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>fi</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>end</code>
+</td></tr>
+</table>
+</div>
+
+
+</div><p>Hvis vi kalder denne funktion for <span class="textboxed"><span style="font-family:monospace">LangDato</span></span> er
+v&#XE6;rdien af anvendelsen
+</p><div class="center">
+<code>Langdato("96","325")</code>
+</div><p>
+lig med <code>960325</code>. Operatoren <code>++</code> sammens&#XE6;tter 
+<em>konkatenerer</em> alts&#XE5;
+to tegnf&#XF8;lger, og <code>|t|</code> returnerer l&#XE6;ngden af en tegnf&#XF8;lge
+<code>t</code>. Man kan ogs&#XE5; udtage delf&#XF8;lger af tegnf&#XF8;lger. V&#XE6;rdien
+af udtrykket 
+</p><div class="center">
+<code>"325"(0..2)</code>
+</div><p>
+er s&#XE5;ledes <code>"32"</code>, idet udtrykket <code>t(i..j)</code> i almindelighed
+betegner den delf&#XF8;lge af <code>t</code>, der starter i det <code>i</code>&#X2019;te tegn
+(nummereret fra 0) og ender i det <code>(j-1)</code>&#X2019;te tegn. F&#XF8;lgende
+eksempel illustrerer nu brugen af hj&#XE6;lpefunktionen <code>LangDato</code>
+i et forall-udtryk.</p><div class="example">
+<div class="title">Eksempel 24</div>
+
+
+Skab en relation magen til <code>Spilledag</code>, men hvor 
+datoangivelserne nu er komplette
+<div class="center">
+<code>!(Spilledag): rel(\# &lt;&lt; tup(Dato: LangDato("91",\#.Dato)))</code>
+</div>
+V&#XE6;rdien af udtrykket er
+<div class="center">
+<span style="font-size:small">
+</span><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Kamp:Int</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Dato:Text </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 3</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910401 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 19</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910520 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 20</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910520 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 10</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910421 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 23</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910530 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 24</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910602 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 25</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910602 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 13</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910512 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 14</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910512 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 15</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910512 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 7</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910414 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 8</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910414 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 4</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910324 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 21</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910523 
+</span></span></td></tr>
+</table><span style="font-size:small"><span style="font-family:monospace">
+&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;
+</span></span><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> &#XA0;&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;11</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910505&#XA0;&#XA0;&#XA0; </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 12</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910505 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 1</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910316 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 29</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910623 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 30</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910623 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 5</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910407 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 6</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910407 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 2</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910317 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 16</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910516 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 17</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910516 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 18</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910516 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 22</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910526 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 9</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910428 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 26</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910609 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 27</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910609 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 28</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">910619 </span></span></td></tr>
+</table><span style="font-size:small"><span style="font-family:monospace"> 
+</span></span><span style="font-size:small">
+</span>
+</div>
+
+
+</div>
+<h3 id="sec20" class="subsection">4.6&#XA0;&#XA0;Skema- og typecheck</h3>
+<p>
+N&#XE5;r man skriver funktioner, der overf&#XF8;rer relationer som parametre,
+s&#XE5; kender man selvsagt ikke skemaerne for de relationer, der optr&#XE6;der
+som <em>aktuelle</em> parametre, n&#XE5;r funktionen anvendes. <span style="font-variant:small-caps">Rasmus</span>
+indeholder derfor en facilitet, der tillader at sp&#XF8;rge om en relation har
+et givet attributnavn. F&#XF8;lgende eksempel illustrerer dette.</p><div class="example">
+<div class="title">Eksempel 25</div>
+
+
+Skriv en funktion, der for en given <span style="font-family:monospace">Kamp</span>-relation 
+og et givet hold returnerer de kampe, hvor det p&#XE5;g&#XE6;ldende hold
+er p&#XE5; hjemmebane.
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>func (K:Rel, hold:Text) -&gt; (Rel)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>if has(K,HjHold) -&gt; K ? (\#.HjHold=hold)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&amp;</span><code> true -&gt; zero</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>fi</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>end</code>
+</td></tr>
+</table>
+</div>
+
+
+</div><p>Udtrykket <code>has(R,A)</code> giver <code>true</code>, hvis relationen
+<code>R</code> har attributten <code>A</code> og ellers <code>false</code>.
+Som eksemplet viser, kan man bruge dette til at
+undg&#XE5; at l&#XF8;be ind i fejl under eventuel anvendelse
+af en funktion p&#XE5; et argument, der ikke har det rigtige skema.
+I eksemplet returneres den tomme relation, angivet af konstanten
+<code>zero</code>, hvis argumentet ikke &#X201C;passer&#X201D;, men man kunne 
+naturligvis ogs&#XE5; returnerer en relation, der indeholder en
+passende advarsel.</p><p>Man kan ogs&#XE5; unders&#XF8;ge, om en relation har den rigtige type.
+Hvis denne facilitet anvendes i eksempel 25, f&#XE5;r funktionen f&#XF8;lgende
+udseende.
+</p><div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>func (K:Rel, hold:Text) -&gt; (Rel)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>if has(K,HjHold) and is-Text(K,HjHold) -&gt; K ? (#.HjHold=hold)</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&amp;</span><code> true -&gt; zero</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>fi</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>end</code>
+</td></tr>
+</table>
+</div><p>
+Udtrykket <code>is-Text(R,A)</code> unders&#XF8;ger om attributten <code>A</code> i
+relationen <code>R</code> har type Text. Der findes tilsvarende funktioner
+<code>is-Int</code> og <code>is-Bool</code>. </p>
+<h3 id="sec21" class="subsection">4.7&#XA0;&#XA0;Aggregeringsfunktioner</h3>
+<p>
+Som det sidste eksempel i denne &#X201C;fodbold-Odyss&#XE9;&#X201D; viser vi nu,
+hvordan man beregner en relation med skema
+</p><div class="center">
+<table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Hold:Text</span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Points:Int</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">&#XA0;</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">&#XA0; </span></td></tr>
+</table>
+</div><p>
+der for hver af de seks deltagende klubber angiver, hvor mange point
+klubben fik i turneringen. Til brug herfor skal vi introducere
+<em>aggregeringsfunktioner</em>, som tillader at foretage diverse
+beregninger p&#XE5; samtlige v&#XE6;rdier af en given attribut i en relation.
+F&#XF8;lgende simple eksempel illustrerer dette.</p><div class="example">
+<div class="title">Eksempel 26</div>
+
+
+Angiv, hvor mange m&#XE5;l der blev scoret p&#XE5; udebane i turneringen
+<div class="center">
+<code>add(Resultater,UdeScore)</code>
+</div>
+V&#XE6;rdien af udtrykket er <code>33</code>.
+
+
+</div><p>Aggregeringsfunktionen <code>add(R,A)</code> adderer v&#XE6;rdierne af
+attributten <code>A</code> i relationen <code>R</code>. De &#XF8;vrige
+aggregeringsfunktioner er
+</p><div class="center">
+<code>count(R,A), mult(R,A), max(R,A), min(R,A)</code>
+</div><p>
+og de henholdsvis t&#XE6;ller, multiplicerer, maksimerer og minimerer
+<code>A</code>-v&#XE6;rdierne i <code>R</code>.
+
+
+
+
+
+
+
+
+</p><div class="example">
+<div class="title">Eksempel 27</div>
+
+
+Skab en relation, som for hver kamp angiver hvor mange point de to hold
+fik i den p&#XE5;g&#XE6;ldende kamp
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>EnkeltPoints :=</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>!(Turnering):</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>(+ val H = \#.HjScore</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>val U = \#.UdeScore</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>in if H&lt;U -&gt; rel(tup(Id:\#.Id, Hold:\#.UdeHold, Points:2))</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&amp;</span><code> H=U -&gt; rel(tup(Id:\#.Id, Hold:\#.UdeHold, Points:1)) +</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>rel(tup(Id:\#.Id, Hold:\#.HjHold, Points:1))</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><span style="font-family:monospace">&amp;</span><code> H&gt;U -&gt; rel(tup(Id:\#.Id, Hold:\#.HjHold, Points:2))</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>fi</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>+)</code>
+</td></tr>
+</table>
+</div>
+V&#XE6;rdien er
+<div class="center">
+<span style="font-size:small">
+</span><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Id:Int</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Hold:Text</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Points:Int </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 6</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 6</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">25</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">10</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">23</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">23</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">12</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">12</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">30</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">11</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">29</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">29</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 1</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">19</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">19</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 2</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">20</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">20</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">13</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">16</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">15</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1
+</span></span></td></tr>
+</table><span style="font-size:small"><span style="font-family:monospace">
+</span></span><span style="font-size:small">
+&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;
+</span><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;&#XA0;15</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">18</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">18</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 5</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 5</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">24</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 8</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 8</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">27</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">14</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">17</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">17</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 9</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">28</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">28</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 4</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 4</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">OB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">1 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">21</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 3</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">22</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace"> 7</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">26</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-size:small"><span style="font-family:monospace">2 </span></span></td></tr>
+</table><span style="font-size:small"><span style="font-family:monospace">
+</span></span><span style="font-size:small">
+</span>
+</div>
+
+
+</div><p>Hvis vi gemmer denne relation under navnet <span class="textboxed"><span style="font-family:monospace">EnkeltPoints</span></span>
+f&#XE5;r vi det &#XF8;nskede resultat p&#XE5; f&#XF8;lgende m&#XE5;de.
+
+
+
+
+
+
+
+
+</p><div class="example">
+<div class="title">Eksempel 28</div>
+
+
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>(+ val AGF = EnkeltPoints ? (\#.Hold="AGF")</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>val OB = EnkeltPoints ? (\#.Hold="OB")</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>val AaB = EnkeltPoints ? (\#.Hold="AaB")</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>val Lyngby = EnkeltPoints ? (\#.Hold="Lyngby")</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>val Br</code><span style="font-family:monospace">&#XF8;</span><code>ndby = EnkeltPoints ? (\#.Hold="Br</code><span style="font-family:monospace">&#XF8;</span><code>ndby")</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>val Frem = EnkeltPoints ? (\#.Hold="Frem")</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>in rel(tup(Hold:"AGF", Points:add(AGF,Points)) +</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>rel(tup(Hold:"OB", Points:add(OB,Points)) +</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>rel(tup(Hold:"AaB", Points:add(AaB,Points)) +</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>rel(tup(Hold:"Lyngby", Points:add(Lyngby,Points)) +</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>rel(tup(Hold:"Br</code><span style="font-family:monospace">&#XF8;</span><code>ndby", Points:add(Br</code><span style="font-family:monospace">&#XF8;</span><code>ndby,Points)) +</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>rel(tup(Hold:"Frem", Points:add(Frem,Points))</code></td></tr>
+<tr><td style="text-align:left;white-space:nowrap" ><code>+)</code>
+</td></tr>
+</table>
+</div>
+V&#XE6;rdien er
+<div class="center">
+<table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Hold:Text</span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Points:Int</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">
+Lyngby</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">14</span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">AGF</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">10</span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">OB</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">6</span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">AaB</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">8</span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Frem</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">10</span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Br&#XF8;ndby</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">12 </span></td></tr>
+</table>
+</div>
+
+
+</div>
+<h3 id="sec22" class="subsection">4.8&#XA0;&#XA0;Factor</h3>
+<p>
+Denne m&#XE5;de at udregne turneringsresultatet er ikke netop elegant, og hvis
+<code>Hold</code>-attributten indeholdt flere end seks forskellige v&#XE6;rdier,
+eller &#X2013; endnu v&#XE6;rre &#X2013; hvis vi ikke kendte v&#XE6;rdierne p&#XE5;
+forh&#XE5;nd, s&#XE5; er fremgangsm&#XE5;den slet ikke brugbar. Derfor
+indeholder <span style="font-variant:small-caps">Rasmus</span> en mere generel facilitet, den s&#XE5;kaldte
+<em>factor</em>-operator, som tillader at udf&#XF8;re denne type
+beregninger p&#XE5; mere hensigtsm&#XE6;ssig vis. I dette tilf&#XE6;lde
+ville beregningen se ud som f&#XF8;lger.</p><div class="example">
+<div class="title">Eksempel 29</div>
+
+
+<div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" ><code>!(EnkeltPoints)|Hold: rel(\# &lt;&lt; Tup(Points:add(@(1),Points)))</code>
+</td></tr>
+</table>
+</div>
+
+
+</div><p>Lad os se, hvordan ovenst&#XE5;ende fungerer. Argumentet til factor-beregningen
+er relationen <code>EnkeltPoints</code>. Desuden angiver man et attributnavn, i dette
+tilf&#XE6;lde <code>Hold</code>. P&#XE5; baggrund heraf beregnes en r&#XE6;kke <em>faktorpar</em> af
+formen (<span style="font-style:italic">t</span><sub>1</sub>,<span style="font-style:italic">r</span><sub>1</sub>),(<span style="font-style:italic">t</span><sub>2</sub>,<span style="font-style:italic">r</span><sub>2</sub>),&#X2026;,(<span style="font-style:italic">t</span><sub><span style="font-style:italic">k</span></sub>,<span style="font-style:italic">r</span><sub><span style="font-style:italic">k</span></sub>). Tuplerne 
+<span style="font-style:italic">t</span><sub>1</sub>,<span style="font-style:italic">t</span><sub>2</sub>,&#X2026;,<span style="font-style:italic">t</span><sub><span style="font-style:italic">k</span></sub> er netop de, der findes i relationen
+<code>EnkeltPoints|+Hold</code>. Relationen <span style="font-style:italic">r</span><sub><span style="font-style:italic">i</span></sub> er netop
+<code>(EnkeltPoints*rel(</code><span style="font-style:italic">t</span><sub><span style="font-style:italic">i</span></sub><code>))|-Hold</code>. Det vil sige, der g&#XE6;lder
+f&#XF8;lgende ligning:
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><span style="font-family:monospace">Enkeltpoints</span>&#XA0;=&#XA0;</td><td class="dcell"><table class="display"><tr><td class="dcell" style="text-align:center"><span style="font-style:italic">k</span></td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-size:xx-large">&#X2211;</span></td></tr>
+<tr><td class="dcell" style="text-align:center"><span style="font-style:italic">i</span>=1</td></tr>
+</table></td><td class="dcell">&#XA0;<span style="font-family:monospace">rel(</span><span style="font-style:italic">t</span><sub><span style="font-style:italic">i</span></sub><span style="font-family:monospace">)*</span><span style="font-style:italic">r</span><sub><span style="font-style:italic">i</span></sub></td></tr>
+</table><p> 
+For hvert af disse faktorpar beregnes h&#XF8;jresiden af factor-udtrykket med
+<code>#</code> erstattet med <span style="font-style:italic">t</span><sub><span style="font-style:italic">i</span></sub> og <code>@(1)</code> erstattet med <span style="font-style:italic">r</span><sub><span style="font-style:italic">i</span></sub>. Det
+endelige resultat er foreningen af disse delresultater. For ovenst&#XE5;ende
+eksempel har vi f&#XF8;lgende seks faktorpar.</p><div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><span class="textboxed"><span style="font-family:monospace">Lyngby</span></span></td><td style="text-align:center;white-space:nowrap" >&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Id:Int</span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Points:Int</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">
+6</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">11</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">29</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">14</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">17</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">9</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">28</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">3</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">22</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2 </span></td></tr>
+</table></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&#XA0;</td><td style="text-align:center;white-space:nowrap" >&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" >&#XA0;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" ><span class="textboxed"><span style="font-family:monospace">AGF</span></span></td><td style="text-align:center;white-space:nowrap" >&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Id:Int</span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Points:Int</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">
+10</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">23</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">19</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">17</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">4</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">21</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">26</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2 </span></td></tr>
+</table></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&#XA0;</td><td style="text-align:center;white-space:nowrap" >&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" >&#XA0;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" ><span class="textboxed"><span style="font-family:monospace">OB</span></span></td><td style="text-align:center;white-space:nowrap" >&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Id:Int</span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Points:Int</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">
+12</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">20</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">15</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">18</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">28</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">4</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1 </span></td></tr>
+</table></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&#XA0;</td><td style="text-align:center;white-space:nowrap" >&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" >&#XA0;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" ><span class="textboxed"><span style="font-family:monospace">AaB</span></span></td><td style="text-align:center;white-space:nowrap" >&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Id:Int</span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Points:Int</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">
+12</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">30</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">13</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">5</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">7</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2 </span></td></tr>
+</table>
+</td></tr>
+</table>
+</div><div class="center">
+<table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><span class="textboxed"><span style="font-family:monospace">Frem</span></span></td><td style="text-align:center;white-space:nowrap" >&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Id:Int</span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Points:Int</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">
+6</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">25</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2 </span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">23</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2 </span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">20</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">16</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">8</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1 </span></td></tr>
+</table></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&#XA0;</td><td style="text-align:center;white-space:nowrap" >&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" >&#XA0;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" ><span class="textboxed"><span style="font-family:monospace">Br&#XF8;ndby</span></span></td><td style="text-align:center;white-space:nowrap" >&#XA0;&#XA0;&#XA0;&#XA0;&#XA0;</td><td style="text-align:left;white-space:nowrap" ><table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Id:Int</span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Points:Int</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">
+29</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">19</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">15</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">18</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">5</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">24</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">8</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">27</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2 </span></td></tr>
+</table>
+</td></tr>
+</table>
+</div><p>
+Det skulle nu v&#XE6;re klart, hvorledes vi beregner det &#XF8;nskede resultat.</p><p>Et factor-udtryk kan involvere flere attributnavne. I s&#XE5; fald indeholder
+faktorparrets tupel alle disse attributter og relationerne er tilsvarende
+smallere. </p><div class="example">
+<div class="title">Eksempel 30</div>
+
+
+Skab en relation, der for hver mulig score fort&#XE6;ller, hvor mange kampe
+der fik denne score.
+<div class="center">
+<code>!(Turnering)|HjScore,UdeScore: rel(\# &lt;&lt; tup(Antal: |@(1)|))</code>
+</div>
+V&#XE6;rdien af udtrykket er
+<div class="center">
+<table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">HjScore:Int</span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">UdeScore:Int</span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">Antal:Int</span><span style="font-family:monospace"> </span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">
+0</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">0</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">3</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">0</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">8</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">0</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">0</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">4</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">3</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">0</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">3</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">0</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">3</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">3</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">4</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">2</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">5</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td></tr>
+<tr><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">6</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1</span></td><td style="text-align:right;border:solid 1px;white-space:nowrap" ><span style="font-family:monospace">1 </span></td></tr>
+</table>
+</div>
+
+
+</div><p>Det skulle nu let kunne ses, at forall-operatoren blot er et specialtilf&#XE6;lde
+af factor, hvor man angiver <em>samtlige</em> attributnavne. I s&#XE5; tilf&#XE6;lde
+best&#XE5;r faktorparrene blot af alle relationens tupler parret med
+relationen <code>one</code>, der indeholder et enkelt tupel med tomt skema
+(som ikke bidrager med nogen interessant information).</p><p>Factor-operationen er dog endnu mere generel, idet man ogs&#XE5; kan angive
+flere relationer. I s&#XE5; fald skal de angivne attributnavne tilh&#XF8;re
+skemaerne for samtlige de indg&#XE5;ende relationer. Nu f&#XE5;r man ikke blot
+nogle faktor<em>par</em>, men sekvenser best&#XE5;ende af et tupel og en delrelation for
+hver indg&#XE5;ende relation. Delrelationen for den <span style="font-style:italic">i</span>&#X2019;te relation ben&#XE6;vnes
+<code>@(i)</code>. Hvis vi betragter et generelt factor-udtryk:
+</p><div class="center">
+<span style="font-family:monospace">!(R</span><sub>1</sub><span style="font-family:monospace">,&#X2026;,R</span><sub><span style="font-style:italic">m</span></sub><span style="font-family:monospace">)|n</span><sub>1</sub><span style="font-family:monospace">,&#X2026;,n</span><sub><span style="font-style:italic">l</span></sub><span style="font-family:monospace">: &#X2026;</span>
+</div><p>
+hvor den <span style="font-style:italic">i</span>&#X2019;te af <span style="font-style:italic">k</span> faktorsekvenser er (<span style="font-style:italic">t</span><sub><span style="font-style:italic">i</span></sub>,<span style="font-style:italic">r</span><sub><span style="font-style:italic">i</span>1</sub>,&#X2026;,<span style="font-style:italic">r</span><sub><span style="font-style:italic">im</span></sub>), s&#XE5;
+g&#XE6;lder f&#XF8;lgende matrixligning:
+</p><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell">(<span style="font-family:monospace">R</span><sub>1</sub>,&#X2026;,<span style="font-family:monospace">R</span><sub><span style="font-style:italic">m</span></sub>)&#XA0;=&#XA0;
+(<span style="font-family:monospace">rel(</span><span style="font-style:italic">t</span><sub>1</sub><span style="font-family:monospace">)</span>,&#X2026;,<span style="font-family:monospace">rel(</span><span style="font-style:italic">t</span><sub><span style="font-style:italic">k</span></sub><span style="font-family:monospace">)</span>)
+</td><td class="dcell">&#X239B;<br>
+&#X239C;<br>
+&#X239C;<br>
+&#X239C;<br>
+&#X239D;</td><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:left;white-space:nowrap" >&#XA0;&#XA0;&#XA0;<span style="font-style:italic">r</span><sub>11</sub></td><td style="text-align:left;white-space:nowrap" ><span style="font-style:italic">r</span><sub>12</sub></td><td style="text-align:left;white-space:nowrap" >&#X22EF;</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:italic">r</span><sub>1<span style="font-style:italic">m</span></sub>&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&#XA0;&#XA0;&#XA0;<span style="font-style:italic">r</span><sub>21</sub></td><td style="text-align:left;white-space:nowrap" ><span style="font-style:italic">r</span><sub>22</sub></td><td style="text-align:left;white-space:nowrap" >&#X22EF;</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:italic">r</span><sub>2<span style="font-style:italic">m</span></sub>&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&#XA0;&#XA0;&#XA0;&#X22EE;</td><td style="text-align:left;white-space:nowrap" >&#X22EE;</td><td style="text-align:left;white-space:nowrap" >&nbsp;</td><td style="text-align:left;white-space:nowrap" >&#X22EE;&#XA0;</td></tr>
+<tr><td style="text-align:left;white-space:nowrap" >&#XA0;&#XA0;&#XA0;<span style="font-style:italic">r</span><sub><span style="font-style:italic">k</span>1</sub></td><td style="text-align:left;white-space:nowrap" ><span style="font-style:italic">r</span><sub><span style="font-style:italic">k</span>2</sub></td><td style="text-align:left;white-space:nowrap" >&#X22EF;</td><td style="text-align:left;white-space:nowrap" ><span style="font-style:italic">r</span><sub><span style="font-style:italic">km</span></sub>&#XA0;
+</td></tr>
+</table></td><td class="dcell">&#X239E;<br>
+&#X239F;<br>
+&#X239F;<br>
+&#X239F;<br>
+&#X23A0;</td></tr>
+</table><p>
+Med denne udvidelse er factor nu s&#XE5; generel, at man kan n&#XF8;jes med
+den som eneste operation (sammen med krydsprodukt af relationer med
+disjunkte skemaer).</p>
+<h3 id="sec23" class="subsection">4.9&#XA0;&#XA0;Oversigt</h3>
+<p>
+Som tidligere n&#XE6;vnt er alle typer i <span style="font-variant:small-caps">Rasmus</span>
+&#X201C;f&#XF8;rste klasses borgere&#X201D;. Det betyder, at v&#XE6;rdier af alle typer
+kan b&#XE5;de navngives og gemmes, og at udtryk af alle typer
+kan v&#XE6;re parametre til og resultater af funktioner. I det f&#XF8;lgende
+giver vi en mere systematisk fremstilling af udseendet af de forskellige
+udtrykstyper. Vi betegner udtryk af type 
+<code>Int</code>, <code>Float</code>, <code>Bool</code>, <code>Text</code>, <code>Tup</code>, <code>Rel</code>
+og <code>Func</code> med henholdsvis <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span>, <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span>, <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span>, <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span>, <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span>, 
+<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span> og <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">F</span></span>. Et udtryk af en atomar type betegnes <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">A</span></span>.
+Et udtryk af en <em>ordnet</em> type betegnes <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">O</span></span>; alle typer
+p&#XE5;n&#XE6;r <code>Func</code> er ordnede og kan dermed sammenlignes med
+<code>=</code>, <code>&lt;&gt;</code>, <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code> og <code>&gt;=</code>.
+Et udtryk af en vilk&#XE5;rlig type angives med <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span>.
+Et <code>val</code>-, parameter- eller
+attributnavn betegnes med <code>n</code>.
+Udtryk af type <code>Bool</code> (<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><span style="color:red">)</span>:
+</p><div class="center">
+<table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >Betegnelse</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >Syntaks </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >konstant</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>true</code>, <code>false</code> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >standardv&#XE6;rdi</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>?-Bool</code> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >navn</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>n</code> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >attribut</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><code>.n</code> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >sammenligning</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">O</span></span><sub>1</sub><code>=</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">O</span></span><sub>2</sub>, <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">O</span></span><sub>1</sub><code>&lt;&gt;</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">O</span></span><sub>2</sub>, <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">O</span></span><sub>1</sub><code>&lt;</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">O</span></span><sub>2</sub>, <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">O</span></span><sub>1</sub><code>&gt;</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">O</span></span><sub>2</sub>, <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">O</span></span><sub>1</sub><code>&lt;=</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">O</span></span><sub>2</sub>, <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">O</span></span><sub>1</sub><code>&gt;=</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">O</span></span><sub>2</sub> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >match</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><sub>1</sub><code>~</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >negation</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>not</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >konjunktion</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><sub>1</sub> <code>and</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >disjunktion</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><sub>1</sub> <code>or</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >skemacheck</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>has(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code>,n)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >typecheck</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>is-Int(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code>,n)</code>, <code>is-Float(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code>,n)</code>,</td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >&nbsp;</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>is-Bool(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code>,n)</code>, <code>is-Text(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code>,n)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >maksimum</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>max(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code>,n)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >minimum</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>min(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code>,n)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >funktionsanvendelse</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">F</span></span><code>(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub>1</sub><code>,...,</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub><span style="font-style:italic">k</span></sub><code>)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >indskudt udtryk</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>(+ val n</code><sub>1</sub><code>=</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub>1</sub> &#X2026;<code>val n</code><sub><span style="font-style:italic">k</span></sub><code>=</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub><span style="font-style:italic">k</span></sub> <code>in</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span> <code>+)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >betinget udtryk</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>if</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span> <code>-&gt;</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span> &#X2026;<code>fi</code></td></tr>
+</table>
+</div><p>
+Standardv&#XE6;rdien <code>?-Bool</code> er en ekstra konstant af typen <code>Bool</code>, der
+blandt andet optr&#XE6;der som &#X201C;ubestemte&#X201D; v&#XE6;rdier af <code>Bool</code>-attributter.
+Der findes ogs&#XE5; standardv&#XE6;rdier af typerne <code>Int</code> og <code>Text</code>.
+Standardv&#XE6;rdier omtales n&#XE6;rmere i n&#XE6;ste kapitel.
+Udtryk af type <code>Int</code> (<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><span style="color:red">)</span>:
+</p><div class="center">
+<table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >Betegnelse</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >Syntaks </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >konstant</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >&#X2026;, <code>-2</code>, <code>-1</code>, <code>0</code>, <code>1</code>, 
+<code>2</code>, <code>3</code>, &#X2026;</td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >standardv&#XE6;rdi</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>?-Int</code> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >navn</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>n</code> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >attribut</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><code>.n</code> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >sum</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>1</sub> <code>+</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >differens</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>1</sub> <code>-</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >produkt</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>1</sub> <code>*</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >kvotient</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>1</sub> <code>/</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >rest</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>1</sub> <code>mod</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >relationsst&#XF8;rrelse</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>|</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code>|</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >tekstl&#XE6;ngde</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>|</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><code>|</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >afrunding</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>floor(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><code>)</code>, <code>ceil(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><code>)</code>, <code>round(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><code>)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >maksimum</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>max(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code>,n)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >minimum</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>min(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code>,n)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >addition</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>add(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code>,n)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >multiplikation</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>mult(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code>,n)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >opt&#XE6;lling</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>count(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code>,n)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >funktionsanvendelse</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">F</span></span><code>(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub>1</sub><code>,...,</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub><span style="font-style:italic">k</span></sub><code>)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >indskudt udtryk</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>(+ val n</code><sub>1</sub><code>=</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub>1</sub> &#X2026;<code>val n</code><sub><span style="font-style:italic">k</span></sub><code>=</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub><span style="font-style:italic">k</span></sub> <code>in</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span> <code>+)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >betinget udtryk</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>if</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span> <code>-&gt;</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span> &#X2026;<code>fi</code></td></tr>
+</table>
+</div><p>
+Udtryk af type <code>Float</code> (<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><span style="color:red">)</span>:
+</p><div class="center">
+<table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >Betegnelse</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >Syntaks </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >konstant</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >f.eks. <code>-2.0</code>, <code>1e-10</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >standardv&#XE6;rdi</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>?-Float</code> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >navn</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>n</code> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >attribut</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><code>.n</code> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >sum</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>1</sub> <code>+</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>2</sub>, <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>1</sub> <code>+</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>2</sub> og <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>1</sub> <code>+</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >differens</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>1</sub> <code>-</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>2</sub>, <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>1</sub> <code>-</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>2</sub> og <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>1</sub> <code>-</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >produkt</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>1</sub> <code>*</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>2</sub>, <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>1</sub> <code>*</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>2</sub> og <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>1</sub> <code>*</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >kvotient</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>1</sub> <code>/</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>2</sub>, <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>1</sub> <code>/</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>2</sub> og <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>1</sub> <code>/</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >rest</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>1</sub> <code>mod</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>2</sub>, <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>1</sub> <code>mod</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>2</sub> og <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><sub>1</sub> <code>mod</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >maksimum</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>max(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code>,n)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >minimum</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>min(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code>,n)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >addition</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>add(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code>,n)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >multiplikation</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>mult(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code>,n)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >funktionsanvendelse</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">F</span></span><code>(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub>1</sub><code>,...,</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub><span style="font-style:italic">k</span></sub><code>)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >indskudt udtryk</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>(+ val n</code><sub>1</sub><code>=</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub>1</sub> &#X2026;<code>val n</code><sub><span style="font-style:italic">k</span></sub><code>=</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub><span style="font-style:italic">k</span></sub> <code>in</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span> <code>+)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >betinget udtryk</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>if</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span> <code>-&gt;</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span> &#X2026;<code>fi</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >trigonometri</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>sin(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><code>)</code>, <code>cos(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><code>)</code>, <code>tan(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><code>)</code>,</td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >&nbsp;</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>asin(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><code>)</code>, <code>acos(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><code>)</code>, <code>atan(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><code>)</code>, <code>atan2(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span>, <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><code>)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >eksponent</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>sqrt(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><code>)</code>, <code>pow(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span>, <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><code>)</code>, <code>abs(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">D</span></span><code>)</code> </td></tr>
+</table>
+</div><p>
+Udtryk af type <code>Text</code> (<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><span style="color:red">)</span>:
+</p><div class="center">
+<table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >Betegnelse</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >Syntaks </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >konstant</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>""</code>, <code>"AGF"</code>, &#X2026;</td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >standardv&#XE6;rdi</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>?-Text</code> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >navn</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>n</code> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >attribut</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><code>.n</code> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >deltekst</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>substr(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><code>, </code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>1</sub><code>, </code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">I</span></span><sub>2</sub><code>)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >konkatenation</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>1</sub> <code>++</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >maksimum</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>max(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code>,n)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >minimum</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>min(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><code>,n)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >funktionsanvendelse</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">F</span></span><code>(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub>1</sub><code>,...,</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub><span style="font-style:italic">k</span></sub><code>)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >indskudt udtryk</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>(+ val n</code><sub>1</sub><code>=</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub>1</sub> &#X2026;<code>val n</code><sub><span style="font-style:italic">k</span></sub><code>=</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub><span style="font-style:italic">k</span></sub> <code>in</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span> <code>+)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >betinget udtryk</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>if</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span> <code>-&gt;</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span> &#X2026;<code>fi</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >pr&#XE6;fiks</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>before(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>1</sub>,<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>2</sub><code>)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >suffiks</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>after(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>1</sub>,<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">X</span></span><sub>2</sub><code>)</code></td></tr>
+</table>
+</div><p>
+Udtryk af type <code>Tup</code> (<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><span style="color:red">)</span>:
+</p><div class="center">
+<table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >Betegnelse</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >Syntaks </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >konstant</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>Tup(n</code><sub>1</sub><code>:</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">A</span></span><sub>1</sub><code>,...,n</code><sub><span style="font-style:italic">k</span></sub><code>:</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">A</span></span><sub><span style="font-style:italic">k</span></sub><code>)</code> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >navn</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>n</code>, <code>#</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >opdatering</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><sub>1</sub> <code>&lt;&lt;</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >elimination</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span> \ <code>n</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >funktionsanvendelse</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">F</span></span><code>(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub>1</sub><code>,...,</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub><span style="font-style:italic">k</span></sub><code>)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >indskudt udtryk</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>(+ val n</code><sub>1</sub><code>=</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub>1</sub> &#X2026;<code>val n</code><sub><span style="font-style:italic">k</span></sub><code>=</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub><span style="font-style:italic">k</span></sub> <code>in</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span> <code>+)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >betinget udtryk</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>if</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span> <code>-&gt;</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span> &#X2026;<code>fi</code></td></tr>
+</table>
+</div><p>Udtryk af type <code>Rel</code> (<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><span style="color:red">)</span>:
+</p><div class="center">
+<table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >Betegnelse</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >Syntaks </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >konstant</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>rel(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">T</span></span><code>)</code>, <code>zero</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >navn</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>n</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >union</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>1</sub> <code>+</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >join</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>1</sub> <code>*</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >difference</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>1</sub> <code>-</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >project</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span> <code>|+</code> <code>n</code><sub>1</sub><code>,...,n</code><sub><span style="font-style:italic">k</span></sub>, <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span> <code>|-</code>
+<code>n</code><sub>1</sub><code>,...,n</code><sub><span style="font-style:italic">k</span></sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >select</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span> <code>?</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >rename</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span> <code>[n</code><sub>1</sub><code> &lt;- n</code><sub>2</sub><code>]</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >forall</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>!(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>1</sub><code>): </code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>2</sub></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >factor</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>!(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub>1</sub>,&#X2026;,<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span><sub><span style="font-style:italic">m</span></sub><code>)|</code><code>n</code><sub>1</sub><code>,...,n</code><sub><span style="font-style:italic">k</span></sub>: <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >funktionsanvendelse</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">F</span></span><code>(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub>1</sub><code>,...,</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub><span style="font-style:italic">k</span></sub><code>)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >indskudt udtryk</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>(+ val n</code><sub>1</sub><code>=</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub>1</sub> &#X2026;<code>val n</code><sub><span style="font-style:italic">k</span></sub><code>=</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub><span style="font-style:italic">k</span></sub> <code>in</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span> <code>+)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >betinget udtryk</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>if</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span> <code>-&gt;</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">R</span></span> &#X2026;<code>fi</code></td></tr>
+</table>
+</div><p>Udtryk af type <code>Func</code> (<span style="color:red"> </span><span style="color:red"><span style="font-style:italic">F</span></span><span style="color:red">)</span>:
+</p><div class="center">
+<table border=1  style="border-spacing:0;" class="cellpadding1"><tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >Betegnelse</td><td style="text-align:left;border:solid 1px;white-space:nowrap" >Syntaks </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >konstant</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>Func (...) -&gt; (...)</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span> <code>end</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >navn</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>n</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >funktionsanvendelse</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">F</span></span><code>(</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub>1</sub><code>,...,</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub><span style="font-style:italic">k</span></sub><code>)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >indskudt udtryk</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>(+ val n</code><sub>1</sub><code>=</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub>1</sub> &#X2026;<code>val n</code><sub><span style="font-style:italic">k</span></sub><code>=</code><span style="color:red"> </span><span style="color:red"><span style="font-style:italic">U</span></span><sub><span style="font-style:italic">k</span></sub> <code>in</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">F</span></span> <code>+)</code></td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >betinget udtryk</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><code>if</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">B</span></span> <code>-&gt;</code> <span style="color:red"> </span><span style="color:red"><span style="font-style:italic">F</span></span> &#X2026;<code>fi</code></td></tr>
+</table>
+</div>
+<hr>
+<a href="rasmus003.html"><img src="previous_motif.gif" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.gif" alt="Up"></a>
+<a href="rasmus005.html"><img src="next_motif.gif" alt="Next"></a>
+</body>
+</html>
