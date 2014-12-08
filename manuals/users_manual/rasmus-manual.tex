@@ -429,14 +429,13 @@ In the following, a grammar for \RAS{} expressions is presented.
           \>   \>\META{Exp} mod \META{Exp}\OR \\
           \>   \>\META{Exp} ++ \META{Exp}\OR \\
           \>   \>\META{Exp} ; \META{Exp}\OR \\
-          \>   \>\META{Exp} ( \META{Exp} ..\ \META{Exp} )\OR \\
           \>   \>| \META{Exp} |\OR \\
           \>   \>\META{Exp} << \META{Exp}\OR \\
           \>   \>\META{Exp} .\ \META{Name}\OR \\
           \>   \>\META{Exp} \verb"\" \META{Name}\OR \\
           \>   \>has ( \META{Exp} , \META{Name} )\OR \\
           \>   \>\META{Exp} \META{ProjSym} \METAPLUSLIST{Name}\OR \\
-          \>   \>\META{Exp} ?\ \META{Exp}\OR \\
+          \>   \>\META{Exp} ?\ ( \META{Exp} ) \OR \\
           \>   \>\META{Exp} [ \METAPLUSLIST{RenamePair} ]\OR \\
           \>   \>! ( \METAPLUSLIST{Exp} ) \METAOPT{Restrict} :\ \META{Exp}\OR \\
           \>   \>!\verb"<" ( \METAPLUSLIST{Exp} ) \METAOPT{Restrict} :\ \META{Exp}\OR \\
@@ -446,6 +445,19 @@ In the following, a grammar for \RAS{} expressions is presented.
           \>   \>count ( \META{Exp} , \META{Name} )\OR \\
           \>   \>add ( \META{Exp} , \META{Name} )\OR \\
           \>   \>mult ( \META{Exp} , \META{Name} )\OR \\
+          \>   \>substr ( \META{Exp}, \META{Exp}, \META{Exp} )\OR \\
+          \>   \>sin ( \META{Exp} )\OR \\
+          \>   \>cos ( \META{Exp} )\OR \\
+          \>   \>tan ( \META{Exp} )\OR \\
+          \>   \>asin ( \META{Exp} )\OR \\
+          \>   \>acos ( \META{Exp} )\OR \\
+          \>   \>atan ( \META{Exp} )\OR \\
+          \>   \>atan2 ( \META{Exp}, \META{Exp} )\OR \\
+          \>   \>round ( \META{Exp} )\OR \\
+          \>   \>ceil ( \META{Exp} )\OR \\
+          \>   \>floor ( \META{Exp} )\OR \\
+          \>   \>sqrt ( \META{Exp} )\OR \\
+          \>   \>pow ( \META{Exp}, \META{Exp} )\OR \\
           %% \>   \>days ( \META{Exp} , \META{Exp} )\OR \\
           %% \>   \>before ( \META{Exp} , \META{Exp} )\OR \\
           %% \>   \>after ( \META{Exp} , \META{Exp} )\OR \\
@@ -468,13 +480,19 @@ In the following, a grammar for \RAS{} expressions is presented.
           \>   \>( \META{Exp} )\OR \\
           %% \>   \>\META{IsType} \\
 \\
-\META{AtomConst}\>\IS\>\META{BoolConst}\OR\META{IntConst}\OR\META{TextConst} \\
+\META{AtomConst}\>\IS\>\META{BoolConst}\OR\META{IntConst}\OR\META{FloatConst}\OR\META{TextConst} \\
 \\
 \META{BoolConst}\>\IS\>true\OR false \\
 \\
 \META{IntConst}\>\IS\>\METAPLUS{Digit} \\
 \\
 \META{Digit}\>\IS\>0\OR 1\OR 2\OR 3\OR 4\OR 5\OR 6\OR 7\OR 8\OR 9 \\
+\\
+\META{FloatConst}\>\IS\>\METAPLUS{Digit} . \METAPLUS{Digit} \METAOPT{Exponent} \\
+\\
+\META{Exponent}\>\IS\>e \METAOPT{Sign} \METAPLUS{Digit} \\
+\\
+\META{Sign}\>\IS\>+\OR - \\
 \\
 \META{TextConst}\>\IS\>" \METASTAR{Ascii} " \\
 \\
@@ -494,12 +512,12 @@ In the following, a grammar for \RAS{} expressions is presented.
 \\
 \META{AlphaNum}\>\IS\>\META{Letter}\OR\META{Digit} \\
 \\
-\META{Type}\>\IS\>Bool\OR Int\OR Text\OR Tup\OR \\
-           \>   \>Rel\OR Func\OR Any \\
+\META{Type}\>\IS\>Bool\OR Int\OR Float \OR Text\OR\\
+           \>   \>Tup\OR Rel\OR Func\OR Any \\
 %% \META{Type}\>\IS\>Bool\OR Int\OR Text\OR Atom\OR Tup\OR \\
 %%            \>   \>Rel\OR Func\OR Any \\
 \\
-\META{StandardConst}\>\IS\>?-Bool\OR ?-Int\OR ?-Text \\
+\META{StandardConst}\>\IS\>?-Bool\OR ?-Int\OR ?-Float\OR ?-Text \\
 \\
 \META{RelConst}\>\IS\>zero\OR one \\
 \\
@@ -519,6 +537,7 @@ In the following, a grammar for \RAS{} expressions is presented.
 \\
 \META{IsType}\>\IS\>is-Bool ( \META{Exp} )\OR \\
              \>   \>is-Int ( \META{Exp} )\OR \\
+             \>   \>is-Float ( \META{Exp} )\OR \\
              \>   \>is-Text ( \META{Exp} )\OR \\
 %%              \>   \>is-Atom ( \META{Exp} )\OR \\
              \>   \>is-Tup ( \META{Exp} )\OR \\
@@ -535,11 +554,11 @@ A \META{Name} cannot be one of the {\em keywords\/} listed in the following:
 {\tt
 \begin{center}
 \begin{tabular}{llllll}
-add & and & any & bool & count & end\\
-false & fi & func & has & if & in \\
-int & max & min & mod & mult & not \\
-one & or & rel & text & true & tup\\
-unset & val & zero
+add & and & any & Bool & count & end\\
+false & fi & func & Func& has & if\\
+in & Int & max & min & mod & mult \\
+not & one & or & rel & Rel & Text \\
+true & tup & Tup & unset & val & zero\\
 \end{tabular}
 %% \begin{tabular}{llllll}
 %% add & after & and & any & atom & before \\
@@ -553,8 +572,7 @@ unset & val & zero
 %% \end{tabular}
 \end{center}
 }
-For these keywords, the system does not distinguish between upper-
-and lower-case letters.
+
 
 \subsection{Informal Semantics}
 We divide this section up into several subsections depending on the
@@ -562,7 +580,7 @@ type of the expressions being discussed. Some operations involve
 more than one type, but are only discussed once. We try to place
 such operations under the main type involved.
 
-First, we describe the {\em atomic\/} values: booleans, integers, and text.
+First, we describe the {\em atomic\/} values: booleans, integers, floats, and text.
 
 \vspace{2ex}
 {\bf Booleans}
@@ -582,8 +600,8 @@ The remaining test have the obvious complementary interpretation.
 \begin{description}%{{\tt Bool}\hspace*{1em}}
 \item[{\tt Bool}]
 {\tt x<y} is true iff {\tt x} is {\tt false} and {\tt y} is {\tt true}.
-\item[{\tt Int}]
-{\tt x<y} is true iff {\tt x} is an integer less than {\tt y}.
+\item[{\tt Int}/{\tt Float}]
+{\tt x<y} is true iff {\tt x} is an integer/float less than {\tt y}.
 \item[{\tt Text}]
 {\tt x<y} is true iff {\tt x} is a genuine prefix of {\tt y}.
 \item[{\tt Tup}]
@@ -619,6 +637,14 @@ The expression {\tt -i} gives the same value as {\tt 0-i}.
 %% The expression {\tt days(s,t)} yields the number of days between
 %% the dates \verb"s" and \verb"t". A date is represented as a text
 %% of the form \verb"dd/mm/yy".
+
+{\bf Floats}
+
+The floats constants along with the operations
+{\tt +}, {\tt -}, {\tt *}, {\tt /}, and {\tt mod}
+have the standard interpretations. Operations on combinations of floats and integers will give floats.
+
+The expression {\tt -i} gives the same value as {\tt 0-i}.
 
 \vspace{2ex}
 {\bf Text}
@@ -852,7 +878,7 @@ the function definition (the result type).
 \item
 {\tt is-Bool(exp)} denotes {\tt true} if {\tt exp} evaluates to a
 boolean. Otherwise, it denotes {\tt false}. The constructions
-{\tt is-Int}, {\tt is-Text}, {\tt is-Atom}, {\tt is-Tup}, {\tt is-Rel},
+{\tt is-Int}, {\tt is-Float}, {\tt is-Text}, {\tt is-Atom}, {\tt is-Tup}, {\tt is-Rel},
 {\tt is-Func}, and {\tt is-Any} are defined similarly.
 
 For the atomic types, there is an additional construction. If {\tt exp}
@@ -861,7 +887,7 @@ relation, then {\tt is-Bool(exp,A)} denotes {\tt true} if {\tt A} is of type
 {\tt Bool} and {\tt false} otherwise. If either {\tt exp} does not evaluate
 to a relation or {\tt exp} evaluates to a relation and {\tt A} does not
 belong to the schema of that relation, then a runtime error occurs.
-The expressions {\tt is-Int(exp,A)} and {\tt is-Text(exp,A)} have
+The expressions {\tt is-Int(exp,A)}, {\tt is-Float(exp,A)} and {\tt is-Text(exp,A)} have
 similar semantics.
 
 %% \item
