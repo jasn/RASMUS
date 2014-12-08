@@ -95,13 +95,8 @@ namespace stdlib {
 RefPtr<Relation> copyRelation(RefPtr<Relation> rel) {
 	RefPtr<Relation> ret = makeRef<Relation>();
 	ret->schema = rel->schema;
-
-	ret->permutation.resize(rel->permutation.size());
-	for (size_t i = 0; i < ret->permutation.size(); ++i) {
-		ret->permutation[i] = rel->permutation[i];
-	}
-
-	ret->tuples.insert(ret->tuples.begin(), rel->tuples.begin(), rel->tuples.end());
+	ret->permutation = rel->permutation;
+	ret->tuples = rel->tuples;
 	return ret;
 }
 
