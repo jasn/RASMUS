@@ -55,13 +55,12 @@ public slots:
 	void cancel();
 	void runContent(QString name, QString content);
 	void unset(QString name);
-	void savePermutation(RelationModel * model);
 	
 signals:
 	void incomplete();
 	void complete();
 	void display(QString string);
-	void updateEnvironment(const char * name);
+	void updateEnvironment(QString name);
 	void bussy(bool);
 
 	void displayRelation(rasmus::stdlib::Relation *);

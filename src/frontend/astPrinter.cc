@@ -255,14 +255,11 @@ public:
 
     void visit(std::shared_ptr<FuncInvocationExp> node) {
 		*s << start(node, "call")
+		   << p("exp", node->funcExp)
 		   << lstart("args");
 		for (auto arg: node->args)
 			visitNode(arg);
 		*s << lend() << end();
-	}
-
-    void visit(std::shared_ptr<SubstringExp> node) {
-		*s << start(node, "substr") << p("str", node->stringExp) << p("from", node->fromExp) << p("to", node->toExp) << end();
 	}
 
     void visit(std::shared_ptr<RenameExp> node) {

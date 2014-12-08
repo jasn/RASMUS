@@ -76,13 +76,6 @@ public:
 		interperter->environmentChanged(name);
 	}
 
-	void savePermutation(rm_object *o, const char *name) override {
-		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
-		QDir d;
-		d.mkpath(settings->path());
-		rs::savePermutationToFile(o, location(name).toUtf8().data());
-	}
-
 	void printRel(rm_object *o) {
 		rs::Relation *r = static_cast<rs::Relation*>(o);
 		size_t sz = r->tuples.size();
@@ -247,7 +240,7 @@ bool Interpreter::relationExists(QString relationName) {
 }
 
 void Interpreter::environmentChanged(const char * name) {
-	emit updateEnvironment(name);
+	emit updateEnvironment(QString(name));
 }
 
 void Interpreter::enterRelationToEnvironment(rm_object * rel, const char * name) {
@@ -291,8 +284,4 @@ void Interpreter::doDisplay(QString string) {
 
 void Interpreter::unset(QString name) {
 	runContent("", "unset " + name);
-}
-
-void Interpreter::savePermutation(RelationModel * model) {
-	d_ptr->callback->savePermutation(model->rel.getAs<rm_object>(), model->relationName.c_str());
 }

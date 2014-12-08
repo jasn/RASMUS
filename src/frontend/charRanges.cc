@@ -109,11 +109,6 @@ public:
         node->charRange = u(node->funcExp->charRange, r(node->rparenToken));
 	}
 
-    void visit(std::shared_ptr<SubstringExp> node) {
-        visitAll({node->stringExp, node->fromExp, node->toExp});
-        node->charRange = u(node->stringExp->charRange, r(node->rparenToken));
-	}
-
     void visit(std::shared_ptr<RenameExp> node) {
         visitNode(node->lhs);
         node->charRange = u(node->lhs->charRange, r(node->rbracketToken));

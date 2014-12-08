@@ -23,6 +23,7 @@
 #include <shared/type.hh>
 #include <QSize>
 #include <stdlib/anyvalue.hh>
+#include <stdlib/relation.hh>
 #include <string>
 #include <stdlib/text.hh>
 #include <stdlib/lib.h>
@@ -137,14 +138,15 @@ QVariant RelationModel::headerData(int section, Qt::Orientation orientation, int
 }
 
 void RelationModel::sort(int column, Qt::SortOrder order) {
+	
 	{
 		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
-		rm_sortRel(rel.get(), column, order==Qt::AscendingOrder);
+		rm_sortRel(rel.get(), rel->permutation[column], order==Qt::AscendingOrder);
 	}
 	emit layoutChanged();
 }
 
-RelationWindow::RelationWindow(RelationModel * model): model(model) {
+RelationWindow::RelationWindow(RelationModel * model): model(model), modified(false) {
 	ui.setupUi(this);
 	model->setParent(this);
 	ui.view->setModel(model);
@@ -152,17 +154,24 @@ RelationWindow::RelationWindow(RelationModel * model): model(model) {
 	if (!model->relationName.empty())
 		setWindowTitle(QString::fromUtf8(model->relationName.c_str()) + " - Relation");
 
-
 	// Permutation of attributes
 	// Also need to create a slot for the signal QHeaderView::sectionMoved
 	ui.view->horizontalHeader()->setMovable(true);
 	
 	QObject::connect(ui.view->horizontalHeader(), SIGNAL(sectionMoved(int, int, int)), 
 					 this, SLOT(sectionMoved(int, int, int)));
-
 }
 
 void RelationWindow::sectionMoved(int logicalIndex, int oldVisualIndex, int newVisualIndex) {
+
+	// if unmodified, make a copy
+	if (!this->modified) {
+		// copy
+		this->model->rel = rs::copyRelation(this->model->rel);
+		// make a STAR appear in the window.
+		setWindowTitle(windowTitle() + "*");
+		this->modified = true;
+	}
 	static bool inSectionMoved=false;
 	if (inSectionMoved) return;
 	inSectionMoved = true;
@@ -177,13 +186,20 @@ void RelationWindow::sectionMoved(int logicalIndex, int oldVisualIndex, int newV
 	size_t x = pi[oldVisualIndex];
 	pi.erase(pi.begin()+oldVisualIndex);
 	pi.insert(pi.begin()+newVisualIndex, x);
-	
-	// save permutation to file.
-	emit permutationChanged(this->model);
 }
 
 void RelationWindow::showAbout() {
 	::showAbout();
+}
+
+void RelationWindow::save() {
+	if (model->relationName.size() > 0) {
+		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
+		rm_saveGlobalAny(model->relationName.c_str(), reinterpret_cast<uint64_t>(model->rel.get()), TRel);
+		setWindowTitle(QString(model->relationName.c_str()) + QString(" - Relation"));
+	} else {
+		this->saveAsGlobal();
+	}
 }
 
 void RelationWindow::saveAsGlobal() {
@@ -191,6 +207,8 @@ void RelationWindow::saveAsGlobal() {
 	if (relName.isEmpty()) return;
 	rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 	rm_saveGlobalAny(relName.toUtf8().data(), reinterpret_cast<uint64_t>(model->rel.get()), TRel);
+	model->relationName = std::string(relName.toUtf8().data());
+	setWindowTitle(relName + " - Relation");
 }
 
 void RelationWindow::exportCSV() {
@@ -222,7 +240,7 @@ void RelationWindow::showPrint() {
 	std::vector<double> ys(xs.size(), 0);
 	
 	for (size_t i = 0; i < xs.size(); ++i) {
-		std::string tmp = ::getHeaderText(rel->schema->attributes[i]);
+		std::string tmp = ::getHeaderText(rel->schema->attributes[rel->permutation[i]]);
 		xs[i] = p.fontMetrics().width(QString::fromStdString(tmp));
 	}
 
@@ -267,7 +285,7 @@ void RelationWindow::showPrint() {
 			double whereToStartX = 0.0;
 			double headerHeight = 0.0;
 			for (size_t i = 0; i < xs.size(); ++i) {
-				std::string tmp = ::getHeaderText(rel->schema->attributes[i]);
+				std::string tmp = ::getHeaderText(rel->schema->attributes[rel->permutation[i]]);
 				QRectF allowed(whereToStartX, whereToStartY, ys[i], 1e13);
 				QRectF boundingRect;
 				p.drawText(allowed,
@@ -329,8 +347,7 @@ void RelationWindow::showPrint() {
 	
 }
 
-RelationWindow * showTableViewWindow(RelationModel * rm) {
+void showTableViewWindow(RelationModel * rm) {
 	RelationWindow * w = new RelationWindow(rm);
 	w->show();
-	return w;
 }

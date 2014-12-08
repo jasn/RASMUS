@@ -46,6 +46,7 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
+    <addaction name="actionSave"/>
     <addaction name="action_Save_as_global"/>
     <addaction name="action_Export_CSV"/>
     <addaction name="separator"/>
@@ -70,10 +71,10 @@
   </action>
   <action name="action_Save_as_global">
    <property name="text">
-    <string>&amp;Save as global...</string>
+    <string>Save &amp;as global...</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+S</string>
+    <string>Ctrl+A</string>
    </property>
   </action>
   <action name="action_Export_CSV">
@@ -95,6 +96,14 @@
   <action name="actionPrint">
    <property name="text">
     <string>&amp;Print</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>&amp;Save</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
  </widget>
@@ -180,11 +189,28 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionSave</sender>
+   <signal>triggered()</signal>
+   <receiver>RelationWindow</receiver>
+   <slot>save()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>354</x>
+     <y>297</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>showAbout()</slot>
   <slot>exportCSV()</slot>
   <slot>saveAsGlobal()</slot>
   <slot>showPrint()</slot>
+  <slot>save()</slot>
  </slots>
 </ui>

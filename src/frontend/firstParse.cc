@@ -206,6 +206,9 @@ public:
 				} else if (name == "sqrt") {
 					node->buildin = BuildIn::sqrt;
 					node->type = Type::func(Type::fp(), {Type::fpAndInt()});
+				} else if (name == "substr") {
+					node->buildin = BuildIn::substr;
+					node->type = Type::func(Type::text(), {Type::text(), Type::integer(), Type::integer()});
 				} else if (name == "tan") {
 					node->buildin = BuildIn::tan;
 					node->type = Type::func(Type::fp(), {Type::fpAndInt()});
@@ -466,9 +469,13 @@ public:
 			break;
 		case TokenType::TK_MAX:
 		case TokenType::TK_MIN:
+			returnType = Type::atomic();
+			argumentTypes.push_back(Type::aRel());
+			secondIsName = true;
+			break;
 		case TokenType::TK_ADD:
 		case TokenType::TK_MULT:
-			returnType = Type::integer(); //should be fpAndInt when the stdlib changes
+			returnType = Type::fpAndInt();
             argumentTypes.push_back(Type::aRel());
 			secondIsName = true;
 			break;
@@ -511,7 +518,7 @@ public:
 			// too few args
 			std::stringstream ss;
 			ss << "Too "
-			   << (node->args.size() < argumentTypes.size()?"few":"many")
+			   << ((node->args.size() < expectedArgs)?"few":"many")
 			   << " arguments to builtin function, received " << node->args.size() 
 			   << " but expected " << expectedArgs;
 			error->reportError(ss.str(), node->nameToken, {node->charRange});
@@ -564,21 +571,40 @@ public:
         case TokenType::TK_STDFLOAT:
 			node->type = Type::fp();
 			break;
-		case TokenType::TK_BADINT:
+		case TokenType::TK_BADINT: {
 			error->reportWarning(
 				"Integers should not start with 0 (we do not support octals)",
 				node->valueToken);
-			node->type = Type::integer();
-			break;
+			//Fall through
+		}
 		case TokenType::TK_INT:
-			//TODO Validate the integer and check its range
-            //atoi(code->code.substr(node->valueToken.start, node->valueToken.length).c_str());
+		{
+			std::string text = node->valueToken.getText(code);
+			char * end=nullptr;
+			const char * start=text.c_str();
+			errno = 0;
+			strtol(start, &end, 10) ;
+			if (errno == ERANGE) 
+				error->reportError("Integer outside valid range", node->valueToken, {node->charRange});
+			else if (errno != 0 || start+text.size() != end) 
+				error->reportError("Invalid integer", node->valueToken, {node->charRange});
 			node->type = Type::integer();
 			break;
+		}
 		case TokenType::TK_FLOAT:
-			// TODO Validate range
+		{
+			std::string text = node->valueToken.getText(code);
+			char * end=nullptr;
+			const char * start = text.c_str();
+			errno = 0;
+			strtod(start, &end) ;
+			if (errno == ERANGE) 
+				error->reportError("Float outside valid range", node->valueToken, {node->charRange});
+			else if (errno != 0 || start+text.size() != end) 
+				error->reportError("Invalid float", node->valueToken, {node->charRange});
 			node->type = Type::fp();
 			break;
+		}
 		default:
 			internalError(node->valueToken, std::string("Invalid constant type ")+getTokenName(node->valueToken.id));
 			node->type = Type::empty();
@@ -772,17 +798,6 @@ public:
 				node->type = Type::join(matchTypes);
 			}
 		}
-	}
-
-    void visit(std::shared_ptr<SubstringExp> node) {
-        visitNode(node->stringExp);
-        visitNode(node->fromExp);
-        visitNode(node->toExp);
-		typeCheck(node->lparenToken, node->stringExp, Type::text());
-		typeCheck(node->lparenToken, node->fromExp, Type::integer());
-		typeCheck(node->lparenToken, node->toExp, Type::integer());
-		
-		node->type = Type::text();
 	}
 
 	static CharRange r(Token t) {

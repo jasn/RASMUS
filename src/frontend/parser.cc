@@ -39,7 +39,7 @@ public:
 const std::unordered_set<TokenType> thingsThatMayComeAfterParseExp =
 {TokenType::TK_RIGHTARROW, TokenType::TK_RPAREN, TokenType::TK_COMMA, TokenType::TK_FI,
  TokenType::TK_PIPE, TokenType::TK_COLON, TokenType::TK_END, TokenType::TK_IN, TokenType::TK_CHOICE,
- TokenType::TK_VAL, TokenType::TK_TWO_DOTS, TokenType::END_OF_FILE, TokenType::TK_SEMICOLON, TokenType::TK_BLOCKEND};
+ TokenType::TK_VAL, TokenType::END_OF_FILE, TokenType::TK_SEMICOLON, TokenType::TK_BLOCKEND};
 
 const std::unordered_set<TokenType> types=
 {TokenType::TK_TYPE_BOOL,TokenType::TK_TYPE_INT,TokenType::TK_TYPE_FLOAT, TokenType::TK_TYPE_TEXT,TokenType::TK_TYPE_ATOM, TokenType::TK_TYPE_TUP,TokenType::TK_TYPE_REL, TokenType::TK_TYPE_FUNC,TokenType::TK_TYPE_ANY};
@@ -437,46 +437,37 @@ public:
 		}
 	}
 
-    NodePtr parseSubstringOrFuncInvocationExp() {
+    NodePtr parseFuncInvocationExp() {
         NodePtr n = parseBottomExp();
 		while (currentToken.id == TokenType::TK_LPAREN) {
-            Token lparenToken = consumeToken();
-			if (currentToken.id == TokenType::TK_RPAREN) {
-				std::shared_ptr<FuncInvocationExp> f = std::make_shared<FuncInvocationExp>(n, lparenToken);
-				f->rparenToken = assertTokenConsume(TokenType::TK_RPAREN);				
-				n=f;
-			} else {
+			Token lparenToken = consumeToken();
+			std::shared_ptr<FuncInvocationExp> f = std::make_shared<FuncInvocationExp>(n, lparenToken);
+
+			if (currentToken.id != TokenType::TK_RPAREN) {
 				recover(TokenType::TK_RPAREN, [&]() {
 						NodePtr e1 = parseExp();
-						if (currentToken.id == TokenType::TK_TWO_DOTS) {
-							Token t=consumeToken();
-							NodePtr e2=parseExp();
-							n = std::make_shared<SubstringExp>(n, lparenToken, e1, t, e2, assertTokenConsume(TokenType::TK_RPAREN));
-						} else {
-							std::shared_ptr<FuncInvocationExp> f = std::make_shared<FuncInvocationExp>(n, lparenToken);
-							f->args.push_back(e1);
-							while (currentToken.id == TokenType::TK_COMMA) {
-								consumeToken();
-								f->args.push_back(parseExp());
-							}
-							assertToken(TokenType::TK_RPAREN);
-							f->rparenToken = assertTokenConsume(TokenType::TK_RPAREN);
-							n=f;
+						f->args.push_back(e1);
+						while (currentToken.id == TokenType::TK_COMMA) {
+							consumeToken();
+							f->args.push_back(parseExp());
 						}
-					});
-				//TODO fix error recovery on RPAREN token, for TokenType::TK_TWO_DOTS this did not work under python either
+					}
+					);
 			}
+			assertToken(TokenType::TK_RPAREN);
+			f->rparenToken = assertTokenConsume(TokenType::TK_RPAREN);
+			n=f;
 		}
 		return n;
 	}
 
     NodePtr parseOpExtendAndOverwriteExp() {
-        NodePtr n = parseSubstringOrFuncInvocationExp();
+        NodePtr n = parseFuncInvocationExp();
 		while (true) {
 			switch(currentToken.id) {
 			case TokenType::TK_OPEXTEND: {
 				Token t=consumeToken();
-				n = std::make_shared<BinaryOpExp>(t, n, parseSubstringOrFuncInvocationExp());
+				n = std::make_shared<BinaryOpExp>(t, n, parseFuncInvocationExp());
 				break;
 			}
 			case TokenType::TK_SET_MINUS: { 

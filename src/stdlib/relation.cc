@@ -95,13 +95,8 @@ namespace stdlib {
 RefPtr<Relation> copyRelation(RefPtr<Relation> rel) {
 	RefPtr<Relation> ret = makeRef<Relation>();
 	ret->schema = rel->schema;
-
-	ret->permutation.resize(rel->permutation.size());
-	for (size_t i = 0; i < ret->permutation.size(); ++i) {
-		ret->permutation[i] = rel->permutation[i];
-	}
-
-	ret->tuples.insert(ret->tuples.begin(), rel->tuples.begin(), rel->tuples.end());
+	ret->permutation = rel->permutation;
+	ret->tuples = rel->tuples;
 	return ret;
 }
 
@@ -1834,123 +1829,139 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
  * \Brief Finds the maximum value for the given column
  * \Note Ordering is not defined for text
  */
-int64_t rm_maxRel(rm_object * lhs, const char * name, uint64_t range) {
+void rm_maxRel(rm_object * lhs, const char * name, AnyRet * ret, uint64_t range) {
 	checkAbort();
 	if(lhs->type != LType::relation)
         ILE("Called with arguments of the wrong type");
 
 	Relation * rel = static_cast<Relation *>(lhs);
 	size_t index = getColumnIndex(rel, name, unpackCharRange(range));
-	bool rel_has_nonnull_values = false;
+	bool has_val = false;
 
-	AnyValue max;
-	max.type = rel->schema->attributes[index].type;
-
-	std::pair<uint32_t, uint32_t> range_values;
-	switch(max.type){
+	switch (rel->schema->attributes[index].type) {
 	case TInt:
-		max.intValue = std::numeric_limits<int64_t>::min();
-		for(auto tup : rel->tuples)
-			if(tup->values[index].intValue != RM_NULLINT && max < tup->values[index]){
-				max = tup->values[index];
-				rel_has_nonnull_values = true;
+	{
+		int64_t val = RM_NULLINT;
+		for(auto tup : rel->tuples) {
+			auto v=tup->values[index].intValue;
+			if (v != RM_NULLINT && (!has_val || v > val)) {
+				has_val = true;
+				val = v;
 			}
-
-		if(rel_has_nonnull_values)
-			return max.intValue;
-		else
-			return RM_NULLINT;
-		
-	case TBool:
-		max.boolValue = std::numeric_limits<int8_t>::min();
-		for(auto tup : rel->tuples)
-			if(tup->values[index].boolValue != RM_NULLBOOL && 
-			   max < tup->values[index]){
-				max = tup->values[index];
-				rel_has_nonnull_values = true;
-			}
-
-		if(rel_has_nonnull_values)
-			return max.boolValue;
-		else
-			return RM_NULLBOOL;
-
-	case TText:
-		max.type = TInvalid; // prevent freeing of max.objectValue
-		callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second,
-							  "max() was given a column of type text, but ordering is not defined for text.");
-		__builtin_unreachable();
-	default:
-		ILE("Unknown type of column", name);
+		}
+		ret->value = val;
+		ret->type= TInt;
+		break;
 	}
-
+	case TFloat:
+	{
+		union {
+			double val;
+			int64_t iv;
+		};
+		val = std::numeric_limits<double>::quiet_NaN();
+		for(auto tup : rel->tuples) {
+			auto v=tup->values[index].floatValue;
+			if (!std::isnan(v) && (!has_val || v > val)) {
+				has_val = true;
+				val = v;
+			}
+		}
+		ret->value = iv;
+		ret->type= TFloat;
+		break;
+	}
+	case TBool:
+	{
+		int8_t val = RM_NULLBOOL;
+		for(auto tup : rel->tuples) {
+			auto v=tup->values[index].boolValue;
+			if (v != RM_NULLBOOL && (!has_val || v > val)) {
+				has_val = true;
+				val = v;
+			}
+		}
+		ret->value = val;
+		ret->type= TInt;
+		break;
+	}
+	default:
+		callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second,
+							  "max() was given a column of none numeric type");
+		__builtin_unreachable();
+	}
 }
 
 /**
  * \Brief Finds the minimum value for the given column
  */
-int64_t rm_minRel(rm_object * lhs, const char * name, uint64_t range) {
+void rm_minRel(rm_object * lhs, const char * name, AnyRet * ret, uint64_t range) {
 	checkAbort();
 	if(lhs->type != LType::relation)
         ILE("Called with arguments of the wrong type");
 
 	Relation * rel = static_cast<Relation *>(lhs);
-
 	size_t index = getColumnIndex(rel, name, unpackCharRange(range));
-	bool rel_has_nonnull_values = false;
-	
-	AnyValue min;
-	min.type = rel->schema->attributes[index].type;
-	switch(min.type){
+	bool has_val = false;
+
+	switch (rel->schema->attributes[index].type) {
 	case TInt:
-		min.intValue = std::numeric_limits<int64_t>::max();
-		for(auto tup : rel->tuples)
-			if(tup->values[index].intValue != RM_NULLINT && tup->values[index] < min){
-				min = tup->values[index];
-				rel_has_nonnull_values = true;
+	{
+		int64_t val = RM_NULLINT;
+		for(auto tup : rel->tuples) {
+			auto v=tup->values[index].intValue;
+			if (v != RM_NULLINT && (!has_val || v < val)) {
+				has_val = true;
+				val = v;
 			}
-
-		if(rel_has_nonnull_values)
-			return min.intValue;
-		else
-			return RM_NULLINT;
-		
-	case TBool:
-
-		// TODO Q: Currently, returning e.g. "true" will be shown in the
-		// interpreter as "3", not "true", i.e., the interpreter seems unaware of the 
-		// type of value returned. Should we continue supporting minimum for
-		// booleans and implement some kind of type-awareness?
-		// (the same applies for max)
-
-		min.boolValue = std::numeric_limits<int8_t>::max();
-		for(auto tup : rel->tuples)
-			if(tup->values[index].boolValue != RM_NULLBOOL && 
-			   tup->values[index] < min){
-				min = tup->values[index];
-				rel_has_nonnull_values = true;
-			}
-
-		if(rel_has_nonnull_values)
-			return min.boolValue;
-		else
-			return RM_NULLBOOL;
-
-	case TText:
-		min.type = TInvalid; // prevent freeing of min.objectValue
-		callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second,
-							  "min() was given a column of type text, but ordering is not defined for text.");
-		__builtin_unreachable();
-	default:
-		ILE("Unknown type of column", name);
+		}
+		ret->value = val;
+		ret->type= TInt;
+		break;
 	}
-
+	case TFloat:
+	{
+		union {
+			double val;
+			int64_t iv;
+		};
+		val = std::numeric_limits<double>::quiet_NaN();
+		for(auto tup : rel->tuples) {
+			auto v=tup->values[index].floatValue;
+			if (!std::isnan(v) && (!has_val || v < val)) {
+				has_val = true;
+				val = v;
+			}
+		}
+		ret->value = iv;
+		ret->type= TFloat;
+		break;
+	}
+	case TBool:
+	{
+		int8_t val = RM_NULLBOOL;
+		for(auto tup : rel->tuples) {
+			auto v=tup->values[index].boolValue;
+			if (v != RM_NULLBOOL && (!has_val || v < val)) {
+				has_val = true;
+				val = v;
+			}
+		}
+		ret->value = val;
+		ret->type= TInt;
+		break;
+	}
+	default:
+		callback->reportError(unpackCharRange(range).first, unpackCharRange(range).second,
+							  "max() was given a column of none numeric type");
+		__builtin_unreachable();
+	}
 }
 
 /**
  * \Brief Returns the sum of all values for the given column
  */
-int64_t rm_addRel(rm_object * lhs, const char * name, uint64_t range) {
+void rm_addRel(rm_object * lhs, const char * name, AnyRet * ret, uint64_t range) {
 	checkAbort();
 	if(lhs->type != LType::relation)
         ILE("Called with arguments of the wrong type");
@@ -1958,21 +1969,44 @@ int64_t rm_addRel(rm_object * lhs, const char * name, uint64_t range) {
 	Relation * rel = static_cast<Relation *>(lhs);
 	size_t index = getColumnIndex(rel, name, unpackCharRange(range));
 
-	if(rel->schema->attributes[index].type != TInt)
+	switch (rel->schema->attributes[index].type) {
+	case TInt:
+	{
+		int64_t sum = 0;
+		for(auto tup : rel->tuples) {
+			auto v=tup->values[index].intValue;
+			if (v != RM_NULLINT) sum += v; 
+		}
+		ret->value = sum;
+		ret->type = TInt;
+		break;
+	}
+	case TFloat:
+	{
+		union {
+			double sum;
+			int64_t iv;
+		};
+		sum=0.0;
+		for(auto tup : rel->tuples) {
+			auto v=tup->values[index].floatValue;
+			if (!std::isnan(v)) sum += v; 
+		}
+		ret->value = iv;
+		ret->type = TFloat;
+		break;
+	}
+	default:
 		rm_emitBadCalcTypeError(unpackCharRange(range).first, unpackCharRange(range).second,
 								name, PlainType(rel->schema->attributes[index].type), "addition");
-
-	int64_t ret = 0;
-	for(auto tup : rel->tuples)
-		ret += tup->values[index].intValue;
-	
-	return ret;
+		break;
+	}
 }
 
 /**
  * \Brief Returns the product of all values for the given column
  */
-int64_t rm_multRel(rm_object * lhs, const char * name, uint64_t range) {
+void rm_multRel(rm_object * lhs, const char * name, AnyRet * ret, uint64_t range) {
 	checkAbort();
 	if(lhs->type != LType::relation)
         ILE("Called with arguments of the wrong type");
@@ -1980,15 +2014,38 @@ int64_t rm_multRel(rm_object * lhs, const char * name, uint64_t range) {
 	Relation * rel = static_cast<Relation *>(lhs);
 	size_t index = getColumnIndex(rel, name, unpackCharRange(range));
 
-	if(rel->schema->attributes[index].type != TInt)
+	switch (rel->schema->attributes[index].type) {
+	case TInt:
+	{
+		int64_t product = 1;
+		for(auto tup : rel->tuples) {
+			auto v=tup->values[index].intValue;
+			if (v != RM_NULLINT) product *= v; 
+		}
+		ret->value = product;
+		ret->type = TInt;
+		break;
+	}
+	case TFloat:
+	{
+		union {
+			double product;
+			int64_t iv;
+		};
+		product=1.0;
+		for(auto tup : rel->tuples) {
+			auto v=tup->values[index].floatValue;
+			if (!std::isnan(v)) product *= v; 
+		}
+		ret->value = iv;
+		ret->type = TFloat;
+		break;
+	}
+	default:
 		rm_emitBadCalcTypeError(unpackCharRange(range).first, unpackCharRange(range).second,
-								name, PlainType(rel->schema->attributes[index].type), "multiplication");
-
-	int64_t ret = 1;
-	for(auto tup : rel->tuples)
-		ret *= tup->values[index].intValue;
-	
-	return ret;
+								name, PlainType(rel->schema->attributes[index].type), "Multiplication");
+		break;
+	}
 }
 
 /**

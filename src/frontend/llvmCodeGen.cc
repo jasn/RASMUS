@@ -236,18 +236,19 @@ public:
 //		fpm.add(createCFGSimplificationPass());
 		fpm.doInitialization();
 
-		loadBuildin(BuildIn::acos, "rm_acos");
-		loadBuildin(BuildIn::asin, "rm_asin");
-		loadBuildin(BuildIn::atan, "rm_atan");
-		loadBuildin(BuildIn::atan2, "rm_atan2");
-		loadBuildin(BuildIn::ceil, "rm_ceil");
-		loadBuildin(BuildIn::cos, "rm_cos");
-		loadBuildin(BuildIn::floor, "rm_floor");
-		loadBuildin(BuildIn::pow, "rm_pow");
-		loadBuildin(BuildIn::round, "rm_round");
-		loadBuildin(BuildIn::sin, "rm_sin");
-		loadBuildin(BuildIn::sqrt, "rm_sqrt");
-		loadBuildin(BuildIn::tan, "rm_tan");
+		loadBuildin(BuildIn::substr, "rm_substrFunc");
+		loadBuildin(BuildIn::acos, "rm_acosFunc");
+		loadBuildin(BuildIn::asin, "rm_asinFunc");
+		loadBuildin(BuildIn::atan, "rm_atanFunc");
+		loadBuildin(BuildIn::atan2, "rm_atan2Func");
+		loadBuildin(BuildIn::ceil, "rm_ceilFunc");
+		loadBuildin(BuildIn::cos, "rm_cosFunc");
+		loadBuildin(BuildIn::floor, "rm_floorFunc");
+		loadBuildin(BuildIn::pow, "rm_powFunc");
+		loadBuildin(BuildIn::round, "rm_roundFunc");
+		loadBuildin(BuildIn::sin, "rm_sinFunc");
+		loadBuildin(BuildIn::sqrt, "rm_sqrtFunc");
+		loadBuildin(BuildIn::tan, "rm_tanFunc");
 
 		//Define all functions in the standard library
 		std::vector< std::pair<std::string, FunctionType *> > fs =
@@ -268,10 +269,10 @@ public:
 			{"rm_diffRel", functionType(voidPtrType, {voidPtrType, voidPtrType, int64Type})},
 			{"rm_loadRel", functionType(voidPtrType, {pointerType(int8Type)})},
 			{"rm_saveRel", functionType(voidType, {voidPtrType, pointerType(int8Type)})},
-			{"rm_maxRel", functionType(int64Type, {voidPtrType, pointerType(int8Type), int64Type})},
-			{"rm_minRel", functionType(int64Type, {voidPtrType, pointerType(int8Type), int64Type})},
-			{"rm_addRel", functionType(int64Type, {voidPtrType, pointerType(int8Type), int64Type})},
-			{"rm_multRel", functionType(int64Type, {voidPtrType, pointerType(int8Type), int64Type})},
+			{"rm_maxRel", functionType(voidType, {voidPtrType, pointerType(int8Type), pointerType(anyRetType), int64Type})},
+			{"rm_minRel", functionType(voidType, {voidPtrType, pointerType(int8Type), pointerType(anyRetType), int64Type})},
+			{"rm_addRel", functionType(voidType, {voidPtrType, pointerType(int8Type), pointerType(anyRetType), int64Type})},
+			{"rm_multRel", functionType(voidType, {voidPtrType, pointerType(int8Type), pointerType(anyRetType), int64Type})},
 			{"rm_countRel", functionType(int64Type, {voidPtrType, pointerType(int8Type), int64Type})},
 			{"rm_selectRel", functionType(voidPtrType, {voidPtrType, voidPtrType})},
 			{"rm_projectPlusRel", functionType(voidPtrType, {voidPtrType, int32Type, pointerType(pointerType(int8Type)), int64Type})},
@@ -1624,48 +1625,78 @@ public:
 				node->args[0]);
 			break;
 		case TokenType::TK_MAX:
-		{	
+		{
 			LLVMVal v=castVisit(node->args[0], TRel);
-			OwnedLLVMVal r(builder.CreateCall3(
-								   getStdlibFunc("rm_maxRel"),
-								   v.value, 
-								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
-								   packCharRange(node)));
+			Value * rv = builder.CreateAlloca(anyRetType);
+			
+			builder.CreateCall4(
+				getStdlibFunc("rm_maxRel"), 
+				v.value, 
+				globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
+				rv,
+				packCharRange(node));
+						   
 			disown(v, TRel);
-			return LLVMVal(std::move(r));
+
+			return cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
+									 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1))),
+						TAny, node->type.plain(), node);
 		}
 		case TokenType::TK_MIN:
-		{	
+		{
 			LLVMVal v=castVisit(node->args[0], TRel);
-			OwnedLLVMVal r(builder.CreateCall3(
-								   getStdlibFunc("rm_minRel"), 
-								   v.value, 
-								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
-								   packCharRange(node)));
+			Value * rv = builder.CreateAlloca(anyRetType);
+			
+			builder.CreateCall4(
+				getStdlibFunc("rm_minRel"), 
+				v.value, 
+				globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
+				rv,
+				packCharRange(node));
+						   
 			disown(v, TRel);
-			return LLVMVal(std::move(r));
+
+			return cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
+									 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1))),
+						TAny, node->type.plain(), node);
 		}
 		case TokenType::TK_ADD:
 		{	
 			LLVMVal v=castVisit(node->args[0], TRel);
-			OwnedLLVMVal r(builder.CreateCall3(
-								   getStdlibFunc("rm_addRel"), 
-								   v.value, 
-								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
-								   packCharRange(node)));
+
+			Value * rv = builder.CreateAlloca(anyRetType);
+			
+			builder.CreateCall4(
+				getStdlibFunc("rm_addRel"), 
+				v.value, 
+				globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
+				rv,
+				packCharRange(node));
+						   
 			disown(v, TRel);
-			return LLVMVal(std::move(r));
+
+			return cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
+									 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1))),
+						TAny, node->type.plain(), node);
 		}
 		case TokenType::TK_MULT:
 		{	
 			LLVMVal v=castVisit(node->args[0], TRel);
-			OwnedLLVMVal r(builder.CreateCall3(
-								   getStdlibFunc("rm_multRel"), 
-								   v.value, 
-								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
-								   packCharRange(node)));
+
+			Value * rv = builder.CreateAlloca(anyRetType);
+			
+			builder.CreateCall4(
+				getStdlibFunc("rm_multRel"), 
+				v.value, 
+				globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
+				rv,
+				packCharRange(node));
+						   
 			disown(v, TRel);
-			return LLVMVal(std::move(r));
+
+			return cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
+									 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1))),
+						TAny, node->type.plain(), node);
 		}
 		case TokenType::TK_COUNT:
 		{	
@@ -1893,16 +1924,16 @@ public:
 	}
 
 	/** \brief Codegen for substring expressions */
-	LLVMVal visit(std::shared_ptr<SubstringExp> node) {
-		LLVMVal s = castVisit(node->stringExp, TText);
-		LLVMVal f = castVisit(node->fromExp, TInt);
-		LLVMVal t = castVisit(node->toExp, TInt);
-		LLVMVal r = cast(OwnedLLVMVal(builder.CreateCall3(getStdlibFunc("rm_substrText"), s.value, f.value, t.value)), TText, node->type.plain(), node);
-		disown(s, TText);
-		disown(f, TInt);
-		disown(t, TInt);
-		return r;;
-	}
+	// LLVMVal visit(std::shared_ptr<SubstringExp> node) {
+	// 	LLVMVal s = castVisit(node->stringExp, TText);
+	// 	LLVMVal f = castVisit(node->fromExp, TInt);
+	// 	LLVMVal t = castVisit(node->toExp, TInt);
+	// 	LLVMVal r = cast(OwnedLLVMVal(builder.CreateCall3(getStdlibFunc("rm_substrText"), s.value, f.value, t.value)), TText, node->type.plain(), node);
+	// 	disown(s, TText);
+	// 	disown(f, TInt);
+	// 	disown(t, TInt);
+	// 	return r;;
+	// }
 
 	/** \brief Codegen for relation rename */
 	LLVMVal visit(std::shared_ptr<RenameExp> exp) {
