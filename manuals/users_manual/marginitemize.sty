@@ -1,0 +1,12 @@
+% Use \begin{marginitemize}{Xxxxxx} ... \end{marginitemize}
+% where Xxxxxx is the label that determines the margin.
+%
+\newcommand{\marginitemizelabel}[1]{#1\hfil}
+\newenvironment{marginitemize}[1]{
+	\begin{list}{}{
+		\settowidth{\leftmargin}{%
+			\marginitemizelabel{#1}\hspace{\labelsep}}
+		\setlength{\labelwidth}{\leftmargin}
+		\addtolength{\labelwidth}{-\labelsep}
+		\let\makelabel\marginitemizelabel}}{
+	\end{list}}

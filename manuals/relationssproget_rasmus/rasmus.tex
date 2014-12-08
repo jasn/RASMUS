@@ -1,0 +1,3166 @@
+	\documentstyle[sprite]{article}
+	\makeindex
+	\newcounter{eks}
+	\newlength{\ttlength}
+	\newlength{\eelength}
+	\newlength{\mmlength}
+	\begin{document}
+	\pagenumbering{roman}
+	\tableofcontents
+	\parindent 0pt
+	\parskip 4mm
+	\newcommand{\AssignTy}{\verb":"\raisebox{-1pt}{\tt =}$\,$}
+	\newcommand{\Assign}{\verb":"\raisebox{-1pt}{\tt =}$\,$}
+	\newcommand{\SwapTy}{\verb":"\raisebox{-1pt}{\tt =}\verb":"}
+	\newcommand{\ArrowTy}{$\;\rightarrow\;$}
+	\newcommand{\ExclamTy}{!!}
+	\newcommand{\PromptTy}{?$\!$?}
+	\newcommand{\AMP}{\&$\:$}
+	\newcommand{\UP}[1]{\,\uparrow\!#1}
+	\newcommand{\REL}[2]{{\tt \begin{tabular}{|l|}\hline \multicolumn{1}{|c|}{#1} \\ \hline #2 \\ \hline \end{tabular}}}
+	\newcommand{\RER}[2]{{\tt \begin{tabular}{|r|}\hline \multicolumn{1}{|c|}{#1} \\ \hline #2 \\ \hline \end{tabular}}}
+	\newcommand{\RELR}[3]{{\tt \begin{tabular}{|l|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} \\ \hline #3 \\ \hline \end{tabular}}}
+	\newcommand{\RERL}[3]{{\tt \begin{tabular}{|r|l|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} \\ \hline #3 \\ \hline \end{tabular}}}
+	\newcommand{\RERR}[3]{{\tt \begin{tabular}{|r|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} \\ \hline #3 \\ \hline \end{tabular}}}
+	\newcommand{\RERLL}[4]{{\tt \begin{tabular}{|r|l|l|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} \\ \hline #4 \\ \hline \end{tabular}}}
+	\newcommand{\RERLR}[4]{{\tt \begin{tabular}{|r|l|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} \\ \hline #4 \\ \hline \end{tabular}}}
+	\newcommand{\RELRL}[4]{{\tt \begin{tabular}{|l|r|l|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} \\ \hline #4 \\ \hline \end{tabular}}}
+	\newcommand{\RERRR}[4]{{\tt \begin{tabular}{|r|r|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} \\ \hline #4 \\ \hline \end{tabular}}}
+	\newcommand{\RERLLL}[5]{{\tt \begin{tabular}{|r|l|l|l|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} & \multicolumn{1}{c|}{#4} \\ \hline #5 \\ \hline \end{tabular}}}
+	\newcommand{\RERLLRR}[6]{{\tt \begin{tabular}{|r|l|l|r|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} & \multicolumn{1}{c|}{#4} & \multicolumn{1}{c|}{#5}\\ \hline #6 \\ \hline \end{tabular}}}
+	\newcommand{\RELLRRR}[6]{{\tt \begin{tabular}{|l|l|r|r|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} & \multicolumn{1}{c|}{#4} & \multicolumn{1}{c|}{#5}\\ \hline #6 \\ \hline \end{tabular}}}
+	\newcommand{\RERCRRR}[6]{{\tt \begin{tabular}{|r|c|r|r|r|}\hline \multicolumn{1}{|c|}{#1} & \multicolumn{1}{c|}{#2} & \multicolumn{1}{c|}{#3} & \multicolumn{1}{c|}{#4} & \multicolumn{1}{c|}{#5}\\ \hline #6 \\ \hline \end{tabular}}}
+	\setcounter{eks}{0}
+	\settowidth{\ttlength}{\tt x}
+	\def\eksempel#1{
+	  \addtocounter{eks}{1}
+	  \settowidth{\mmlength}{\bf ~Eksempel \arabic{eks}~}
+	  \setlength{\eelength}{\textwidth}
+	  \addtolength{\eelength}{-1cm}
+	  \addtolength{\eelength}{-1pt}
+	  \addtolength{\eelength}{-\mmlength}
+
+	  \rule{1cm}{0.7mm} {\bf ~Eksempel \arabic{eks}~} \rule{\eelength}{0.7mm}
+
+	  #1
+	  \rule{2mm}{3mm}
+	  }
+	\newcommand{\META}[1]{\mbox{\bf #1}}
+	\newcommand{\SS}[1]{\hspace*{#1\ttlength}}
+	\newcommand{\qind}[1]{#1\index{#1}}
+	\sprite{\grey}(12,7)[0.5\ttlength, 1.5ex]  
+	:B......|
+	:....B..|
+	:.B.....|
+	:.....B.|
+	:..B....|
+	:......B|
+	:...B...|
+	:B......|
+	:....B..|
+	:.B.....|
+	:.....B.|
+	:..B....|
+	\endsprite
+	\newpage
+	\pagenumbering{arabic}
+
+	\section{Introduktion}
+	{\sc Rasmus} er et databasesystem, der er baseret p\aa{} den s\aa{}kaldte
+	{\em relations\-algebra}. Det underst\o{}tter desuden den {\em funktionelle\/}
+	programmeringsstil.
+
+	\subsection{Relationsalgebra}
+En {\em relation\/} er en tabel som den f\o{}lgende
+\begin{center}
+\RERLL{\AA{}rskort{}:Int}{Navn:Text}{Linje:Text}{  
+960001 & Trine S\o{}rensen & dat/mat \\
+960002 & Kurt Petersen & dat/fys \\
+960003 & Knud B\o{}rge Jensen & mat/dat}
+\end{center}
+Overskriften p\aa{} relationen kaldes for dens {\em \qind{skema}}. 
+Det indeholder
+et navn for hver s\o{}jle, kaldet en {\em \qind{attribut}}, 
+sammen med en
+{\em \qind{type}}, der beskriver det lovlige indhold af felterne i s\o{}jlen.
+I eksemplet er benyttet typen \verb"Int", der omfatter heltallene, og typen
+\verb"Text", der omfatter tegnf\o{}lger.
+Hver r\ae{}kke i relationen kaldes et {\em \qind{tupel}}. For hver attribut
+rummer det en v\ae{}rdi af den p\aa{}g\ae{}ldende type.
+
+Man f\o{}lger den konvention, at r\ae{}kkef\o{}lgen af s\o{}jlerne
+ikke er signifikant. Tilsvarende kan man bytte rundt p\aa{} tuplerne
+uden at \ae{}ndre ved relationen. Eksemplet ovenfor kan alts\aa{}
+liges\aa{}vel skrives som
+\begin{center}
+\RELRL{Navn:Text}{\AA{}rskort{}:Int}{Linje:Text}{
+Knud B\o{}rge Jensen & 960003& mat/dat\\
+Trine S\o{}rensen &960001& dat/mat\\
+Kurt Petersen &960002& dat/fys}
+\end{center}
+Det kr\ae{}ves altid, at der ikke
+er to ens r\ae{}kker i en relation; den kan alts\aa{} opfattes som en
+{\em m\ae{}ngde\/} af tupler, hvor hvert tupel er en {\em funktion\/}
+fra attributnavne til v\ae{}rdier.
+
+Gennem {\sc Rasmus} systemet kan man skabe, modificere og inspicere
+relationer. De praktiske aspekter af dette er i detaljer beskrevet 
+i en separat brugervejledning.
+
+Det er vigtigt, at man kan {\em kombinere\/} sine oplysninger.
+Det sker i {\sc Rasmus} gennem den s\aa{}kaldte
+{\em \qind{relationsalgebra}}, hvor man 
+anvender {\em operatorer\/} p\aa{} relationer. En operator
+tager som operander et antal relationer -- og m\aa{}ske andre v\ae{}rdier --
+og opbygger p\aa{} systematisk vis en ny relation.
+Der er en traditionel samling af s\aa{}danne operatorer, der vil blive
+pr\ae{}senteret i kapitel 3. 
+
+En database skal indholde mere end blot {\em data\/} i form af relationer.
+Man skal kunne definere en samling {\em foresp\o{}rgsler},
+der tager udgangspunkt i de tilg\ae{}ngelige data. Til dette 
+form\aa{}l indeholder {\sc Rasmus} et funktionsbegreb, der
+tillader, at man definerer parametriserede relationsudtryk.
+Man har faktisk den fulde frihed, der kendes fra funktionelle
+programmeringssprog. Dette aspekt pr\ae{}senteres i kapitel 4.
+
+{\sc Rasmus} underst\o{}tter s\aa{}ledes flere slags v\ae{}rdier:
+relationer og funktioner, men ogs\aa{} tupler og atomare
+v\ae{}rdier er til stede. I kapitel 5 beskrives et antal forskellige
+operatorer p\aa{} disse. Deres tilstedev\ae{}relse vil ogs\aa{}
+g\o{}re de relationelle operatorer mere slagkraftige.
+
+Gennemgangen af {\sc Rasmus} systemet er hovedsagelig 
+drevet af eksempler. I kapitel 6 diskuteres de
+generelle begreber, specielt som de relaterer sig til
+\o{}vrige programmeringssprog.
+
+\subsection{Fodboldmaterialet}
+Som eksempel p\aa{} en database er valgt en del af resultaterne fra den f\o{}rste
+s\ae{}son i den danske superliga i fodbold, som blev spillet i for\aa{}ret 1991.
+For at begr\ae{}nse st\o{}rrelsen af relationerne i eksemplerne er
+turneringen sk\aa{}ret ned til de seks hold, der endte med at v\ae{}re
+bedst placerede: Br\o{}ndby, Lyngby, AGF, Frem, OB og AaB. Det er deres
+indbyrdes kampe i en dobbeltturnering, der udg\o{}r materialet.
+
+Udover informationen om kampene og deres resultater indeholder data\-bas\-en
+ogs\aa{} informationer om en ugentlig ``tipskupon'', som alts\aa{} -- igen
+af plads\-hensyn -- kun indeholder tre kampe.
+
+Informationen er opdelt p\aa{} relationer med f\o{}lgende navne og
+skemaer:
+{\tt
+\begin{center}
+\begin{tabular}{ll}
+\qind{Runde1}: & \RERLL{Id:Int}{HjHold:Text}{UdeHold:Text}{~&~&~} \\ \\
+\qind{Runde2}: & \RERLL{Id:Int}{HjHold:Text}{UdeHold:Text}{~&~&~}\\ \\
+\qind{Resultater}: & \RERRR{Id:Int}{HjScore:Int}{UdeScore:Int}{~&~&~} \\ \\
+\qind{Tips}: & \RERRR{Id:Int}{Uge:Int}{Nr:Int}{~&~&~} \\ \\
+\qind{Spilledag}: & \RERL{Kamp:Int}{Dato:Text}{~&~}
+\end{tabular}
+\end{center}
+}
+De to f\o{}rste relationer indeholder en angivelse af de spillede kampe;
+der er en relation for hver runde i dobbeltturneringen.
+Den tredje relation indeholder resultaterne af samtlige kampe; den fjerde angiver
+uge for uge udseendet af tipskuponerne; den sidste relation angiver,
+p\aa{} hvilke dage de enkelte kampe blev spillet. Indholdet af relationerne er
+\newpage
+\verb"Runde1:"
+\begin{center}
+\RERLL{Id:Int}{HjHold:Text}{UdeHold:Text}{
+1 &
+AGF &
+Br\o{}ndby \\
+2 &
+Frem &
+OB \\
+3 &
+AaB &
+Lyngby \\
+4 &
+OB &
+AGF \\
+5 &
+Br\o{}ndby &
+AaB \\
+6 &
+Lyngby &
+Frem \\
+7 &
+AaB &
+AGF \\
+8 &
+Frem &
+Br\o{}ndby \\
+9 &
+Lyngby &
+OB \\
+10 &
+AGF &
+Frem \\
+11 &
+Br\o{}ndby &
+Lyngby \\
+12 &
+OB &
+AaB \\
+13 &
+Frem &
+AaB \\
+14 &
+Lyngby &
+AGF \\
+15 &
+OB &
+Br\o{}ndby}
+\end{center}
+\verb"Runde2:"
+\begin{center}
+\RERLL{Id:Int}{HjHold:Text}{UdeHold:Text}{
+16 &
+AaB &
+Frem \\
+17 &
+AGF &
+Lyngby \\
+18 &
+Br\o{}ndby &
+OB \\
+19 &
+Br\o{}ndby &
+AGF \\
+20 &
+OB &
+Frem \\
+21 &
+AGF &
+OB \\
+22 &
+Lyngby &
+AaB \\
+23 &
+Frem &
+AGF \\
+24 &
+AaB &
+Br\o{}ndby \\
+25 &
+Frem &
+Lyngby \\
+26 &
+AGF &
+AaB \\
+27 &
+Br\o{}ndby &
+Frem \\
+28 &
+OB &
+Lyngby \\
+29 &
+Lyngby &
+Br\o{}ndby \\
+30 &
+AaB &
+OB}
+\end{center}
+\newpage
+\verb"Resultater":
+\begin{center}
+\RERRR{Id:Int}{HjScore:Int}{UdeScore:Int}{
+1 &
+1 &
+2\\
+2 &
+3 &
+0\\
+3 &
+1 &
+2\\
+4 &
+0 &
+0\\
+5 &
+2 &
+2\\
+6 &
+1 &
+1\\
+7 &
+4 &
+1\\
+8 &
+1 &
+1\\
+9 &
+1 &
+0\\
+10 &
+2 &
+1\\
+11 &
+0 &
+3\\
+12 &
+1 &
+1\\
+13 &
+1 &
+2\\
+14 &
+2 &
+1\\
+15 &
+1 &
+1\\
+16 &
+1 &
+2\\
+17 &
+1 &
+1\\
+18 &
+0 &
+0\\
+19 &
+0 &
+0\\
+20 &
+1 &
+1\\
+21 &
+3 &
+1\\
+22 &
+2 &
+0\\
+23 &
+2 &
+2\\
+24 &
+0 &
+2\\
+25 &
+2 &
+1\\
+26 &
+6 &
+1\\
+27 &
+4 &
+1\\
+28 &
+1 &
+1\\
+29 &
+1 &
+1\\
+30 &
+5 &
+1}
+\end{center}
+\newpage
+\verb"Tips:"
+\begin{center}
+\RERRR{Id:Int}{Uge:Int}{Nr:Int}{
+1 &
+12 &
+2\\
+2 &
+12 &
+3\\
+3 &
+12 &
+1\\
+4 &
+14 &
+3\\
+5 &
+14 &
+1\\
+6 &
+14 &
+2\\
+7 &
+16 &
+1\\
+8 &
+16 &
+2\\
+9 &
+16 &
+3\\
+10 &
+18 &
+1\\
+11 &
+18 &
+2\\
+12 &
+18 &
+3\\
+13 &
+19 &
+1\\
+14 &
+19 &
+2\\
+15 &
+19 &
+3}
+\end{center}
+\newpage
+\verb"Spilledag:"
+\begin{center}
+\RERL{Kamp:Int}{Dato:Text}{
+1 &
+316\\
+2 &
+317\\
+3 &
+401\\
+4 &
+324\\
+5 &
+407\\
+6 &
+407\\
+7 &
+414\\
+8 &
+414\\
+9 &
+428\\
+10 &
+421\\
+11 &
+505\\
+12 &
+505\\
+13 &
+512\\
+14 &
+512\\
+15 &
+512\\
+16 &
+516\\
+17 &
+516\\
+18 &
+516\\
+19 &
+520\\
+20 &
+520\\
+21 &
+523\\
+22 &
+526\\
+23 &
+530\\
+24 &
+602\\
+25 &
+602\\
+26 &
+609\\
+27 &
+609\\
+28 &
+619\\
+29 &
+623\\
+30 &
+623}
+\end{center}
+
+%% \newpage
+%% \section{Rasmus systemet}
+%% {\sc Rasmus} systemet, der benyttes gennem {\sc Emacs},
+%% er beskrevet i en speciel brugervejledning.
+%% N\aa{}r det startes, s\aa{} ser man to buffere.
+%% I den ene skrives {\em udtryk}, hvis resultater vises
+%% i den anden. Man kan altid navngive
+%% og gemme det sidste resultat. I denne note vil vi med 
+%% notationen \fbox{\fbox{\tt Navn}} angive, at det sidste resultat er
+%% gemt under navnet {\tt Navn}. 
+
+\newpage
+\section{Relationsudtryk}
+Udover at skabe og udskrive relationer, kan man naturligvis ogs\aa{}
+kombinere relationer med hinanden. Dette foreg\aa{}r efter
+{\em relationsalgebraens\/}\index{relationsalgebra}
+principper, og den letteste m\aa{}de at forklare
+dette p\aa{} er via en analogi med de s\ae{}dvanlige regningsarter
+p\aa{} heltal. Et aritmetisk heltalsudtryk som
+$$7+5$$
+betyder, at operatoren $+$ skal anvendes p\aa{} operanderne 7 og 5.
+Resultatet heraf (udtrykkets v\ae{}rdi) er som bekendt 12, og en s\aa{}dan
+v\ae{}rdi kan man s\aa{} g\o{}re et eller andet videre ved, fx kan man
+gemme den.
+
+I {\sc Rasmus} kan relationer optr\ae{}de i relationsudtryk p\aa{} samme
+m\aa{}de, som tal kan optr\ae{}de i aritmetiske udtryk. Operatorerne er
+nogle andre, men betydningen er i princippet den samme: resultatet af 
+at anvende en
+relationsoperator er en relation -- pr\ae{}cis ligesom resultatet af
+at anvende en heltalsoperator er et heltal. 
+
+Syntaksen for relationsoperatorer i {\sc Rasmus} er nogenlunde den samme
+som for de s\ae{}dvanlige regningsarter, idet vi ogs\aa{} benytter
+fx $+$ og $*$, men nu med en anden betydning.
+
+\subsection{Union}
+Man kan danne en relation, som er en foreningsm\ae{}ngde af to andre
+relationer. Dette sker ved hj\ae{}lp af den s\aa{}kaldte
+{\em union}-operator, som vi udtrykker ved hj\ae{}lp af \verb"+" p\aa{}
+denne m\aa{}de
+$$ \META{relation}_{\mbox{\bf 1}}\mbox{\tt ~+~}\META{relation}_{\mbox{\bf 2}}$$
+Det kr\ae{}ves, at de to operander har samme skema.
+Udtrykkets resultat er en ny relation, som man kan bruge overalt, hvor
+en relation ellers er tilladt, fx som operand til en ny relationsoperator.
+\newpage
+\eksempel{
+Skab en relation best\aa{}ende af samtlige tupler fra de to
+turneringsrunder
+$$ \mbox{\tt Kampe := Runde1 + Runde2} $$
+Hvis vi gemmer resultatet af dette udtryk under navnet \fbox{\fbox{\tt Kampe}} (som vist i koden ovenfor)
+vil relationen {\tt \qind{Kampe}} have f\o{}lgende indhold
+\begin{small}
+\begin{center}
+\RERLL{Id:Int}{HjHold:Text}{UdeHold:Text}{
+ 1 & AGF      & Br\o{}ndby \\
+ 2 & Frem     & OB       \\
+ 3 & AaB      & Lyngby   \\
+ 4 & OB       & AGF      \\
+ 5 & Br\o{}ndby & AaB      \\
+ 6 & Lyngby   & Frem     \\
+ 7 & AaB      & AGF      \\
+ 8 & Frem     & Br\o{}ndby \\
+ 9 & Lyngby   & OB       \\
+10 & AGF      & Frem     \\
+11 & Br\o{}ndby & Lyngby   \\
+12 & OB       & AaB      \\
+13 & Frem     & AaB      \\
+14 & Lyngby   & AGF      \\
+15 & OB       & Br\o{}ndby \\
+16 & AaB      & Frem     \\
+17 & AGF      & Lyngby   \\
+18 & Br\o{}ndby & OB       \\
+19 & Br\o{}ndby & AGF      \\
+20 & OB       & Frem     \\
+21 & AGF      & OB       \\
+22 & Lyngby   & AaB      \\
+23 & Frem     & AGF      \\
+24 & AaB      & Br\o{}ndby \\
+25 & Frem     & Lyngby   \\
+26 & AGF      & AaB      \\
+27 & Br\o{}ndby & Frem     \\
+28 & OB       & Lyngby   \\
+29 & Lyngby   & Br\o{}ndby \\
+30 & AaB      & OB       
+}
+\end{center}
+\end{small}
+}
+\newpage
+Union-operatorens m\aa{}de at kombinere relationer
+p\aa{} kan siges at v\ae{}re ``lodret'', idet resultatrelationen bliver
+l\ae{}ngere (i alt fald ikke kortere) end den l\ae{}ngste af operanderne.
+
+\subsection{Join}
+Man kan ogs\aa{} kombinere relationer ``vandret'', det vil sige, s\aa{}
+resultatet bliver bredere (i alt fald ikke smallere) end den
+bredeste af operanderne. Operatoren hertil hedder {\em \qind{join}\/} og
+optr\ae{}der i udtryk i form af \verb"*" p\aa{} f\o{}lgende m\aa{}de
+$$ \META{relation}_{\mbox{\bf 1}}\mbox{\tt ~*~}\META{relation}_{\mbox{\bf 2}}$$
+Resultatet af dette udtryk er en ny relation, hvis attributnavne udg\o{}res
+af alle de attributnavne, der findes i de to operander tilsammen.
+Eventuelle attributnavne, der optr\ae{}der begge steder, kommer dog kun med
+en enkelt gang; det kr\ae{}ves, at de to operander er enige om
+typerne for s\aa{}danne f\ae{}lles attributnavne.
+
+Tuplerne i den nye relation dannes ved at kombinere alle par af tupler fra
+de to relationer, som har samme v\ae{}rdier p\aa{} attributter med samme navn.
+
+Join-operatoren kan give en tom relation som resultat, hvis
+der ikke er to tupler med samme v\ae{}rdi p\aa{} de f\ae{}lles attributter.
+Hvis de to operander ikke har nogen f\ae{}lles
+attributter, vil resultatet indeholde alle mulige kombinationer
+af deres tupler.
+
+\eksempel{
+Skab en relation, der indeholder samtlige kampe og deres resultater
+$$ \mbox{\tt Turnering := Kampe * Resultater} $$
+Hvis resultatet af udtrykket gemmes under navnet \fbox{\fbox{\tt Turnering}} 
+er v\ae{}rdien af {\tt \qind{Turnering}} som f\o{}lger
+\begin{center}
+\begin{small}
+\RERLLRR{Id:Int}{HjHold:Text}{UdeHold:Text}{HjScore:Int}{UdeScore:Int}{
+ 1 & AGF      & Br\o{}ndby &       1 &        2 \\ 
+ 2 & Frem     & OB       &       3 &        0 \\ 
+ 3 & AaB      & Lyngby   &       1 &        2 \\ 
+ 4 & OB       & AGF      &       0 &        0 \\ 
+ 5 & Br\o{}ndby & AaB      &       2 &        2 \\ 
+ 6 & Lyngby   & Frem     &       1 &        1 \\ 
+ 7 & AaB      & AGF      &       4 &        1 \\ 
+ 8 & Frem     & Br\o{}ndby &       1 &        1 \\ 
+ 9 & Lyngby   & OB       &       1 &        0 \\ 
+10 & AGF      & Frem     &       2 &        1 \\ 
+11 & Br\o{}ndby & Lyngby   &       0 &        3 \\ 
+12 & OB       & AaB      &       1 &        1 \\ 
+13 & Frem     & AaB      &       1 &        2 \\ 
+14 & Lyngby   & AGF      &       2 &        1 \\ 
+15 & OB       & Br\o{}ndby &       1 &        1 \\ 
+16 & AaB      & Frem     &       1 &        2 \\ 
+17 & AGF      & Lyngby   &       1 &        1 \\ 
+18 & Br\o{}ndby & OB       &       0 &        0 \\ 
+19 & Br\o{}ndby & AGF      &       0 &        0 \\ 
+20 & OB       & Frem     &       1 &        1 \\ 
+21 & AGF      & OB       &       3 &        1 \\ 
+22 & Lyngby   & AaB      &       2 &        0 \\ 
+23 & Frem     & AGF      &       2 &        2 \\ 
+24 & AaB      & Br\o{}ndby &       0 &        2 \\ 
+25 & Frem     & Lyngby   &       2 &        1 \\ 
+26 & AGF      & AaB      &       6 &        1 \\ 
+27 & Br\o{}ndby & Frem     &       4 &        1 \\ 
+28 & OB       & Lyngby   &       1 &        1 \\ 
+29 & Lyngby   & Br\o{}ndby &       1 &        1 \\ 
+30 & AaB      & OB       &       5 &        1}
+\end{small}
+\end{center}
+}
+
+\subsection{Select}
+Det er ovenfor vist, at relationer kan g\o{}res l\ae{}ngere og bredere,
+s\aa{} det er ikke s\ae{}rligt overraskende, at de ogs\aa{} kan g\o{}res
+kortere og smallere.
+
+En m\aa{}de at g\o{}re dem kortere p\aa{} er at udv\ae{}lge de tupler,
+der opfylder en given betingelse. Hertil anvendes den s\aa{}kaldte
+{\em \qind{select}}-operator, som vi skriver p\aa{} f\o{}lgende m\aa{}de
+$$ \META{relation} \mbox{\tt ~?~} \META{betingelse} $$
+Resultatet er en relation, som indeholder netop de tupler, der opfylder
+betingelsen.
+
+\eksempel{
+Skab en relation best\aa{}ende af de kampe i turneringen, hvor
+hjemmeholdet vandt
+$$ \mbox{\verb"Turnering ? (\#.HjScore > \#.UdeScore)"} $$
+V\ae{}rdien af dette udtryk er
+\begin{center}
+\begin{small}
+\RERLLRR{Id:Int}{HjHold:Text}{UdeHold:Text}{HjScore:Int}{UdeScore:Int}{
+ 2 & Frem     & OB      &       3 &        0 \\ 
+ 7 & AaB      & AGF     &       4 &        1 \\ 
+ 9 & Lyngby   & OB      &       1 &        0 \\ 
+10 & AGF      & Frem    &       2 &        1 \\ 
+14 & Lyngby   & AGF     &       2 &        1 \\ 
+21 & AGF      & OB      &       3 &        1 \\ 
+22 & Lyngby   & AaB     &       2 &        0 \\ 
+25 & Frem     & Lyngby  &       2 &        1 \\ 
+26 & AGF      & AaB     &       6 &        1 \\ 
+27 & Br\o{}ndby & Frem    &       4 &        1 \\ 
+30 & AaB      & OB      &       5 &        1}
+\end{small}
+\end{center}
+}
+
+Betingelsen \verb"#.HjScore > #.UdeScore" er et eksempel p\aa{} en
+{\em simpel\/} \qind{be\-ting\-else}. Vi skal senere se, at man kan skrive langt
+mere avancerede be\-ting\-elser i {\sc Rasmus}, og vi vil ogs\aa{} forklare
+hvad \verb"#" betyder. For n\ae{}r\-v\ae{}r\-en\-de er det tilstr\ae{}kkeligt
+at forst\aa{}, at ovenn\ae{}vnte betingelse udv\ae{}lger de tup\-ler,
+hvor v\ae{}rdien af attributten \verb"HjScore" er st\o{}rre end
+v\ae{}rdien af attributten \verb"UdeScore".
+
+\subsection{Project}
+Hvis relationer skal g\o{}res smallere, anvendes den
+s\aa{}kaldte {\em \qind{project}}-ope\-ra\-tor, som vi skriver som
+$$ \META{relation} \mbox{\verb" |+ "} \META{attributliste} $$
+Resultatet er den del af operandrelationen, der udg\o{}res af attributterne
+i den angivne \qind{attributliste}, medens de \o{}vrige attributter
+``smides v\ae{}k''. Bem\ae{}rk, at project-operatoren samtidigt kan
+g\o{}re relationen kortere, da to tupler fra operanden kan blive ens,
+n\aa{}r nogle af attributterne fjernes.
+
+\eksempel{
+Skab en relation, der for hver kamp indeholder det antal m\aa{}l, der
+er scoret af udeholdet
+$$ \mbox{\verb"Resultater |+ Id,UdeScore"} $$
+V\ae{}rdien af udtrykket er
+\begin{center}
+\begin{small}
+\RERR{Id:Int}{UdeScore:Int}{
+ 1 &        2\\
+ 2 &        0\\
+ 3 &        2\\
+ 4 &        0\\
+ 5 &        2\\
+ 6 &        1\\
+ 7 &        1\\
+ 8 &        1\\
+ 9 &        0\\
+10 &        1\\
+11 &        3\\
+12 &        1\\
+13 &        2\\
+14 &        1\\
+15 &        1\\
+16 &        2\\
+17 &        1\\
+18 &        0\\
+19 &        0\\
+20 &        1\\
+21 &        1\\
+22 &        0\\
+23 &        2\\
+24 &        2\\
+25 &        1\\
+26 &        1\\
+27 &        1\\
+28 &        1\\
+29 &        1\\
+30 &        1}
+\end{small}
+\end{center}
+}
+
+Vi kunne have opn\aa{}et samme resultat ved at bruge det alternative
+udtryk
+$$ \mbox{\verb"Resultater |- HjScore"} $$
+idet man ved varianten \verb"|-" angiver de attributter, der skal fjernes.
+
+\subsection{Sammensatte udtryk}
+Alle relationsudtryk i de foreg\aa{}ende eksempler har v\ae{}ret
+``flade'', i den forstand, at operanderne til de forskellige
+relationsoperatorer har v\ae{}ret simple relationer. Operander kan imidlertid
+selv v\ae{}re udtryk, hvis op\-er\-an\-der igen kan v\ae{}re udtryk, og s\aa{}
+videre.
+
+P\aa{} samme m\aa{}de som man i et aritmetisk udtryk kan skrive fx
+$$ (7+5)*3 $$
+kan man i relationsalgebraen skrive fx
+$$ \mbox{\verb"(Runde1 + Runde2) |+ Id"} $$
+Dette sammensatte udtryk beregner 
+identiteterne p\aa{} samtlige kampe i dobbeltturneringen.
+
+\subsection{Rename}
+Foruden join og project er der endnu en operator, som kan siges at virke
+``vandret''. Det er den s\aa{}kaldte {\em \qind{rename}}-operator, der er
+n\o{}dvendig, hvis en relations attributnavne ikke er
+hensigtsm\ae{}ssige for en efterf\o{}lgende brug. Antag fx, at
+der \o{}nskes foretaget en kombination af relationerne \verb"Runde1" og
+\verb"Spilledag", s\aa{}ledes at kampe, der optr\ae{}der i begge
+relationer, bliver repr\ae{}senteret ved de samlede oplysninger om dem.
+Man kan ikke umiddelbart benytte join, da identitetsattributterne har
+forskellige navne; i \verb"Runde1" hedder den \verb"Id", og i
+\verb"Spilledag" hedder den \verb"Kamp". 
+Hvis vi join'ede de to relationer ville resultatet blive en relation
+med 450 tupler, idet alle tupler i \verb"Runde1" ville blive
+parret med alle tupler i \verb"Spilledag". Dette er ikke hvad
+vi \o{}nsker, og det er derfor n\o{}dvendigt at kunne omd\o{}be
+attributnavne. Det g\o{}res ved hj\ae{}lp af {\em rename}-operatoren,
+som anvendes p\aa{} f\o{}lgende m\aa{}de
+$$ \META{relation} \mbox{\tt ~[~} \META{\qind{navneparliste}} \mbox{\tt ~]~} $$
+I \META{navneparliste} st\aa{}r de udskiftninger af navne, som vi
+\o{}nsker at foretage, p\aa{} formen
+\META{gammelt navn} \verb"<-" \META{nyt navn}, adskilte af kommaer.
+
+\eksempel{
+V\ae{}rdien af udtrykket
+\mbox{\verb"Spilledag [ Kamp <- Id ]"} er som f\o{}lger
+\begin{center}
+\begin{small}
+\RERL{Id:Int}{Dato:Text}{
+ 1 & 316 \\
+ 2 & 317 \\
+ 3 & 401 \\
+ 4 & 324 \\
+ 5 & 407 \\
+ 6 & 407 \\
+ 7 & 414 \\
+ 8 & 414 \\
+ 9 & 428 \\
+10 & 421 \\
+11 & 505 \\
+12 & 505 \\
+13 & 512 \\
+14 & 512 \\
+15 & 512 \\
+16 & 516 \\
+17 & 516 \\
+18 & 516 \\
+19 & 520 \\
+20 & 520 \\
+21 & 523 \\
+22 & 526 \\
+23 & 530 \\
+24 & 602 \\
+25 & 602 \\
+26 & 609 \\
+27 & 609 \\
+28 & 619 \\
+29 & 623 \\
+30 & 623 
+}
+\end{small}
+\end{center}
+}
+
+Nu kan vi udtrykke nyttige kombinationer af \verb"Runde1" og
+\verb"Spilledag".
+
+\eksempel{
+Skab en relation best\aa{}ende af datoerne for
+AGF's hjem\-me\-kam\-pe i f\o{}rste runde af turneringen
+$$\mbox{\verb:((Runde1 ? (\#.HjHold="AGF"))*(Spilledag[Kamp<-Id])) |+ Dato:} $$
+V\ae{}rdien er
+\begin{center}
+\REL{Dato:Text}{
+316\\
+421}
+\end{center}
+}
+
+\subsection{Difference}
+Vi har ogs\aa{} en s\aa{}kaldt {\em \qind{difference}}-operator, som bruges til
+at finde de tupler, der optr\ae{}der i een relation, men ikke i en anden.
+Udseendet er
+$$ \META{relation}_{\mbox{\bf 1}} \mbox{\verb" - "} \META{relation}_{\mbox{\bf 2}} $$
+Det kr\ae{}ves som ved union, at de to operander har samme skema.
+
+\eksempel{
+Find ud af, hvilke hold der ikke har vundet p\aa{} udebane
+\begin{center}
+\begin{tabular}{l}
+\verb"(Turnering |+ UdeHold) - "\\
+\verb"((Turnering ? (\#.HjScore<\#.UdeScore)) |+ UdeHold)"
+\end{tabular}
+\end{center}
+V\ae{}rdien af udtrykket er
+\begin{center}
+\REL{UdeHold:Text}{
+AGF \\
+OB
+}
+\end{center}
+}
+
+Bem\ae{}rk, at det her er vigtigt, at relationer ikke indeholder dubletter.
+V\ae{}rdien af det f\o{}rste deludtryk ovenfor,
+\verb"Turnering |+ UdeHold", er
+\begin{center}
+\REL{UdeHold:Text}{
+AGF \\
+Frem\\
+AaB \\
+OB\\
+Br\o{}ndby \\
+Lyngby
+}
+\end{center}
+Vi ser, at hvert hold kun optr\ae{}der en enkelt gang, uanset hvor mange
+kampe, det har spillet. Dette skyldes som tidligere n\ae{}vnt, at
+relationer er {\em m\ae{}ngder}, og dette er en vigtig foruds\ae{}tning
+for, at difference-operatoren giver mening.
+
+N\aa{}r {\sc Rasmus} s\aa{}ledes er udstyret med de to m\ae{}ngde-operatorer
+union og difference for foreningsm\ae{}ngde og m\ae{}ngdedifferens, s\aa{}
+ville det v\ae{}re at forvente, at der ogs\aa{} var en operator for
+\qind{f\ae{}llesm\ae{}ngde}. Det er der ogs\aa{} -- men kun indirekte -- fordi
+det er nemt at se, at hvis to relationer har samme skema, s\aa{} vil
+join beregne deres f\ae{}llesm\ae{}ngde. Resultatet vil indeholde
+de tupler, der har samme v\ae{}rdi p\aa{} alle attributter, og det er jo
+netop de f\ae{}lles tupler.
+
+\subsection{Indskudte udtryk}
+Vi slutter dette kapitel med et lidt mere kompliceret eksempel, hvor
+vi bruger \verb"Tips"-relationen for f\o{}rste gang.
+
+\eksempel{
+Find nummeret p\aa{} den kamp p\aa{} tipskuponen for uge 18, hvor
+AGF var med
+\begin{center}
+\begin{tabular}{l}
+\verb:(((Kampe*(Tips ? (\#.Uge=18))) ? (\#.UdeHold="AGF")) +: \\
+\verb: ((Kampe*(Tips ? (\#.Uge=18))) ? (\#.HjHold="AGF"))) |+ Nr:
+\end{tabular}
+\end{center}
+Resultatet bliver
+\begin{center}
+\RER{Nr:Int}{
+1}
+\end{center}
+}
+
+Som vi skal se i et senere kapitel, kan dette udtryk simplificeres en smule,
+men alligevel kan vi allerede nu se, at n\aa{}r relationsudtryk bliver
+store, s\aa{} bliver der behov for at kunne opskrive dem p\aa{} en mere
+hensigtsm\ae{}ssig m\aa{}de, end vi har set hidtil. Til den ende
+har {\sc Rasmus} f\o{}lgende midlertidige navngivningsmekanisme,
+et s\aa{}kaldt {\em \qind{indskudt udtryk}}
+{\tt
+\begin{center}
+\begin{tabular}{ll}
+(+ & val $\META{id}_{\mbox{\bf 1}}$ = $\META{relation}_{\mbox{\bf 1}}$ \\
+   & val $\META{id}_{\mbox{\bf 2}}$ = $\META{relation}_{\mbox{\bf 2}}$ \\
+   & $\vdots$ \\
+   & val $\META{id}_{\mbox{\bf n}}$ = $\META{relation}_{\mbox{\bf n}}$ \\
+   & in \META{relation}\\
++) &
+\end{tabular}
+\end{center}
+}
+Dette udtryk bevirker, at man under udregningen af det sidste udtryk
+\META{relation} kan referere til v\ae{}rdierne af
+$\META{relation}_{\mbox{\bf 1}}$ til $\META{relation}_{\mbox{\bf n}}$ 
+ved hj\ae{}lp
+af navnene $\META{id}_{\mbox{\bf 1}}$, \ldots, $\META{id}_{\mbox{\bf n}}$. Resultatet af det samlede
+\verb"(+ ... +)"- udtryk er den s\aa{}ledes udregnede 
+v\ae{}rdi af \META{relation}.
+Navnene $\META{id}_{\mbox{\bf 1}}$, \ldots, $\META{id}_{\mbox{\bf n}}$ 
+er {\em lokale\/} og kan ikke
+refereres uden for \verb"(+ ... +)"- udtrykket. I
+udtrykket $\META{relation}_{\mbox{\bf i}}$ kan man benytte navnene
+$\META{id}_{\mbox{\bf 1}}$, \ldots, $\META{id}_{\mbox{\bf i$-$1}}$.
+
+\eksempel{
+Udtrykket i eksempel 8 kan ogs\aa{} skrives p\aa{} f\o{}lgende facon
+\begin{center}
+\begin{tabular}{ll}
+\verb"(+" & \verb:val X = Kampe*(Tips ? (\#.Uge=18)): \\
+   & \verb:in ((X ? (\#.HjHold="AGF"))+(X ? (\#.UdeHold="AGF"))) |+ Nr:\\
+\verb"+)" &
+\end{tabular}
+\end{center}
+}
+
+\newpage
+\section{Funktioner}
+{\sc Rasmus} er ogs\aa{} udstyret med en {\em funktionsmekanisme},
+der dels kan bruges til at {\em parametrisere\/} relationsudtryk
+og dels til at opbygge {\em biblioteker\/} af nyttige udtryk.
+
+Betragt igen eksempel 8. Det er sandsynligt, at hvis man er interesseret
+i nummeret p\aa{} AGF's tipskamp i uge 18, s\aa{} er man formentlig
+ogs\aa{} interesseret i numrene p\aa{} andre holds tipskampe i andre
+uger.
+
+\eksempel{Skriv en funktion, der, givet et ugenummer og navnet p\aa{} et
+hold, returnerer en relation, der indeholder holdets kampnummer p\aa{}
+den p\aa{}\-g\ae{}ld\-en\-de tipskupon
+\begin{center}
+\begin{tabular}{l}
+\verb"FindNr :=" \\
+\SS{2}\verb"func (uge:Int, hold:Text) -> (Rel)"\\
+\SS{4}\verb:(+ val X = Kampe*(Tips ? (\#.Uge=uge)): \\
+\SS{7}\verb:in ((X ? (\#.HjHold=hold))+(X ? (\#.UdeHold=hold))) |+ Nr:\\
+\SS{4}\verb"+)"\\
+\SS{2}\verb"end"
+\end{tabular}
+\end{center}
+}
+
+Hvis v\ae{}rdien af dette udtryk gemmes under navnet \fbox{\fbox{\verb"FindNr"}}\index{FindNr}
+vil f\o{}lgende anvendelse af funktionen
+$$ \mbox{\verb:FindNr(18,"AGF"):} $$
+give samme resultat som udtrykkene i eksempel 8 og 9.
+Udtrykket
+\begin{center}
+\begin{tabular}{l}
+\verb"func (uge:Int, hold:Text) -> (Rel)"\\
+\verb"  ..."\\
+\verb"end"
+\end{tabular}
+\end{center}
+er en s\aa{}kaldt {\em \qind{funktionsdefinition}}, medens udtrykket
+$$ \mbox{\verb:FindNr(18,"AGF"):} $$
+er en {\em \qind{funktionsanvendelse}}. Funktionens {\em hoved}
+$$ \mbox{\verb$func (uge:Int, hold:Text) -> (Rel)$} $$
+angiver at der er tale om en funktion med to {\em parametre}, henholdsvis
+\verb"uge" og \verb"hold", hvis {\em typer\/} er henholdsvis
+\verb"Int" og \verb"Text"; man kan desuden se, at funktionens resultat er
+af type \verb"Rel".
+Navnene \verb"uge" og \verb"hold" er {\em formelle\/} \qind{parametre}. 
+
+Funktionen er beregnet til at blive anvendt med forskellige
+{\em aktuelle\/} para\-metre; i eksemplet ovenfor er \verb"18" og
+\verb:"AGF": s\aa{}ledes aktuelle parametre. Man kan naturligvis
+ogs\aa{} bruge andre aktuelle parametre, som i anvendelsen
+$$ \mbox{\verb:FindNr(19,"Lyngby"):} $$
+Betydningen af en funktionsanvendelse er, at det udtryk, der
+udg\o{}r funktionens {\em \qind{krop}\/} -- her udtrykket
+\verb"(+ ... +)" -- beregnes med de formelle parametre erstattet med
+v\ae{}rdierne af de aktuelle parametre.
+
+{\em Typenavnene\/} \verb"Int" og \verb"Text" angiver, at den f\o{}rste
+aktuelle parameter skal v\ae{}re af typen \verb"Int", det vil sige et heltal,
+medens den anden skal v\ae{}re af typen \verb"Text", som betegner
+m\ae{}ngden af tegnf\o{}lger. Typeangivelsen \verb"(Rel)" p\aa{}
+h\o{}jresiden af \verb"->" fort\ae{}ller, at resultatet er af type
+\verb"Rel", som betegner m\ae{}ngden af relationer.
+
+I de n\ae{}ste to eksempler definerer vi to funktioner, der er nyttige, hvis
+vi skal konstruere en tipskupon for en given uge. Vi antager, at vi f\o{}rst
+har anvendt {\sc Rasmus} systemet til at konstruere f\o{}lgende
+tre relationer:
+{\tt
+\begin{center}
+Et:~\begin{tabular}{|c|} \hline Tegn \\\hline 1 \\\hline\end{tabular}~~~~
+Kryds:~\begin{tabular}{|c|} \hline Tegn \\\hline X \\\hline\end{tabular}~~~~
+To:~\begin{tabular}{|c|} \hline Tegn \\\hline 2 \\\hline\end{tabular}
+\end{center}
+}
+
+\eksempel{
+Skriv en funktion, der for en given uge konstruerer relationen
+\begin{center}
+\begin{small}
+\RELLRRR{{\tt HjHold:Text}}{{\tt UdeHold:Text}}{{\tt HjScore:Int}}{{\tt UdeScore:Int}}{{\tt Nr:Int}}{~&~&~&~&~}
+\end{small}
+\end{center}
+best\aa{}ende af kampene p\aa{} den p\aa{}g\ae{}ldende uges tipskupon
+\begin{center}
+\begin{tabular}{l}
+\verb"Strip :="\\
+\SS{2}\verb"func (uge:Int) -> (Rel)"\\
+\SS{4}\verb"((Turnering*Tips) ? (\#.Uge=uge)) |- Id,Uge"\\
+\SS{2}\verb"end"
+\end{tabular}
+\end{center}
+}
+
+Hvis denne funktion gemmes under navnet \fbox{\fbox{\verb"Strip"}}, s\aa{} kan vi
+benytte den til at l\o{}se problemet.\index{Strip}
+
+\eksempel{
+Skriv en funktion, der for en given uge konstruerer tipskuponen
+\begin{center}
+\begin{tabular}{l}
+\verb"Kupon :="\\
+\SS{2}\verb"func (ugenr:Int) -> (Rel)"\\
+\SS{4}\verb"(((Strip(ugenr) ? (\#.HjScore < \#.UdeScore))*To) +"\\
+\SS{5}\verb"((Strip(ugenr) ? (\#.HjScore = \#.UdeScore))*Kryds) +"\\
+\SS{5}\verb"((Strip(ugenr) ? (\#.HjScore > \#.UdeScore))*Et)"\\
+\SS{4}\verb") |- HjScore,UdeScore"\\
+\SS{2}\verb"end"
+\end{tabular}
+\end{center}
+}
+
+Hvis denne nu gemmes under navnet \fbox{\fbox{\verb"Kupon"}} har vi det
+\o{}nskede resultat. Fx vil anvendelsen \verb"Kupon(18)" have\index{Kupon}
+v\ae{}rdien
+\begin{center}
+\RERLLL{Nr:Int}{HjHold:Text}{UdeHold:Text}{Tegn:Text}{
+2 & Br\o{}ndby & Lyngby  & 2 \\ 
+3 & OB       & AaB     & X  \\
+1 & AGF      & Frem    & 1}
+\end{center}
+
+\newpage
+\section{Generelle udtryk}
+De udtryk, vi hidtil har besk\ae{}ftiget os med, har n\ae{}sten alle
+v\ae{}ret {\em relationsudtryk}, det vil sige, udtryk hvis resultater er
+relationer, og hvor de indg\aa{}ende operatorer er relationsoperatorerne
+union, join og s\aa{} videre. {\sc Rasmus} tillader imidlertid udtryk af
+flere forskellige typer, herunder {\em boolske\/} udtryk og
+{\em aritmetiske\/} udtryk, hvis resultater er henholdvis
+sandhedsv\ae{}rdier og heltal. En betingelse i en select-operator er
+s\aa{}ledes i det generelle tilf\ae{}lde et boolsk udtryk. 
+
+\subsection{Typer og konstanter} 
+Indtil nu har vi stiftet bekendskab med f\o{}lgende typer\index{type}
+\begin{center}
+\begin{tabular}{rl}
+\verb"Int": & heltal \\
+\verb"Text": & tegnf\o{}lger \\
+\verb"Rel": & relationer \\
+\verb"Func": & funktioner
+\end{tabular}
+\end{center}
+Der findes endnu to typer i {\sc Rasmus}
+\begin{center}
+\begin{tabular}{rl}
+\verb"Bool": & sandhedsv\ae{}rdier \\
+\verb"Tup": & tupler
+\end{tabular}
+\end{center}\index{Int}\index{Text}\index{Bool}\index{Rel}\index{Tup}\index{Func}
+Typerne \verb"Int", \verb"Text" og \verb"Bool", 
+hvis v\ae{}rdier er dem der kan st\aa{} i de
+enkelte felter i relationer, kaldes {\em atomare\/} og kan under et\index{atomar}
+angives med f\ae{}llesbetegnelsen \verb"Atom".  Den totale samling af de seks 
+typer kan angives med f\ae{}llesbetegnelsen \verb"Any".
+
+De atomare typer har de s\ae{}dvanlige {\em konstanter}, det vil sige\index{konstant}
+\begin{center}
+\begin{tabular}{rl}
+\verb"Int": & \ldots, \verb"-1", \verb"0", \verb"1", \verb"2", \ldots\\
+\verb"Bool": & \verb"true", \verb"false"\\
+\verb"Text": & \verb:"dette er en konstant af type Text":
+\end{tabular}
+\end{center}
+At konstanter af type \verb"Text" omgives med \verb:": og \verb:": skyldes,
+at det er n\o{}dvendigt at kunne skelne {\em navnet\/} \verb"AGF" fra
+tegnf\o{}lgen \verb:"AGF":, som er tegnet \verb"A" efterfulgt af tegnet
+\verb"G" efterfulgt af tegnet \verb"F".
+
+Typen \verb"Tup" har ogs\aa{} en slags konstanter, idet et udtryk af formen
+$$ \mbox{\verb"tup("$\META{attribut}_{\mbox{\bf 1}}$\verb":"$\META{v\ae{}rdi}_{\mbox{\bf 1}}$\verb","
+\ldots\verb","$\META{attribut}_{\mbox{\bf n}}$\verb":"$\META{v\ae{}rdi}_{\mbox{\bf n}}$\verb")"} $$
+angiver et tupel med n felter, hvis attributnavne er
+$\META{attribut}_{\mbox{\bf 1}}$, 
+\ldots, $\META{attribut}_{\mbox{\bf n}}$, og hvis tilh\o{}rende
+v\ae{}rdier er $\META{v\ae{}rdi}_{\mbox{\bf 1}}$, \dots, $\META{v\ae{}rdi}_{\mbox{\bf n}}$.
+Man kan ogs\aa{} konstruere en slags konstante relationer; hvis \verb"t"
+nemlig er et tupel, s\aa{} er
+$$ \mbox{\verb"rel(t)"} $$
+en relation best\aa{}ende af det enkelte tupel \verb"t".
+
+\eksempel{
+Skab en relation best\aa{}ende af de tre tipstegn
+$$\mbox{\verb$rel(tup(Tegn:"1"))+rel(tup(Tegn:"X"))+rel(tup(Tegn:"2"))$ }$$
+V\ae{}rdien af dette udtryk er
+\begin{center}
+\REL{Tegn:Text}{
+1 \\
+X \\
+2}
+\end{center}
+}
+
+Vi kan nu skrive funktionen \verb"Kupon" i eksempel 12 p\aa{} f\o{}lgende 
+alternative m\aa{}de. Bem\ae{}rk, at vi kan bruge tidligere
+\verb"Val"-definitioner i senere \verb"val"-definitioner.
+\newpage
+\eksempel{
+\begin{center}
+\begin{tabular}{l}
+\verb$func (ugenr:Int) -> (Rel)$\\
+\SS{2}\verb$(+ val Strip = $\\
+\SS{9}\verb$func (uge:Int) -> (Rel)$\\
+\SS{11}\verb$((Turnering*Tips) ? (\#.Uge=uge)) |- Id,Uge$\\
+\SS{9}\verb"end"\\
+\SS{5}\verb$val X = Strip(ugenr)$\\
+\SS{5}\verb$val Et = $\\
+\SS{9}\verb$(X ? (\#.HjScore>\#.UdeScore))*rel(tup(Tegn:"1"))$\\
+\SS{5}\verb$Val Kryds = $\\
+\SS{9}\verb$(X ? (\#.HjScore=\#.UdeScore))*rel(tup(Tegn:"X"))$\\
+\SS{5}\verb$val To = $\\
+\SS{9}\verb$(X ? (\#.HjScore<\#.UdeScore))*rel(tup(Tegn:"2"))$\\
+\SS{5}\verb$in (Et+Kryds+To) |- HjScore,UdeScore$\\
+\SS{2}\verb$+)$\\
+\verb"end"
+\end{tabular}
+\end{center}
+}
+
+\subsection{Sammensatte betingelser}
+Vi illustrerer brugen af boolske udtryk i de f\o{}lgende tre
+eksempler. I det f\o{}rste eksempel skriver vi en alternativ udgave af
+eksempel 8.
+
+\eksempel{
+Find nummeret p\aa{} den kamp p\aa{} tipskuponen for uge 18, hvor
+AGF var med
+\begin{center}
+\begin{tabular}{l}
+\verb$((Kampe*(Tips ? (\#.Uge=18))) ?$\\
+\SS{4}\verb$((\#.Udehold="AGF") or (\#.HjHold="AGF))) |+ Nr$
+\end{tabular}
+\end{center}
+}
+
+Vi kan f\aa{} brug for mere komplicerede boolske udtryk.
+\newpage
+\eksempel{
+Skab en relation best\aa{}ende af de kampe, der fik en vinder, og hvor
+taberen ikke scorede
+\begin{center}
+\begin{tabular}{l}
+\verb$Turnering ? (((\#.UdeScore > 0) and (\#.HjScore = 0)) or$\\
+\SS{13}\verb$((\#.UdeScore = 0) and (\#.HjScore > 0)))$
+\end{tabular}
+\end{center}
+V\ae{}rdien af udtrykket er
+\begin{center}
+\begin{small}
+\RERLLRR{Id:Int}{HjHold:Text}{UdeHold:Text}{HjScore:Int}{UdeScore:Int}{
+ 2 & Frem     & OB       &       3 &        0\\
+ 9 & Lyngby   & OB       &       1 &        0\\
+11 & Br\o{}ndby & Lyngby   &       0 &        3\\
+22 & Lyngby   & AaB      &       2 &        0\\
+24 & AaB      & Br\o{}ndby &       0 &        2}
+\end{small}
+\end{center}
+}
+
+Man kan ogs\aa{} f\aa{} brug for betingelser, hvor der indg\aa{}r 
+beregninger p\aa{} fx tuplernes attributv\ae{}rdier.
+
+\eksempel{
+Find de kampe, hvor hjemmeholdet vandt med mere end to m\aa{}l
+\begin{center}
+\begin{tabular}{l}
+\verb$Turnering ? (\#.HjScore - \#.UdeScore > 2)$
+\end{tabular}
+\end{center}
+}
+
+\subsection{Forall og tupeludtryk}
+I det f\o{}lgende skal vi beskrive mere pr\ae{}cist, hvordan et generelt
+boolsk udtryk ser ud, men f\o{}rst skal vi introducere den
+s\aa{}kaldte {\em \qind{forall}}-operator, som er en relationsoperator, der
+giver mulighed for at konstruere relationer ved at ``regne p\aa{}''
+{\em enkelttupler\/} fra andre relationer. Operatoren har f\o{}lgende
+udseende
+\begin{center}
+{\tt !(}\META{relation}{\tt ):} \META{udtryk}
+\end{center}
+hvor \META{udtryk} skal v\ae{}re af type \verb"Rel". Betydningen af
+et forall-udtryk er, at tuplerne i \META{relation} et for et
+``uds\ae{}ttes'' for den mekanisme, der angives af \META{udtryk},
+hvorefter resultaterne heraf forenes til en relation, som s\aa{} er
+resultatet af hele forall-udtrykket.
+
+Betragt f\o{}lgende eksempel, hvor vi \o{}nsker at udregne,
+hvad vi kan kalde underholdningsv\ae{}rdien af de enkelte fodboldkampe,
+defineret som antal m\aa{}l scoret af hjemmeholdet plus to gange
+antal m\aa{}l scoret af udeholdet.
+
+\eksempel{
+Udvid relationen {\tt Turnering} med en attribut, som for hver kamp
+indeholder dennes underholdningsv\ae{}rdi
+\begin{center}
+\begin{tabular}{l}
+\verb"!(Turnering): rel(\# << tup(UV: \#.HjScore+2*\#.UdeScore))"
+\end{tabular}
+\end{center}
+V\ae{}rdien af udtrykket er
+\begin{center}
+\begin{small}
+\RERCRRR{Id:Int}{...}{HjScore:Int}{UdeScore:Int}{UV: Int}{
+ 6 &&       1 &        1 &  3 \\ 
+25 &&       2 &        1 &  4 \\ 
+10 &&       2 &        1 &  4 \\ 
+23 &&       2 &        2 &  6 \\ 
+12 &&       1 &        1 &  3 \\ 
+30 &&       5 &        1 &  7 \\ 
+11 &&       0 &        3 &  6 \\ 
+29 &&       1 &        1 &  3 \\ 
+ 1 &&       1 &        2 &  5 \\ 
+19 &&       0 &        0 &  0 \\ 
+ 2 &&       3 &        0 &  3 \\ 
+20 &&       1 &        1 &  3 \\ 
+13 &&       1 &        2 &  5 \\ 
+16 &&       1 &        2 &  5 \\ 
+15 &&       1 &        1 &  3 \\ 
+18 &&       0 &        0 &  0 \\ 
+ 5 &&       2 &        2 &  6 \\ 
+24 &&       0 &        2 &  4 \\ 
+ 8 &&       1 &        1 &  3 \\ 
+27 &&       4 &        1 &  6 \\ 
+14 &&       2 &        1 &  4 \\ 
+17 &&       1 &        1 &  3 \\ 
+ 9 &&       1 &        0 &  1 \\ 
+28 &&       1 &        1 &  3 \\ 
+ 4 &&       0 &        0 &  0 \\ 
+21 &&       3 &        1 &  5 \\ 
+ 3 &&       1 &        2 &  5 \\ 
+22 &&       2 &        0 &  2 \\ 
+ 7 &&       4 &        1 &  6 \\ 
+26 &&       6 &        1 &  8}
+\end{small}
+\end{center}
+}
+
+Dette eksempel illustrerer flere ting. For det f\o{}rste kan vi se, at
+udtrykket p\aa{} h\o{}jresiden af \verb":" er af formen
+\begin{center}
+\verb"rel(# << t)"
+\end{center}
+hvor \verb"t" er et tupel med en enkelt attribut, \verb"UV".
+V\ae{}rdien af denne attribut er
+\begin{center}
+\verb"#.HjScore+2*#.UdeScore"
+\end{center}
+der udregnes p\aa{} f\o{}lgende m\aa{}de.
+Symbolet \verb"#" er {\em standardnavnet\/} p\aa{} hvad vi kan kalde
+det {\em l\o{}bende\/} tupel i forall-udtrykket, og
+\verb"#.HjScore" angiver derfor v\ae{}rdien af attributten
+\verb"HjScore" i dette tupel. Givet \verb"#" er v\ae{}rdien af
+\verb"#.HjScore+2*#.UdeScore" s\aa{}ledes lig med underholdnings\-v\ae{}rdien
+af \verb"#". I udtrykket \verb"rel(# << t)" angiver \verb"t" derfor
+et tupel med eneste attribut \verb"UV", hvis v\ae{}rdi er
+underholdningsv\ae{}rdien af \verb"#". Udtrykket \verb"# << t"
+angiver nu resultatet af at anvende {\em tupeloperatoren\/}\index{tupeloperator}
+\verb"<<" p\aa{} de to tupler \verb"#" og \verb"t". Operatoren
+\verb"<<" er en {\em udvidelses- og overskrivningsoperator}, der virker
+som f\o{}lger. Resultatet af\index{udvidelse}
+\begin{center}
+\verb"t1 << t2"
+\end{center}
+er det tupel, der f\aa{}s ved f\o{}rst at kopiere \verb"t1",
+dern\ae{}st, hvis der er f\ae{}lles attributter i \verb"t1" og \verb"t2",
+at erstatte v\ae{}rdierne i \verb"t1" med de tilsvarende fra \verb"t2",
+og endeligt at udvide med de attributter fra \verb"t2", der ikke findes
+i \verb"t1". F\o{}lgende eksempel illustrerer dette.
+
+\eksempel{
+Resultatet af tupeludtrykket
+\begin{center}
+\verb"tup(Dig:1, Mig:2) << tup(Mig:3, ViTo:4)"
+\end{center}
+er lig med \verb"tup(Dig:1, Mig:3, ViTo:4)".
+}
+
+Vi kan nu se, at udtrykket \verb"# << t" ovenfor netop angiver et tupel
+fra \verb"Turnering" udvidet med den p\aa{}g\ae{}ldende kamps
+underholdningsv\ae{}rdi. Derfor angiver hele udtrykket
+\verb"rel(# << t)" en {\em relation\/} indeholdende netop dette tupel.
+Resultatet af hele forall-udtrykket i eksempel 18 best\aa{}r af
+foreningsm\ae{}ngden af alle disse relationer, det vil sige,
+af samtlige kampe i turneringen udvidet med en
+underholdningsv\ae{}rdi-attribut.
+
+Der findes endnu en tupeloperator, nemlig {\em eliminationsoperatoreren\/}
+$\backslash$, der bruges som f\o{}lger\index{elimination}
+\begin{center}
+\verb"t"$\backslash$\verb"A"
+\end{center}
+hvor \verb"t" er et tupel og \verb"A" er en attribut. Resultatet er
+en kopi af tuplet \verb"t", med en eventuel \verb"A"-attribut fjernet.
+Vi kan illustrere denne operator ved hj\ae{}lp af f\o{}lgende alternative
+udgave af eksempel 4.
+
+\eksempel{
+Skab en relation, der for hver kamp indeholder det antal m\aa{}l, der
+er scoret af udeholdet
+\begin{center}
+\verb"!(Resultater): rel(\# "$\backslash$\verb" HjScore)"
+\end{center}
+}
+
+Med introduktionen af forall-operatoren og den dertil h\o{}rende
+forklaring p\aa{} betydningen af \verb"#" skulle det nu v\ae{}re
+klart, at \verb"#" spiller pr\ae{}cist samme rolle i select-udtryk,
+som den g\o{}r i forall-udtryk. I select-operatoren ``genneml\o{}bes''
+relationens tupler p\aa{} samme vis, og de tupler, der opfylder
+betingelsen ``smutter forbi'', medens de \o{}vrige ``filtreres fra''.
+
+\subsection{Betingede udtryk}\index{betinget udtryk}
+{\sc Rasmus} er ogs\aa{} udstyret med {\em betingede udtryk}, der ser
+ud som f\o{}lger
+\begin{center}
+\begin{tabular}{l}
+\verb"if "$\META{betingelse}_{\mbox{\bf 1}}$\verb" -> "$\META{udtryk}_{\mbox{\bf 1}}$\\
+\verb" & "$\META{betingelse}_{\mbox{\bf 2}}$\verb" -> "$\META{udtryk}_{\mbox{\bf 2}}$\\
+\verb" "$\vdots$\\
+\verb" & "$\META{betingelse}_{\mbox{\bf n}}$\verb" -> "$\META{udtryk}_{\mbox{\bf n}}$\\
+\verb"fi"
+\end{tabular}
+\end{center}
+Udtrykket kan bruges til at v\ae{}lge mellem alternativer, som
+beskrevet af f\o{}lgende eksempel.
+
+\eksempel{
+Skriv en funktion, der givet ugenummer og navnet p\aa{} et hold
+beregner en relation, der fort\ae{}ller, om det p\aa{}g\ae{}ldende
+hold er p\aa{} ude- eller hjemmebane i den p\aa{}g\ae{}ldende uge
+\begin{center}
+\begin{tabular}{l}
+\verb"func (uge:Int, hold:Text) -> (Rel)"\\
+\SS{2}\verb"(+ val X = Kampe*(Tips ? (\#.Uge=uge))"\\
+\SS{5}\verb"in"\\
+\SS{5}\verb@if |X ? (\#.HjHold=hold)| > 0 -> rel(tup(Bane:"hjemme"))@\\
+\SS{6}{\tt \&~}\verb@true -> rel(tup(Bane:"ude"))@\\
+\SS{5}\verb"fi"\\
+\SS{2}\verb"+)"\\
+\verb"end"
+\end{tabular}
+\end{center}
+}
+
+Vi har i ovenst\aa{}ende eksempel benyttet os af operatoren \verb"|R|",
+som angiver st\o{}rrelsen af relationen \verb"R", det vil sige,
+antallet af tupler i \verb"R".
+
+Med introduktionen af tupeloperatorer og forall-operatoren kan vi nu
+skrive f\o{}lgende alternative udgave af eksempel 14. Bem\ae{}rk, at
+vi her bruger \verb"Val"-mekanismen i indskudte udtryk til at
+introducere {\em korte\/} navne for attributudtrykkene
+\verb"#.HjScore" og \verb"#.UdeScore".
+\eksempel{
+\begin{center}
+\begin{tabular}{l}
+\verb$func (ugenr:Int) -> (Rel)$\\
+\SS{2}\verb$(+ val Strip = $\\
+\SS{9}\verb$func (uge:Int) -> (Rel)$\\
+\SS{11}\verb$((Turnering*Tips) ? (\#.Uge=uge)) |- Id,Uge$\\
+\SS{9}\verb"end"\\
+\SS{5}\verb$val X = Strip(ugenr)$\\
+\SS{5}\verb$in !(X): (+ val H = \#.HjScore$\\
+\SS{17}\verb$val U = \#.UdeScore$\\
+\SS{17}\verb$in rel((\#$$\backslash$\verb$HjScore)$$\backslash$\verb$UdeScore <<$\\
+\SS{27}\verb$tup(Tegn: if U<H -> "1"$\\
+\SS{38}{\tt \&}\verb$ U=H -> "X"$\\
+\SS{38}{\tt \&}\verb$ U>H -> "2"$\\
+\SS{37}\verb$fi$\\
+\SS{30}\verb")"\\
+\SS{23}\verb")"\\
+\SS{14}\verb"+)"\\
+\SS{2}\verb$+)$\\
+\verb"end"
+\end{tabular}
+\end{center}
+}
+
+Som det fremg\aa{}r af det foreg\aa{}ende, kan man b\aa{}de navngive
+og gemme relationer og funktioner, og man kan ogs\aa{} give
+dem lokale navne ved hj\ae{}lp af \verb"Val"-mekanismen i indskudte
+udtryk, eller ved hj\ae{}lp af formelle parametre i funktioner.
+Der er imidlertid ikke kun relationer og funktioner, der nyder denne
+bev\aa{}genhed -- alle {\sc Rasmus} typer kan benyttes p\aa{}
+tilsvarende vis. Dette betyder, at udtryk af de forskellige typer
+kan konstrueres og komponeres p\aa{} helt ensartet vis, hvilket ogs\aa{}
+kan udtrykkes som, at ``alle typer er f\o{}rsteklasses borgere''.
+
+Som n\ae{}vnt har {\sc Rasmus} typerne
+\verb"Bool", \verb"Int", \verb"Text", \verb"Tup", \verb"Rel" og \verb"Func".
+Ethvert udtryk har en type, nemlig typen af den v\ae{}rdi, der
+bliver resultatet. 
+
+\subsection{Tekstudtryk}
+Vi har tidligere set eksempler p\aa{} udtryk af samtlige typer
+-- dog har vi for \verb"Text"-udtrykkene kun set konstanter som \verb$"AGF"$.
+Der findes imid\-lertid ogs\aa{} \verb"Text"-operatorer, som illustreret ved
+f\o{}lgende eksempel p\aa{} en funktion, der s\ae{}tter \aa{}rstal
+p\aa{} de datoangivelser, der findes i \verb"Spilledag" relationen.
+
+\eksempel{
+\begin{center}
+\begin{tabular}{l}
+\verb$func (${\tt aar}\verb$:Text, dato:Text) -> (Text)$\\
+\SS{2}\verb$if |dato|=4 -> ${\tt aar}\verb$++dato$\\
+\SS{3}{\tt \&}\verb$ |dato|=3 -> ${\tt aar}\verb$++"0"++dato$\\
+\SS{2}\verb$fi$\\
+\verb"end"
+\end{tabular}
+\end{center}
+}
+
+Hvis vi kalder denne funktion for \fbox{\fbox{\tt LangDato}} er
+v\ae{}rdien af anvendelsen
+\begin{center}
+\verb$Langdato("96","325")$
+\end{center}
+lig med \verb"960325". Operatoren \verb"++" sammens\ae{}tter 
+{\em konkatenerer\/} alts\aa{}\index{konkatenation}
+to tegnf\o{}lger, og \verb"|t|" returnerer l\ae{}ngden af en tegnf\o{}lge
+\verb"t". Man kan ogs\aa{} udtage delf\o{}lger af tegnf\o{}lger. V\ae{}rdien
+af udtrykket\index{delf\o{}lge} 
+\begin{center}
+\verb$"325"(0..2)$
+\end{center}
+er s\aa{}ledes \verb$"32"$, idet udtrykket \verb"t(i..j)" i almindelighed
+betegner den delf\o{}lge af \verb"t", der starter i det \verb"i"'te tegn
+(nummereret fra 0) og ender i det \verb"(j-1)"'te tegn. F\o{}lgende
+eksempel illustrerer nu brugen af hj\ae{}lpefunktionen \verb"LangDato"
+i et forall-udtryk.
+
+\eksempel{
+Skab en relation magen til \verb"Spilledag", men hvor 
+datoangivelserne nu er komplette
+\begin{center}
+\verb$!(Spilledag): rel(\# << tup(Dato: LangDato("91",\#.Dato)))$
+\end{center}
+V\ae{}rdien af udtrykket er
+\begin{center}
+\begin{small}
+{\tt
+\begin{tabular}{|r|l|}
+\hline
+Kamp:Int & Dato:Text \\\hline
+   3 & 910401 \\
+  19 & 910520 \\ 
+  20 & 910520 \\ 
+  10 & 910421 \\ 
+  23 & 910530 \\ 
+  24 & 910602 \\ 
+  25 & 910602 \\ 
+  13 & 910512 \\ 
+  14 & 910512 \\ 
+  15 & 910512 \\ 
+   7 & 910414 \\ 
+   8 & 910414 \\ 
+   4 & 910324 \\ 
+  21 & 910523 
+\end{tabular}
+~~~~~~~
+\begin{tabular}{|r|l|}
+  ~~~~~~11 & 910505~~~ \\ 
+  12 & 910505 \\ 
+   1 & 910316 \\ 
+  29 & 910623 \\ 
+  30 & 910623 \\ 
+   5 & 910407 \\ 
+   6 & 910407 \\ 
+   2 & 910317 \\ 
+  16 & 910516 \\ 
+  17 & 910516 \\ 
+  18 & 910516 \\ 
+  22 & 910526 \\ 
+   9 & 910428 \\ 
+  26 & 910609 \\ 
+  27 & 910609 \\ 
+  28 & 910619 \\\hline
+\end{tabular} 
+}
+\end{small}
+\end{center}
+}
+
+\subsection{Skema- og typecheck}
+N\aa{}r man skriver funktioner, der overf\o{}rer relationer som parametre,
+s\aa{} kender man selvsagt ikke skemaerne for de relationer, der optr\ae{}der
+som {\em aktuelle\/} parametre, n\aa{}r funktionen anvendes. {\sc Rasmus}
+indeholder derfor en facilitet, der tillader at sp\o{}rge om en relation har
+et givet attributnavn. F\o{}lgende eksempel illustrerer dette.
+
+\eksempel{
+Skriv en funktion, der for en given {\tt Kamp}-relation 
+og et givet hold returnerer de kampe, hvor det p\aa{}g\ae{}ldende hold
+er p\aa{} hjemmebane.
+\begin{center}
+\begin{tabular}{l}
+\verb"func (K:Rel, hold:Text) -> (Rel)"\\
+\SS{2}\verb"if has(K,HjHold) -> K ? (\#.HjHold=hold)"\\
+\SS{3}{\tt \&}\verb" true -> zero"\\
+\SS{2}\verb"fi"\\
+\verb"end"
+\end{tabular}
+\end{center}
+}
+
+Udtrykket \verb"has(R,A)" giver \verb"true", hvis relationen
+\verb"R" har attributten \verb"A" og ellers \verb"false".
+Som eksemplet viser, kan man bruge dette til at
+undg\aa{} at l\o{}be ind i fejl under eventuel anvendelse
+af en funktion p\aa{} et argument, der ikke har det rigtige skema.
+I eksemplet returneres den tomme relation, angivet af konstanten
+\verb"zero", hvis argumentet ikke ``passer'', men man kunne 
+naturligvis ogs\aa{} returnerer en relation, der indeholder en
+passende advarsel.
+
+Man kan ogs\aa{} unders\o{}ge, om en relation har den rigtige type.
+Hvis denne facilitet anvendes i eksempel 25, f\aa{}r funktionen f\o{}lgende
+udseende.
+\begin{center}
+\begin{tabular}{l}
+\verb"func (K:Rel, hold:Text) -> (Rel)"\\
+\SS{2}\verb"if has(K,HjHold) and is-Text(K,HjHold) -> K ? (#.HjHold=hold)"\\
+\SS{3}{\tt \&}\verb" true -> zero"\\
+\SS{2}\verb"fi"\\
+\verb"end"
+\end{tabular}
+\end{center}
+Udtrykket \verb"is-Text(R,A)" unders\o{}ger om attributten \verb"A" i
+relationen \verb"R" har type Text. Der findes tilsvarende funktioner
+\verb"is-Int" og \verb"is-Bool". 
+
+\subsection{Aggregeringsfunktioner}
+Som det sidste eksempel i denne ``fodbold-Odyss\'{e}'' viser vi nu,
+hvordan man beregner en relation med skema
+\begin{center}
+\RELR{Hold:Text}{Points:Int}{~&~}
+\end{center}
+der for hver af de seks deltagende klubber angiver, hvor mange point
+klubben fik i turneringen. Til brug herfor skal vi introducere
+{\em aggregeringsfunktioner}, som tillader at foretage diverse
+beregninger p\aa{} samtlige v\ae{}r\-di\-er af en given attribut i en relation.
+F\o{}lgende simple eksempel illustrerer dette.\index{aggregering}
+
+\eksempel{
+Angiv, hvor mange m\aa{}l der blev scoret p\aa{} udebane i turneringen
+\begin{center}
+\verb"add(Resultater,UdeScore)"
+\end{center}
+V\ae{}rdien af udtrykket er \verb"33".
+}
+
+Aggregeringsfunktionen \verb"add(R,A)" adderer v\ae{}rdierne af
+attributten \verb"A" i relationen \verb"R". De \o{}vrige
+aggregeringsfunktioner er
+\begin{center}
+\verb"count(R,A), mult(R,A), max(R,A), min(R,A)"
+\end{center}
+og de henholdsvis t\ae{}ller, multiplicerer, maksimerer og minimerer
+\verb"A"-v\ae{}rdi\-er\-ne i \verb"R".\index{count}\index{mult}\index{max}\index{min}\index{add}
+\newpage
+\eksempel{
+Skab en relation, som for hver kamp angiver hvor mange point de to hold
+fik i den p\aa{}g\ae{}ldende kamp
+\begin{center}
+\begin{tabular}{l}
+\verb"EnkeltPoints :="\\
+\SS{2}\verb"!(Turnering):"\\
+\SS{6}\verb"(+ val H = \#.HjScore"\\
+\SS{9}\verb"val U = \#.UdeScore"\\
+\SS{9}\verb"in if H<U -> rel(tup(Id:\#.Id, Hold:\#.UdeHold, Points:2))"\\
+\SS{13}{\tt \&}\verb" H=U -> rel(tup(Id:\#.Id, Hold:\#.UdeHold, Points:1)) +"\\
+\SS{22}\verb"rel(tup(Id:\#.Id, Hold:\#.HjHold, Points:1))"\\
+\SS{13}{\tt \&}\verb" H>U -> rel(tup(Id:\#.Id, Hold:\#.HjHold, Points:2))"\\
+\SS{12}\verb"fi"\\
+\SS{6}\verb"+)"
+\end{tabular}
+\end{center}
+V\ae{}rdien er
+\begin{center}
+\begin{small}
+{\tt
+\begin{tabular}{|r|l|r|}
+\hline
+Id:Int & Hold:Text & Points:Int \\ \hline
+ 6 & Frem     &      1 \\ 
+ 6 & Lyngby   &      1 \\ 
+25 & Frem     &      2 \\ 
+10 & AGF      &      2 \\ 
+23 & AGF      &      1 \\ 
+23 & Frem     &      1 \\ 
+12 & AaB      &      1 \\ 
+12 & OB       &      1 \\ 
+30 & AaB      &      2 \\ 
+11 & Lyngby   &      2 \\ 
+29 & Br\o{}ndby &      1 \\ 
+29 & Lyngby   &      1 \\ 
+ 1 & Br\o{}ndby &      2 \\ 
+19 & AGF      &      1 \\ 
+19 & Br\o{}ndby &      1 \\ 
+ 2 & Frem     &      2 \\ 
+20 & Frem     &      1 \\ 
+20 & OB       &      1 \\ 
+13 & AaB      &      2 \\ 
+16 & Frem     &      2 \\ 
+15 & Br\o{}ndby &      1
+\end{tabular}
+}
+~~~~~~~
+{\tt
+\begin{tabular}{|r|l|r|}
+~~~~15 & OB~~~~~~~       &      ~~~~~~~~~1 \\ 
+18 & OB       &      1 \\ 
+18 & Br\o{}ndby &      1 \\ 
+ 5 & AaB      &      1 \\ 
+ 5 & Br\o{}ndby &      1 \\ 
+24 & Br\o{}ndby &      2 \\ 
+ 8 & Br\o{}ndby &      1 \\ 
+ 8 & Frem     &      1 \\ 
+27 & Br\o{}ndby &      2 \\ 
+14 & Lyngby   &      2 \\ 
+17 & Lyngby   &      1 \\ 
+17 & AGF      &      1 \\ 
+ 9 & Lyngby   &      2 \\ 
+28 & Lyngby   &      1 \\ 
+28 & OB       &      1 \\ 
+ 4 & AGF      &      1 \\ 
+ 4 & OB       &      1 \\ 
+21 & AGF      &      2 \\ 
+ 3 & Lyngby   &      2 \\ 
+22 & Lyngby   &      2 \\ 
+ 7 & AaB      &      2 \\ 
+26 & AGF      &      2 \\\hline
+\end{tabular}
+}
+\end{small}
+\end{center}
+}
+
+Hvis vi gemmer denne relation under navnet \fbox{\fbox{\tt EnkeltPoints}}\index{EnkeltPoints}
+f\aa{}r vi det \o{}n\-ske\-de resultat p\aa{} f\o{}lgende m\aa{}de.
+\eksempel{
+\begin{center}
+\begin{tabular}{l}
+\verb$(+ val AGF = EnkeltPoints ? (\#.Hold="AGF")$\\
+\SS{3}\verb$val OB = EnkeltPoints ? (\#.Hold="OB")$\\
+\SS{3}\verb$val AaB = EnkeltPoints ? (\#.Hold="AaB")$\\
+\SS{3}\verb$val Lyngby = EnkeltPoints ? (\#.Hold="Lyngby")$\\
+\SS{3}\verb$val Br${\tt \o{}}\verb$ndby = EnkeltPoints ? (\#.Hold="Br${\tt \o{}}\verb$ndby")$\\
+\SS{3}\verb$val Frem = EnkeltPoints ? (\#.Hold="Frem")$\\
+\SS{3}\verb$in rel(tup(Hold:"AGF", Points:add(AGF,Points)) +$\\ 
+\SS{6}\verb$rel(tup(Hold:"OB", Points:add(OB,Points)) +$\\ 
+\SS{6}\verb$rel(tup(Hold:"AaB", Points:add(AaB,Points)) +$\\ 
+\SS{6}\verb$rel(tup(Hold:"Lyngby", Points:add(Lyngby,Points)) +$\\ 
+\SS{6}\verb$rel(tup(Hold:"Br${\tt \o{}}\verb$ndby", Points:add(Br${\tt \o{}}\verb$ndby,Points)) +$\\ 
+\SS{6}\verb$rel(tup(Hold:"Frem", Points:add(Frem,Points))$\\ 
+\verb$+)$
+\end{tabular}
+\end{center}
+V\ae{}rdien er
+\begin{center}
+\RELR{Hold:Text}{Points:Int}{
+Lyngby   &    14\\
+AGF      &    10\\
+OB       &     6\\
+AaB      &     8\\
+Frem     &    10\\
+Br\o{}ndby &    12}
+\end{center}
+}
+
+\newpage
+\subsection{Factor}
+Denne m\aa{}de at udregne turneringsresultatet er ikke netop elegant, og hvis
+\verb"Hold"-attributten indeholdt flere end seks forskellige v\ae{}rdier,
+eller -- endnu v\ae{}rre -- hvis vi ikke kendte v\ae{}rdierne p\aa{}
+forh\aa{}nd, s\aa{} er fremgangsm\aa{}den slet ikke brugbar. Derfor
+indeholder {\sc Rasmus} en mere generel facilitet, den s\aa{}kaldte
+{\em factor}-operator, som tillader at udf\o{}re denne type\index{factor}
+beregninger p\aa{} mere hensigtsm\ae{}ssig vis. I dette tilf\ae{}lde
+ville beregningen se ud som f\o{}lger.
+
+\eksempel{
+\begin{center}
+\begin{tabular}{l}
+\verb"!(EnkeltPoints)|Hold: rel(\# << Tup(Points:add(@(1),Points)))"
+\end{tabular}
+\end{center}
+}
+
+Lad os se, hvordan ovenst\aa{}ende fungerer. Argumentet til factor-be\-reg\-ning\-en
+er relationen \verb"EnkeltPoints". Desuden angiver man et attributnavn, i dette
+tilf\ae{}lde \verb"Hold". P\aa{} baggrund heraf beregnes en r\ae{}kke {\em faktorpar} af
+formen $(t_1,r_1),(t_2,r_2),\ldots,(t_k,r_k)$. Tuplerne 
+$t_1,t_2,\ldots,t_k$ er netop de, der findes i relationen
+\verb"EnkeltPoints|+Hold". Relationen $r_i$ er netop
+\verb"(EnkeltPoints*rel("$t_i$\verb"))|-Hold". Det vil sige, der g\ae{}lder
+f\o{}lgende ligning:
+$$\mbox{\tt Enkeltpoints} = \sum_{i=1}^k \mbox{\tt rel(}t_i\mbox{\tt )*}r_i$$ 
+For hvert af disse faktorpar beregnes h\o{}jresiden af factor-udtrykket med
+\verb"#" erstattet med $t_i$ og \verb"@(1)" erstattet med $r_i$. Det
+endelige resultat er foreningen af disse delresultater. For ovenst\aa{}ende
+eksempel har vi f\o{}lgende seks faktorpar.
+
+\begin{center}
+\begin{tabular}{r@{~~~~~}l}
+\fbox{\tt Lyngby} & 
+\RERR{Id:Int}{Points:Int}{
+6 & 1\\
+11 & 2\\
+29 & 1\\
+14 & 2\\
+17 & 1\\
+9 & 2\\
+28 & 1\\
+3 & 2\\
+22 & 2}\\
+~ & ~\\
+\fbox{\tt AGF} & 
+\RERR{Id:Int}{Points:Int}{
+10 & 2\\
+23 & 1\\
+19 & 1\\
+17 & 1\\
+4 & 1\\
+21 & 2\\
+26 & 2}\\
+~ & ~\\
+\fbox{\tt OB} & 
+\RERR{Id:Int}{Points:Int}{
+12 & 1\\
+20 & 1\\
+15 & 1\\
+18 & 1\\
+28 & 1\\
+4 & 1}\\
+~ & ~\\
+\fbox{\tt AaB} & 
+\RERR{Id:Int}{Points:Int}{
+12 & 1\\
+30 & 2\\
+13 & 2\\
+5 & 1\\
+7 & 2}
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{r@{~~~~~}l}
+\fbox{\tt Frem} & 
+\RERR{Id:Int}{Points:Int}{
+6 & 1\\
+25 & 2 \\
+23 & 1\\
+2 & 2 \\
+20 & 1\\
+16 & 2\\
+8 & 1}\\
+~ & ~\\
+\fbox{\tt Br\o{}ndby} & 
+\RERR{Id:Int}{Points:Int}{
+29 & 1\\
+1 & 2\\
+19 & 1\\
+15 & 1\\
+18 & 1\\
+5 & 1\\
+24 & 2\\
+8 & 1\\
+27 & 2}
+\end{tabular}
+\end{center}
+Det skulle nu v\ae{}re klart, hvorledes vi beregner det \o{}nskede resultat.
+
+Et factor-udtryk kan involvere flere attributnavne. I s\aa{} fald indeholder
+faktorparrets tupel alle disse attributter og relationerne er tilsvarende
+smallere. 
+
+\eksempel{
+Skab en relation, der for hver mulig score fort\ae{}ller, hvor mange kampe
+der fik denne score.
+\begin{center}
+\verb"!(Turnering)|HjScore,UdeScore: rel(\# << tup(Antal: |@(1)|))"
+\end{center}
+V\ae{}rdien af udtrykket er
+\begin{center}
+\RERRR{HjScore:Int}{UdeScore:Int}{Antal:Int}{
+0 & 0 & 3\\
+1 &0 & 1\\
+1 & 1 & 8\\
+2 & 0 & 1\\
+0 & 2 & 1\\
+1 & 2 & 4\\
+3 & 0 & 1\\
+2 & 1 & 3\\
+0 & 3 & 1\\
+2 & 2 & 2\\
+3 & 1 & 1\\
+4 & 1 & 2\\
+5 & 1 & 1\\
+6 & 1 & 1}
+\end{center}
+}
+
+Det skulle nu let kunne ses, at forall-operatoren blot er et specialtilf\ae{}lde
+af factor, hvor man angiver {\em samtlige\/} attributnavne. I s\aa{} tilf\ae{}lde
+best\aa{}r faktorparrene blot af alle relationens tupler parret med
+relationen \verb"one", der indeholder et enkelt tupel med tomt skema
+(som ikke bidrager med nogen interessant information).
+
+Factor-operationen er dog endnu mere generel, idet man ogs\aa{} kan angive
+flere relationer. I s\aa{} fald skal de angivne attributnavne tilh\o{}re
+skemaerne for samtlige de indg\aa{}ende relationer. Nu f\aa{}r man ikke blot
+nogle faktor{\em par}, men sekvenser best\aa{}ende af et tupel og en delrelation for
+hver indg\aa{}ende relation. Delrelationen for den $i$'te relation ben\ae{}vnes
+\verb"@(i)". Hvis vi betragter et generelt factor-udtryk:
+\begin{center}
+{\tt !(R$_1$,\ldots,R$_m$)|n$_1$,\ldots,n$_l$: \ldots}
+\end{center}
+hvor den $i$'te af $k$ faktorsekvenser er $(t_i,r_{i1},\ldots,r_{im})$, s\aa{}
+g\ae{}lder f\o{}lgende matrixligning:
+$$ (\mbox{\tt R}_1,\ldots,\mbox{\tt R}_m) = 
+   (\mbox{\tt rel(}t_1\mbox{\tt )},\ldots,\mbox{\tt rel(}t_k\mbox{\tt )})
+   \left(\begin{array}{llll}
+   r_{11} & r_{12} & \cdots & r_{1m} \\
+   r_{21} & r_{22} & \cdots & r_{2m} \\
+   \vdots & \vdots & & \vdots \\
+   r_{k1} & r_{k2} & \cdots & r_{km} 
+   \end{array}\right)
+$$
+Med denne udvidelse er factor nu s\aa{} generel, at man kan n\o{}jes med
+den som eneste operation (sammen med krydsprodukt af relationer med
+disjunkte skemaer).
+
+\subsection{Oversigt}
+Som tidligere n\ae{}vnt er alle typer i {\sc Rasmus}
+``f\o{}rste klasses borgere''. Det betyder, at v\ae{}rdier af alle typer
+kan b\aa{}de navngives og gemmes, og at udtryk af alle typer
+kan v\ae{}re parametre til og resultater af funktioner. I det f\o{}lgende
+giver vi en mere systematisk fremstilling af udseendet af de forskellige
+udtrykstyper. Vi betegner udtryk af type 
+\verb"Int", \verb"Bool", \verb"Text", \verb"Tup", \verb"Rel"
+og \verb"Func" med henholdsvis $\cal I$, $\cal B$, $\cal X$, $\cal T$, 
+$\cal R$ og $\cal F$. Et udtryk af en atomar type betegnes $\cal A$.
+Et udtryk af en {\em ordnet\/} type betegnes $\cal O$; alle typer\index{ordnet type}
+p\aa{}n\ae{}r \verb"Func" er ordnede og kan dermed sammenlignes med
+\verb"=", \verb"<>", \verb"<", \verb">", \verb"<=" og \verb">=".
+Et udtryk af en vilk\aa{}rlig type angives med $\cal U$.
+Et \verb"val"-, parameter- eller
+attributnavn betegnes med \verb"n".
+\newpage
+Udtryk af type \verb"Bool" $(\cal B)$:\index{Bool}
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Betegnelse & Syntaks \\\hline
+\qind{konstant} & \verb"true", \verb"false" \\
+\qind{standardv\ae{}rdi} & \verb"?-Bool" \\
+\qind{navn} & \verb"n" \\
+\qind{attribut} & $\cal T$\verb".n" \\
+\qind{sammenligning} & ${\cal O}_1$\verb"="${\cal O}_2$, ${\cal O}_1$\verb"<>"${\cal O}_2$, ${\cal O}_1$\verb"<"${\cal O}_2$, ${\cal O}_1$\verb">"${\cal O}_2$, ${\cal O}_1$\verb"<="${\cal O}_2$, ${\cal O}_1$\verb">="${\cal O}_2$ \\
+\qind{match} & ${\cal T}_1$\verb"~"${\cal T}_2$\\
+\qind{negation} & \verb"not" $\cal B$\\
+\qind{konjunktion} & ${\cal B}_1$ \verb"and" ${\cal B}_2$\\
+\qind{disjunktion} & ${\cal B}_1$ \verb"or" ${\cal B}_2$\\
+\qind{skemacheck} & \verb"has("$\cal R$\verb",n)"\\
+\qind{typecheck} & \verb"is-Int("$\cal R$\verb",n)", \verb"is-Bool("$\cal R$\verb",n)", \verb"is-Text("$\cal R$\verb",n)"\\
+\qind{maksimum} & \verb"max("$\cal R$\verb",n)"\\
+\qind{minimum} & \verb"min("$\cal R$\verb",n)"\\
+\qind{funktionsanvendelse} & $\cal F$\verb"("${\cal U}_1$\verb",...,"${\cal U}_k$\verb")"\\
+\qind{indskudt udtryk} & \verb"(+ val n"$_1$\verb"="${\cal U}_1$ \ldots
+\verb"val n"$_k$\verb"="${\cal U}_k$ \verb"in" $\cal B$ \verb"+)"\\
+\qind{betinget udtryk} & \verb"if" $\cal B$ \verb"->" $\cal B$ \ldots \verb"fi"\\
+\hline
+\end{tabular}
+\end{center}
+Standardv\ae{}rdien \verb"?-Bool" er en ekstra konstant af typen \verb"Bool", der
+blandt andet optr\ae{}der som ``ubestemte'' v\ae{}rdier af \verb"Bool"-attributter.
+Der findes ogs\aa{} standardv\ae{}rdier af typerne \verb"Int" og \verb"Text".
+Standardv\ae{}rdier omtales n\ae{}rmere i n\ae{}ste kapitel.
+\newpage
+Udtryk af type \verb"Int" $(\cal I)$:\index{Int}
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Betegnelse & Syntaks \\\hline
+\qind{konstant} & \ldots, \verb"-2", \verb"-1", \verb"0", \verb"1", 
+\verb"2", \verb"3", \ldots \\
+\qind{standardv\ae{}rdi} & \verb"?-Int" \\
+\qind{navn} & \verb"n" \\
+\qind{attribut} & $\cal T$\verb".n" \\
+\qind{sum} & ${\cal I}_1$ \verb"+" ${\cal I}_2$\\
+\qind{differens} & ${\cal I}_1$ \verb"-" ${\cal I}_2$\\
+\qind{produkt} & ${\cal I}_1$ \verb"*" ${\cal I}_2$\\
+\qind{kvotient} & ${\cal I}_1$ \verb"/" ${\cal I}_2$\\
+\qind{rest} & ${\cal I}_1$ \verb"mod" ${\cal I}_2$\\
+\qind{relationsst\o{}rrelse} & \verb"|"$\cal R$\verb"|"\\
+\qind{tekstl\ae{}ngde} & \verb"|"$\cal X$\verb"|"\\
+\qind{maksimum} & \verb"max("$\cal R$\verb",n)"\\
+\qind{minimum} & \verb"min("$\cal R$\verb",n)"\\
+\qind{addition} & \verb"add("$\cal R$\verb",n)"\\
+\qind{multiplikation} & \verb"mult("$\cal R$\verb",n)"\\
+\qind{opt\ae{}lling} & \verb"count("$\cal R$\verb",n)"\\
+\qind{funktionsanvendelse} & $\cal F$\verb"("${\cal U}_1$\verb",...,"${\cal U}_k$\verb")"\\
+\qind{indskudt udtryk} & \verb"(+ val n"$_1$\verb"="${\cal U}_1$ \ldots
+\verb"val n"$_k$\verb"="${\cal U}_k$ \verb"in" $\cal I$ \verb"+)"\\
+\qind{betinget udtryk} & \verb"if" $\cal B$ \verb"->" $\cal I$ \ldots \verb"fi"\\
+\qind{antal dage} & \verb"days("${\cal X}_1$,${\cal X}_2$\verb")"\\
+\hline
+\end{tabular}
+\end{center}
+\newpage
+Udtryk af type \verb"Text" $(\cal X)$:\index{Text}
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Betegnelse & Syntaks \\\hline
+\qind{konstant} & \verb$""$, \verb$"AGF"$, \ldots \\
+\qind{standardv\ae{}rdi} & \verb"?-Text" \\
+\qind{navn} & \verb"n" \\
+\qind{attribut} & $\cal T$\verb".n" \\
+\qind{deltekst} & $\cal X$\verb"("${\cal I}_1$\verb".."${\cal I}_2$\verb")"\\
+\qind{konkatenation} & ${\cal X}_1$ \verb"++" ${\cal X}_2$\\
+\qind{maksimum} & \verb"max("$\cal R$\verb",n)"\\
+\qind{minimum} & \verb"min("$\cal R$\verb",n)"\\
+\qind{funktionsanvendelse} & $\cal F$\verb"("${\cal U}_1$\verb",...,"${\cal U}_k$\verb")"\\
+\qind{indskudt udtryk} & \verb"(+ val n"$_1$\verb"="${\cal U}_1$ \ldots
+\verb"val n"$_k$\verb"="${\cal U}_k$ \verb"in" $\cal X$ \verb"+)"\\
+\qind{betinget udtryk} & \verb"if" $\cal B$ \verb"->" $\cal X$ \ldots \verb"fi"\\
+\qind{pr\ae{}fiks} & \verb"before("${\cal X}_1$,${\cal X}_2$\verb")"\\
+\qind{suffiks} & \verb"after("${\cal X}_1$,${\cal X}_2$\verb")"\\
+\qind{dags dato} & \verb"today"\\
+\qind{fremtidig dato} & \verb"date("${\cal X}$,${\cal I}$\verb")"\\
+\hline
+\end{tabular}
+\end{center}
+\newpage
+Udtryk af type \verb"Tup" $(\cal T)$:\index{Tup}
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Betegnelse & Syntaks \\\hline
+\qind{konstant} & \verb"Tup(n"$_1$\verb":"${\cal A}_1$\verb",...,n"$_k$\verb":"${\cal A}_k$\verb")"  \\
+\qind{navn} & \verb"n", \verb"#"\\
+\qind{opdatering} & ${\cal T}_1$ \verb"<<" ${\cal T}_2$\\
+\qind{elimination} & $\cal T$ $\backslash$ \verb"n"\\
+\qind{funktionsanvendelse} & $\cal F$\verb"("${\cal U}_1$\verb",...,"${\cal U}_k$\verb")"\\
+\qind{indskudt udtryk} & \verb"(+ val n"$_1$\verb"="${\cal U}_1$ \ldots
+\verb"val n"$_k$\verb"="${\cal U}_k$ \verb"in" $\cal T$ \verb"+)"\\
+\qind{betinget udtryk} & \verb"if" $\cal B$ \verb"->" $\cal T$ \ldots \verb"fi"\\
+\hline
+\end{tabular}
+\end{center}
+
+Udtryk af type \verb"Rel" $(\cal R)$:\index{Rel}
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Betegnelse & Syntaks \\\hline
+\qind{konstant} & \verb"rel("$\cal T$\verb")", \verb"zero"\\
+\qind{navn} & \verb"n"\\
+\qind{union} & ${\cal R}_1$ \verb"+" ${\cal R}_2$\\
+\qind{join} & ${\cal R}_1$ \verb"*" ${\cal R}_2$\\
+\qind{difference} & ${\cal R}_1$ \verb"-" ${\cal R}_2$\\
+\qind{project} & $\cal R$ \verb"|+" \verb"n"$_1$\verb",...,n"$_k$, $\cal R$ \verb"|-"
+\verb"n"$_1$\verb",...,n"$_k$\\
+\qind{select} & $\cal R$ \verb"?" $\cal B$\\
+\qind{rename} & $\cal R$ \verb"[n"$_1$\verb" <- n"$_2$\verb"]"\\
+\qind{forall} & \verb"!("${\cal R}_1$\verb"): "${\cal R}_2$\\
+\qind{factor} & \verb"!("${\cal R}_1,\ldots,{\cal R}_m$\verb")|"\verb"n"$_1$\verb",...,n"$_k$: ${\cal R}$\\
+\qind{funktionsanvendelse} & $\cal F$\verb"("${\cal U}_1$\verb",...,"${\cal U}_k$\verb")"\\
+\qind{indskudt udtryk} & \verb"(+ val n"$_1$\verb"="${\cal U}_1$ \ldots
+\verb"val n"$_k$\verb"="${\cal U}_k$ \verb"in" $\cal R$ \verb"+)"\\
+\qind{betinget udtryk} & \verb"if" $\cal B$ \verb"->" $\cal R$ \ldots \verb"fi"\\
+\hline
+\end{tabular}
+\end{center}
+
+Udtryk af type \verb"Func" $(\cal F)$:\index{Func}
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Betegnelse & Syntaks \\\hline
+\qind{konstant} & \verb"Func (...) -> (...)" $\cal U$ \verb"end"\\
+\qind{navn} & \verb"n"\\
+\qind{funktionsanvendelse} & $\cal F$\verb"("${\cal U}_1$\verb",...,"${\cal U}_k$\verb")"\\
+\qind{indskudt udtryk} & \verb"(+ val n"$_1$\verb"="${\cal U}_1$ \ldots
+\verb"val n"$_k$\verb"="${\cal U}_k$ \verb"in" $\cal F$ \verb"+)"\\
+\qind{betinget udtryk} & \verb"if" $\cal B$ \verb"->" $\cal F$ \ldots \verb"fi"\\
+\hline
+\end{tabular}
+\end{center}
+
+\newpage
+\section{Overordnede begreber}
+Efter de foreg\aa{}ende kapitlers eksempelbaserede pr\ae{}sentation
+skal vi nu give en mere systematisk og begrebsorienteret beskrivelse af
+{\sc Rasmus}.
+
+\subsection{Relationelle databaser}
+{\sc Rasmus} er interessant af mindst to \aa{}rsager, dels fordi
+sproget indeholder de v\ae{}sentligste ingredienser fra det emneomr\aa{}de,
+der hedder {\em \qind{relationelle databaser}}, og dels fordi det repr\ae{}senterer
+nogle af de mest fundamentale begreber, der findes i programmeringssprog
+og programmeringsnotationer.
+
+Relationelle databaser blev ``opfundet'' omkring 1970, som et forslag
+til en ``ren'', systematisk og teoretisk velfunderet teknik til
+opbevaring og behandling af store datam\ae{}ngder. Den basale
+iagttagelse var, at dels kan praktisk talt enhver samling informationer,
+man kan forestille sig, repr\ae{}senteres i form af en eller flere
+relationer, og dels tillader de basale relationelle operatorer
+(union, join, select, project), at man kombinerer og udtr\ae{}kker
+informationer fra vilk\aa{}rlige relationer p\aa{} en meget generel
+m\aa{}de. 
+
+Dette betyder blandt andet, at hvis information opbevares
+i form af relationer, s\aa{} kan forskellige data, der fra f\o{}dslen
+ikke synes at have meget med hinanden at g\o{}re, bearbejdes af det samme
+{\em databehandlingssystem}, uanset tidspunktet for og omst\ae{}ndighederne
+ved det tilblivelse. Dette giver en fleksibilitet og en generalitet,
+der st\aa{}r i skarp kontrast til en strategi, hvor man designer b\aa{}de
+datarepr\ae{}sentation og tilh\o{}rende programmer afh\ae{}ngigt af
+den konkrete opgave og uden at tage h\o{}jde for, at det senere skal kunne
+``samk\o{}res'' med andre data. Relationelle databaser introducerer derfor
+ikke blot nogle nyttige begreber og en hensigtsm\ae{}ssig systematik,
+teknikken sparer ogs\aa{} ressourcer i forbindelse med praktisk 
+databehandling.
+
+\subsection{Typer, v\ae{}rdier og udtryk}
+Uanset den praktiske nyttev\ae{}rdi, som bestemt er til stede, skal vi
+i det f\o{}lgende koncentere os om det andet interessante aspekt, nemlig
+{\sc Rasmus} som programmeringssprog. 
+
+For at forst\aa{} et 
+programmeringssprog, herunder {\sc Rasmus}, er det 
+afg\o{}rende at forst\aa{}
+det centrale begreb {\em v\ae{}rdi}, som er en temmelig abstrakt
+st\o{}rrelse. St\ae{}rkt forenklet kan man sige, at faciliteterne i
+{\sc Rasmus} er beregnet til at {\em skabe}, {\em gemme\/}
+og {\em genfinde\/} v\ae{}rdier: heltal, sandhedsv\ae{}rdier,
+tegnf\o{}lger, tupler, relationer og funktioner.
+V\ae{}rdierne skabes som resultater af udtryk, hvorfor udtryk ogs\aa{}
+klassificeres efter hvilken slags v\ae{}rdier, de producerer.
+I datalogisk terminologi bruger man {\em typer}, det vil sige,\index{type}
+at vi i {\sc Rasmus} har v\ae{}rdier og udtryk af typerne:
+\verb"Int", \verb"Bool", \verb"Text", \verb"Tup", \verb"Rel" og \verb"Func".
+
+\subsection{Konstante udtryk}
+Ethvert udtryk skaber (eller producerer) alts\aa{} en v\ae{}rdi af den
+p\aa{}g\ae{}ldende type. De simpleste udtryk er {\em konstanterne},
+som fx\index{konstant}
+$$\mbox{\tt 5}$$
+Dette er et udtryk af type \verb"Int", der som resultat (eller v\ae{}rdi)
+har {\em tallet\/} 5. Bem\ae{}rk, at {\em tallet\/} 5 i sig selv er noget
+abstrakt og at udtrykket {\tt 5} blot er et af mange mulige udtryk, hvis
+v\ae{}rdi er dette tal. Hvis man fx var forelsket i romertal eller
+bin\ae{}re tal, s\aa{} kunne man bruge \verb"V" eller \verb"101" som
+udtryk med v\ae{}rdi 5. I {\sc Rasmus} benyttes den velkendte decimale
+notation for konstanter af type \verb"Int".
+
+De \o{}vrige typer har ogs\aa{} konstanter, det vil sige udtryk,
+der angiver deres v\ae{}rdier. Som n\ae{}vnt i kapitel 4 er
+f\o{}lgende eksempler karakteristiske for konstante udtryk af de
+forskellige typer
+{\tt
+\begin{description}%% {{\tt ~~~Text}:}
+\item[{\tt ~~~Bool}:] true 
+\item[{\tt ~~~Text}:] "AGF"
+\item[{\tt ~~~Tup}:] tup(hold:"AGF")
+\item[{\tt ~~~Rel}:] rel(tup(hold:"AGF"))
+\item[{\tt ~~~Func}:] func () -> (Text) "AGF" end
+\end{description}
+}
+Deres v\ae{}rdier er henholdsvis
+\begin{itemize}
+\item sandhedsv\ae{}rdien sand
+\item tegnf\o{}lgen best\aa{}ende af tegnene \verb"A", \verb"G" og \verb"F"
+\item et tupel med attribut \verb"hold" hvis tilsvar\-en\-de v\ae{}rdi er
+tegnf\o{}lgen best\aa{}\-en\-de af tegnene \verb"A", \verb"G" og \verb"F"
+\item en relation indeholdende et enkelt tupel med attribut \verb"hold" og
+til\-svar\-en\-de v\ae{}rdi
+tegnf\o{}lgen best\aa{}ende af tegnene \verb"A", \verb"G" og \verb"F"
+\item en funktion uden parametre, der returnerer tegnf\o{}lgen best\aa{}\-en\-de 
+af tegnene \verb"A", \verb"G" og \verb"F"
+\end{itemize}
+Enhver type har en {\em m\ae{}ngde\/} af v\ae{}rdier knyttet til sig.
+V\ae{}rdim\ae{}ngderne i {\sc Rasmus} er\index{v\ae{}rdim\ae{}ngde}
+\begin{description}%% {{\tt ~~~Text}:}
+\item[{\tt ~~~Int}:] m\ae{}ngden af heltal
+\item[{\tt ~~~Bool}:] de to sandhedsv\ae{}rdier
+\item[{\tt ~~~Text}:] m\ae{}ngden af f\o{}lger af ASCII tegn
+\item[{\tt ~~~Tup}:] m\ae{}ngden af tupler
+\item[{\tt ~~~Rel}:] m\ae{}ngden af relationer, der hver er en endelig
+m\ae{}ngde af tupler med samme skema
+\item[{\tt ~~~Func}:] m\ae{}ngden af funktioner med nul eller flere
+argumenter af en af de seks typer og med et resultat, der er af en af de seks
+typer
+\end{description}
+V\ae{}rdim\ae{}ngden i \verb"Int", \verb"Bool", \verb"Text", \verb"Tup" og
+\verb"Rel" er {\em ordnede}, det vil sige, man kan sammenligne deres
+v\ae{}rdier. Ordningerne er som f\o{}lger
+\begin{description}%% {{\tt ~~~Text}:}
+\item[{\tt ~~~Int}:] den s\ae{}dvanlige ordning p\aa{} heltallene
+\item[{\tt ~~~Bool}:] \verb"false" er mindre end \verb"true"
+\item[{\tt ~~~Text}:] alfabetisk ordning, hvor ``bogstaverne'' er ASCII tegn
+i den s\ae{}dvanlige r\ae{}kkef\o{}lge
+\item[{\tt ~~~Tup}:] {\tt t$_1$} er mindre end {\tt t$_2$}, hvis alle attributnavne
+i {\tt t$_1$} ogs\aa{} forekommer i {\tt t$_2$} og v\ae{}rdier h\o{}rende
+til f\ae{}lles attributnavne er ens i de to tupler. 
+\item[{\tt ~~~Rel}:] {\tt r$_1$} er mindre end {\tt r$_2$}, hvis 
+de har samme skema, og alle tupler i {\tt r$_1$} ogs\aa{} 
+forekommer i {\tt r$_2$}
+\end{description}
+For de tre atomare typer (\verb"Int", \verb"Bool" og \verb"Text")
+er dette imidlertid ikke hele sandheden. De tre typer, hvis
+v\ae{}rdier er de eneste mulige attributv\ae{}rdier, har endnu en v\ae{}rdi,
+nemlig den s\aa{}kaldte {\em \qind{standardv\ae{}rdi}}. Disse 
+standardv\ae{}rdier kan angives
+med konstantudtrykkene \verb"?-Int", \verb"?-Bool" og \verb"?-Text".
+Meningen med og behovet for s\aa{}danne standardv\ae{}rdier kan
+illustreres af f\o{}lgende udvidelse af informationen om vore
+fodboldkampe. Relationen
+\verb"Tips" indeholder kun kampe fra \verb"Runde1", den f\o{}rste halvdel af 
+turneringen. Dette skyldes, at spilledagene i anden halvdel falder
+p\aa{} en s\aa{}dan m\aa{}de, at de seks tophold ikke spiller
+inden for samme uge p\aa{} en s\aa{}dan m\aa{}de, at vi kan
+definere en tipskupon med tre kampe, hvor alle hold deltager.
+Hvis man nu tillader andre kampe at optr\ae{}de p\aa{} kuponen, er det
+naturligvis nemt ogs\aa{} at lave tipskuponer for \verb"Runde2".
+I s\aa{} falde kunne \verb"Tips" relationen have f\o{}lgende udseende
+\begin{center}
+\RERRR{Id:Int}{Uge:Int}{Nr:Int}{
+$\vdots$ & 
+$\vdots$ & 
+$\vdots$ \\
+12 &
+18 &
+3\\
+13 &
+19 &
+1\\
+14 &
+19 &
+2\\
+15 &
+19 &
+3\\
+19 & 21 & 1\\
+20 & 21 & 2\\
+\grey\grey\grey\grey\grey\grey\grey\grey\grey\grey\grey\grey & 21 & 3\\
+\grey\grey\grey\grey\grey\grey\grey\grey\grey\grey\grey\grey & 23 & 1\\
+26 & 23 & 2\\
+27 & 23 & 3\\
+29 & 25 & 1\\
+30 & 25 & 1\\
+\grey\grey\grey\grey\grey\grey\grey\grey\grey\grey\grey\grey & 25 & 3}
+\end{center}
+Som det ses, er der nogle af kampene for hvilke \verb"Id"-feltet
+er ``tomt''. Grunden er, at vi kun har Superliga kampe i vores
+database, det vil sige, vi mangler identifikationen af den relevante
+kamp. Nu kan felter i tupler imidlertid ikke v\ae{}re tomme --
+{\sc Rasmus} forlanger, at der altid er knyttet en v\ae{}rdi til
+en attribut -- og derfor skal vi bruge en v\ae{}rdi, der angiver
+``manglende information''. Dette er pr\ae{}cis hvad standardv\ae{}rdien
+kan bruges til. De ``tomme felter'' er alts\aa{} i virkeligheden ikke
+tomme; de indeholder \verb"?-Int", standardv\ae{}rdien for typen \verb"Int".
+I {\sc Rasmus} systemet angives dette ved, at feltet er {\em lysegr\aa{}t}.
+Vi kan illustrere sammenh\ae{}ngen mellem standardv\ae{}rdien
+\verb"?-Int" og et lysegr\aa{}t felt ved hj\ae{}lp af f\o{}lgende eksempel.
+
+\eksempel{
+V\ae{}rdien af udtrykket 
+\begin{center}
+\verb"rel(tup(Hovsa:?-Int))"
+\end{center}
+er
+\begin{center}
+\RER{Hovsa:Int}{\grey\grey\grey\grey\grey\grey\grey\grey\grey\grey\grey\grey\grey\grey\grey\grey\grey\grey}
+\end{center}
+}
+
+Udover at angive manglende information kan standardv\ae{}rdien
+ogs\aa{} brug\-es til at angive at et felt er irrelevant for et
+givent tupel, eller at der er tale om andre former for undtagelser.
+Vi bem\ae{}rker, at et tom {\em hvidt\/} felt ikke angiver en
+standardv\ae{}rdi men derimod en \verb"Text"-attribut, hvis v\ae{}rdi
+er den tomme tegnf\o{}lge.
+
+\subsection{Navne og tilstande}
+Vi vender nu tilbage til beskrivelsen af udtryk, hvor vi allerede har
+set, at konstanter er udtryk. En anden form for simple udtryk er navne,
+som fx
+$$ \mbox{\tt Kampe} $$
+V\ae{}rdien af et s\aa{}dant udtryk er den v\ae{}rdi, der er {\em bundet\/}
+til det p\aa{}\-g\ae{}ld\-en\-de navn. I eksemplet er det den relation,
+der indeholder samtlige kampe i turneringen. N\aa{}r man introducerer et
+navn i {\sc Rasmus} er det altid for at navngive en v\ae{}rdi af en af
+de seks typer, det vil sige, alle navne i {\sc rasmus} har altid
+en v\ae{}rdi bundet til sig. Den samling af navne, med tilh\o{}rende
+v\ae{}rdier, man p\aa{} et givet tidspunkt har adgang til, kaldes
+under et for den aktuelle {\em \qind{tilstand}}, og udregningen af udtryk i
+{\sc Rasmus} foreg\aa{}r altid relativt til en s\aa{}dan tilstand.
+
+Der findes tre m\aa{}der, hvorp\aa{} man kan binde v\ae{}rdier til navne
+og derved modificere den aktuelle tilstand.
+Den f\o{}rste m\aa{}de er ved at navngive et udtryk (ved hj\ae{}lp af
+{\bf Save last}) hvilket i eksemplerne er angivet med \fbox{\fbox{\tt Navn}}.
+Effekten heraf er, at den p\aa{}g\ae{}ld\-en\-de v\ae{}rdi bliver bundet
+til \verb"Navn", hvorefter denne binding tilf\o{}jes til tilstanden.
+Hvis der allerede findes en binding til \verb"Navn", s\aa{} forsvinder
+denne. Vi kalder en s\aa{}dan udvidelse/overskrivning for en {\em \qind{opdatering}\/}
+af tilstanden.
+
+Den anden m\aa{}de at introducere bindinger er ved hj\ae{}lp af et
+indskudt udtryk af formen
+{\tt
+\begin{center}
+\begin{tabular}{ll}
+(+ & val $\META{id}_{\mbox{\bf 1}}$ = $\META{udtryk}_{\mbox{\bf 1}}$ \\
+   & val $\META{id}_{\mbox{\bf 2}}$ = $\META{udtryk}_{\mbox{\bf 2}}$ \\
+   & $\vdots$ \\
+   & val $\META{id}_{\mbox{\bf n}}$ = $\META{udtryk}_{\mbox{\bf n}}$ \\
+   & in \META{udtryk}\\
++) &
+\end{tabular}
+\end{center}
+}
+Her sker der f\o{}lgende. F\o{}rst udregnes $\META{udtryk}_{\mbox{\bf 1}}$
+i den aktuelle tilstand og dets v\ae{}rdi bindes til
+$\META{id}_{\mbox{\bf 1}}$, hvorefter den aktuelle tilstand opdateres
+med denne binding. Derefter udregnes $\META{udtryk}_{\mbox{\bf 2}}$
+i den nye tilstand, v\ae{}rdien bindes til $\META{id}_{\mbox{\bf 2}}$
+og tilstanden opdateres med denne binding. Dette fors\ae{}tter indtil
+alle {\bf n} opdateringer er foretaget, hvorefter \META{udtryk}
+udregnes i den resulterende tilstand. Herefter {\em retableres\/}
+den oprindelige tilstand, det vil sige, udregningen af et indskudt
+udtryk p\aa{}virker s\aa{}ledes ikke tilstanden -- de udf\o{}rte
+opdateringer er {\em lokale\/} og {\em midlertidige}.
+
+Den sidste m\aa{}de at foretage bindinger p\aa{} er i forbindelse med
+funktionsanvendelse. Hvis funktionen
+\begin{center}
+\begin{tabular}{l}
+\verb"func (p1:T1, p2:T2) -> (T)"\\
+\SS{2}{\bf udtryk}\\
+\verb"end"
+\end{tabular}
+\end{center}
+er bundet til navnet \verb"F" i den aktuelle tilstand, vil
+funktionsanvendelsen
+\begin{center}
+\verb"F("\META{udtryk}$_{\mbox{\bf 1}}$\verb","\META{udtryk}$_{\mbox{\bf 2}}$\verb")"
+\end{center}
+bevirke f\o{}lgende. F\o{}rst udregnes v\ae{}rdierne af 
+\META{udtryk}$_{\mbox{\bf 1}}$ og \META{udtryk}$_{\mbox{\bf 2}}$
+i den aktuelle tilstand. Dern\ae{}st bindes disse v\ae{}rdier til
+henholdsvis \verb"p1" og \verb"p2", og tilstanden opdateres med disse
+to bindinger. Nu udregnes {\bf udtryk} i den s\aa{}ledes
+modificerede tilstand, og den resulterende v\ae{}rdi er ogs\aa{}
+v\ae{}rdien af funktionsanvendelsen. Endelig retableres den oprindelige
+tilstand. Udregningen af en funktionsanvendelse p\aa{}virker alts\aa{}
+heller ikke tilstanden.
+
+\subsection{Sammensatte udtryk}
+Efter at have introduceret simple udtryk (konstanter og navne)
+og tilstande, skal vi nu se p\aa{} {\em sammensatte} udtryk,
+der f\aa{}s ved p\aa{} s\ae{}dvanlig algebraisk vis at
+sammens\ae{}tte to deludtryk ved hj\ae{}lp af en {\em operator}.
+Et simpelt eksempel er
+$$ \mbox{\tt 3+4} $$
+hvor operatoren \verb"+" er heltalsaddition og de to
+deludtryk er konstanter af type \verb"Int". Det er klart, at \verb"+"
+stiller det krav, at operanderne skal v\ae{}re heltal. Fx er udtrykket
+$$ \mbox{\verb:3+"AGF":} $$
+hverken tilladt eller s\ae{}rligt meningsfuldt, idet det naturligvis
+ikke giver mening at addere tallet \verb"3" og
+tegnf\o{}lgen \verb"A", \verb"G", \verb"F".
+Om et udtryk som
+$$ \mbox{\verb:3+x:} $$
+er tilladt, afh\ae{}nger af typen af den v\ae{}rdi, der er bundet til
+\verb"x". Hvis den er af type \verb"Int" er sagen i orden, ellers er
+det en fejl.
+
+Vi gennemg\aa{}r nu udtrykkene i oversigten i afsnit 5.8 og kommenterer
+i n\o{}dvendigt omfang operatorernes betydning, samt hvilke krav de
+stiller til deres operander.
+
+{\bf For samtlige seks udtrykstyper g\ae{}lder f\o{}lgende.}
+
+{\em Konstanter:}\index{konstant}\\
+Taler for sig selv. Resultatet er den ``oplagte'' (abstrakte) v\ae{}rdi.
+
+{\em Navne:}\index{navn}\\
+Et navn skal findes i tilstanden, og v\ae{}rdien er den,
+der her er bundet til navnet.
+
+{\em Funktionsanvendelse $\cal F$\verb"("${\cal U}_1$\verb",...,"${\cal U}_k$
+\verb")":}\index{funktionsanvendelse}\\
+${\cal U}_1$, \ldots, ${\cal U}_k$ skal v\ae{}re udtryk af samme typer
+som de tilsvarende formelle parametre i den funktion, der er
+v\ae{}rdien af $\cal F$. Resultatet er som beskrev\-et i afsnit 6.4.
+
+{\em Indskudt udtryk \verb"(+ val" \ldots \verb"in" $\cal U$ \verb"+)":}\\
+Som beskrevet i afsnit 6.4.\index{indskudt udtryk}
+
+{\em Betinget udtryk \verb"if" ${\cal B}_1$ \verb"->" ${\cal U}_1$
+\verb"&" \ldots \verb"&" ${\cal B}_n$ \verb"->" ${\cal U}_n$ \verb"fi":}\index{betinget udtryk}\\
+Resultatet opn\aa{}s ved f\o{}rst at udregne ${\cal B}_1$, \ldots,
+${\cal B}_n$ i r\ae{}kkef\o{}lge indtil det f\o{}rste ${\cal B}_i$,
+hvis v\ae{}rdi er sand. Resultatet er da v\ae{}rdien af
+${\cal U}_i$. Hvis intet ${\cal B}_i$ er sandt, s\aa{} er resultatet
+(lidt arbitr\ae{}rt) tallet 0.
+
+{\bf For de {\em atomare typer\/} g\ae{}lder f\o{}lgende.}\index{atomar}
+
+{\em Standardv\ae{}rdien \verb"?-"$\cal A$:}\index{standardv\ae{}rdi}\\
+Dette er en ``ekstra'' v\ae{}rdi, der tilf\o{}jes til typen.
+Den er kun lig med sig selv og st\aa{}r ikke i nogen ordningsrelation
+til de andre v\ae{}rdier. Standardv\ae{}rdien m\aa{} kun v\ae{}re
+operand til sammenligningsoperatorer.
+
+{\em Attribut $\cal T$\verb".n":}\index{attribut}\\
+Navnet \verb"n" skal v\ae{}re en attribut i v\ae{}rdien af $\cal T$.
+Resultatet er den til\-svar\-en\-de attributv\ae{}rdi.
+
+{\em Maksimum \verb"max("$\cal R$\verb",n)":}\index{maksimum}\\
+Navnet \verb"n" skal v\ae{}re en attribut i v\ae{}rdien af $\cal R$.
+Resultatet er den st\o{}rste \verb"n"-v\ae{}rdi i $\cal R$ i den
+p\aa{}g\ae{}ldende types ordning. Hvis $\cal R$ er tom, eller
+\verb"n"-attributten overalt har standardv\ae{}rdien \verb"?-"$\cal A$,
+er resultatet denne standardv\ae{}rdi.
+
+{\em Minimum \verb"min("$\cal R$\verb",n)":}\index{minimum}\\
+Analog til maksimum.
+
+{\bf For \verb"Bool"-udtryk g\ae{}lder f\o{}lgende.}
+
+{\em Sammenligning ${\cal O}_1$\verb"="${\cal O}_2$, ${\cal O}_1$\verb"<"${\cal O}_2$, og s\aa{} videre:}\index{sammenligning}\\
+${\cal O}_1$ og ${\cal O}_2$ skal v\ae{}re af samme type. Resultatet er
+\verb"true", hvis v\ae{}rdierne har den angivne indbyrdes ordning, og
+\verb"false" ellers.
+
+{\em Negation \verb"not" $\cal B$:}\index{negation}\\
+Resultatet er \verb"true" (\verb"false") hvis v\ae{}rdien af 
+$\cal B$ er \verb"false" (\verb"true").
+
+{\em Konjunktion ${\cal B}_1$ \verb"and" ${\cal B}_2$:}\index{konjunktion}\\
+Resultatet er \verb"true", hvis b\aa{}de ${\cal B}_1$ og ${\cal B}_2$
+har v\ae{}rdi \verb"true", og \verb"false" ellers.
+
+{\em Disjunktion ${\cal B}_1$ \verb"or" ${\cal B}_2$:}\index{disjunktion}\\
+Resultatet er \verb"false", hvis b\aa{}de ${\cal B}_1$ og ${\cal B}_2$
+har v\ae{}rdi \verb"false", og \verb"true" ellers.
+
+{\em Skemacheck \verb"has("$\cal R$\verb",n)":}\index{skemacheck}\\
+Resultatet er \verb"true", hvis \verb"n" er attributnavn i $\cal R$,
+og \verb"false" ellers.
+
+{\em Typecheck \verb"is-"$\cal A$\verb"("$\cal R$\verb",n)":}\index{typecheck}\\
+Resultatet er \verb"true", hvis \verb"n"'s type i $\cal R$'s type
+er $\cal A$, og \verb"false" ellers.
+
+{\em Match ${\cal X}_1$\verb"~"${\cal X}_2$:}\index{match}\\
+Resultatet er \verb"true", hvis ${\cal X}_1$ optr\ae{}der som en del af ${\cal
+X}_2$.
+
+{\bf For \verb"Int"-udtryk g\ae{}lder f\o{}lgende.}
+
+{\em Regneoperatorer \verb"+", \verb"-", \verb"*", \verb"/", \verb"mod":}\\
+Taler for sig selv.\index{regneoperator}
+
+{\em Relationsst\o{}rrelse og tekstl\ae{}ngde, \verb"|"$\cal R$\verb"|" og
+\verb"|"$\cal X$\verb"|":}\index{relationsst\o{}rrelse}\index{tekstl\ae{}ngde}\\
+Resultatet er antallet af tupler i $\cal R$ og antallet af tegn i
+$\cal X$.
+
+{\em Addition \verb"add("$\cal R$\verb",n)":}\index{add}\\
+Navnet \verb"n" skal v\ae{}re en attribut i $\cal R$ af type \verb"Int".
+Resultatet er summen af \verb"n"-v\ae{}rdierne i $\cal R$. Hvis 
+$\cal R$ er tom, eller \verb"n"-v\ae{}rdierne alle er \verb"?-Int", er
+resultatet \verb"?-Int".
+
+{\em Multiplikation \verb"mult("$\cal R$\verb",n)":}\index{mult}\\
+Analog til addition.
+
+{\em Opt\ae{}lling \verb"count("$\cal R$\verb",n)":}\index{count}\\
+Navnet \verb"n" skal v\ae{}re en attribut i $\cal R$.
+Resultatet er antallet af \verb"n"-v\ae{}rdierne i $\cal R$, der er
+forskellige fra standardv\ae{}rdien.
+
+{\em Antal dage \verb"days("${\cal T}_1$,${\cal T}_2$\verb")":}\index{days}\index{antal dage}\\
+Resultatet er antallet af dage mellem datoerne ${\cal T}_1$ og ${\cal T}_2$.
+En dato repr\ae{}senteres som en tekst p\aa{} formen {\tt dd/mm/\aa{}\aa{}}.
+
+{\bf For \verb"Text"-udtryk g\ae{}lder f\o{}lgende.}
+
+{\em Deltekst $\cal X$\verb"("${\cal I}_1$\verb".."${\cal I}_2$\verb")":}\\
+Resultatet er delteksten af $\cal X$ best\aa{}ende af de tegn, hvis
+indices er st\o{}rre end eller lig med v\ae{}rdien af 
+${\cal I}_1$ om mindre end v\ae{}rdien af ${\cal I}_2$.\index{deltekst}
+
+{\em Konkatenation ${\cal X}_1$ \verb"++" ${\cal X}_2$:}\index{konkatenation}\\
+Resultatet er sammens\ae{}tningen af v\ae{}rdierne af
+${\cal X}_1$ og ${\cal X}_2$.
+
+{\em Pr\ae{}fiks \verb"before("${\cal X}_1$,${\cal X}_2$\verb")":}\index{before}\index{pr\ae{}fiks}\\
+Resultatet er den del af ${\cal X}_2$, der st\aa{}r foran f\o{}rste forekomst af
+delteksten ${\cal X}_1$. Hvis ${\cal X}_1$ slet ikke forekommer, s\aa{} er
+resultatet den tomme tekst.
+
+{\em Suffiks \verb"after("${\cal X}_1$,${\cal X}_2$\verb")":}\index{after}\index{suffiks}\\
+Resultatet er den del af ${\cal X}_2$, der st\aa{}r efter f\o{}rste forekomst af
+delteksten ${\cal X}_1$. Hvis ${\cal X}_1$ slet ikke forekommer, s\aa{} er
+resultatet den tomme tekst.
+
+{\em Dags dato \verb"today":}\index{dags dato}\index{today}\\
+Resultatet er dags dato p\aa{} formen {\tt dd/mm/\aa{}\aa{}}.
+
+{\em Fremtidig dato \verb"date("${\cal X}$,${\cal I}$\verb")":}\index{fremtidig dato}\index{date}\\
+Resultatet er den dato, der ligger ${\cal I}$ dage senere end datoen ${\cal X}$.
+En dato repr\ae{}senteres som en tekst p\aa{} formen {\tt dd/mm/\aa{}\aa{}}.
+
+{\bf For \verb"Tup"-udtryk g\ae{}lder f\o{}lgende.}
+
+{\em Opdatering ${\cal T}_1$ \verb"<<" ${\cal T}_2$:}\index{opdatering}\\
+Resultatet er v\ae{}rdien af ${\cal T}_1$ opdateret med
+bindingerne i v\ae{}rdien af ${\cal T}_2$.
+
+{\em Elimination $\cal T$ $\backslash$ \verb"n":}\index{elimination}\\
+Resultatet er v\ae{}rdien af $\cal T$ med en eventuel binding
+til \verb"n" fjernet.
+
+{\bf For \verb"Rel"-udtryk g\ae{}lder f\o{}lgende.}
+
+{\em Konstanten \verb"zero":}\index{zero}\\
+Resultatet er den tomme relation med tomt skema.
+
+{\em Union og difference, ${\cal R}_1$ \verb"+" ${\cal R}_2$ og
+${\cal R}_1$ \verb"-" ${\cal R}_2$:}\index{union}\index{difference}\\
+${\cal R}_1$ og ${\cal R}_2$ skal have samme skema. Resultatet er
+henholdsvis foreningsm\ae{}ngde og m\ae{}ngdedifferens af tuplerne
+i ${\cal R}_1$ og ${\cal R}_2$.
+
+{\em Project $\cal R$ \verb"|+" \verb"n"$_1$\verb",...,n"$_k$}\index{project}
+Navnene \verb"n"$_1$, \ldots, \verb"n"$_k$ skal v\ae{}re attributter
+i $\cal R$. Resultatet er m\ae{}ngden af tupler i $\cal R$ begr\ae{}nset
+til disse attributter.
+
+{\em Select $\cal R$ \verb"?" $\cal B$:}\index{select}\\
+Resultatet er den delm\ae{}ngde af tupler i $\cal R$, hvor
+$\cal B$ har v\ae{}rdi \verb"true", n\aa{}r symbolet \verb"#" erstattes
+med det p\aa{}g\ae{}ldende tupel.
+
+{\em Rename $\cal R$ \verb"[n"$_1$\verb" <- n"$_2$\verb"]":}\index{rename}\\
+Navnet \verb"n"$_1$ skal v\ae{}re en attribut i $\cal R$, hvorimod
+navnet \verb"n"$_2$ ikke m\aa{} v\ae{}re det. Resultatet er
+m\ae{}ngden af tupler i $\cal R$ med \verb"n"$_1$ omd\o{}bt
+til \verb"n"$_2$.
+
+{\em Join ${\cal R}_1$ \verb"*" ${\cal R}_2$:}\index{join}\\
+F\ae{}lles attributter i ${\cal R}_1$ og ${\cal R}_2$ skal have samme type.
+Resultatets skema er foreningen af de to skemaer. 
+Resultatets tupler er alle de, der projiceret p\aa{}
+${\cal R}_1$'s skema tilh\o{}rer ${\cal R}_1$, og projiceret p\aa{}
+${\cal R}_2$'s skema tilh\o{}rer ${\cal R}_2$.
+
+{\em Forall \verb"!("${\cal R}_1$\verb"): "${\cal R}_2$:}\index{forall}\\
+Resultatet er foreningsm\ae{}ngden af de relationer, 
+der fremkommer ved for hvert
+${\cal R}_1$-tupel at  udregne ${\cal R}_2$ med symbolet
+\verb"#" erstattet med tuplet.
+
+{\em Factor \verb"!("${\cal R}_1,\ldots,{\cal R}_m$\verb")|"\verb"n"$_1$\verb",...,n"$_k$\verb":"${\cal R}$:}\index{factor}\\
+Resultatet er foreningsm\ae{}ngden af de relationer,
+der fremkommer ved for hvert faktorsekvens $(t_i,r_{i1},\ldots,r_{im})$ at
+beregne ${\cal R}$ med symbolet
+\verb"#" erstattet med $t_i$ og symbolet \verb"@(j)" erstattet med $r_{ij}$.
+
+{\bf For \verb"Func"-udtryk g\ae{}lder f\o{}lgende.}
+
+{\em Konstant \verb"func (...) -> (...)" $\cal U$ \verb"end":}\index{konstant}\\
+Typen af $\cal U$ skal v\ae{}re resultattypen.
+
+\subsection{Algebraiske love}
+Som det fremg\aa{}r af det foreg\aa{}ende, spiller operatorerne
+den helt centrale rolle i {\sc Rasmus}. Vi skal derfor i resten af
+dette kapitel interessere os lidt mere for deres {\em algebraiske\/}
+egenskaber. Hermed menes de love, der g\ae{}lder for operatorerne,
+og som vi kan illusterer med f\o{}lgende eksempel. Hvis \verb"+" er
+almindelig addition af heltal, er der ingen der undrer sig over
+f\o{}lgende udtryk\index{tvetydighed}
+$$ \mbox{\verb"x + y + z"} $$
+uanset, at det faktisk er {\em tvetydigt}, da det kan opfattes 
+som \verb"x + (y + z)" eller som \verb"(x + y) + z". Grunden til at
+vi ikke bliver forvirrede er, at det er ligegyldigt, hvilket af de
+to alternativer vi v\ae{}lger, fordi \verb"+" opfylder den
+{\em associative} lov. Denne lov udtrykker netop at de to alternativer
+er lige gode, det vil sige, for alle \verb"x", \verb"y" og \verb"z"
+g\ae{}lder
+$$ \mbox{\verb"x + (y + z) = (x + y) + z"} $$
+Udover associativitet benytter vi os ogs\aa{} af de {\em kommutative\/}
+og {\em distributive\/} love for heltalsaritmetik. Mere pr\ae{}cist
+g\ae{}lder der for addition og multiplikation af heltal
+f\o{}lgende love\index{associativ}\index{kommutativ}\index{distributiv}
+\begin{center}
+\begin{tabular}{ll}
+Associativitet: & \verb"x + (y + z) = (x + y) + z" \\
+                & \verb"x * (y * z) = (x * y) * z" \\
+Kommutativitet: & \verb"x + y = y + x"\\
+                & \verb"x * y = y * x"\\
+Distributivitet: & \verb"x * (y + z) = (x * y) + (x * z)"
+\end{tabular}
+\end{center}
+Det interessante er nu, at hvis \verb"+" og \verb"*" i stedet betyder
+union og join af relationer, s\aa{} g\ae{}lder ovenst\aa{}ende
+fem love stadig. Ikke nok med det, der g\ae{}lder yderligere
+f\o{}lgende sammenh\ae{}nge mellem union, join, select og project
+(hvor vi antager, at begge sider af ligningerne er lovlige udtryk)
+\begin{center}
+\begin{tabular}{rcl}
+ \verb"(x * y) ? b" & \verb"=" & \verb"(x ? b) * (y ? b)"\\
+ \verb"(x + y) ? b" & \verb"=" & \verb"(x ? b) + (y ? b)"\\
+ \verb"(x + y) |+ a" & \verb"=" & \verb"(x |+ a) + (y |+ a)"\\
+ \verb"(x |+ a) ? b" & \verb"=" & \verb"(x ? b) |+ a"
+\end{tabular}
+\end{center}
+Hertil kommer, at select spiller sammen med de logiske operatorer
+p\aa{} f\o{}lgende m\aa{}de
+\begin{center}
+\begin{tabular}{rcl}
+\verb"x ? (b and c)" & \verb"=" & \verb"(x ? b) * (x ? c)"\\
+\verb"x ? (b or c)" & \verb"=" & \verb"(x ? b) + (x ? c)"\\
+\verb"x ? (not b)" & \verb"=" & \verb"x - (x ? b)"
+\end{tabular}
+\end{center}
+Der findes andre, mere subtile love, som vi ikke skal komme n\ae{}rmere
+ind p\aa{} her, men som sammen med ovenst\aa{}ende fx kan anvendes til
+effektivitetsfremmende omskrivninger.
+
+Betragt som et simpelt eksempel herp\aa{} den distributive lov for
+union og project
+\begin{center}
+\verb"(x + y) |+ a = (x |+ a) + (y |+ a)"
+\end{center}
+Vi antager, at \verb"x" og \verb"y" hver indeholder ca.\ 10.000 tupler,
+men at \verb"a"-attribut\-ten ikke indeholder mere end 100 forskellige
+v\ae{}rdier. Ved at udregne venstresiden skal der f\o{}rst skabes en
+relation \verb"(x + y)" med ca.\ 20.000 tupler, som derefter
+skal projiceres ned til en relation med kun ca.\ 100 tupler.
+Ved en udregning af h\o{}jresiden derimod nedsk\ae{}res \verb"x" og
+\verb"y" udmiddelbart til beskeden st\o{}rrelse, hvorefter
+foreningsm\ae{}ngden beregnes. Ved at bruge h\o{}jresiden undg\aa{}r
+vi alts\aa{} at konstruere et unyttigt mellemresultat med ca.\
+20.000 tupler. Der findes andre eksempler, som viser at man kan opn\aa{}
+endnu mere dramatiske gevinster ved hj\ae{}lp af passende omskrivninger
+af denne slags.
+
+Til sidst betragter vi igen udtryk, hvor \verb"+" og \verb"*" angiver de
+s\ae{}dvanlige aritmetiske operatorer. De f\ae{}rreste vil have
+problemer med at forst\aa{} f\o{}lgende udtryk
+\begin{center}
+\verb"x + y * z"
+\end{center}
+selv om det igen kan opfattes p\aa{} to forskellige m\aa{}der, nemlig
+\verb"x + (y * z)" og \verb"(x + y) * z". N\aa{}r vi automatisk opfatter
+det f\o{}rste af disse alternativer som det korrekte, er det fordi vi 
+ved, at \verb"*" if\o{}lge almindelig vedt\ae{}gt {\em binder h\aa{}rdere\/}
+end \verb"+". I {\sc Rasmus} findes der ligeledes s\aa{}danne
+bindings\-reg\-ler (eller {\em prioriteter}) \index{prioritet}
+for alle operatorer. I nedenst\aa{}ende prioriterede
+liste af operatorer
+binder de \o{}verste h\aa{}rdest og de nederste svagest.
+\begin{center}
+\verb"not  |+  |-  !"\\
+\verb"and  *  /  mod"\\
+\verb"or  +  -"\\
+\verb"?  :"\\
+\verb"=  <>  <  >  <=  >="
+\end{center}
+Dette betyder, at f\o{}lgende (tvetydige) venstresider skal opfattes som
+angivet af de tilsvarende h\o{}jresider
+\begin{center}
+\begin{tabular}{rcl}
+\verb"x * y |+ a" &\verb"="& \verb"x * (y |+ a)"\\
+\verb"x + y ? b" &\verb"="& \verb"(x + y) ? b"\\
+\verb"b and c or d" &\verb"="& \verb"(b and c) or d"\\
+\verb"b or c < d" &\verb"="& \verb"(b or c) < d"\\
+\verb"x or y = z and w" &\verb"="& \verb"(x or y) = (z and w)"
+\end{tabular}
+\end{center}
+Det er ikke sikkert, at disse (og alle de \o{}vrige) implikationer
+af operatorprioriteterne er i overensstemmelse med s\ae{}dvanlig
+intuition. Det kan derfor normalt 
+anbefales, at man s\ae{}tter de tilt\ae{}nkte paranteser eksplicit.
+
+\newpage
+\section{Opdateringer og Rapporter}
+I realistiske databaser er det ikke altid tilstr\ae{}kkeligt
+at beregne nye relationer udfra gamle. Man skal ogs\aa{} have mulighed for
+at opdatere tilstanden og for at udskrive rapporter i mere generelle
+formater.
+
+\subsection{Tilstands\ae{}ndringer}
+I {\sc Rasmus} kan man \ae{}ndre den aktuelle tilstand ved hj\ae{}lp af 
+udtrykket
+\begin{center}
+{\bf id} \verb":=" {\bf udtryk}
+\end{center}
+Resultatet er det samme som for {\bf udtryk}, men beregningen har
+den {\em sideeffekt}, at navnet {\bf id} \ae{}ndres til at have denne
+v\ae{}rdi. N\aa{}r udtryk p\aa{} denne m\aa{}de kan for\aa{}rsage tilstands\ae{}ndringer, s\aa{}
+giver det mening at udvide syntaksen med f\o{}lgende konstruktion
+\begin{center}
+{\bf udtryk$_1$} \verb";" {\bf udtryk$_2$}
+\end{center}
+der f\o{}rst beregner {\bf udtryk$_1$} og derefter {\bf udtryk$_2$},
+der giver det endelige resultat. Det f\o{}rste udtryk beregnes s\aa{}ledes
+kun fordi det har en sideeffekt.
+
+\eksempel{
+F\o{}lgende funktion fjerner holdet \verb"hold" fra \verb"Runde1" og \verb"Runde2"
+\begin{center}
+\begin{tabular}{l}
+\verb"func (hold:Text) -> (Text)"\\
+\SS{2}\verb"Runde1:=(Runde1?(\#.HjHold<>hold) and (\#.UdeHold<>hold));"\\
+\SS{2}\verb"Runde2:=(Runde2?(\#.HjHold<>hold) and (\#.UdeHold<>hold));"\\
+\SS{2}\verb'hold++" er nu fjernet"'\\
+\verb"end"
+\end{tabular}
+\end{center}
+}
+
+\subsection{Udskrifter}
+{\sc Rasmus} underst\o{}tter en simpel mekanisme til at udskrive 
+rapporter p\aa{} tekstfiler. Udtrykket 
+\begin{center}
+\verb"open("{\bf tekstudtryk}\verb")"
+\end{center}
+\aa{}bner UNIX-filen med navn {\bf tekstudtryk}, der herefter er den aktuelle
+fil; udtrykket
+\begin{center}
+\verb"write("{\bf tekstudtryk}\verb")"
+\end{center}
+skriver {\bf tekstudtryk} i den aktuelle fil; linjeskift angives med
+\verb'"'$\backslash$\verb'n"'; udtrykket 
+\begin{center}
+\verb"close"
+\end{center}
+lukker den aktuelle fil, s\aa{} dens indhold bliver permanent.
+
+\eksempel{
+F\o{}lgende udtryk skriver en lille historie p\aa{} en fil
+\begin{center}
+\begin{tabular}{l}
+{\tt open("r\o{}dh\ae{}tte");}\\
+{\tt write("Den lille R\o{}dh\ae{}tte gik ud i skoven,$\backslash$n");}\\
+{\tt write("og s\aa{} smed de ulven ned i br\o{}nden.$\backslash$n");}\\
+{\tt close}
+\end{tabular}
+\end{center}
+}
+
+\subsection{Sorterede genneml\o{}b}
+I forbindelse med relationer har vi flere gange understreget, at
+{\em r\ae{}kkef\o{}lgen\/} af tuplerne ikke har nogen betydning. Det er dog
+ikke sandt for udskrifter, hvor man ofte gerne vil have oplysninger
+i fx alfabetisk orden. For at afhj\ae{}lpe dette problem findes der
+to varianter af operatoren {\em forall\/} (og af {\em factor}).
+Udtrykkene 
+\begin{center}
+\verb"!<("{\bf relation}\verb")"... og \verb"!>("{\bf relation}\verb")"...
+\end{center}
+fungerer ligesom den almindelige {\em forall\/} eller {\em factor},
+bortset fra, at tup\-lerne v\ae{}lges sorteret efter de angivne attributter.
+Varianten \verb"!<" sorterer i ikke-aftagende orden og varianten
+\verb"!>" sorterer i ikke-voksende orden. For almindelige relationelle
+udtryk er en s\aa{}dan r\ae{}kkef\o{}lge ikke relevant, men n\aa{}r man genererer udskrifter,
+s\aa{} kan den v\ae{}re meget nyttigt.
+
+\eksempel{
+Dette udtryk udskriver p\aa{} filen \verb"holdliste"
+de deltagende fodboldhold i alfabetisk orden
+\begin{center}
+\begin{tabular}{l}
+\verb'open("holdliste");'\\
+\verb'write("De deltagende fodboldhold er:$\backslash$n$\backslash$n");'\\
+\verb'(!<(Kampe)|HjHold: (write(\#.HjHold); write("$\backslash$n")));'\\
+\verb'close'
+\end{tabular}
+\end{center}
+}
+
+\newpage
+%% \addcontentsline{toc}{section}{Opgaver}
+%% \subsection*{Opgave R1}
+%% Betragt f\o{}lgende relationer
+%% $$ X = 
+%% \begin{array}{|c|c|}
+%% \hline
+%% A & B \\ \hline
+%% 1 & 3 \\
+%% 3 & 4 \\ \hline
+%% \end{array}
+%% \;\;\;
+%% Y =
+%% \begin{array}{|c|c|}
+%% \hline
+%% A & B \\ \hline
+%% 1 & 3 \\
+%% 5 & 7 \\ \hline
+%% \end{array}
+%% \;\;\;
+%% Z = 
+%% \begin{array}{|c|c|}
+%% \hline
+%% B & C \\ \hline
+%% 3 & 7 \\
+%% 3 & 8 \\ 
+%% 4 & 9 \\\hline
+%% \end{array}
+%% $$
+%% Beregn (med h\aa{}ndkraft) f\o{}lgende udtryk
+%% \begin{itemize}
+%% \item[a)] $X$ \verb"+" $Y$
+%% \item[b)] $X$ \verb"-" $Y$
+%% \item[c)] $X$ \verb"*" $Z$
+%% \item[d)] $Y$ \verb"*" $Z$
+%% \item[e)] $X$ \verb"*" $Y$
+%% \item[f)] $Z$ \verb"|+" $B$
+%% \item[g)] ($Z$ \verb"|+" $B$) \verb"*" ($Z$ \verb"|+" $C$)
+%% \item[h)] $X$ \verb"*" $Y$ \verb"*" $Z$
+%% \end{itemize}
+
+%% \subsection*{Opgave R2}
+%% Besvar f\o{}lgende sp\o{}rgsm\aa{}l om materialet i \verb"eksempler/fodbold90".
+%% \begin{itemize}
+%% \item[a)] P\aa{} hvilke datoer blev der spillet uafgjort?
+%% \item[b)] Hvilke hold har vundet alle deres hjemmekampe?
+%% \item[c)] Hvilke hold har tabt til Br\o{}ndby?
+%% \item[d)] Hvilke hold har vundet 2--1?
+%% \item[e)] Hvilke par af hold har gensidigt vundet over hinanden?
+%% \end{itemize}
+
+%% \subsection*{Opgave R3}
+%% Hvilke af f\o{}lgende udtryk er lovlige? Hvad er skemaerne af
+%% resultaterne af de lovlige udtryk?
+%% \begin{itemize}
+%% \item[a)] \verb"(Kampe * Resultater * Tips) |- HjHold"
+%% \item[b)] \verb"(Resultater + Runde2) - Runde1"
+%% \item[c)] \verb"Tips[Uge <- Dato] * Spilledag"
+%% \item[d)] \verb"Tips[Uge <- Dato] * ((Spilledag |- Dato)[Kamp <- Dato])"
+%% \end{itemize}
+
+%% \subsection*{Opgave R4}
+%% Forklar, hvad f\o{}lgende udtryk beregner
+%% \begin{verbatim}
+%%      (+ val A = Runde1 + Runde2
+%%         val B = A * Resultater
+%%         val C = B ? (#.HjHold = "AGF")
+%%         val D = B ? (#.UdeHold = "AGF")
+%%         val E = C ? (#.HjScore > #.UdeScore)
+%%         val F = D ? (#.UdeScore > #.HjScore)
+%%         val G = E + F
+%%         val H = G[Id <- Kamp]
+%%         val I = H * Spilledag
+%%         in I |+ Dato
+%%      +)
+%% \end{verbatim}
+
+%% \subsection*{Opgave R5}
+%% Lav tipskuponen for uge 20 og 21 for materialet
+%% i \verb"eksempler/fodbold90". Dokument\'{e}r, hvordan du gjorde det.
+%% Skriv dem ud sorteret p\aa{} \verb"Nr"-attributterne.
+%% Beskriv, hvordan man givet en tipskupon og en {\em tipsr\ae{}kke\/}
+%% i form af en relation med skema
+%% {\tt
+%% \begin{center}
+%% \begin{tabular}{|c|c|}
+%% \hline
+%% Nr:Int & Tegn:Text \\
+%% \hline
+%% \end{tabular}
+%% \end{center}
+%% }
+%% kan beregne hvor mange rigtige tegn, der er p\aa{} r\ae{}kken.
+
+%% \subsection*{Opgave R6}
+%% Beskriv, hvordan tilstanden \ae{}ndrer sig under beregningen af
+%% f\o{}lgende udtryk
+%% \begin{verbatim}
+%%    (+ val A = 3
+%%       val B = (+ val C = A+2
+%%                  val D = C*A
+%%                  in D-1
+%%               +)
+%%       val C = (+ val B = B+1
+%%                  val E = (+ Val E = B-A
+%%                             in B+E
+%%                          +)
+%%                  in B+E
+%%               +)
+%%       in (+ val D = A+B-C in 2*D +) + 3
+%%     +)
+%% \end{verbatim}
+
+%% \subsection*{Opgave R7}
+%% En {\em ruterelation\/} er af formen
+%% {\tt
+%% \begin{center}
+%% \begin{tabular}{|l|l|}
+%% \hline fra & til \\\hline
+%% London & Paris\\
+%% Tirstrup & London\\
+%% Paris & New York\\
+%% Paris & Moskva \\
+%% London & Orlando\\
+%% \hline
+%% \end{tabular}
+%% \end{center}
+%% }
+%% Den angiver de ruter, som et flyselskab tilbyder.
+%% \begin{itemize}
+%% \item[a)] Skriv et udtryk, der beregner den {\em symmetriske lukning\/}
+%% af en ruterelation, det vil sige, s\o{}rger for, at hvis der er en rute fra
+%% $A$ til $B$, s\aa{} er der ogs\aa{} en rute fra $B$ til $A$.
+%% \item[b)] Skriv et udtryk, der beregner den {\em refleksive lukning\/}
+%% af en ruterelation, det vil sige, s\o{}rger for, at der for alle
+%% byer $A$ er en rute fra $A$ til $A$ (som man m\aa{} formode er ret billig).
+%% \item[c)] Lad \verb"SAS" og \verb"KLM" v\ae{}re to ruterelationer. Hvad
+%% beregner udtrykket
+%% $$ \mbox{\verb"((SAS[til <- via])*(KLM[fra <- via])) |- via"} $$
+%% \end{itemize}
+
+%% \subsection*{Opgave R8}
+%% Skriv en funktion, der givet navnet p\aa{} et hold beregner en relation med en
+%% enkelt attribut {\tt Overm\ae{}nd} af type \verb"Text", der indeholder
+%% navnene p\aa{} de hold, der har besejret det angivne hold.
+
+%% \subsection*{Opgave R9}
+%% Ved hj\ae{}lp af {\em forall\/} og tupeludtryk kan man efterligne
+%% visse af de andre relationsoperatorer. Antag, at \verb"X" er en
+%% relation med skema
+%% {\tt
+%% \begin{center}
+%% \begin{tabular}{|c|c|c|c|}
+%% \hline
+%% a:Int & b:Int & c:Int & d:Text \\
+%% \hline
+%% \end{tabular}
+%% \end{center}
+%% }
+%% Skriv {\em forall\/} udtryk, der giver samme resultat som
+%% \begin{itemize}
+%% \item[a)] \verb"X[a<-aa,c<-cc]"
+%% \item[b)] \verb"X |+ b,d"
+%% \end{itemize}
+
+%% \subsection*{Opgave R10}
+%% En attribut er en {\em n\o{}gle}, hvis dens v\ae{}rdi entydigt
+%% bestemmer de \o{}vrige attributter, eller med andre ord, hvis
+%% der ikke er to forskellige tupler med samme n\o{}glev\ae{}rdi.
+%% I fodboldmaterialet er fx \verb"Id" og \verb"Kamp" n\o{}gler.
+%% \begin{itemize}
+%% \item[a)] Forklar hvorledes udtrykket
+%% \begin{small}
+%% \begin{verbatim}
+%% not(rel(tup(x:true))<=(!(R):rel(tup(x:|rel(tup(A:#.A))*R|>1))))
+%% \end{verbatim}
+%% \end{small}
+%% afg\o{}r om attributten \verb"A" er en n\o{}gle i relationen \verb"R".
+%% \item[b)] Kan du skrive et simplere udtryk med samme effekt?
+%% \end{itemize}
+
+%% \subsection*{Opgave R11}
+%% {\em Det Cartesiske produkt\/} (eller {\em krydsproduktet\/}) af
+%% to m\ae{}ngder $A$ og $B$ defineres som
+%% $$ A\times B = \{(a,b) \,|\, a\in A\;\wedge\;b\in B\} $$
+%% For $n$ m\ae{}ngder $A_1,\ldots,A_n$ definerer vi
+%% $$ A_1\times\cdots\times A_n = \{(a_1,\ldots,a_n)\,|\,a_1\in A_1\;\wedge
+%% \ldots \wedge a_n\in A_n\} $$
+%% \begin{itemize}
+%% \item[a)] Lad $X=\{a,b\}$ og $Y=\{b,c,d,e\}$. Angiv $X\times Y$, $X\times X$
+%% og $X\times X\times Y$.
+%% \item[b)] Hvor mange elementer er der i $A_1\times\cdots\times A_n$?
+%% \end{itemize}
+%% {\em Potensm\ae{}ngden\/} af en m\ae{}ngde $A$ defineres som
+%% $$ {\cal P}(A) = \{ S\,|\,S\subseteq A\}$$
+%% det vil sige m\ae{}ngden af alle delm\ae{}ngder af $A$, inklusive
+%% $\{\}$ og $A$.
+%% \begin{itemize}
+%% \item[c)] Lad $Z=\{a,b,c\}$. Angiv ${\cal P}(Z)$ og ${\cal P}(\{\})$.
+%% \item[d)] Hvor mange elementer er der i ${\cal P}(A)$?
+%% \end{itemize}
+%% En {\em (matematisk) relation\/}
+%% over m\ae{}ngderne $A_1,\ldots,A_n$ defineres
+%% som et element i ${\cal P}(A_1\times\cdots\times A_n)$. Hvad har
+%% dette med {\sc Rasmus} relationer at g\o{}re?
+
+%% \subsection*{Opgave R12}
+%% En relation med f\o{}lgende skema indeholder oplysninger om
+%% afleveringsopgaver p\aa{} dProg1:
+%% {\tt
+%% \begin{center}
+%% \begin{tabular}{|r|r|r|}
+%% \hline
+%% \AA{}rskort:Int & Uge:Int & Godkendt:Bool \\
+%% \hline
+%% \end{tabular}
+%% \end{center}
+%% }
+%% For hver student og hver uge angives det, om den p\aa{}g\ae{}ldende opgave
+%% er godkendt. Der skal skrives en funktion \verb"OK" med hovede
+%% \begin{center}
+%% {\tt func (\aa{}rskort:Int) -> (Bool)}
+%% \end{center}
+%% der afg\o{}r, om den angivne students obligatoriske forl\o{}b er godkendt.
+%% Reg\-len er som bekendt, at mindst 8 opgaver skal godkendes, heraf skal
+%% mindst 5 v\ae{}re i ulige uger, og opgaven for uge 49 skal altid v\ae{}re
+%% god\-kendt.
+
+%% \subsection*{Opgave R13}
+%% I \verb"Spilledag" relationen skrives den 16.\ marts som
+%% \verb"316" og den 1.\ april som \verb"401". Skriv en funktion
+%% {\tt P\ae{}nDato} med hovede
+%% \begin{center}
+%% {\tt func (dato:Text) -> (Text)}
+%% \end{center}
+%% der \ae{}ndrer formatet fra \verb:"316": til \verb:"den 16. marts":. Brug
+%% {\tt P\ae{}nDato} til at g\o{}re \verb"Spilledag" relationen p\ae{}nere.
+
+%% \subsection*{Opgave R14}
+%% En telefonbog kan repr\ae{}senteres som en relation med skema
+%% {\tt
+%% \begin{center}
+%% \begin{tabular}{|r|r|}
+%% \hline
+%% Navn:Text & Nummer:Int\\
+%% \hline
+%% \end{tabular}
+%% \end{center}
+%% }
+%% Skriv f\o{}lgende seks funktioner; \verb"Init" med hovede
+%% \begin{center}
+%% {\tt func () -> (Rel)}
+%% \end{center}
+%% der giver en tom telefonbog; \verb"Defined" med hovede
+%% \begin{center}
+%% {\tt func (TB:Rel, navn:Text) -> (Bool)}
+%% \end{center}
+%% der fort\ae{}ller, om \verb"navn" forekommer i telefonbogen \verb"TB";
+%% \verb"Dom" med hovede
+%% \begin{center}
+%% {\tt func (TB:Rel) -> (Rel)}
+%% \end{center}
+%% der giver en relation med de navne, der forekommer i telefonbogen \verb"TB";
+%% \verb"Lookup" med hovede
+%% \begin{center}
+%% {\tt func (TB:Rel, navn:Text) -> (Int)}
+%% \end{center}
+%% der giver nummeret p\aa{} \verb"navn", der skal findes i telefonbogen \verb"TB";
+%% \verb"Update" med hovede
+%% \begin{center}
+%% {\tt func (TB:Rel, navn:Text, nummer:Int) -> (Rel)}
+%% \end{center}
+%% der giver en udvidet kopi af telefonbogen \verb"TB", i hvilken 
+%% \verb"navn" har \verb"nummer"; hvis \verb"navn" allerede findes i
+%% \verb"TB", s\aa{} skal nummeret blot \ae{}ndres;
+%% endeligt er der funktionen \verb"Delete" med hovede
+%% \begin{center}
+%% {\tt func (TB:Rel, navn:Text) -> (Rel)}
+%% \end{center}
+%% der giver en kopi af telefonbogen \verb"TB" i hvilken \verb"navn" er
+%% fjernet.
+
+%% \subsection*{Opgave R15}
+%% Skriv et udtryk, der ud fra en relation med skema 
+%% {\tt
+%% \begin{center}
+%% \begin{tabular}{|l|l|}
+%% \hline
+%% Hold:Text & Points:Int\\
+%% \hline
+%% \end{tabular}
+%% \end{center}
+%% }
+%% (som p\aa{} side 37) finder de tre bedste hold i turneringen.
+
+%% \subsection*{Opgave R16}
+%% I \verb"eksempler/astronomi" findes en relation \verb"planeter" med skema
+%% {\tt
+%% \begin{center}
+%% \begin{tabular}{|l|l|r|r|r|}
+%% \hline
+%% Planet & Navn & Afstand & Diameter & Opdaget \\
+%% \hline
+%% \end{tabular}
+%% \end{center}
+%% }
+%% der indeholder oplysninger om planeter, deres m\aa{}ner, m\aa{}nens
+%% afstand fra planeten, m\aa{}nens diameter, og \aa{}rstallet hvor m\aa{}nen
+%% blev opdaget (af mennesker). Skriv og udf\o{}r {\sc Rasmus} udtryk, der
+%% beregner
+%% \begin{itemize}
+%% \item[a)] en relation med navnene p\aa{} de planeter, der har st\o{}rre
+%% m\aa{}ner end vores.
+%% \item[b)] en relation med navnene p\aa{} de planeter, der i \aa{}r 1850 ikke
+%% havde kendte m\aa{}ner.
+%% \item[c)] en relation med samme skema som \verb"planeter", men som for
+%% hver planet kun indeholder tuplet med dennes st\o{}rste m\aa{}ne.
+%% \end{itemize}
+
+%% \subsection*{Opgave R17}
+%% I \verb"eksempler/benzin" ligger en relation \verb"forbrug" med skema
+%% {\tt
+%% \begin{center}
+%% \begin{tabular}{|l|l|l|l|}
+%% \hline
+%% Dato:Text & Km:Int & Volumen:Int & Pris:Int\\
+%% \hline
+%% \end{tabular}
+%% \end{center}
+%% }
+%% der angiver benzinforbruget for en bil (med en pedantisk ejer).
+%% Hvert tupel beskriver en optankning med dato, bilens kilometert\ae{}ller,
+%% volumen af indk\o{}bt benzin (i centiliter) og prisen (i \o{}rer).
+%% Skriv {\sc Rasmus} udtryk, der beregner
+%% \begin{itemize}
+%% \item[a)] den gennemsnitlige pris betalt pr.\ liter benzin i perioden.
+%% \item[b)] den dato, hvor benzinen var dyrest.
+%% \item[c)] en funktion, der givet et \aa{}rstal (som tekst: \verb:"88":,
+%% \verb:"89":, etc.)
+%% beregner, hvor mange km bilen har k\o{}rt i dette \aa{}r.
+%% \item[d)] hvor sikker ejeren er p\aa{} h\aa{}nden; det vil i denne
+%% sammenh\ae{}ng sige, hvor t\ae{}t han i gennemsnit er p\aa{} at
+%% tanke et helt antal liter.
+%% \end{itemize}
+
+%% \subsection*{Opgave R18}
+%% Betragt igen ruterelationerne fra opgave R7. Med {\em produktet\/}
+%% \verb"R"$\cdot$\verb"S" mener vi resultatet af
+%% \begin{center}
+%% \verb"((R[til <- via])*(S[fra <- via])) |- via"
+%% \end{center}
+%% Vi forkorter \verb"R"$^1$ = \verb"R" og \verb"R"$^n$ =
+%% \verb"R"$\cdot$\verb"R"$^{n-1}$ for $n>1$. 
+%% Den {\em transitive lukning\/} af 
+%% \verb"R" defineres som 
+%% $$ \mbox{\tt R}^+ = \sum_{i=1}^{\infty} \mbox{\tt R}^i =
+%% \mbox{\tt R} \mbox{\tt +} \mbox{\tt R}^2 \mbox{\tt +} \mbox{\tt R}^3 \mbox{\tt +}
+%% \mbox{\tt R}^4 \mbox{\tt +} \ldots$$
+%% \begin{itemize}
+%% \item[a)] Hvilke oplysninger om ruter indeholder \verb"R"$^+$?
+%% \item[b)] Argument\'{e}r for, at der for alle \verb"R" findes et
+%% $n\geq 1$, s\aa{}dan at
+%% $$ \mbox{\tt R}^+ = \sum_{i=1}^n \mbox{\tt R}^i$$
+%% \end{itemize}
+%% Betragt f\o{}lgende udtryk
+%% \begin{verbatim}
+%% (+ val Prod  = func (S,R: Rel) -> (Rel)
+%%                  ((S[til <- via])*(R[fra <- via])) |- via
+%%                end
+%%    val Trans = func (X: Rel) -> (Rel)
+%%                  (+ val P = Prod(X,R)+R
+%%                     in if P=X -> X
+%%                         & true -> Trans(P)
+%%                        fi
+%%                  +)
+%%                end
+%%    in Trans(R)
+%% +)
+%% \end{verbatim}
+%% \begin{itemize}
+%% \item[c)] Argument\'{e}r for, at udtrykket beregner \verb"R"$^+$.
+%% \end{itemize}
+
+%% \subsection*{Opgave R19}
+%% Betragt en relation \verb"Tilmeldinger" med skema
+%% {\tt
+%% \begin{center}
+%% \begin{tabular}{|r|r|}
+%% \hline
+%% \AA{}rskort:Text & Kursus:Text\\
+%% \hline
+%% \end{tabular}
+%% \end{center}
+%% }
+%% der angiver, hvilke studenter, der \o{}nsker at f\o{}lge hvilke kurser.
+%% Til brug for skemaplanl\ae{}gning \o{}nsker vi en relation \verb"Konflikter"
+%% med skema
+%% {\tt
+%% \begin{center}
+%% \begin{tabular}{|r|r|l|}
+%% \hline
+%% Kursus1:Text & Kursus2:Text & Antal:Int\\
+%% \hline
+%% \end{tabular}
+%% \end{center}
+%% }
+%% hvor tuplerne angiver, at blandt de tilmeldte til \verb"Kursus1" er der
+%% \verb"Antal" studenter, der ogs\aa{} har tilmeldt sig \verb"Kursus2".
+%% Skriv et udtryk, der foretager denne beregning (vink: factor).
+
+%% \subsection*{Opgave R20}
+%% Afg\o{}r hvilke af f\o{}lgende algebraiske love, der g\ae{}lder for
+%% {\sc Rasmus} udtryk. Giv en \underline{\em kort\/}
+%% begrundelse for hver lov, der g\ae{}lder,
+%% og angiv et modeksempel for hver lov, der {\em ikke\/}
+%% g\ae{}lder. Som i noten kan det antages, at begge sider af ligningerne
+%% er lovlige udtryk.
+%% \begin{itemize}
+%% \item[a)] \verb"(x * y) |+ a = (x |+ a) * (y |+ a)"
+%% \item[b)] \verb"(x * x) = x"
+%% \item[c)] \verb"(x |+ a) * (x |- a) = x"
+%% \item[d)] \verb"(x ? b) + (x ? not b) = x"
+%% \item[e)] \verb"x - (y - z) = (x - y) + z"
+%% \item[f)] \verb"(x |- a) - (y |- a) = (x - y) |- a"
+%% \item[g)] \verb"x ? (a and not b) = (x ? a) - (x ? b)"
+%% \end{itemize}
+
+%% \subsection*{Opgave R21}
+%% Modific\'{e}r opgave R5, s\aa{}ledes at tipskuponen udskrives i det
+%% velkendte format p\aa{} en tekstfil.
+
+\newpage
+%\printindex
+\end{document}
