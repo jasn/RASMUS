@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <set>
+#include <cmath>
 #include <stdlib/refptr.hh>
 #include <stdlib/text.hh>
 #include <stdlib/relation.hh>

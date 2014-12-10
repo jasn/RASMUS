@@ -39,7 +39,7 @@ protected:
 	size_t funcInvocations = 0;
 
 public:
-	~Callback() {}
+	virtual ~Callback() {}
 	virtual void saveRelation(rm_object * o, const char * name) = 0;
 	virtual rm_object * loadRelation(const char * name) = 0;
 	virtual void deleteRelation(const char * name) = 0;

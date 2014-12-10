@@ -105,7 +105,7 @@ public:
 		globalId=0;
 	}
 	
-    void internalError(Token token, std::string message) {
+   void internalError(Token token, std::string message) {
         error->reportError(std::string("Internal error: ")+message, token);
 	}
 	
@@ -563,7 +563,7 @@ public:
 			break;
         case TokenType::TK_ZERO:
         case TokenType::TK_ONE:
-            node->type = Type::rel({});
+            node->type = Type::rel(std::map<std::string, Type>());
 			break;
         case TokenType::TK_STDINT:
 			node->type = Type::integer();
