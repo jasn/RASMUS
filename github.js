@@ -126,6 +126,12 @@ function handleanyevent(ev, desc) {
     ''].join('');
 }
 
+if ( typeof String.prototype.endsWith != 'function' ) {
+    String.prototype.endsWith = function( str ) {
+	return this.substring( this.length - str.length, this.length ) === str;
+    }
+};
+
 function handleReleases(data) {
     var rr=[];
     for (var i = 0, l = data.length; i < l; ++i) {
