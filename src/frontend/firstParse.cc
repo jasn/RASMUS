@@ -196,7 +196,7 @@ public:
 					node->type = Type::func(Type::integer(), {Type::fpAndInt()});
 				} else if (name == "pow") {
 					node->buildin = BuildIn::pow;
-					node->type = Type::func(Type::fp(), {Type::fpAndInt()});
+					node->type = Type::func(Type::fp(), {Type::fpAndInt(), Type::fpAndInt()});
 				} else if (name == "round") {
 					node->buildin = BuildIn::round;
 					node->type = Type::func(Type::integer(), {Type::fpAndInt()});
