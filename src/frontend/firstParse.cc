@@ -212,6 +212,18 @@ public:
 				} else if (name == "tan") {
 					node->buildin = BuildIn::tan;
 					node->type = Type::func(Type::fp(), {Type::fpAndInt()});
+				} else if (name == "log") {
+					node->buildin = BuildIn::log;
+					node->type = Type::func(Type::fp(), {Type::fpAndInt()});
+				} else if (name == "log2") {
+					node->buildin = BuildIn::log2;
+					node->type = Type::func(Type::fp(), {Type::fpAndInt()});
+				} else if (name == "log10") {
+					node->buildin = BuildIn::log10;
+					node->type = Type::func(Type::fp(), {Type::fpAndInt()});
+				} else if (name == "exp") {
+					node->buildin = BuildIn::exp;
+					node->type = Type::func(Type::fp(), {Type::fpAndInt()});
 				} else {
 					std::stringstream ss;
 					ss << "Unknown variable " << name;

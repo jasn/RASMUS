@@ -49,7 +49,11 @@ enum class BuildIn {
 		sin,
 		sqrt, 
 		tan,
-		substr
+		substr,
+		log,
+		log2,
+		log10,
+		exp
 };
 
 

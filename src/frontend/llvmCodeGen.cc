@@ -249,6 +249,10 @@ public:
 		loadBuildin(BuildIn::sin, "rm_sinFunc");
 		loadBuildin(BuildIn::sqrt, "rm_sqrtFunc");
 		loadBuildin(BuildIn::tan, "rm_tanFunc");
+		loadBuildin(BuildIn::log, "rm_logFunc");
+		loadBuildin(BuildIn::log10, "rm_log10Func");
+		loadBuildin(BuildIn::log2, "rm_log2Func");
+		loadBuildin(BuildIn::exp, "rm_expFunc");
 
 		//Define all functions in the standard library
 		std::vector< std::pair<std::string, FunctionType *> > fs =

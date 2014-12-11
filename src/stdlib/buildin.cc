@@ -23,7 +23,7 @@
 #include <stdlib/lib.h>
 
 extern "C" {
-rm_object *rm_floorFunc, *rm_ceilFunc, *rm_roundFunc;
+rm_object *rm_floorFunc, *rm_ceilFunc, *rm_roundFunc, *rm_expFunc, *rm_logFunc, *rm_log2Func, *rm_log10Func;
 rm_object *rm_cosFunc, *rm_sinFunc, *rm_tanFunc, *rm_acosFunc, *rm_asinFunc, *rm_atanFunc, *rm_atan2Func, *rm_powFunc, *rm_sqrtFunc, *rm_absFunc;
 rm_object *rm_substrFunc;
 }
@@ -96,8 +96,11 @@ struct ToAny {};
 template <>
 struct ToAny<double> {
 	void operator()(AnyRet * ret, double v) {
+		if (!std::isfinite(v))
+			v=std::numeric_limits<double>::quiet_NaN();
 		Alias a;
 		a.d=v;
+
 		ret->value = a.i;
 		ret->type = TFloat;
 	}
@@ -247,6 +250,10 @@ struct Initer {
 		rm_powFunc = createBuildIn<FuncCapture<double, double, double>::Func<std::pow>, double, double, double >();
 		rm_sqrtFunc = createBuildIn<FuncCapture<double, double>::Func<std::sqrt>, double, double >();
 		rm_absFunc = createBuildIn<FuncCapture<double, double>::Func<std::abs>, double, double >();
+		rm_expFunc = createBuildIn<FuncCapture<double, double>::Func<std::exp>, double, double >();
+		rm_logFunc = createBuildIn<FuncCapture<double, double>::Func<std::log>, double, double >();
+		rm_log10Func = createBuildIn<FuncCapture<double, double>::Func<std::log10>, double, double >();
+		rm_log2Func = createBuildIn<FuncCapture<double, double>::Func<std::log2>, double, double >();
 		rm_substrFunc = createBuildIn<FuncCapture<rm_object *, rm_object *, int64_t, int64_t>::Func<rm_substrText>, 
 									  rm_object*, rm_object*, int64_t, int64_t>();
 	}

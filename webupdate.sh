@@ -5,7 +5,7 @@ mkdir -p tmp2
 if [ ! -d web ]; then
     git clone git@github.com:jasn/RASMUS.git web
     cd web
-    git checkout gh_pages
+    git checkout gh-pages
     mkdir -p users_manual/
     mkdir -p relationssproget_rasmus/
     cd ..
@@ -34,3 +34,8 @@ hevea rasmus.tex -o ../../tmp2/rasmus.html -moreentities -fix
 cd ../..
 hacha tmp2/rasmus.html -o web/relationssproget_rasmus/index.html
 
+cd $1/doc
+make apidocs
+cd ../..
+rm -rf web/doc
+cp -r $1/doc/doc/html web/doc
