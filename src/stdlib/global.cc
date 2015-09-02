@@ -89,7 +89,7 @@ void rm_saveGlobalAny(const char * name, int64_t value, int8_t type) {
 		globals[name] = AnyValue(static_cast<int8_t>(value));
 		break;
 	case TFloat:
-		globals[name] = AnyValue(static_cast<int8_t>(value));
+		globals[name] = AnyValue(static_cast<double>(value));
 		break;
 	case TRel:
 		rm_saveRel(reinterpret_cast<rm_object*>(value), name);

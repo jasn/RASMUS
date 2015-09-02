@@ -235,13 +235,16 @@ public slots:
 
 
 			rm_loadGlobalAny(name.toUtf8().data(), &value);
-			
+
 			switch (PlainType(value.type)) {
 			case TBool:
 				rasmus::stdlib::printBoolToStream(int8_t(value.value), repr);
 				break;
 			case TInt:
 				rasmus::stdlib::printIntToStream(value.value, repr);
+				break;
+			case TFloat:
+				rasmus::stdlib::printFloatToStream(*(const double*)&value, repr);
 				break;
 			case TText: 
 				rasmus::stdlib::printTextToStream(reinterpret_cast<rasmus::stdlib::TextBase *>(value.value), repr);

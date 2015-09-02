@@ -29,7 +29,7 @@ namespace rasmus {
 namespace stdlib {
 
 /* used as a container class for tuples; each tuple has a number
-   of AnyValues which can either be a TInt, TText or TBool
+   of AnyValues which can either be a TInt, TFloat, TText or TBool
  */
 struct AnyValue {
 	PlainType type;
