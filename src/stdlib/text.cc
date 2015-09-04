@@ -290,7 +290,7 @@ int8_t rm_substringSearch(rm_object *lhs, rm_object *rhs) {
 	const char * lhst = canonizeText(toTextBase(lhs));
 	const char * rhst = canonizeText(toTextBase(rhs));
 	std::string dummy(rhst, length(rhs));
-	return dummy.find(lhst, length(lhs)) != std::string::npos;
+	return (dummy.find(lhst) != std::string::npos)?RM_TRUE:RM_FALSE;
 }	
 
 int8_t rm_textLe(const rm_object * lhs, const rm_object * rhs) {

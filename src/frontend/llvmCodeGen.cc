@@ -300,7 +300,8 @@ public:
 			{"rm_equalTup", functionType(int8Type, {voidPtrType, voidPtrType})},
 			{"rm_createRel", functionType(voidPtrType, {voidPtrType})},
 			{"rm_factorRel", functionType(voidPtrType, {int32Type, pointerType(pointerType(int8Type)), int32Type, pointerType(voidPtrType), voidPtrType, int64Type})},
-			{"rm_deleteGlobalAny", functionType(voidType, {pointerType(int8Type)})}
+			{"rm_deleteGlobalAny", functionType(voidType, {pointerType(int8Type)})},
+			{"rm_substringSearch", functionType(int8Type, {voidPtrType, voidPtrType})}
 		};
 
 		for(auto p: fs)
@@ -2202,6 +2203,8 @@ public:
 						});
 		case TokenType::TK_OPEXTEND:
 			return binopImpl(node, { dCall("rm_extendTup", TTup, TTup, TTup) });
+		case TokenType::TK_TILDE:
+			return binopImpl(node, { dCallR("rm_substringSearch", node, TBool, TText, TText) });
 		default: 
 			ICE("Binop not implemented", node->opToken.id, node->opToken, node);
 		}

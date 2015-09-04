@@ -254,8 +254,7 @@ struct Initer {
 		rm_logFunc = createBuildIn<FuncCapture<double, double>::Func<std::log>, double, double >();
 		rm_log10Func = createBuildIn<FuncCapture<double, double>::Func<std::log10>, double, double >();
 		rm_log2Func = createBuildIn<FuncCapture<double, double>::Func<std::log2>, double, double >();
-		rm_substrFunc = createBuildIn<FuncCapture<rm_object *, rm_object *, int64_t, int64_t>::Func<rm_substrText>, 
-									  rm_object*, rm_object*, int64_t, int64_t>();
+		rm_substrFunc = createBuildIn<FuncCapture<rm_object *, rm_object *, int64_t, int64_t>::Func<rm_substrText>, 									  rm_object*, rm_object*, int64_t, int64_t>();
 	}
 };
 
