@@ -243,8 +243,10 @@ public slots:
 			case TInt:
 				rasmus::stdlib::printIntToStream(value.value, repr);
 				break;
-			case TFloat:
-				rasmus::stdlib::printFloatToStream(*(const double*)&value, repr);
+			case TFloat: {
+				int64_t cp = value.value;
+				rasmus::stdlib::printFloatToStream(*reinterpret_cast<double*>(&cp), repr);
+			}
 				break;
 			case TText: 
 				rasmus::stdlib::printTextToStream(reinterpret_cast<rasmus::stdlib::TextBase *>(value.value), repr);

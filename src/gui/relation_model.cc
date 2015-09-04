@@ -108,6 +108,8 @@ int RelationModel::columnCount(const QModelIndex&) const {
 
 QVariant RelationModel::data(const QModelIndex& index, int role) const {
 	switch (role) {
+	case Qt::EditRole:
+		return QVariant();
 	case Qt::DisplayRole: {
 		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
 		return QVariant(QString::fromStdString(::printHelper(index.row(), index.column(), this->rel)));
@@ -134,6 +136,82 @@ QVariant RelationModel::headerData(int section, Qt::Orientation orientation, int
 		return QVariant(QSize(s.length()*5, 25));
 	default:
 		return QVariant("");
+	}
+}
+
+Qt::ItemFlags RelationModel::flags(const QModelIndex &index) const {
+	//return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
+	return Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled;
+}
+
+bool RelationModel::setData(const QModelIndex &index, const QVariant &value, int role) {
+	if (role != Qt::EditRole) {
+		return true;
+	} else {
+		rasmus::stdlib::gil_lock_t lock(rasmus::stdlib::gil);
+		size_t col = index.column();
+		size_t row = index.row();
+
+		// move this part to stdlib?
+		rasmus::stdlib::RefPtr<rasmus::stdlib::Relation> rcpy(new rasmus::stdlib::Relation());
+		rcpy->schema = rel->schema;
+		rcpy->permutation = rel->permutation;
+		rcpy->tuples.resize(rel->tuples.size());
+		for (size_t i = 0; i < rel->tuples.size(); ++i) {
+			if (i != row) {
+				// not the edited row
+				rcpy->tuples[i] = rel->tuples[i];
+			} else {
+				// edited row
+				rasmus::stdlib::RefPtr<rasmus::stdlib::Tuple> t(new rasmus::stdlib::Tuple());
+				t->schema = rcpy->schema;
+				t->values.resize(rel->tuples[0]->values.size());
+				for (size_t j = 0; j < t->values.size(); ++j) {
+					if (rcpy->permutation[col] == j) {
+						// the actual edited cell
+						switch (t->schema->attributes[rcpy->permutation[col]].type) {
+						case TBool:
+							if (std::string(value.toString().toUtf8().constData()) == "true") {
+								t->values[rcpy->permutation[col]] = rasmus::stdlib::AnyValue(RM_TRUE);
+							} else {
+								// if invalid input entered we default to RM_FALSE
+								t->values[rcpy->permutation[col]] = rasmus::stdlib::AnyValue(RM_FALSE);
+							}
+							break;
+						case TInt:
+							// TODO: check bounds on integer value.
+							t->values[rcpy->permutation[col]] = rasmus::stdlib::AnyValue((int64_t)atoi(value.toString().toUtf8().constData()));
+							break;
+						case TFloat:
+							// TODO: validate input, is this interpretable as a double?
+							t->values[rcpy->permutation[col]] = rasmus::stdlib::AnyValue(value.toString().toDouble());
+							break;
+						case TText: {
+							// TODO: validate input, legal string?
+							rasmus::stdlib::RefPtr<rm_object> txt(rm_getConstText(value.toString().toUtf8().constData()));
+							t->values[rcpy->permutation[col]] = rasmus::stdlib::AnyValue(TText, txt);
+						}
+							break;
+						default:
+							break;
+						}
+					} else {
+						// not the edited cell
+						t->values[j] = rel->tuples[i]->values[j];
+					}
+				}
+				rcpy->tuples[i] = t;
+			}
+		}
+
+		if (this->relationName.size() != 0) {
+			// a named relation needs to be saved to disk.
+			rm_saveGlobalAny(this->relationName.c_str(), (int64_t)rcpy.get(), TRel);
+			emit dataChanged(index, index);
+		}
+		this->rel = rcpy;
+		
+		return true;
 	}
 }
 
