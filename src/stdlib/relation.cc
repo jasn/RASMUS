@@ -735,7 +735,8 @@ uint8_t fieldType(std::string field){
 	std::stringstream ss(field);
 	ss.imbue(std::locale("C"));
 	double v;
-	if (ss >> v) 
+	std::cout << "foo" << std::endl;
+	if (ss >> v)
 		return FLOAT_TYPE;
 	
 	return TEXT_TYPE;
@@ -750,16 +751,16 @@ rm_object * parseCSVToRelation(std::vector< std::vector<std::string> > rows){
 	RefPtr<Schema> schema = makeRef<Schema>();
 	ret->schema = schema;
 
-	ret->permutation.resize(ret->schema->attributes.size());
-	for (size_t i = 0; i < ret->permutation.size(); ++i) {
-		ret->permutation[i] = i;
-	}
-	
 	if(rows.size() == 0){
 		return ret.unbox();
 	}
 
 	size_t num_fields = rows[0].size();
+
+	ret->permutation.resize(num_fields);
+	for (size_t i = 0; i < ret->permutation.size(); ++i) {
+		ret->permutation[i] = i;
+	}
 
 	// determine the types of each column by examining
 	// all rows except the first one (since it might be a header)
