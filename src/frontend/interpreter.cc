@@ -209,7 +209,8 @@ public:
 			#ifdef _WIN32
 			//ase x86:     return "i386";
 			//ase x86_64:  return "x86_64";
-			module->setTargetTriple("i386-pc-win32-elf");
+			//module->setTargetTriple("i386-pc-win32-elf");
+			module->setTargetTriple("x86_64-pc-win32-elf");
 			#endif //_WIN32
 
 			codeGen = makeLlvmCodeGen(error, code, module,
@@ -269,9 +270,9 @@ public:
 			#ifdef _WIN32
 			//ase x86:     return "i386";
 		  //ase x86_64:  return "x86_64";
-			module->setTargetTriple("i386-pc-win32-elf");
+			//module->setTargetTriple("i386-pc-win32-elf");
+			module->setTargetTriple("x86_64-pc-win32-elf");
 			#endif //_WIN32
-
 			codeGen = makeLlvmCodeGen(error, code, module,
 									  options & DumpRawFunction,
 									  options & DumpOptFunction);

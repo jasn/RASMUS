@@ -613,7 +613,7 @@ bool Type::schemaSubset(const Type & lhs, const Type & rhs) {
 }
 
 bool Type::funcSubset(const Type & lhs, const Type & rhs) {
-	assert(lhs.kind() = Func && rhs.kind() == Func);
+	assert(lhs.kind() == Func && rhs.kind() == Func);
 	const auto & largs=lhs.funcArgs();
 	const auto & rargs=rhs.funcArgs();
 
