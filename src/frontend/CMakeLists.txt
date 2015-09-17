@@ -36,4 +36,15 @@ add_library(frontend
   strongType.cc
 )
 
-target_link_libraries(frontend -L${LLVM_LIBRARY_DIR} ${LLVM_MODULE_LIBS} ${LLVM_LFLAGS} -lm stdlib)
+if (WIN32)
+   set(winllvmlib C:/Users/Jesper/Desktop/llvm-3.5.0.src/build2/lib)
+   set(winllvm "-L${winllvmlib} -lpthread -lz")
+   target_link_libraries(frontend -L${LLVM_LIBRARY_DIR} ${LLVM_MODULE_LIBS} ${winllvm} -lm -limagehlp stdlib)
+   message(${winllvm})
+   message("remember to adjust winllvmlib variable")
+else()
+   target_link_libraries(frontend -L${LLVM_LIBRARY_DIR} ${LLVM_MODULE_LIBS} ${LLVM_LFLAGS} -lm stdlib)   
+endif (WIN32)
+
+
+
