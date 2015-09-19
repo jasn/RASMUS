@@ -234,7 +234,11 @@ RelationWindow::RelationWindow(RelationModel * model): model(model), modified(fa
 
 	// Permutation of attributes
 	// Also need to create a slot for the signal QHeaderView::sectionMoved
+#if QT_VERSION >= 0x050000
+	ui.view->horizontalHeader()->setSectionsMovable(true);
+#else
 	ui.view->horizontalHeader()->setMovable(true);
+#endif
 	
 	QObject::connect(ui.view->horizontalHeader(), SIGNAL(sectionMoved(int, int, int)), 
 					 this, SLOT(sectionMoved(int, int, int)));

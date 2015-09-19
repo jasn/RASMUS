@@ -27,6 +27,7 @@
 #include <vector>
 
 #include <QPrinter>
+#include <QMimeData>
 #include <QPrintDialog>
 
 class ConsolePrivate {

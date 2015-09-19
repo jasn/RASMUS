@@ -1,13 +1,20 @@
-include(${QT_USE_FILE})
+if (QT_FOUND)
+  include(${QT_USE_FILE})
+else()
+endif()
 
 if (WIN32)
-
    set(QT_USE_QTMAIN TRUE)
 endif(WIN32)
 
-include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${QT_INCLUDES} ${Qt5PrintSupport_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
-QT4_WRAP_UI(UISrs main.ui settings.ui editor.ui about.ui relation.ui colorSelector.ui fontSelector.ui)
+if (QT_FOUND)
+  QT4_WRAP_UI(UISrs main.ui settings.ui editor.ui about.ui relation.ui colorSelector.ui fontSelector.ui)
+else()
+  QT5_WRAP_UI(UISrs main.ui settings.ui editor.ui about.ui relation.ui colorSelector.ui fontSelector.ui)
+endif()
+
 add_executable(rasmus 
   WIN32
   MACOSX_BUNDLE
@@ -26,7 +33,8 @@ add_executable(rasmus
   colorSelector.cc colorSelector.hh
   )
 
-target_link_libraries(rasmus frontend ${QT_LIBRARIES} -pthread stdlib)
+target_link_libraries(rasmus frontend ${QT_LIBRARIES} ${Qt5Widgets_LIBRARIES} ${Qt5PrintSupport_LIBRARIES} -pthread stdlib)
+
 set_target_properties(rasmus PROPERTIES AUTOMOC TRUE)
 set_target_properties(rasmus PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../../)
 install(TARGETS rasmus
