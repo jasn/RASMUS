@@ -27,13 +27,19 @@
 #include <frontend/llvmCodeGen.hh>
 #include <iostream>
 
+
+#define LLVMVER (LLVM_VERSION_MAJOR * 100 + LLVM_VERSION_MINOR)
+
+#include <llvm/Config/llvm-config.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
 #include <llvm/Support/TargetSelect.h>
+#if LLVMVER < 306
 #include <llvm/ExecutionEngine/JIT.h>
+#endif
 #include <llvm/ExecutionEngine/MCJIT.h>
 #ifndef _WIN32
 #include <unistd.h>
@@ -147,7 +153,7 @@ public:
 	std::shared_ptr<CharRanges> charRanges;
 	std::shared_ptr<FirstParse> firstParse;
 	std::shared_ptr<AstPrinter> astPrinter;
-	llvm::Module * module;
+
 	std::shared_ptr<LLVMCodeGen> codeGen;
 	llvm::ExecutionEngine * engine;
 	std::string incomplete;
@@ -205,23 +211,27 @@ public:
 			
 			theCode = code->code+"\n";
 			
-			module = new llvm::Module("my cool jit", llvm::getGlobalContext());
-			#ifdef _WIN32
+			std::unique_ptr<llvm::Module> module(new llvm::Module("my cool jit", llvm::getGlobalContext()));
+#ifdef _WIN32
 			//ase x86:     return "i386";
 			//ase x86_64:  return "x86_64";
 			//module->setTargetTriple("i386-pc-win32-elf");
 			module->setTargetTriple("x86_64-pc-win32-elf");
-			#endif //_WIN32
+#endif //_WIN32
 
-			codeGen = makeLlvmCodeGen(error, code, module,
+			codeGen = makeLlvmCodeGen(error, code, module.get(),
 									  options & DumpRawFunction,
 									  options & DumpOptFunction);
-
+			
 			llvm::Function * f = codeGen->translate(t);
 			
 			std::string ErrStr;
 			
-			engine = llvm::EngineBuilder(module).setErrorStr(&ErrStr).setUseMCJIT(true).create();
+#if LLVMVER > 305
+			engine = llvm::EngineBuilder(std::move(module)).setErrorStr(&ErrStr).setEngineKind(llvm::EngineKind::JIT).create();
+#else
+			engine = llvm::EngineBuilder(module.release()).setErrorStr(&ErrStr).setUseMCJIT(true).create();
+#endif
 			if (!engine) {
 				callback->report(MsgType::error, std::string("Could not create engine: ")+ ErrStr);
 				return;
@@ -266,14 +276,14 @@ public:
 			theCode = code->code+"\n";
 			incomplete = "";
 
-			module = new llvm::Module("my cool jit", llvm::getGlobalContext());
-			#ifdef _WIN32
+			std::unique_ptr<llvm::Module> module(new llvm::Module("my cool jit", llvm::getGlobalContext()));
+#ifdef _WIN32
 			//ase x86:     return "i386";
 		  //ase x86_64:  return "x86_64";
 			//module->setTargetTriple("i386-pc-win32-elf");
 			module->setTargetTriple("x86_64-pc-win32-elf");
 			#endif //_WIN32
-			codeGen = makeLlvmCodeGen(error, code, module,
+			codeGen = makeLlvmCodeGen(error, code, module.get(),
 									  options & DumpRawFunction,
 									  options & DumpOptFunction);
 
@@ -281,7 +291,11 @@ public:
 			
 			std::string ErrStr;
 
-			engine = llvm::EngineBuilder(module).setErrorStr(&ErrStr).setUseMCJIT(true).create();
+#if LLVMVER > 305
+			engine = llvm::EngineBuilder(std::move(module)).setErrorStr(&ErrStr).setEngineKind(llvm::EngineKind::JIT).create();
+#else
+			engine = llvm::EngineBuilder(module.release()).setErrorStr(&ErrStr).setUseMCJIT(true).create();
+#endif
 			if (!engine) {
 				callback->report(MsgType::error, std::string("Could not create engine: ")+ ErrStr);
 				return false;

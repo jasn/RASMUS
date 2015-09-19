@@ -9,11 +9,19 @@
 
 find_program(LLVM_CONFIG_EXECUTABLE NAMES llvm-config DOC "llvm-config executable")
 
+execute_process(
+  COMMAND ${LLVM_CONFIG_EXECUTABLE} --version
+  OUTPUT_VARIABLE LLVM_VERSION
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+
 if (LLVM_CONFIG_EXECUTABLE)
-  message(STATUS "LLVM llvm-config found at: ${LLVM_CONFIG_EXECUTABLE}")
+  message(STATUS "LLVM llvm-config found at: ${LLVM_CONFIG_EXECUTABLE}, version ${LLVM_VERSION}")
 else (LLVM_CONFIG_EXECUTABLE)
   message(FATAL_ERROR "Could NOT find LLVM executable")
 endif (LLVM_CONFIG_EXECUTABLE)
+
 
 execute_process(
   COMMAND ${LLVM_CONFIG_EXECUTABLE} --includedir
@@ -39,11 +47,20 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
+if (LLVM_VERSION VERSION_LESS 3.6)
 execute_process(
-  COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs core jit mcjit native engine interpreter
+  COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs core mcjit jit native engine interpreter
   OUTPUT_VARIABLE LLVM_MODULE_LIBS
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
+else()
+execute_process(
+  COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs core mcjit native engine interpreter
+  OUTPUT_VARIABLE LLVM_MODULE_LIBS
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+endif()
+
 set(LLVM_CFLAGS "${LLVM_CFLAGS} -fexceptions -std=c++11")
 set(LLVM_LFLAGS "${LLVM_LFLAGS} -lpthread -lz -ldl -lcurses")
 

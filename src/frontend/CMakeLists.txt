@@ -43,7 +43,7 @@ if (WIN32)
    message(${winllvm})
    message("remember to adjust winllvmlib variable")
 else()
-   target_link_libraries(frontend -L${LLVM_LIBRARY_DIR} ${LLVM_MODULE_LIBS} ${LLVM_LFLAGS} -lm stdlib)   
+   target_link_libraries(frontend -L${LLVM_LIBRARY_DIR} ${LLVM_MODULE_LIBS} ${LLVM_LFLAGS} -lm stdlib ${LLVM_MODULE_LIBS})   
 endif (WIN32)
 
 
