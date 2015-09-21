@@ -2579,8 +2579,8 @@ rm_object * rm_forAll(rm_object * rel_, rm_object * func, int64_t range){
 
 		if (!ret_initialized){
 			ret->schema->attributes = result->schema->attributes;
-			ret_initialized = true;
 			ret->permutation.resize(ret->schema->attributes.size());
+			ret_initialized = true;
 			for (size_t i = 0; i < ret->schema->attributes.size(); ++i) {
 				ret->permutation[i] = i;
 			}
@@ -2862,6 +2862,10 @@ rm_object * rm_factorRel(uint32_t num_col_names, char ** col_names, uint32_t num
 
 		if(!ret_initialized){
 			ret->schema->attributes = result->schema->attributes;
+			ret->permutation.resize(ret->schema->attributes.size());
+			for (size_t i = 0; i < ret->permutation.size(); ++i) {
+				ret->permutation[i] = i;
+			}
 			ret_initialized = true;
 		}else if(!schemaEquals(ret->schema.get(), result->schema.get()))
 			rm_emitFuncDiffSchemasError(unpackCharRange(range).first, unpackCharRange(range).second, "factor");

@@ -300,9 +300,8 @@ public:
 			if (node->listExps.size() != 1) {
 				error->reportError("Forall can only be used on one exactly one relation", node->typeToken);
 				types.push_back(Type::aTup());
-			} else if (
-				!typeCheck(node->typeToken, node->listExps[0], Type::aRel())
-				|| getRels(node->listExps[0]->type, rels)) {
+			} else if (!typeCheck(node->typeToken, node->listExps[0], Type::aRel())
+					   || getRels(node->listExps[0]->type, rels)) {
 				types.push_back(Type::aTup());
 			} else {
 				std::vector<Type> tups;
@@ -311,6 +310,7 @@ public:
 				types.push_back(Type::join(tups));
 			}
 		} else {
+			// Factor
 			std::map<std::string, std::vector<Type> > nameTypes;
 			
 			types.push_back(Type::empty());
@@ -318,8 +318,10 @@ public:
 			for(auto exp : node->listExps) {
 				std::vector<Type> rels;
 				if (!typeCheck(node->typeToken, exp, Type::aRel())
-					|| getRels(exp->type, rels))
+					|| getRels(exp->type, rels)) {
 					types.push_back(Type::aRel());
+					continue;
+				}
 				std::vector<Type> type;
 				
 				std::map<std::string, std::vector<Type> > expNameTypes;
@@ -350,7 +352,10 @@ public:
 						continue;
 					}
 					nameTypes[p.first].push_back(Type::atomic());
+
+
 					if (rels.size() == 1) continue;
+					if (rels.size() == 0) continue;
 					std::stringstream ss1;
 					ss1 << "The attribute '" << p.first << "' is not pressent in any of the possible types";
 					std::stringstream ss2;
