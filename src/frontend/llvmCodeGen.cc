@@ -48,7 +48,11 @@
 #endif
 #include <llvm/Analysis/Passes.h>
 #include <llvm/IR/DataLayout.h>
+#if LLVMVER >= 307
+#include <llvm/IR/LegacyPassManager.h>
+#else
 #include <llvm/PassManager.h>
+#endif
 #include <llvm/IR/Instructions.h>
 
 #include <llvm/Transforms/Scalar.h>
@@ -62,6 +66,7 @@ using lexer::TokenType;
  */
 namespace {
 using namespace llvm;
+using namespace llvm::legacy;
 using namespace rasmus::frontend;
 
 /**
@@ -196,13 +201,13 @@ public:
 		return FunctionType::get(ret, ArrayRef<llvm::Type * >(args.begin(), args.end()), false);
 	}
 	
-	llvm::FunctionType * dtorType = functionType(voidType, {voidPtrType});;
+	llvm::FunctionType * dtorType = functionType(voidType, {voidPtrType});
 	llvm::StructType * anyRetType = structType("AnyRet", {int64Type, int8Type});
 	llvm::StructType * tupleEntryType = structType("TupleEntry", {pointerType(int8Type), int64Type, int8Type});
 
 	// refcnt, type, argc, dtorptr, funcptr
 	// arguments to the function given by funcptr are: FuncBase *, anyRetType *, (uint64_t value, uint8_t type) zero or more times
-	llvm::StructType * funcBase = structType("FuncBase", {int32Type, int16Type, int16Type, voidPtrType, voidPtrType} );;
+	llvm::StructType * funcBase = structType("FuncBase", {int32Type, int16Type, int16Type, voidPtrType, voidPtrType} );
 	llvm::StructType * objectBaseType = structType("ObjectBase", {int32Type, int16Type});
 	
 	std::vector<GlobalVariable *> buildins;
@@ -449,8 +454,8 @@ public:
 		case TTup:
 		{
 			Value * v = builder.CreatePointerCast(value.value, pointerType(objectBaseType));
-			Value * rc = builder.CreateAdd(builder.CreateLoad(builder.CreateConstGEP2_32(v, 0, 0)), int32(1));
-			builder.CreateStore(rc, builder.CreateConstGEP2_32(v, 0, 0));
+			Value * rc = builder.CreateAdd(builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, v, 0, 0)), int32(1));
+			builder.CreateStore(rc, builder.CreateConstGEP2_32(nullptr, v, 0, 0));
 			break;
 		}
 		case TAny:
@@ -461,8 +466,8 @@ public:
 			builder.SetInsertPoint(b1);
 			Value * p = builder.CreateIntToPtr(value.value, voidPtrType);
 			Value * v = builder.CreatePointerCast(p, pointerType(objectBaseType));
-			Value * rc = builder.CreateAdd(builder.CreateLoad(builder.CreateConstGEP2_32(v, 0, 0)), int32(1));
-			builder.CreateStore(rc, builder.CreateConstGEP2_32(v, 0, 0));
+			Value * rc = builder.CreateAdd(builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, v, 0, 0)), int32(1));
+			builder.CreateStore(rc, builder.CreateConstGEP2_32(nullptr, v, 0, 0));
 			builder.CreateBr(b2);
 			builder.SetInsertPoint(b2);
 			break;
@@ -497,8 +502,8 @@ public:
 			BasicBlock * b1 = newBlock();
 			BasicBlock * b2 = newBlock();
 			Value * v = builder.CreatePointerCast(value.value, pointerType(objectBaseType));
-			Value * rc = builder.CreateSub(builder.CreateLoad(builder.CreateConstGEP2_32(v, 0, 0)), int32(1));
-			builder.CreateStore(rc, builder.CreateConstGEP2_32(v, 0, 0));
+			Value * rc = builder.CreateSub(builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, v, 0, 0)), int32(1));
+			builder.CreateStore(rc, builder.CreateConstGEP2_32(nullptr, v, 0, 0));
 			builder.CreateCondBr(builder.CreateICmpEQ(rc, int32(0)), b1, b2);
 			builder.SetInsertPoint(b1);
 			builder.CreateCall(getStdlibFunc("rm_free"), builder.CreatePointerCast(value.value, voidPtrType));
@@ -515,8 +520,8 @@ public:
 			builder.SetInsertPoint(b1);
 			Value * p = builder.CreateIntToPtr(value.value, voidPtrType);
 			Value * v = builder.CreatePointerCast(p, pointerType(objectBaseType));
-			Value * rc = builder.CreateSub(builder.CreateLoad(builder.CreateConstGEP2_32(v, 0, 0)), int32(1));
-			builder.CreateStore(rc, builder.CreateConstGEP2_32(v, 0, 0));
+			Value * rc = builder.CreateSub(builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, v, 0, 0)), int32(1));
+			builder.CreateStore(rc, builder.CreateConstGEP2_32(nullptr, v, 0, 0));
 			builder.CreateCondBr(builder.CreateICmpEQ(rc, int32(0)), b2, b3);
 			builder.SetInsertPoint(b2);
 			builder.CreateCall(getStdlibFunc("rm_free"), p);
@@ -616,10 +621,10 @@ public:
 			ss << "is" << tto;
 			builder.CreateCondBr(builder.CreateICmpEQ(value.type, typeRepr(tto), ss.str()), nblock, fblock);
 			builder.SetInsertPoint(fblock);
-			builder.CreateCall4(getStdlibFunc("rm_emitTypeError"),
-								int32(node->charRange.lo), int32(node->charRange.hi),
-								value.type,
-								typeRepr(tto));
+			builder.CreateCall(getStdlibFunc("rm_emitTypeError"),
+							   {int32(node->charRange.lo), int32(node->charRange.hi),
+									   value.type,
+									   typeRepr(tto)});
 			builder.CreateUnreachable();
 			builder.SetInsertPoint(nblock);
 			switch (tto) {
@@ -760,7 +765,7 @@ public:
 												 true,
 												 llvm::GlobalValue::PrivateLinkage,
 												 c);
-		return builder.CreateConstGEP2_32(gv, 0, 0);
+		return builder.CreateConstGEP2_32(nullptr, gv, 0, 0);
 	}
 
 	/**
@@ -1095,10 +1100,10 @@ public:
 			
 			builder.SetInsertPoint(errTarget);
 			
-			builder.CreateCall4(getStdlibFunc("rm_emitTypeError"),
-								int32(node->charRange.lo), int32(node->charRange.hi),
-								vals[i].type,
-								typeRepr(ops.begin()->types[i])); // TODO FIXME this only states one even though there might be more allowed
+			builder.CreateCall(getStdlibFunc("rm_emitTypeError"),
+							   {int32(node->charRange.lo), int32(node->charRange.hi),
+									   vals[i].type,
+									   typeRepr(ops.begin()->types[i])});; // TODO FIXME this only states one even though there might be more allowed
 			builder.CreateUnreachable();
 			builder.SetInsertPoint(end);
 			LLVMVal r=OwnedLLVMVal(
@@ -1158,13 +1163,12 @@ public:
 		}
 		Value * rv = builder.CreateAlloca(anyRetType, nullptr, "globalVar");
 			
-		builder.CreateCall2(getStdlibFunc("rm_loadGlobalAny"),
-							globalString(nameToken),
-							rv);
+		builder.CreateCall(getStdlibFunc("rm_loadGlobalAny"),
+						   {globalString(nameToken), rv});
 			
 		return takeOwnership(cast(BorrowedLLVMVal(
-								 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0, "value_addr"), "value"), 
-								 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1, "type_addr"), "type")),
+								 builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, rv, 0, 0, "value_addr"), "value"), 
+								 builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, rv, 0, 1, "type_addr"), "type")),
 								  TAny, node->type.plain(), node), node->type.plain());
 			
 	}
@@ -1189,10 +1193,8 @@ public:
 
 		{
 			BorrowedLLVMVal v2 = cast(borrow(val), node->type.plain(), TAny, node);
-			builder.CreateCall3(getStdlibFunc("rm_saveGlobalAny"), 
-								globalString(node->nameToken),
-								v2.value,
-								v2.type);
+			builder.CreateCall(getStdlibFunc("rm_saveGlobalAny"), 
+							   {globalString(node->nameToken), v2.value, v2.type});
 		}
 
 		return val;
@@ -1273,8 +1275,8 @@ public:
 			} else {
 				error->reportWarning("if might have none of the branches taken, and the return type has no default value.", node->ifToken, {node->charRange});
 
-				builder.CreateCall2(getStdlibFunc("rm_emitIfError"),
-									int32(node->charRange.lo), int32(node->charRange.hi));
+				builder.CreateCall(getStdlibFunc("rm_emitIfError"),
+								   {int32(node->charRange.lo), int32(node->charRange.hi)});
 				builder.CreateUnreachable();
 				
 			}
@@ -1401,8 +1403,8 @@ public:
 
 			// HATKAT
 
-			builder.CreateStore(x.value, builder.CreateConstGEP2_32(ret, 0, 0));
-			builder.CreateStore(x.type, builder.CreateConstGEP2_32(ret, 0, 1));
+			builder.CreateStore(x.value, builder.CreateConstGEP2_32(nullptr, ret, 0, 0));
+			builder.CreateStore(x.type, builder.CreateConstGEP2_32(nullptr, ret, 0, 1));
 			builder.CreateRetVoid();
 			forgetOwnership(x);
 			finishFunction(function);
@@ -1414,10 +1416,10 @@ public:
 		AllocSize = ConstantExpr::getTruncOrBitCast(AllocSize, int32Type);
 		auto pp = builder.CreateCall(getStdlibFunc("rm_createFunction"), AllocSize, "func");
 		auto p = builder.CreatePointerCast(pp, pointerType(captureType), "func_c");
-		builder.CreateStore(int32(1), builder.CreateConstGEP2_32(p, 0, 0, "refcnt")); //RefCount
-		builder.CreateStore(int16(node->args.size()), builder.CreateConstGEP2_32(p, 0, 2, "argc")); //Argc
-		builder.CreateStore(dtor, builder.CreateConstGEP2_32(p, 0, 3, "dtor")); //Dtor
-		builder.CreateStore(function, builder.CreateConstGEP2_32(p, 0, 4, "fptr")); //Fptr
+		builder.CreateStore(int32(1), builder.CreateConstGEP2_32(nullptr, p, 0, 0, "refcnt")); //RefCount
+		builder.CreateStore(int16(node->args.size()), builder.CreateConstGEP2_32(nullptr, p, 0, 2, "argc")); //Argc
+		builder.CreateStore(dtor, builder.CreateConstGEP2_32(nullptr, p, 0, 3, "dtor")); //Dtor
+		builder.CreateStore(function, builder.CreateConstGEP2_32(nullptr, p, 0, 4, "fptr")); //Fptr
 		
         // Store captures
 		for (size_t i=0; i < node->captures.size(); ++i) {
@@ -1440,13 +1442,14 @@ public:
 			values.push_back( visitNode(item->exp) );
 			BorrowedLLVMVal v = cast(borrow(values.back()), item->exp->type.plain(), TAny, item->exp);
 			
-			builder.CreateStore(globalString(item->nameToken), builder.CreateConstGEP2_32(entries, i, 0)); //name
-			builder.CreateStore(v.value, builder.CreateConstGEP2_32(entries, i, 1)); //value
-			builder.CreateStore(v.type, builder.CreateConstGEP2_32(entries, i, 2)); //type
+			builder.CreateStore(globalString(item->nameToken), builder.CreateConstGEP2_32(nullptr, entries, i, 0)); //name
+			builder.CreateStore(v.value, builder.CreateConstGEP2_32(nullptr, entries, i, 1)); //value
+			builder.CreateStore(v.type, builder.CreateConstGEP2_32(nullptr, entries, i, 2)); //type
 		}
 
-		OwnedLLVMVal r(builder.CreateCall3(getStdlibFunc("rm_createTup"), int32(exp->items.size()), 
-										   entries, packCharRange(exp)));
+		OwnedLLVMVal r(builder.CreateCall(getStdlibFunc("rm_createTup"),
+										  {int32(exp->items.size()), 
+												  entries, packCharRange(exp)}));
 		
 		for (size_t i=0; i < exp->items.size(); ++i)
 			disown(values[i], exp->items[i]->exp->type.plain());
@@ -1480,22 +1483,22 @@ public:
 				return opImp(
 					{
 						dOp([this, node, wantedType](BorrowedLLVMVal v) -> OwnedLLVMVal {
-								return builder.CreateCall4(
+								return builder.CreateCall(
 									getStdlibFunc("rm_tupEntryType"), 
-									v.value, 
-									globalString(std::static_pointer_cast<VariableExp>(
-													 node->args[1])->nameToken.getText(code)),
-									typeRepr(wantedType),
-									packCharRange(node));
+									{		v.value, 
+											globalString(std::static_pointer_cast<VariableExp>(
+															 node->args[1])->nameToken.getText(code)),
+											typeRepr(wantedType),
+											packCharRange(node)});
 							}, TBool, TTup),
 							dOp([this, node, wantedType](BorrowedLLVMVal v) -> OwnedLLVMVal {
-									return builder.CreateCall4(
+									return builder.CreateCall(
 										getStdlibFunc("rm_relEntryType"), 
-										v.value, 
-										globalString(std::static_pointer_cast<VariableExp>(
-														 node->args[1])->nameToken.getText(code)),
-										typeRepr(wantedType),
-										packCharRange(node));
+										{		v.value, 
+												globalString(std::static_pointer_cast<VariableExp>(
+																 node->args[1])->nameToken.getText(code)),
+												typeRepr(wantedType),
+												packCharRange(node)});
 								}, TBool, TRel)
 							}, node, node->args[0]);
 					
@@ -1518,13 +1521,13 @@ public:
 							
 				builder.SetInsertPoint(b1);
 				// we get here if the type is TRel
-				Value * v1 = builder.CreateCall4(
+				Value * v1 = builder.CreateCall(
 					getStdlibFunc("rm_relEntryType"), 
-					r.value,
-					globalString(std::static_pointer_cast<VariableExp>(
-									 node->args[1])->nameToken.getText(code)),
-					typeRepr(wantedType),
-					packCharRange(node));
+					{		r.value,
+							globalString(std::static_pointer_cast<VariableExp>(
+											 node->args[1])->nameToken.getText(code)),
+							typeRepr(wantedType),
+							packCharRange(node)});
 
 				builder.CreateBr(bend);
 							
@@ -1534,13 +1537,13 @@ public:
 
 				builder.SetInsertPoint(b3);
 				// we get here if the type is TTup
-				Value * v2 = builder.CreateCall4(
+				Value * v2 = builder.CreateCall(
 					getStdlibFunc("rm_tupEntryType"), 
-					t.value,
-					globalString(std::static_pointer_cast<VariableExp>(
-									 node->args[1])->nameToken.getText(code)),
-					typeRepr(wantedType),
-					packCharRange(node));
+					{		t.value,
+							globalString(std::static_pointer_cast<VariableExp>(
+											 node->args[1])->nameToken.getText(code)),
+							typeRepr(wantedType),
+							packCharRange(node)});
 
 				builder.CreateBr(bend);
 
@@ -1567,9 +1570,9 @@ public:
 				// finally check if type was bad
 				builder.CreateCondBr(builder.CreateICmpEQ(phi, int8(-1)), c1, c2);
 				builder.SetInsertPoint(c1);
-				builder.CreateCall3(getStdlibFunc("rm_emitIsTypeError"),
-									int32(node->charRange.lo), int32(node->charRange.hi),
-									v.type);
+				builder.CreateCall(getStdlibFunc("rm_emitIsTypeError"),
+								   {int32(node->charRange.lo), int32(node->charRange.hi),
+										   v.type});
 				builder.CreateUnreachable();				
 				builder.SetInsertPoint(c2);
 
@@ -1608,7 +1611,7 @@ public:
 		case TokenType::TK_PRINT:
 		{
 			LLVMVal v=castVisit(node->args[0], TAny);
-			builder.CreateCall2(getStdlibFunc("rm_print"), v.type, v.value);
+			builder.CreateCall(getStdlibFunc("rm_print"), {v.type, v.value});
 			disown(v, TAny);
 			return OwnedLLVMVal(trueBool);
 		}
@@ -1616,16 +1619,16 @@ public:
 			return opImp(
 				{
 					dOp([this, node](BorrowedLLVMVal v) -> OwnedLLVMVal {
-							return builder.CreateCall2(
+							return builder.CreateCall(
 								getStdlibFunc("rm_tupHasEntry"), 
-								v.value, 
-								globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)));
+								{v.value, 
+										globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code))});
 						}, TBool, TTup),
 					dOp([this, node](BorrowedLLVMVal v) -> OwnedLLVMVal {
-							return builder.CreateCall2(
+							return builder.CreateCall(
 								getStdlibFunc("rm_relHasEntry"), 
-								v.value, 
-								globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)));
+								{v.value, 
+										globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code))});
 						}, TBool, TRel)
 				}, 
 				node,
@@ -1636,17 +1639,17 @@ public:
 			LLVMVal v=castVisit(node->args[0], TRel);
 			Value * rv = builder.CreateAlloca(anyRetType);
 			
-			builder.CreateCall4(
+			builder.CreateCall(
 				getStdlibFunc("rm_maxRel"), 
-				v.value, 
-				globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
-				rv,
-				packCharRange(node));
+				{v.value, 
+						globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
+						rv,
+						packCharRange(node)});
 						   
 			disown(v, TRel);
 
-			return cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
-									 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1))),
+			return cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, rv, 0, 0)), 
+									 builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, rv, 0, 1))),
 						TAny, node->type.plain(), node);
 		}
 		case TokenType::TK_MIN:
@@ -1654,17 +1657,17 @@ public:
 			LLVMVal v=castVisit(node->args[0], TRel);
 			Value * rv = builder.CreateAlloca(anyRetType);
 			
-			builder.CreateCall4(
+			builder.CreateCall(
 				getStdlibFunc("rm_minRel"), 
-				v.value, 
+				{v.value, 
 				globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
 				rv,
-				packCharRange(node));
+						packCharRange(node)});
 						   
 			disown(v, TRel);
 
-			return cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
-									 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1))),
+			return cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, rv, 0, 0)), 
+									 builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, rv, 0, 1))),
 						TAny, node->type.plain(), node);
 		}
 		case TokenType::TK_ADD:
@@ -1673,17 +1676,17 @@ public:
 
 			Value * rv = builder.CreateAlloca(anyRetType);
 			
-			builder.CreateCall4(
+			builder.CreateCall(
 				getStdlibFunc("rm_addRel"), 
-				v.value, 
+				{v.value, 
 				globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
 				rv,
-				packCharRange(node));
+						packCharRange(node)});
 						   
 			disown(v, TRel);
 
-			return cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
-									 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1))),
+			return cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, rv, 0, 0)), 
+									 builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, rv, 0, 1))),
 						TAny, node->type.plain(), node);
 		}
 		case TokenType::TK_MULT:
@@ -1692,27 +1695,27 @@ public:
 
 			Value * rv = builder.CreateAlloca(anyRetType);
 			
-			builder.CreateCall4(
+			builder.CreateCall(
 				getStdlibFunc("rm_multRel"), 
-				v.value, 
+				{v.value, 
 				globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
 				rv,
-				packCharRange(node));
+						packCharRange(node)});
 						   
 			disown(v, TRel);
 
-			return cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
-									 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1))),
+			return cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, rv, 0, 0)), 
+									 builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, rv, 0, 1))),
 						TAny, node->type.plain(), node);
 		}
 		case TokenType::TK_COUNT:
 		{	
 			LLVMVal v=castVisit(node->args[0], TRel);
-			OwnedLLVMVal r(builder.CreateCall3(
+			OwnedLLVMVal r(builder.CreateCall(
 								   getStdlibFunc("rm_countRel"), 
-								   v.value, 
+								   {v.value, 
 								   globalString(std::static_pointer_cast<VariableExp>(node->args[1])->nameToken.getText(code)),
-								   packCharRange(node)));
+										   packCharRange(node)}));
 			disown(v, TRel);
 			return LLVMVal(std::move(r));
 		}
@@ -1891,18 +1894,18 @@ public:
 		ss2 << "check_succ_" << uid++;
 		BasicBlock * nblock = BasicBlock::Create(getGlobalContext(), ss2.str(), getFunction());
 		
-		Value * argc = builder.CreateLoad(builder.CreateConstGEP2_32(capture, 0, 2));
+		Value * argc = builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, capture, 0, 2));
 		Value * margc = int16(node->args.size());
 		builder.CreateCondBr(builder.CreateICmpEQ(argc, margc), nblock, fblock);
 		
 		builder.SetInsertPoint(fblock);
 
 		builder.CreateCall(getStdlibFunc("rm_exitFunction")); 
-		builder.CreateCall4(getStdlibFunc("rm_emitArgCntError"), 
-							int32(node->charRange.lo), 
-							int32(node->charRange.hi),
-							margc, 
-							argc);
+		builder.CreateCall(getStdlibFunc("rm_emitArgCntError"), 
+						   {int32(node->charRange.lo), 
+								   int32(node->charRange.hi),
+								   margc, 
+								   argc});
 		builder.CreateUnreachable();
 
 		builder.SetInsertPoint(nblock);
@@ -1915,7 +1918,7 @@ public:
 			args.push_back(ac.back().type);
 		}
 
-		Value * voidfp = builder.CreateLoad(builder.CreateConstGEP2_32(capture, 0, 4));
+		Value * voidfp = builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, capture, 0, 4));
 		Value * fp = builder.CreatePointerCast(voidfp, pointerType(ft));
 		builder.CreateCall(fp, args);
 		
@@ -1925,8 +1928,8 @@ public:
 
 		builder.CreateCall(getStdlibFunc("rm_exitFunction")); 
 
-		return cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
-								 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1))),
+		return cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, rv, 0, 0)), 
+								 builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, rv, 0, 1))),
 					TAny, node->type.plain(), node);
 	}
 
@@ -1951,7 +1954,7 @@ public:
 		}
 		
 		LLVMVal rel=castVisit(exp->lhs, TRel);
-		LLVMVal ret=OwnedLLVMVal(builder.CreateCall4(getStdlibFunc("rm_renameRel"), rel.value, int32(exp->renames.size()), names, packCharRange(exp)));
+		LLVMVal ret=OwnedLLVMVal(builder.CreateCall(getStdlibFunc("rm_renameRel"), {rel.value, int32(exp->renames.size()), names, packCharRange(exp)}));
 		disown(rel, TRel);
 		return ret;
 
@@ -1961,10 +1964,10 @@ public:
 	LLVMVal visit(std::shared_ptr<DotExp> node) {
 		LLVMVal tup=castVisit(node->lhs, TTup);
 		Value * rv = builder.CreateAlloca(anyRetType);
-		builder.CreateCall4(getStdlibFunc("rm_tupEntry"), tup.value, globalString(node->nameToken), rv, packCharRange(node));
+		builder.CreateCall(getStdlibFunc("rm_tupEntry"), {tup.value, globalString(node->nameToken), rv, packCharRange(node)});
 		
-		OwnedLLVMVal r=cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 0)), 
-										 builder.CreateLoad(builder.CreateConstGEP2_32(rv, 0, 1))),
+		OwnedLLVMVal r=cast(OwnedLLVMVal(builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, rv, 0, 0)), 
+										 builder.CreateLoad(builder.CreateConstGEP2_32(nullptr, rv, 0, 1))),
 							TAny, node->type.plain(), node);
 		disown(tup, TTup);
 		return LLVMVal(std::move(r));
@@ -1974,8 +1977,9 @@ public:
 	LLVMVal visit(std::shared_ptr<TupMinus> node) {
 		LLVMVal tup=castVisit(node->lhs, TTup);
 
-		OwnedLLVMVal ans(builder.CreateCall3(getStdlibFunc("rm_tupRemove"), tup.value, globalString(node->nameToken),
-											 packCharRange(node)));
+		OwnedLLVMVal ans(builder.CreateCall(
+							 getStdlibFunc("rm_tupRemove"),
+							 {tup.value, globalString(node->nameToken), packCharRange(node)}));
 		disown(tup, TTup);
 		return LLVMVal(std::move(ans));
 	}
@@ -1995,10 +1999,10 @@ public:
 		LLVMVal ret;
 		switch (exp->projectionToken.id) {
 		case TokenType::TK_PROJECT_MINUS:
-			ret=OwnedLLVMVal(builder.CreateCall4(getStdlibFunc("rm_projectMinusRel"), rel.value, int32(exp->names.size()), names, packCharRange(exp)));
+			ret=OwnedLLVMVal(builder.CreateCall(getStdlibFunc("rm_projectMinusRel"), {rel.value, int32(exp->names.size()), names, packCharRange(exp)}));
 			break;
 		case TokenType::TK_PROJECT_PLUS:
-			ret=OwnedLLVMVal(builder.CreateCall4(getStdlibFunc("rm_projectPlusRel"), rel.value, int32(exp->names.size()), names, packCharRange(exp)));
+			ret=OwnedLLVMVal(builder.CreateCall(getStdlibFunc("rm_projectPlusRel"), {rel.value, int32(exp->names.size()), names, packCharRange(exp)}));
 			break;
 		default:
 			ICE("Bad project", exp->projectionToken.id, exp->projectionToken, exp);
@@ -2199,8 +2203,8 @@ public:
 		case TokenType::TK_SELECT:
 			return binopImpl(node, {
 					dOp([this](BorrowedLLVMVal lhs, BorrowedLLVMVal rhs)->OwnedLLVMVal {
-							return builder.CreateCall2(getStdlibFunc("rm_selectRel"), lhs.value, 
-													   builder.CreatePointerCast(rhs.value, voidPtrType));
+							return builder.CreateCall(getStdlibFunc("rm_selectRel"),
+													  {lhs.value, builder.CreatePointerCast(rhs.value, voidPtrType)});
 						}, TRel, TRel, TFunc)
 						});
 		case TokenType::TK_OPEXTEND:
