@@ -27,27 +27,34 @@ using namespace rasmus::stdlib;
 
 
 void rm_print(uint8_t t, int64_t v) {
+	union {
+		int64_t v_int;
+		double v_double;
+		rm_object * v_ptr;
+	};
+	v_int = v;
+	
     switch (PlainType(t)) {
     case TBool:
-		callback->printBool(v);
+		callback->printBool(v_int);
 		break;
     case TInt:
-		callback->printInt(v);
+		callback->printInt(v_int);
 		break;
     case TFloat:
-		callback->printFloat(*(const double*)&v);
+		callback->printFloat(v_double);
 		break;
     case TText: //It's a Text
-		callback->printText((rm_object*)v);
+		callback->printText(v_ptr);
 		break;
     case TRel:
-		callback->printRel((rm_object*)v);
+		callback->printRel(v_ptr);
 		break;
     case TTup:
-		callback->printTup((rm_object*)v);
+		callback->printTup(v_ptr);
 		break;
     case TFunc:
-		callback->printFunc((rm_object*)v);
+		callback->printFunc(v_ptr);
 		break;
     default:
 		callback->reportMessage("ILE: rm_print called on unhandled type");

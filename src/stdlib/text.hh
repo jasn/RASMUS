@@ -33,7 +33,7 @@ struct TextBase: public rm_object {
 
 struct SmallText: public TextBase {
 	SmallText(size_t length): TextBase(LType::smallText, length) {}
-	char data[0];
+	char data[];
 };
 
 struct ConcatText: public TextBase {

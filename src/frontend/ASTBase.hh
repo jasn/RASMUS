@@ -30,7 +30,7 @@
 #include <frontend/strongType.hh>
 namespace llvm {
 struct Value;
-};
+}
 
 namespace rasmus {
 namespace frontend {

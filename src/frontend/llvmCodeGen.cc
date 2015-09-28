@@ -37,8 +37,10 @@
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Module.h>
+#include <llvm/Config/llvm-config.h>
+#define LLVMVER (LLVM_VERSION_MAJOR * 100 + LLVM_VERSION_MINOR)
 
-#if LLVM_VERSION_MAJOR > 3 || LLVM_VERSION_MINOR >= 5
+#if LLVMVER >= 305
 #include <llvm/IR/Verifier.h>
 #else
 #include <llvm/Analysis/Verifier.h>

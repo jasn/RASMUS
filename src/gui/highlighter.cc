@@ -106,7 +106,7 @@ public:
 };
 
 void Intellisense::process(std::vector<std::string> * blocks) {
-	std::vector< std::pair<int, int> > locations;
+	std::vector< std::pair<size_t, size_t> > locations;
 	std::string str;
 	for (size_t i=0; i < blocks->size(); ++i) {
 		size_t j=0;

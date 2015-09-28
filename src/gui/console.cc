@@ -150,7 +150,7 @@ void Console::doPrintConsole() {
 	QPrintDialog *pdlg = new QPrintDialog(printer, this);
 	pdlg->setWindowTitle(tr("Print Console"));
 
-	if (!pdlg->exec() == QDialog::Accepted) return;
+	if (pdlg->exec() != QDialog::Accepted) return;
 
 	print(printer);
 }
