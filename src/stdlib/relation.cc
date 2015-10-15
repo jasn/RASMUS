@@ -279,7 +279,15 @@ void savePermutationToFile(rm_object *o, const char *name) {
 
 	// advance stream to proper position
 	char c;
-	while ((c = fgetc(f)) != '\n') {}
+	while ((c = fgetc(f)) != '\n') {
+		if (c == '\r') {		// MAC sometimes terminates lines with only \r
+			char c1 = fgetc(f);
+			if (c1 != '\n') {
+				ungetc(c1, f);
+			}
+			break;
+		}
+	}
 	// write permutation
 	for (size_t i = 0; i < relation->permutation.size(); ++i) {
 		if (i != 0) {
@@ -376,6 +384,38 @@ int8_t rm_textToBool(std::string & text){
 		return RM_TRUE;
 }
 
+/**
+ * \Brief Homemade cross platform getline function.
+ */
+std::istream& crossPlatformGetline(std::istream &is, std::string &str) {
+	std::istream::sentry sent(is, true);
+	if (!sent) {
+		return is;
+	}
+
+	str.erase();
+	std::stringstream ret;
+	char c;
+	while ((c = is.get()) != std::string::traits_type::eof()) {
+		if (c == '\x00') break;							 // NULL byte break.
+		if (c == '\r') {
+			if (is.peek() == '\n') {
+				// We have a windows formatted file.
+				// Thus we should extract both before returning.
+				c = is.get();
+			} // otherwise we have an old mac file which terminates with only \r.
+			
+			break;
+		}
+		if (c == '\n') {
+			break;
+		}
+		ret << c;
+	}
+	str = std::move(ret.str());
+	return is;
+}
+
 /*  parses a relation given by an input stream and returns 
 	it. The format is as given in the RASMUS user manual. 
 
@@ -452,7 +492,7 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 
 	{
 		std::string _;
-		getline(inFile, _);
+		crossPlatformGetline(inFile, _);
 	}
 
 	relations->schema = schema;
@@ -462,7 +502,7 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 	// special case: either the zero or one relation
 	if(schema->attributes.size() == 0){
 		std::string line;
-		if(getline(inFile, line)){
+		if(crossPlatformGetline(inFile, line)){
 			RefPtr<Tuple> tuple = makeRef<Tuple>();
 			tuple->schema = schema;
 			relations->tuples.push_back(std::move(tuple));
@@ -478,7 +518,7 @@ rm_object * loadRelationFromStream(std::istream & inFile){
 		for(auto & attribute : schema->attributes){
 			
 			std::string line;
-			if(!getline(inFile, line)){
+			if(!crossPlatformGetline(inFile, line)){
 				done = true;
 				break;
 			}
@@ -597,64 +637,45 @@ void printTupleToStream(rm_object * ptr, std::ostream & out) {
 
 }
 
+
 /**
  * \Brief Parses input as a CSV file
  * parseCSV returns a vector containing all the records in the CSV.
  * Each record contains a number of fields represented as strings.
  */
-std::vector< std::vector<std::string> > parseCSV(std::string input){
-  
+std::vector< std::vector<std::string> > parseCSV(std::stringstream &ss) {
+	
 	std::vector< std::vector<std::string> > ret;
-	if(input.size() == 0)
-		return ret;
 
-	bool more_rows = true;
-	size_t index = 0;
-	
-	while(more_rows){
-	  
-		std::vector<std::string> row;		
-		std::string field = "";
-	
-		for(bool more_fields = true, in_quotes = false; more_fields; index++){
-		  
-			if(index > input.size())
-				ILE("index out of bounds while parsing the CSV file");
-			char c = input[index];
+	std::string line;
+	while (crossPlatformGetline(ss, line)) {
+		std::vector<std::string> row;
+		std::stringstream field;
+		
+		bool in_quotes = false;
+		for(std::vector<std::string>::size_type index = 0; index < line.size();	++index) {
+
+			char c = line[index];
 
 			if(!in_quotes) {
 				switch(c){
 				case '\x00':
-					more_fields = false;
-					more_rows = false;
-					row.push_back(std::move(field));
-					break;
-				case '"':
-					in_quotes = true;
-					break;
-				case '\r':
-					if(input[index+1] != '\n'){
-						std::string errText =
-							"Could not parse CSV file because "
-							"of an unexpected type of line break.";
-						std::cerr << errText << std::endl;
-						callback->reportError(0, 0, errText);
-					}
-					index++;
-					// note the fallthrough
-				case '\n':
-					if(index == input.size() - 1)
-						more_rows = false;
-					row.push_back(std::move(field));
-					more_fields = false;
 					break;
 				case ',':
-					row.push_back(std::move(field));
-					field = "";
+					row.push_back(std::move(field.str()));
+					field.str("");
+					break;
+
+				case '"':
+					if (index > 0 && line[index-1] != ',') {
+						// TODO: fixme.
+						// error if not first character after a comma, or first character of line.
+						std::cerr << "we should do something about this" << std::endl;
+					}
+					in_quotes = true;
 					break;
 				default:
-					field += c;
-					break;
+					field << c;
 				}
 			} else { // inside quotes
 				switch(c){
@@ -665,32 +686,46 @@ std::vector< std::vector<std::string> > parseCSV(std::string input){
 					std::cerr << errText << std::endl;
 					callback->reportError(0, 0, errText);
 				}
-				case '"':
-					if(input[index+1] == '"'){
-						field += '"';
-						index++;
-					} else {
-						char next = input[index+1];
-						if(next == '\x00' || next == '\n' || next == ',' ||
-						   (next == '\r' && input[index+2] == '\n'))
+				case '"': {
+					if (index < line.size()-1) {
+						char next = line[index+1];
+						if (next == '"') {
+							field << "\"";
+						} else if (next == ',') {
 							in_quotes = false;
-						else{
+						} else {
 							std::stringstream ss;
 							ss << "Could not parse CSV file because ";
 							ss << "a quoted field contains data outside its quotes." << std::endl;
-							ss << "Error on line " << ret.size() << std::endl;
+							ss << "Error on line " << ret.size() << std::endl
+							   << "Found: '" << next << "' but expected ',' or '\"'." << std::endl;
 							std::string errText = ss.str();
 							std::cerr <<  errText << std::endl;
-							callback->reportError(0, 0, errText);
+							callback->reportError(0, 0, errText);	
 						}
+					} else {
+						in_quotes = false;
 					}
 					break;
+				}
 				default:
-					field += c;
+					// if at end of line, and inside quotes, we should read the next line and insert a line break.
+					if (index < line.size()-1) {
+						field << c;
+					} else {
+						field << std::endl;
+						crossPlatformGetline(ss, line);
+						// hack to start next iteration at for loop with 0, since it will overflow and become 0.
+						index = std::numeric_limits<std::vector<std::string>::size_type>::max();
+					}
+
 					break;
 				}
 			}
 		}
+		
+		row.push_back(std::move(field.str()));
+		field.str("");
 
 		if(ret.size() > 0 && ret[0].size() != row.size()){
 			std::stringstream ss;
@@ -701,7 +736,7 @@ std::vector< std::vector<std::string> > parseCSV(std::string input){
 			std::cerr << errText << std::endl;
 			callback->reportError(0, 0, errText);
 		}
-
+		
 		ret.push_back(std::move(row));
 	}
 
@@ -735,10 +770,21 @@ uint8_t fieldType(std::string field){
 	std::stringstream ss(field);
 	ss.imbue(std::locale("C"));
 	double v;
-	std::cout << "foo" << std::endl;
 	if (ss >> v)
 		return FLOAT_TYPE;
 	
+	return TEXT_TYPE;
+}
+
+uint8_t combineTypes(uint8_t prev_type, uint8_t next_type) {
+	if (prev_type == next_type) return prev_type;
+	if ((prev_type == INT_TYPE && next_type == FLOAT_TYPE) ||
+		(prev_type == FLOAT_TYPE && next_type == INT_TYPE)) {
+		return FLOAT_TYPE;
+	}
+	if ((prev_type == UNK_TYPE) || (next_type == UNK_TYPE)) {
+		return UNK_TYPE;
+	}
 	return TEXT_TYPE;
 }
 
@@ -770,8 +816,9 @@ rm_object * parseCSVToRelation(std::vector< std::vector<std::string> > rows){
 			ILE("Unexpected number of fields while parsing CSV");
 		for(size_t j = 0; j < num_fields; j++){
 			std::string & field = rows[i][j];
-			types[j] |= fieldType(field);
+			types[j] = combineTypes(fieldType(field), types[j]);
 		}
+
 	}
 
 	// determine if the first row is a header or a normal row
@@ -875,7 +922,7 @@ rm_object * loadRelationFromCSVFile(const char * name) {
 	std::ifstream ifs(name);
 	std::stringstream ss;
 	ss << ifs.rdbuf();
-	std::vector< std::vector<std::string> > parsedCSV = parseCSV(ss.str());
+	std::vector< std::vector<std::string> > parsedCSV = parseCSV(ss);
 	return parseCSVToRelation(parsedCSV);
 }
 
