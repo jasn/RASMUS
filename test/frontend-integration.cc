@@ -804,6 +804,9 @@ void relation(rasmus::teststream & ts) {
 	ts << "rename6" << result(it(""
 "X := rel(tup(e:2,a:1,b:true,c:\"\",d:1,aa:true)) + rel(tup(e:2,a:2,b:true,c:\"\",d:1,aa:true));"
 "((X[e<-foo, a<-bar])[foo<-e])[bar<-a] = X", "true"));
+	ts << "rename7" << result(it("rel(tup(a:5,b:7,c:8,d:9))[a<-e,b<-a] = rel(tup(e:5,a:7,c:8,d:9))", "true")); // we are allowed to rename something to 'a' if 'a' is also being renamed
+	ts << "rename8" << result(it("rel(tup(a:5,b:7,c:8,d:9))[b<-a,a<-e] = rel(tup(e:5,a:7,c:8,d:9))", "true")); // same as above, except the order of renaming should not matter.
+	ts << "rename9" << result(it("foo := rel(tup(A:1, B:3)); foo[A<-B,B<-A] = foo[B<-A,A<-B]","true")); // issue #78
 	ts << "rename_error1" << result(it("rel(tup(abe: 4, kat:5, baz:2)) [foo<-bar]", "", true));
 	ts << "rename_error2" << result(it("rel(tup(abe: 4, kat:5, baz:2)) [kat<-abe]", "", true));
 	ts << "rename_error3" << result(it("rel(tup(abe: 4, kat:5, baz:2)) [abe<-foo, baz<-foo, kat<-taz]", "", true));
@@ -841,6 +844,10 @@ void relation(rasmus::teststream & ts) {
 	ts << "rename_error18" << result(it("rel(tup(a:1,b:2,c:3))[a<-aa,b<-bb,c<-cc,d<-dd]", "", true));
 	ts << "rename_error19" << result(it("rel(tup(a:1,b:2,c:3))[b<-aa,a<-bb,c<-cc,d<-dd]", "", true));
 	ts << "rename_error20" << result(it("rel(tup(a:1,b:2,c:3))[a<-aa,b<-bb,c<-cc,a<-ee]", "", true));
+	ts << "rename_error21" << result(it("rel(tup(a:5,b:7,c:8,d:9))[e<-f]", "", true)); // e does not exist, so we should get an error.
+	ts << "rename_error22" << result(it("rel(tup(a:5,b:7,c:8,d:9))[a<-d]", "", true)); // d already exists, so we should get an error.
+	ts << "rename_error23" << result(it("rel(tup(a:5,b:7,c:8,d:9))[a<-e,a<-f]", "", true)); // cannot rename the same name twice, so we should get an error.
+	ts << "rename_error24" << result(it("rel(tup(a:5,b:7,c:8,d:9))[a<-e,b<-e]", "", true)); // cannot rename two different names to the same name, so we should get an error.
 	ts << "min1" << result(it("min(rel(tup(abe: 4)) + rel(tup(abe: 5)), abe)", "4"));
 	ts << "min2" << result(it("min(rel(tup(abe: 4)) + rel(tup(abe: 0)), abe)", "0"));
 	ts << "min3" << result(it("min(rel(tup(abe:4))-rel(tup(abe:4)), abe)", "?-Int"));
