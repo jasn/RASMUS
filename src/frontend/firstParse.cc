@@ -840,14 +840,14 @@ public:
 			auto x=froms.insert(std::make_pair(from.getText(code), from));
 			if (!x.second) {
 				std::stringstream ss;
-				ss << "The attribute '" << from.getText(code) << "' has allready been renamed";
+				ss << "The attribute '" << from.getText(code) << "' has already been renamed";
 				error->reportError(ss.str(), from, {r(x.first->second)});
 				bad = true;
 			}
 			auto y=tos.insert(std::make_pair(to.getText(code), to));
 			if (!y.second) {
 				std::stringstream ss;
-				ss << "The attribute '" << to.getText(code) << "' has allready been renamed to";
+				ss << "The attribute '" << to.getText(code) << "' has already been renamed to";
 				error->reportError(ss.str(), to, {r(y.first->second)});
 				bad = true;
 			}
