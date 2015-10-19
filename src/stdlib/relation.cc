@@ -1835,14 +1835,17 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
 	for (size_t i = 0 ; i < old_rel->permutation.size(); ++i) {
 		relation->permutation[i] = old_rel->permutation[i];
 	}
-	
+
+	std::vector<size_t> renameMap(name_count,0);
+	// linear scan to find rename mapping.
+	// this is to avoid confusion with rel[A<-B, B<-A].
 	for(uint32_t i = 0; i < name_count; i++){
 		std::string old_name = names[i*2];
 		std::string new_name = names[i*2 + 1];
 		bool found = false;
-		for(auto & attribute : schema->attributes){
-			if(attribute.name == old_name){
-				attribute.name = new_name;
+		for(size_t a = 0; a < schema->attributes.size(); ++a) {
+			if (schema->attributes[a].name == old_name) {
+				renameMap[i] = a;
 				found = true;
 				break;
 			}
@@ -1853,6 +1856,11 @@ rm_object * rm_renameRel(rm_object * rel, uint32_t name_count, const char ** nam
 				arg.push_back(old_rel->schema->attributes[k].name);
 			rm_emitColNameError(unpackCharRange(range).first, unpackCharRange(range).second, old_name, arg);
 		}
+	}
+
+	for (size_t i = 0; i < renameMap.size(); ++i) {
+		std::string newName = names[2*i+1];
+		schema->attributes[renameMap[i]].name = newName;
 	}
 
 	// check if we have produced a schema with duplicate names
