@@ -32,7 +32,8 @@ bool printRel(){
 	{
 		std::string input = "2\n"
 			"T Name\n"
-			"I Age\n" 
+			"I Age\n"
+			"0 1\n"
 			"Bruce Jones\n" 
 			"5\n" 
 			"Mary Ross\n" 
