@@ -97,7 +97,8 @@ public:
 
 		int lo = std::numeric_limits<int>::max();
 		int hi = std::numeric_limits<int>::min();
-		if (mainToken) {
+
+		if (mainToken.id != lexer::TokenType::INVALID) {
 			lo = std::min<int>(lo, mainToken.start);
 			hi = std::max<int>(hi, mainToken.length + mainToken.start);
 		}
@@ -108,6 +109,11 @@ public:
 	
 		auto it=std::upper_bound(code->lineStarts.begin(), code->lineStarts.end(), lo);
 		int line=it - code->lineStarts.begin();
+
+		// if we were given no ranges and mainToken is null, line will be too high, i.e. point to end()
+		if (it == code->lineStarts.end() && line > 0)
+			line--;
+
 		std::stringstream ss;
 		switch (type) {
 		case rf::MsgType::error:
@@ -123,12 +129,9 @@ public:
 			break;
 		}
 		ss << " " << escaped(message) << "<br>";
-		int startOfLine = std::min<int>(
-			std::max<int>(0, code->lineStarts[line-1]+1),
-			code->code.size());
-		int endOfLine = std::max<int>(0,
-									  std::min<int>(code->lineStarts[line], code->code.size()));
-		if (endOfLine < startOfLine) endOfLine=startOfLine;
+		int startOfLine = code->lineStarts[line-1]+1;
+		int endOfLine = code->lineStarts[line];
+
 		ss << "<span style=\"color: "
 		   << settings->color(Colors::consoleCode).name().toStdString() 
 		   << "\">" << escaped(code->code.substr(startOfLine,endOfLine-startOfLine))
@@ -146,8 +149,8 @@ public:
 			for (auto r: ranges)
 				for (int x=std::max<int>(startOfLine, r.lo); x < std::min<int>(endOfLine, r.hi); ++x) 
 					i[x-startOfLine] = '~';
-			if (mainToken)
-				i[std::max<int>(size_t(0), std::min<int>(mainToken.start + (mainToken.length-1) / 2 - startOfLine, endOfLine-startOfLine-1))] = '^';
+
+			i[std::max<int>(size_t(0), std::min<int>(mainToken.start + (mainToken.length-1) / 2 - startOfLine, endOfLine-startOfLine-1))] = '^';
 			ss << "<span style=\"color: " 
 			   << settings->color(Colors::consoleMessage).name().toStdString()
 			   << "\">" << escaped(i) << "</span>";

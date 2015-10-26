@@ -98,7 +98,8 @@ void TerminalCallback::report(MsgType type,
 							  std::string additional) {
 	int lo = std::numeric_limits<int>::max();
 	int hi = std::numeric_limits<int>::min();
-	if (mainToken) {
+
+	if (mainToken.id != lexer::TokenType::INVALID) {
 		lo = std::min<int>(lo, mainToken.start);
 		hi = std::max<int>(hi, mainToken.length + mainToken.start);
 	}
@@ -130,7 +131,7 @@ void TerminalCallback::report(MsgType type,
 	int startOfLine = code->lineStarts[line-1]+1;
     int endOfLine = code->lineStarts[line];
 
-	std::cout << green
+	std::cerr << green
 			  << code->code.substr(startOfLine,endOfLine-startOfLine)
 			  << reset
 			  << std::endl;
@@ -146,8 +147,8 @@ void TerminalCallback::report(MsgType type,
 		for (auto r: ranges)
 			for (int x=std::max<int>(startOfLine, r.lo); x < std::min<int>(endOfLine, r.hi); ++x) 
 				i[x-startOfLine] = '~';
-		if (mainToken)
-			i[std::max<int>(size_t(0), std::min<int>(mainToken.start + (mainToken.length-1) / 2 - startOfLine, endOfLine-startOfLine-1))] = '^';
+
+		i[std::max<int>(size_t(0), std::min<int>(mainToken.start + (mainToken.length-1) / 2 - startOfLine, endOfLine-startOfLine-1))] = '^';
 		std::cerr << blue << i << reset << std::endl;
 	}
 	if (!additional.empty()) 
