@@ -524,7 +524,7 @@ bool intersectsSchema(
 	auto ir=rhs.begin();
 	while (il != lhs.end() && ir != rhs.end()) {
 		if (il->first != ir->first) return false;
-		if (!Type::intersects(il->second, ir->second)) return false;
+		if (!Type::canCastSucceed(il->second, ir->second)) return false;
 		++il;
 		++ir;
 	}
@@ -532,17 +532,20 @@ bool intersectsSchema(
 }
 						
 
-bool Type::intersects(const Type & lhs, const Type & rhs) {
-	const Kind lb=lhs.kind();
-	const Kind rb=rhs.kind();
+bool Type::canCastSucceed(const Type & to, const Type & from) {
+	// FIXME: rename lhs to to
+	const auto lhs=to;
+	const auto rhs=from;
+	const Kind lb=to.kind();
+	const Kind rb=from.kind();
 	if (lb == Union) {
-		for (const auto & part: lhs.unionParts()) 
-			if (intersects(part, rhs)) return true;
+		for (const auto & part: to.unionParts()) 
+			if (canCastSucceed(part, rhs)) return true;
 		return false;
 	}
 	if (rb == Union) {
 		for (const auto & part: rhs.unionParts()) 
-			if (intersects(lhs, part)) return true;
+			if (canCastSucceed(lhs, part)) return true;
 		return false;
 	}
 	if (lb == Any || rb == Any || rb == Empty || rb == Empty) 
@@ -555,7 +558,7 @@ bool Type::intersects(const Type & lhs, const Type & rhs) {
 		assert(false);
 		return true;
 	case Int: return rb == Int;
-	case Float: return rb == Float;
+	case Float: return (rb == Float) || (rb == Int);
 	case Bool: return rb == Bool;
 	case Text: return rb == Text;
 	case ARel: return rb == Rel || rb == ARel;
@@ -568,12 +571,12 @@ bool Type::intersects(const Type & lhs, const Type & rhs) {
 	case Func: {
 		if (rb == AFunc) return true;
 		if (rb != Func) return false;
-		if (!intersects(lhs.funcRet(), rhs.funcRet())) return false;
+		if (!canCastSucceed(lhs.funcRet(), rhs.funcRet())) return false;
 		const auto & la = lhs.funcArgs();
 		const auto & ra = rhs.funcArgs();
 		if (la.size() != ra.size()) return false;
 		for (size_t i=0; i < la.size(); ++i) 
-			if (!intersects(la[i], ra[i])) return false;
+			if (!canCastSucceed(la[i], ra[i])) return false;
 		return true;
 	}
 	}

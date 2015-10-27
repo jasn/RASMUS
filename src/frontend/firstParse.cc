@@ -110,7 +110,7 @@ public:
 	}
 	
 	bool typeCheck(Token token, NodePtr expr, const Type & t) {
-		if (Type::intersects(expr->type, t)) 
+		if (Type::canCastSucceed(t, expr->type))
 			return true;
 
 		std::stringstream ss;
@@ -789,7 +789,7 @@ public:
 				if (f.funcArgs().size() != argTypes.size()) continue;
 				bool ok=true;
 				for (size_t i=0; i < argTypes.size(); ++i) {
-					if (!Type::intersects(argTypes[i], f.funcArgs()[i])) {
+					if (!Type::canCastSucceed(argTypes[i], f.funcArgs()[i])) {
 						ok=false;
 						break;
 					}
@@ -1107,8 +1107,8 @@ public:
 		
 		std::vector<BinopHelp> matches;
 		for(auto h: ops) {
-			if (!Type::intersects(h.lhsType, lhst)) continue;
-			if (!Type::intersects(h.rhsType, rhst)) continue;
+			if (!Type::canCastSucceed(h.lhsType, lhst)) continue;
+			if (!Type::canCastSucceed(h.rhsType, rhst)) continue;
 			matches.push_back(h);
 		}
 		

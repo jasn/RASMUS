@@ -116,7 +116,7 @@ public:
 	static Type join(std::vector<Type> parts);
 	static Type intersection(std::vector<Type> parts);
 
-	static bool intersects(const Type & lhs, const Type & rhs);
+	static bool canCastSucceed(const Type & lhs, const Type & rhs);
 
 	/**
 	 * \brief Check if lhs is a specialization of rhs
