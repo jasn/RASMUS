@@ -46,6 +46,9 @@ Type d(T ... t) {
 	return Type::join({t...});
 }
 
+/**
+ * Helper function for testing equality on types
+ */
 void eq(rasmus::teststream & ts, Type lhs,
 		Type rhs, 
 		bool equal=true) {
@@ -53,10 +56,13 @@ void eq(rasmus::teststream & ts, Type lhs,
 	   << result((lhs == rhs) == equal);
 } 
 
-
+/**
+ * Type equality tests
+ */
 void equality(rasmus::teststream & ts) {
-	eq(ts, i, i);
-	eq(ts, fu(t, {f, i}), i, false);
+	eq(ts, i, i); 				// Int and Int should be the same
+	eq(ts, f, f);				// Float and Float should be the same
+	eq(ts, fu(t, {f, i}), i, false); // func(Float, Int) -> (Text) should not be same as Int
 	eq(ts, fu(t, {b, f}), fu(t, {b, f}));
 	eq(ts, fu(t, {b, i}), fu(t, {b, f}), false);
 	eq(ts, fu(f, {b, i}), fu(t, {b, f}), false);
@@ -145,6 +151,7 @@ void join(rasmus::teststream & ts) {
 	dt(ts, {tu({{"abe", d(i,f)}}), tu({{"abe", i}})}, tu({{"abe", d(i,f)}}));
 }
 
+
 void ct(rasmus::teststream & ts, std::vector<Type> lhs, 		
 		Type rhs) {
 	ts << "intersection(";
@@ -165,6 +172,10 @@ void intersection(rasmus::teststream & ts) {
 	ct(ts, {fu(a, {a, i}), fu(b, {b, b})}, inv);
 	ct(ts, {tu({{"abe", i}}), tu({{"abe", a}}), atu, a}, tu({{"abe", i}})); 
 	ct(ts, {tu({{"abe", i}}), tu({{"abe", a}}), af, a}, inv);
+}
+
+void floatingPointIntegerEquality(rasmus::teststream &ts) {
+	
 }
 
 int main(int argc, char **argv) {

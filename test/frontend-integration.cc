@@ -141,13 +141,13 @@ void builtins(rasmus::teststream & ts) {
 	ts << "is-Int11" << result(it("a := rel(tup(a:1, b:true, c:\"\")); is-Int(a, b)", "false"));
 	ts << "is-Int12" << result(it("a := rel(tup(a:1, b:true, c:\"\")); is-Int(a, c)", "false"));
 	ts << "is-Int13" << result(it("f := (func()->(Any) rel(tup(a:1)) end);"
-								   "is-Int(f(), a)", "true"));
+								  "is-Int(f(), a)", "true"));
 	ts << "is-Int14" << result(it("f := (func()->(Any) rel(tup(a:true)) end);"
-								   "is-Int(f(), a)", "false"));
+								  "is-Int(f(), a)", "false"));
 	ts << "is-Int13" << result(it("f := (func()->(Any) (tup(a:1)) end);"
-								   "is-Int(f(), a)", "true"));
+								  "is-Int(f(), a)", "true"));
 	ts << "is-Int14" << result(it("f := (func()->(Any) (tup(a:true)) end);"
-								   "is-Int(f(), a)", "false"));
+								  "is-Int(f(), a)", "false"));
 	ts << "is-Text1" << result(it("is-Text(true)", "false"));
 	ts << "is-Text2" << result(it("is-Text(\"foo\")", "true"));
 	ts << "is-Text3" << result(it("is-Text(?-Text)", "true"));
@@ -274,6 +274,12 @@ void integer(rasmus::teststream & ts) {
 	ts << "greater equal 2" << result(it("1 >= 1", "true"));
 	ts << "greater equal 3" << result(it("1 >= ?-Int", "?-Bool"));
 }
+
+void floating_point(rasmus::teststream & ts) {
+	ts << "float1" << result(it("func() -> (Float) 2 end() = 2", "true"));
+}
+
+
 
 void crash(rasmus::teststream & ts) {
 	ts << "crash1" << result(it("X := one; (X ?(X = one)) = one", "true"));
@@ -1065,6 +1071,7 @@ int main(int argc, char **argv) {
 		.multi_test(builtins, "builtins")
 		.multi_test(base, "base")
 		.multi_test(integer, "integer")
+		.multi_test(floating_point, "floating_point")
 		.multi_test(text, "text")
 		.multi_test(bools, "bool")
 		.multi_test(tuple, "tuple")
