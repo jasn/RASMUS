@@ -334,7 +334,8 @@ public:
 		case TFloat: return doubleType;
 		case TFunc: 
 		case TText: 
-		case TRel: 
+		case TRel:
+		case TTup:
 			return voidPtrType;
 		case TAny: return anyRetType;
 		default:
@@ -617,35 +618,73 @@ public:
 		if (tfrom == TAny) {
 			BasicBlock * fblock = newBlock("badtype");
 			BasicBlock * nblock = newBlock("goodtype");
+			BasicBlock * endBlock = newBlock("endBlock");
 			std::stringstream ss;
 			ss << "is" << tto;
-			builder.CreateCondBr(builder.CreateICmpEQ(value.type, typeRepr(tto), ss.str()), nblock, fblock);
+
+			auto currentInsertPoint = builder.saveIP();
+			builder.SetInsertPoint(endBlock);
+			llvm::PHINode * phi = builder.CreatePHI(llvmType(tto), 2, "castPhi");
+			builder.restoreIP(currentInsertPoint);
+			if (tto == TFloat) {
+				BasicBlock * checkIfIntBlock = newBlock("checkIfIntBlock");
+				BasicBlock * castIntToFloatBlock = newBlock("castIntToFloatBlock");
+
+				builder.CreateCondBr(builder.CreateICmpEQ(value.type, typeRepr(tto), ss.str()), nblock, checkIfIntBlock); // if value.type is TFloat/tto, goto nblock otherwise goto checkifintblock
+				builder.SetInsertPoint(checkIfIntBlock);
+				builder.CreateCondBr(builder.CreateICmpEQ(value.type, typeRepr(TInt), "foo"), castIntToFloatBlock, fblock); // if value.type is int, goto castIntToFloat otherwise goto fail.
+				builder.SetInsertPoint(castIntToFloatBlock);
+				auto v = builder.CreateSIToFP(value.value, llvmType(tto));
+				phi->addIncoming(v, castIntToFloatBlock);
+				builder.CreateBr(endBlock);
+			} else {
+				builder.CreateCondBr(builder.CreateICmpEQ(value.type, typeRepr(tto), ss.str()), nblock, fblock); // if type are the same, goto nblock otherwise goto fail.
+			}
+
 			builder.SetInsertPoint(fblock);
+
 			builder.CreateCall(getStdlibFunc("rm_emitTypeError"),
 							   {int32(node->charRange.lo), int32(node->charRange.hi),
 									   value.type,
 									   typeRepr(tto)});
 			builder.CreateUnreachable();
 			builder.SetInsertPoint(nblock);
+			BorrowedLLVMVal v;
 			switch (tto) {
 			case TInt:
-				return BorrowedLLVMVal(value.value);
+				v=BorrowedLLVMVal(value.value);
+				break;
 			case TFloat:
-				return BorrowedLLVMVal(builder.CreateBitCast(value.value, llvmType(tto)));
+				v=BorrowedLLVMVal(builder.CreateBitCast(value.value, llvmType(tto)));
+				break;
 			case TBool:
-				return BorrowedLLVMVal(builder.CreateTruncOrBitCast(value.value, llvmType(tto)));
+				v=BorrowedLLVMVal(builder.CreateTruncOrBitCast(value.value, llvmType(tto)));
+				break;
 			case TText:
-				return BorrowedLLVMVal(builder.CreateIntToPtr(value.value, voidPtrType, "text"));
+				v=BorrowedLLVMVal(builder.CreateIntToPtr(value.value, voidPtrType, "text"));
+				break;
 			case TRel:
-				return BorrowedLLVMVal(builder.CreateIntToPtr(value.value, voidPtrType, "rel"));
+				v=BorrowedLLVMVal(builder.CreateIntToPtr(value.value, voidPtrType, "rel"));
+				break;
 			case TTup:
-				return BorrowedLLVMVal(builder.CreateIntToPtr(value.value, voidPtrType, "tup"));
+				v=BorrowedLLVMVal(builder.CreateIntToPtr(value.value, voidPtrType, "tup"));
+				break;
 			case TFunc:
-				return BorrowedLLVMVal(builder.CreateIntToPtr(value.value, voidPtrType, "func"));
+				v=BorrowedLLVMVal(builder.CreateIntToPtr(value.value, voidPtrType, "func"));
+				break;
 			default:
 				ICE("Unhandled type", tfrom, tto, node);
 			}
+			phi->addIncoming(v.value, nblock);
+			builder.CreateBr(endBlock);
+			builder.SetInsertPoint(endBlock);
+			return phi;
+
 		}
+		if (tfrom == TInt && tto == TFloat) {
+			return BorrowedLLVMVal(builder.CreateSIToFP(value.value, llvmType(tto))); // tto is TFloat
+		}
+			
 		ICE("Unhandled type", tfrom, tto, node);
 	}
 
@@ -1394,7 +1433,7 @@ public:
 			// Build function code
 			OwnedLLVMVal x = cast(
 				takeOwnership(visitNode(node->body), node->body->type.plain()), node->body->type.plain(), TAny, node->body);
-			
+
 			for (auto a: node->args)
 				forgetOwnership(a->llvmVal);
 			
