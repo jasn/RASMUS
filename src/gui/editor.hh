@@ -25,22 +25,86 @@
 class Settings;
 class EditorPrivate;
 
+/**
+ * The editor for rasmus code files.
+ * The editor is a QMainWindow.
+ */
 class Editor: public QMainWindow {
 	Q_OBJECT
 public:
+	/**
+	 * Used when creating a new file.
+	 * This sets up the ui and listens for chages in the Settings.
+	 * @param settings is the Settings defined by the user.
+	 */
 	Editor(Settings * settings);
+
+	/**
+	 * Used when loading an existing file.
+	 * @param settings is the Settings defiend by the user.
+	 * @param path is a path to the file opened.
+	 * @param content is the contents of the opened file.
+	 */
 	Editor(Settings * settings, QString path, QString content);
+
+	/**
+	 * Destrutor for the editor. Called when the editor window is closed,
+	 * but after closeEvent has been called.
+	 */
 	~Editor();
+
+	/**
+	 * Called when closing the editor. Checks if there are unsaved changes and
+	 * presents the user with a dialog in that case.
+	 */
 	void closeEvent(QCloseEvent *event);
 public slots:
+
 	void dirty(bool dirty);
+
+	/**
+	 * Received when triggering Help->About, executes showAbout() in helper.hh
+	 */
 	void showAbout();
+	/**
+	 * receives the 'triggered()' event when 'File->Run' is triggered/clicked.
+	 * emits the runContent(QString name, QString content) signal, where
+	 * the name is a file name and content is the textual contents of the
+	 * editor, i.e. RASMUS code.
+	 */
 	void run();
+	/**
+	 * Receives the signal triggered by File->Save (or its shortcut).
+	 * Saves the current contes to the current file location or asks for a
+	 * location if it has not been saved before.
+	 */
 	bool save();
+	/**
+	 * Receives the signal triggered by 'File->Save As' (or its shortcur).
+	 * Queries the user for a file name to save the current contents to.
+	 */
 	bool saveAs();
+	/**
+	 * Whenever settings change, e.g. font or colors this slot receives a signal.
+	 * The function updates the editor to reflect the changes.
+	 */
 	void visualUpdate(Settings *);
+
+	/**
+	 * This slot receives a signal when File->Print is triggered.
+	 * The function opens a Print dialog window. The printout is
+	 * the content of the editor.
+	 */
 	void doPrintEditor();
 signals:
+
+	/**
+	 * The editor has a 'Run' functionality that executes the rasmus code
+	 * currently written in the editor.
+	 * When that button is clicked this signal is emitted.
+	 * Technically the button first emits a 'triggered()' signal, which is
+	 * received by the run() slot above, which in turn emits the runContent(..) signal
+	 */
 	void runContent(QString name, QString content);
 private:
 	EditorPrivate * d;
