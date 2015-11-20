@@ -19,6 +19,9 @@
 #ifndef HELP_GUARD
 #define HELP_GUARD
 
+/**
+ * Shows the about dialog found via Help->About
+ */
 void showAbout();
 
 #endif //HELP_GUARD
