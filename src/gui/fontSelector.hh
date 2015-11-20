@@ -24,21 +24,51 @@
 
 class FontSelectorPrivate;
 
+/**
+ * In the settings window one can adjust the font settings.
+ * This class is responsible for the forms used for adjusting these settings.
+ * This class is responsible for maintaining which font is currently in use.
+ * The form contains two fields: a font name and a size.
+ */
 class FontSelector: public QWidget {
 	Q_OBJECT
 public:
+	/**
+	 * Instantiates the form.
+	 * @param parent is the settings window.
+	 */
 	FontSelector(QWidget * parent);
+
+	/**
+	 * Destructor. Is destructed when the the settings window is closed.
+	 */
 	~FontSelector();
+
+	/**
+	 * Gets the associated font for this form.
+	 */
 	QFont getFont();
 public slots:
+	/**
+	 * Called whenever the font size has changed.
+	 */
 	void setFontSize(int size);
+
+	/**
+	 * Called whenever the font face has changed.
+	 */
 	void setFont(QFont font);
+
+	/**
+	 * Called when '...' is clicked in this font form.
+	 * Opens a dialog for choosing font face, size, and style.
+	 */
 	void selectFont();
 signals:
 	void sizeChanged(int size);
 	void fontChanged(QFont font);
 private:
-	FontSelectorPrivate * d;
+	FontSelectorPrivate * d; /**< Encapsulates the data */
 };
 
 #endif //__GUI_FONT_SELECTOR_HH__
