@@ -27,12 +27,21 @@
 class SettingsPrivate;
 class QAbstractButton;
 
+/**
+ * Texts that are visible somewhere in the UI.
+ * These are used for customizing the font used to display them.
+ */
 enum class Fonts {
 	console,
 	editor,
 	relation
 };
 
+/**
+ * Objects that are visible somewhere in the UI which we want to
+ * be able to customize the color.
+ * E.g. backgrounds or texts.
+ */
 enum class Colors {
 	consoleText,
 	consoleBackground,
@@ -51,22 +60,65 @@ enum class Colors {
 	relationBackground,
 };
 
+/**
+ * This class inherits from QDialog and draws the Settings window opened through
+ * Edit->Preferences.
+ */
 class Settings: public QDialog {
 	Q_OBJECT
 public:
+	/**
+	 * Constructor sets up the ui.
+	 */
 	Settings();
+
+	/**
+	 * @return the current path used to locate rasmus relations.
+	 */
 	QString path() const;
+
+	/**
+	 * @param f is a text type visisble in ui somewhere
+	 * @return the QFont used for f
+	 */
 	QFont font(Fonts font) const;
+
+	/**
+	 * @param c is a Colors which refers to a a colored background/text/etc
+	 * @param c refers to the object whose color we are interested in.
+	 * @return the QColor associated with the type @param c.
+	 * E.g. returns the QColor of the consoleText.
+	 */
 	QColor color(Colors color) const;
 public slots:
+	/**
+	 * Opens a File Dialog to determine where rasmus relation files are located.
+	 */
 	void selectPath();
+	/**
+	 * This slot receives a signal when the Settings dialog is closed via 'Ok' button or
+	 * when 'Apply' is clicked.
+	 * The function stores settings.
+	 */
 	void save();
+
+	/**
+	 * This slot receives a signal when the Settings dialog is closed via closing the window.
+	 * The function loads the stored settings.
+	 */
 	void load();
+
+	/**
+	 * Resets the settings to standard values.
+	 */
 	void restoreDefaults();
 signals:
+	/**
+	 * Signal emitted whenever settings change.
+	 */
 	void visualUpdate(Settings *);
 private:
-	SettingsPrivate * d;
+	SettingsPrivate * d; /**< This is a container for stored data as well as some implementational details.. */
 };
 
 #endif //__SRC_GUI_SETTINGS_H__
