@@ -761,7 +761,7 @@ uint8_t fieldType(std::string field){
 	if(field.empty()) return UNK_TYPE;
 	char* p;
 	strtol(field.c_str(), &p, 10);
-	if(*p == 0) // field is a valid int
+	if(static_cast<int>(*p) == 0) // field is a valid int
 		return INT_TYPE;
 
 	if(field == "true" || field == "false" || field == "?-Bool")
@@ -776,14 +776,25 @@ uint8_t fieldType(std::string field){
 	return TEXT_TYPE;
 }
 
+// partial order:
+// unknown -> every type.
+// int -> float.
+// bool,int,float -> text.
+// based on this, we should return the most specific type.
 uint8_t combineTypes(uint8_t prev_type, uint8_t next_type) {
 	if (prev_type == next_type) return prev_type;
+
+	if (prev_type == UNK_TYPE && next_type != UNK_TYPE) {
+		return next_type;
+	}
+
 	if ((prev_type == INT_TYPE && next_type == FLOAT_TYPE) ||
 		(prev_type == FLOAT_TYPE && next_type == INT_TYPE)) {
 		return FLOAT_TYPE;
 	}
-	if ((prev_type == UNK_TYPE) || (next_type == UNK_TYPE)) {
-		return UNK_TYPE;
+
+	if (prev_type != UNK_TYPE && next_type == UNK_TYPE) {
+		return prev_type;
 	}
 	return TEXT_TYPE;
 }
