@@ -22,20 +22,46 @@
 #include <QColor>
 
 class ColorSelectorPrivate;
-
+/**
+ * In Edit->Preferences one can set up the colors to use for various texts.
+ * Each text whose color can be customized is represented visually with this
+ * widget. See colorSelector.ui for the looks.
+ */
 class ColorSelector: public QWidget {
 	Q_OBJECT
 public:
+	/**
+	 * @param is the Preferences Window.
+	 */
 	ColorSelector(QWidget * parent);
 	~ColorSelector();
+
+	/**
+	 * @return the color of the associated text.
+	 */
 	QColor getColor();
 public slots:
+	/**
+	 * When this slot receives a signal it opens a QColorDialog for the user to
+	 * select a color. Currently this slot is connected to the clicked() event
+	 * of the button in colorSelector.ui.
+	 */
 	void selectColor();
+
+	/**
+	 * Once a color has been chosen, this slot saves it and announces that a
+	 * color has changed.
+	 */
 	void setColor(QColor);
 signals:
-	void colorChanged(QColor);
+
+	/**
+	 * Signal used to announce a change of color.
+	 * @param c is the new color.
+	 */
+	void colorChanged(QColor c);
 private:
-	ColorSelectorPrivate * d;
+	ColorSelectorPrivate * d; /**< QT pattern for binary compatibility */
 };
 
 
