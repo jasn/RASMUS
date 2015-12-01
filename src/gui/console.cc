@@ -107,54 +107,6 @@ void Console::pasteContinue() {
 	runLine(tmp);	
 }
 
-void Console::insertFromMimeData(const QMimeData *source) {
-
-	if (!source->hasText()) return;
-
-	gotoEnd();
-	QString txt = source->text();
-	pasteBuffer.clear();
-	pasteBuffer = txt.split("\n");
-	pasteIndex = 0;
-	if (pasteBuffer.size() > 0) {
-		pasteContinue();
-	}
-
-}
-
-void Console::visualUpdate(Settings *s) {
-	setFont(s->font(Fonts::console));
-	QPalette p(palette());
-	p.setColor(QPalette::Text, s->color(Colors::consoleText));
-	p.setColor(QPalette::Base, s->color(Colors::consoleBackground));
-	setPalette(p);
-	d->settings = s;
-}
-
-void Console::doCancel() {
-	if (isReadOnly()) rm_abort();
-	else emit cancel();
-}
-
-void Console::gotoEnd() {
-	QTextCursor c = textCursor();
-	c.clearSelection();
-	c.movePosition(QTextCursor::End);
-	setTextCursor(c);
-	verticalScrollBar()->setValue(verticalScrollBar()->maximum());
-	ensureCursorVisible();
-}
-
-void Console::doPrintConsole() {
-	QPrinter *printer = new QPrinter();
-	QPrintDialog *pdlg = new QPrintDialog(printer, this);
-	pdlg->setWindowTitle(tr("Print Console"));
-
-	if (pdlg->exec() != QDialog::Accepted) return;
-
-	print(printer);
-}
-
 void Console::keyPressEvent(QKeyEvent *e) {
 	if (e->key() == Qt::Key_Control ||
 		e->key() == Qt::Key_Alt ||
@@ -250,10 +202,6 @@ void Console::runLine(const QString &tmp) {
 	gotoEnd();
 }
 
-void Console::bussy(bool bussy) {
-	setReadOnly(bussy);
-}
-
 void Console::incomplete() {
 	d->incompleteState = true;
 	d->insertEmptyBlock();
@@ -272,6 +220,58 @@ void Console::display(QString block) {
 	c.insertText("\n");
 	c.insertHtml(block);
 	gotoEnd();
+}
+
+void Console::visualUpdate(Settings *s) {
+	setFont(s->font(Fonts::console));
+	QPalette p(palette());
+	p.setColor(QPalette::Text, s->color(Colors::consoleText));
+	p.setColor(QPalette::Base, s->color(Colors::consoleBackground));
+	setPalette(p);
+	d->settings = s;
+}
+
+void Console::doCancel() {
+	if (isReadOnly()) rm_abort();
+	else emit cancel();
+}
+
+void Console::bussy(bool bussy) {
+	setReadOnly(bussy);
+}
+
+void Console::gotoEnd() {
+	QTextCursor c = textCursor();
+	c.clearSelection();
+	c.movePosition(QTextCursor::End);
+	setTextCursor(c);
+	verticalScrollBar()->setValue(verticalScrollBar()->maximum());
+	ensureCursorVisible();
+}
+
+void Console::doPrintConsole() {
+	QPrinter *printer = new QPrinter();
+	QPrintDialog *pdlg = new QPrintDialog(printer, this);
+	pdlg->setWindowTitle(tr("Print Console"));
+
+	if (pdlg->exec() != QDialog::Accepted) return;
+
+	print(printer);
+}
+
+void Console::insertFromMimeData(const QMimeData *source) {
+
+	if (!source->hasText()) return;
+
+	gotoEnd();
+	QString txt = source->text();
+	pasteBuffer.clear();
+	pasteBuffer = txt.split("\n");
+	pasteIndex = 0;
+	if (pasteBuffer.size() > 0) {
+		pasteContinue();
+	}
+
 }
 
 Console::Console(QWidget * parent)
