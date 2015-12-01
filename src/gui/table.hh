@@ -5,7 +5,10 @@
 #include <stdint.h>
 
 namespace lexer {
-
+  /**
+   * This enum is used by the GUI Highlighter which needs to parse some
+   * RASMUS expressions.
+   */
 enum class TableTokenType {
     INVALID=248,
     TK_NAME=249,
