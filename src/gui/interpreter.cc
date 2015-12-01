@@ -277,10 +277,6 @@ void Interpreter::runContent(QString name, QString content) {
 	}
 }
 
-void Interpreter::getCurrentEnvironment() {
-	emit bussy(false);
-}
-
 void Interpreter::doDisplay(QString string) {
 	emit display(string);
 }
