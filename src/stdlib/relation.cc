@@ -715,7 +715,8 @@ std::vector< std::vector<std::string> > parseCSV(std::stringstream &ss) {
 					} else {
 						field << std::endl;
 						crossPlatformGetline(ss, line);
-						// hack to start next iteration at for loop with 0, since it will overflow and become 0.
+						// hack to start next iteration at for loop with 0,
+						// since it will overflow and become 0.
 						index = std::numeric_limits<std::vector<std::string>::size_type>::max();
 					}
 
