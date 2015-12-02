@@ -26,7 +26,7 @@ class Highlighter;
 
 class CodeTextEdit: public QPlainTextEdit {
 public:
-	CodeTextEdit(QWidget * parent): QPlainTextEdit(parent), highlighter(nullptr) {}
+	explicit CodeTextEdit(QWidget * parent): QPlainTextEdit(parent), highlighter(nullptr) {}
 
 	bool event(QEvent* event) override;
 
