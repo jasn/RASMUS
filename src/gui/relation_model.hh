@@ -39,14 +39,14 @@ public:
 	 *
 	 * @param relationName is the variable name of a relation we want a model of.
 	 */
-	RelationModel(const char * relationName);
+	explicit RelationModel(const char * relationName);
 
 	/**
 	 * Constructor for RelationModel.
 	 *
 	 * @param r is a pointer to a rasmus::stdlib::Relation we want a model of.
 	 */
-	RelationModel(rasmus::stdlib::Relation *r);
+	explicit RelationModel(rasmus::stdlib::Relation *r);
 
 	/**
 	 * @override
@@ -119,7 +119,7 @@ public:
 	 * @param model the model of the data to be displayed. See RelationModel for
 	 * more information.
 	 */
-	RelationWindow(RelationModel * model);
+	explicit RelationWindow(RelationModel * model);
 public slots:
 	/**
 	 * When clicking 'Help->About' in the menu this slot receives a signal
