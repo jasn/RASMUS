@@ -1,0 +1,9 @@
+/*!
+\page interpreter_overview %Interpreter documentation.
+
+The interpreter works like many standard interpreters by having a number of phases,
+where each phase run through the Abstract Syntax Tree, modifies it, and computes
+some values that are used in the next traversal.
+In this interpreter, we first Parse the code, then we typecheck the code and finally we generate the llvm byte code.
+
+*/

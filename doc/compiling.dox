@@ -1,0 +1,16 @@
+/*!
+\page compiling_rasmus Compiling RASMUS
+
+There are two dependencies for RASMUS: LLVM 3.6 and Qt 4.8 or later.
+These need to be compiled first and we refer to their manual on how to compile them.
+
+RASMUS comes with CMake files that should allow easy setup for compilation.
+Make sure LLVM and Qt has been compiled since RASMUS depends on them.
+
+If CMake does not automatically detect LLVM you need to specify the location of llvm-config.
+In src/frontend/interpreter.cc there is are lines that specify the target triple.
+This determines the calling convention of the generated code among other things.
+It might be necessary to change that value to the output of running
+llvm-config --host-target.
+
+*/

@@ -9,8 +9,10 @@ For information about the type system see \ref typesystem
 
 The RASMUS system contains several components.
 
+\ref interpreter_overview
+
 \ref GUI
 
-
+\ref compiling_rasmus
 
 */
