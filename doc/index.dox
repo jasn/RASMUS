@@ -2,9 +2,15 @@
 \mainpage The RASMUS Interperter
 
 This is the code documentation for the rasmus
-interperter/compiler. Before reading this documentation i would be a
+interperter/compiler. Before reading this documentation it would be a
 good idea to read the language specification.
 
 For information about the type system see \ref typesystem
+
+The RASMUS system contains several components.
+
+\ref GUI
+
+
 
 */
