@@ -40,7 +40,7 @@ public:
 	 * Constructor.
 	 * @param parent is the MainWindow.
 	 */
-	Console(QWidget * parent);
+	explicit Console(QWidget * parent);
 
 	/**
 	 * Destructor.
