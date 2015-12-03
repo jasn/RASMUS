@@ -24,10 +24,22 @@
 
 class Highlighter;
 
+/**
+ * The actual editing part of the editor ui/window.
+ * Responsible for interacting with the highlighter.
+ */
 class CodeTextEdit: public QPlainTextEdit {
 public:
+	/**
+	 * Constructor for CodeTextEdit, needs to be explicit since it takes one argument
+	 * and in general we do not want implicit constructors.
+	 * @param parent is the parent window, i.e. the editor window.
+	 */
 	explicit CodeTextEdit(QWidget * parent): QPlainTextEdit(parent), highlighter(nullptr) {}
 
+	/**
+	 * Used for showing tool tips with the issues found by highlighter.
+	 */
 	bool event(QEvent* event) override;
 
 	Highlighter * highlighter;
