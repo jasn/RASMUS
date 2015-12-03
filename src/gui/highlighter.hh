@@ -29,21 +29,45 @@
 class QTextDocument;
 class Settings;
 
+/**
+ * Different issues from the intellisense need to be highlighted differently.
+ */
 enum class IssueType {WARNING,ERROR};
 
+/**
+ * Intellisense runs and finds a number of Issues for the highlighter to highlight.
+ */
 struct Issue {
+	/* block number in the document where issue occurs. */
 	size_t block;
+	/* position in block where issue starts (typically start of token) */
 	size_t start;
+	/* position in block where issue ends (typically end of token) */
 	size_t end;
+	/* Message issued by frontend regarding this issue */
 	std::string message;
+	/* Determines which type the issue is. Used for highlighting differently. */
 	IssueType type;
 };
 
+/**
+ * Responsible for communicating with rasmus::frontend to find issues in
+ * the written code in the editor.
+ */
 class Intellisense: public QObject {
 	Q_OBJECT
 public slots:
+	/**
+	 * Runs the rasmus::interpreter parser/typechecker on the given parameter.
+	 * @param blocks is the contents of the editor.
+	 */
 	void process(std::vector<std::string> * blocks);
 signals:
+	/**
+	 * When done processing the Intellisense thread signals the main thread
+	 * what the issues are, so that it can highlight them appropriately.
+	 * @param issues are the issues that were found.
+	 */
 	void issues(std::vector<Issue> * issues);
 };
 
