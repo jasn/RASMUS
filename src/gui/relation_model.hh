@@ -84,7 +84,7 @@ public:
 	 * flags of a cell tells Qt whether the cell is selectable/editable etc.
 	 * @param index is the cell the query is asked on.
 	 */
-	Qt::ItemFlags flags(const QModelIndex &index) const overide;
+	Qt::ItemFlags flags(const QModelIndex &index) const override;
 
 	/**
 	 * Updates the contents of the cell index with the data value.
