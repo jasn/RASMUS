@@ -33,9 +33,18 @@
 #include <stdlib/ile.hh>
 #include <stdlib/abort.hh>
 #include <numeric>
+#include <cstring>
 
 namespace {
 using namespace rasmus::stdlib;
+
+template <typename T, typename T2>
+T bit_cast(const T2 & t) {
+	static_assert(sizeof(T) == sizeof(T2), "MUST HAVE SAME SIZE");
+	T ans;
+	memcpy(&ans, &t, sizeof(T));
+	return ans;
+}
 
 size_t utf8strlen(std::string str){
 	size_t len = 0;
@@ -2276,7 +2285,7 @@ void rm_tupEntry(rm_object * tup, const char * name, AnyRet * ret, int64_t range
 		ret->value = val.intValue;
 		break;
 	case TFloat:
-		ret->value = val.floatValue;
+		ret->value = bit_cast<int64_t>(val.floatValue);
 		break;
 	case TBool:
 		ret->value = val.boolValue;
